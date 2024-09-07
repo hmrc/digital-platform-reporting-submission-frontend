@@ -28,7 +28,7 @@ trait ErrorMessageAwareness {
       .map {
         err =>
           ErrorMessage(
-            content = Text(messages(err.message, err.args: _*)),
+            content = Text(messages(err.message, err.args*)),
             visuallyHiddenText = Some(messages("error.prefix"))
           )
       }
