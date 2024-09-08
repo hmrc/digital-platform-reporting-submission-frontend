@@ -48,5 +48,12 @@ signedOut.guidance = We did not save your answers.
 unauthorised.title = You can’t access this service with this account
 unauthorised.heading = You can’t access this service with this account
 
-startPage.title = startPage
-startPage.heading = startPage
+startPage.title = Make a new submission
+startPage.heading = Make a new submission
+startPage.p1 = In the next few screens you can submit an XML file containing the information of sellers using your platform.
+startPage.p2.1 = Your file must comply with the XML schema rules. When you submit your data it will be processed to make sure it fits with the schema. You can refer to the
+startPage.p2.link = schema and supporting documents (opens in new tab)
+startPage.p2.2 = for guidance.
+startPage.p3 = The maximum file size is 100MB.
+startPage.p4 = Doing a file submission takes around 10 minutes, but it may take longer for your file to process in the background once submitted. A large file may take up to 2 days to process.
+startPage.startSubmission = Start submission

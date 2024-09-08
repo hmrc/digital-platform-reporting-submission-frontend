@@ -23,5 +23,17 @@
 
 @layout(pageTitle = titleNoForm(messages("startPage.title"))) {
 
-    <h1 class="govuk-heading-xl">@messages("startPage.heading")</h1>
+  <h1 class="govuk-heading-xl">@messages("startPage.heading")</h1>
+
+  <p class="govuk-body">@messages("startPage.p1")</p>
+
+  <p class="govuk-body">
+    @messages("startPage.p2.1")
+    <a href="#" class="govuk-link" target="_blank" rel="noreferrer noopener">@messages("startPage.p2.link")</a>
+    @messages("startPage.p2.2")
+  </p>
+
+  <p class="govuk-body">@messages("startPage.p3")</p>
+
+  <p class="govuk-body">@messages("startPage.p4")</p>
 }
