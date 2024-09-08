@@ -33,7 +33,7 @@ import views.html.StartPageView
 import java.time.Instant
 import scala.concurrent.Future
 
-class StartPageControllerSpec extends SpecBase with MockitoSugar with BeforeAndAfterEach {
+class StartControllerSpec extends SpecBase with MockitoSugar with BeforeAndAfterEach {
 
   private val mockSubmissionConnector: SubmissionConnector = mock[SubmissionConnector]
 
@@ -53,7 +53,7 @@ class StartPageControllerSpec extends SpecBase with MockitoSugar with BeforeAndA
         val application = applicationBuilder(userAnswers = Some(emptyUserAnswers)).build()
 
         running(application) {
-          val request = FakeRequest(routes.StartPageController.onPageLoad())
+          val request = FakeRequest(routes.StartController.onPageLoad())
           val result = route(application, request).value
           val view = application.injector.instanceOf[StartPageView]
 
@@ -86,7 +86,7 @@ class StartPageControllerSpec extends SpecBase with MockitoSugar with BeforeAndA
         when(mockSubmissionConnector.start(any(), any())(using any())).thenReturn(Future.successful(submission))
 
         running(application) {
-          val request = FakeRequest(routes.StartPageController.onSubmit())
+          val request = FakeRequest(routes.StartController.onSubmit())
           val result = route(application, request).value
 
           status(result) mustEqual SEE_OTHER
@@ -107,7 +107,7 @@ class StartPageControllerSpec extends SpecBase with MockitoSugar with BeforeAndA
         when(mockSubmissionConnector.start(any(), any())(using any())).thenReturn(Future.failed(new RuntimeException()))
 
         running(application) {
-          val request = FakeRequest(routes.StartPageController.onSubmit())
+          val request = FakeRequest(routes.StartController.onSubmit())
           route(application, request).value.failed.futureValue
         }
       }

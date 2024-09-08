@@ -20,7 +20,7 @@ GET         /account/signed-out                          controllers.auth.Signed
 
 GET         /unauthorised                                controllers.UnauthorisedController.onPageLoad()
 
-GET         /start-page                                  controllers.StartPageController.onPageLoad()
-POST        /start-page                                  controllers.StartPageController.onSubmit()
+GET         /start-page                                  controllers.StartController.onPageLoad()
+POST        /start-page                                  controllers.StartController.onSubmit()
 
 GET         /upload/:submissionId                        controllers.UploadController.onPageLoad(submissionId: String)
