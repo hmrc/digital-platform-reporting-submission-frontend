@@ -16,7 +16,8 @@
 
 @this(
         layout: templates.Layout,
-        govukButton: GovukButton
+        govukButton: GovukButton,
+        formHelper: FormWithCSRF
 )
 
 @()(implicit request: Request[_], messages: Messages)
@@ -36,4 +37,10 @@
   <p class="govuk-body">@messages("startPage.p3")</p>
 
   <p class="govuk-body">@messages("startPage.p4")</p>
+
+  @formHelper(action = routes.StartController.onSubmit(), Symbol("autoComplete") -> "off") {
+    @govukButton(
+      ButtonViewModel(messages("startPage.startSubmission"))
+    )
+  }
 }
