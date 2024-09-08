@@ -30,10 +30,8 @@ class UploadControllerSpec extends SpecBase {
       val application = applicationBuilder(userAnswers = Some(emptyUserAnswers)).build()
 
       running(application) {
-        val request = FakeRequest(GET, routes.UploadController.onPageLoad().url)
-
+        val request = FakeRequest(GET, routes.UploadController.onPageLoad("id").url)
         val result = route(application, request).value
-
         val view = application.injector.instanceOf[uploadView]
 
         status(result) mustEqual OK

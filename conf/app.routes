@@ -22,4 +22,4 @@ GET         /unauthorised                                controllers.Unauthorise
 
 GET         /start-page                                  controllers.StartPageController.onPageLoad()
 
-GET         /upload                                      controllers.UploadController.onPageLoad()
+GET         /upload/:submissionId                        controllers.UploadController.onPageLoad(submissionId: String)
