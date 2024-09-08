@@ -16,22 +16,33 @@
 
 package controllers
 
-import controllers.actions._
+import connectors.SubmissionConnector
+import controllers.actions.*
+
 import javax.inject.Inject
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import views.html.uploadView
 
+import scala.concurrent.ExecutionContext
+
 class UploadController @Inject()(
                                   override val messagesApi: MessagesApi,
                                   identify: IdentifierAction,
                                   val controllerComponents: MessagesControllerComponents,
-                                  view: uploadView
-                                ) extends FrontendBaseController with I18nSupport {
+                                  view: uploadView,
+                                  submissionConnector: SubmissionConnector
+                                )(using ExecutionContext) extends FrontendBaseController with I18nSupport {
 
-  def onPageLoad(submissionId: String): Action[AnyContent] = identify {
+  def onPageLoad(submissionId: String): Action[AnyContent] = identify.async {
     implicit request =>
-      Ok(view())
+      submissionConnector.get(submissionId).map {
+        _.map { _ =>
+          Ok(view())
+        }.getOrElse {
+          Redirect(routes.JourneyRecoveryController.onPageLoad())
+        }
+      }
   }
 }
