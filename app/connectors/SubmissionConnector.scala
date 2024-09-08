@@ -17,10 +17,10 @@
 package connectors
 
 import config.Service
-import connectors.SubmissionConnector.StartFailure
+import connectors.SubmissionConnector.{GetFailure, StartFailure}
 import models.submission.{StartSubmissionRequest, Submission}
 import play.api.Configuration
-import play.api.http.Status.{CREATED, OK}
+import play.api.http.Status.{CREATED, NOT_FOUND, OK}
 import play.api.libs.json.{JsValue, Json}
 import play.api.libs.ws.JsonBodyWritables.writeableOf_JsValue
 import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse, StringContextOps}
@@ -39,7 +39,7 @@ class SubmissionConnector @Inject() (
   private val digitalPlatformReportingService: Service =
     configuration.get[Service]("microservice.services.digital-platform-reporting")
 
-  def start(platformOperatorId: String, id: Option[String])(using HeaderCarrier): Future[Submission] = {
+  def start(platformOperatorId: String, id: Option[String])(using HeaderCarrier): Future[Submission] =
     httpClient.put(url"$digitalPlatformReportingService/submission/start")
       .transform(_.withQueryStringParameters(Seq(id.map(id => "id" -> id)).flatten*))
       .withBody(Json.toJson(StartSubmissionRequest(platformOperatorId)))
@@ -52,10 +52,24 @@ class SubmissionConnector @Inject() (
             Future.failed(StartFailure(platformOperatorId, id))
         }
       }
-  }
+
+  def get(id: String)(using HeaderCarrier): Future[Option[Submission]] =
+    httpClient.get(url"$digitalPlatformReportingService/submission/$id")
+      .execute[HttpResponse]
+      .flatMap { response =>
+        response.status match {
+          case OK =>
+            Future.successful(Some(response.json.as[Submission]))
+          case NOT_FOUND =>
+            Future.successful(None)
+          case _ =>
+            Future.failed(GetFailure(id))
+        }
+      }
 }
 
 object SubmissionConnector {
 
   final case class StartFailure(platformOperatorId: String, id: Option[String]) extends Throwable
+  final case class GetFailure(id: String) extends Throwable
 }

@@ -17,14 +17,16 @@
 package connectors
 
 import com.github.tomakehurst.wiremock.client.WireMock.*
+import connectors.SubmissionConnector.GetFailure
 import models.submission.Submission.State.Ready
 import models.submission.{StartSubmissionRequest, Submission}
+import org.scalatest.OptionValues
 import org.scalatest.concurrent.{IntegrationPatience, ScalaFutures}
 import org.scalatest.freespec.AnyFreeSpec
 import org.scalatest.matchers.must.Matchers
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
 import play.api.Application
-import play.api.http.Status.{CREATED, INTERNAL_SERVER_ERROR, OK}
+import play.api.http.Status.{CREATED, INTERNAL_SERVER_ERROR, NOT_FOUND, OK}
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.json.Json
 import uk.gov.hmrc.http.{Authorization, HeaderCarrier}
@@ -38,7 +40,8 @@ class SubmissionConnectorSpec
     with WireMockSupport
     with GuiceOneAppPerSuite
     with ScalaFutures
-    with IntegrationPatience {
+    with IntegrationPatience
+    with OptionValues {
 
   override lazy val app: Application = GuiceApplicationBuilder()
     .configure(
@@ -118,6 +121,67 @@ class SubmissionConnectorSpec
 
       val result = connector.start(platformOperatorId, Some("id"))(using hc).failed.futureValue
       result mustBe a[SubmissionConnector.StartFailure]
+    }
+  }
+
+  "get" - {
+
+    val expectedSubmission = Submission(
+      _id = "id",
+      dprsId = "dprsId",
+      platformOperatorId = "poid",
+      state = Ready,
+      created = now,
+      updated = now
+    )
+
+    "must return a submission when the service responds with OK" in {
+
+      wireMockServer.stubFor(
+        get(urlPathEqualTo("/submission/id"))
+          .withHeader("User-Agent", equalTo("app"))
+          .withHeader("Authorization", equalTo("auth"))
+          .willReturn(
+            aResponse()
+              .withStatus(OK)
+              .withBody(Json.toJson(expectedSubmission).toString)
+          )
+      )
+
+      val result = connector.get("id")(using hc).futureValue.value
+      result mustEqual expectedSubmission
+    }
+
+    "must return None when the service responds wit NOT_FOUND" in {
+
+      wireMockServer.stubFor(
+        get(urlPathEqualTo("/submission/id"))
+          .withHeader("User-Agent", equalTo("app"))
+          .withHeader("Authorization", equalTo("auth"))
+          .willReturn(
+            aResponse()
+              .withStatus(NOT_FOUND)
+          )
+      )
+
+      val result = connector.get("id")(using hc).futureValue
+      result mustBe None
+    }
+
+    "must return an error when the service responds with another status" in {
+
+      wireMockServer.stubFor(
+        get(urlPathEqualTo("/submission/id"))
+          .withHeader("User-Agent", equalTo("app"))
+          .withHeader("Authorization", equalTo("auth"))
+          .willReturn(
+            aResponse()
+              .withStatus(INTERNAL_SERVER_ERROR)
+          )
+      )
+
+      val result = connector.get("id")(using hc).failed.futureValue
+      result mustBe a[GetFailure]
     }
   }
 }
