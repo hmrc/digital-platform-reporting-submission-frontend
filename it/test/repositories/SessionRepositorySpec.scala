@@ -26,13 +26,18 @@ import org.scalatest.concurrent.{IntegrationPatience, ScalaFutures}
 import org.scalatest.freespec.AnyFreeSpec
 import org.scalatest.matchers.must.Matchers
 import org.scalatestplus.mockito.MockitoSugar
+import org.scalatestplus.play.guice.GuiceOneAppPerSuite
 import org.slf4j.MDC
+import play.api.Application
+import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.json.Json
+import play.api.inject.bind
+import uk.gov.hmrc.mongo.MongoComponent
 import uk.gov.hmrc.mongo.test.DefaultPlayMongoRepositorySupport
 import uk.gov.hmrc.play.bootstrap.dispatchers.MDCPropagatingExecutorService
 
-import java.time.{Clock, Instant, ZoneId}
 import java.time.temporal.ChronoUnit
+import java.time.{Clock, Instant, ZoneId}
 import java.util.concurrent.Executors
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -43,7 +48,8 @@ class SessionRepositorySpec
     with ScalaFutures
     with IntegrationPatience
     with OptionValues
-    with MockitoSugar {
+    with MockitoSugar
+    with GuiceOneAppPerSuite {
 
   private val instant = Instant.now.truncatedTo(ChronoUnit.MILLIS)
   private val stubClock: Clock = Clock.fixed(instant, ZoneId.systemDefault)
@@ -53,11 +59,15 @@ class SessionRepositorySpec
   private val mockAppConfig = mock[FrontendAppConfig]
   when(mockAppConfig.cacheTtl).thenReturn(1L)
 
-  protected override val repository: SessionRepository = new SessionRepository(
-    mongoComponent = mongoComponent,
-    appConfig      = mockAppConfig,
-    clock          = stubClock
-  )(scala.concurrent.ExecutionContext.Implicits.global)
+  override def fakeApplication(): Application = GuiceApplicationBuilder()
+    .overrides(
+      bind[MongoComponent].toInstance(mongoComponent),
+      bind[Clock].toInstance(stubClock),
+      bind[FrontendAppConfig].toInstance(mockAppConfig)
+    )
+    .build()
+
+  protected override val repository: SessionRepository = app.injector.instanceOf[SessionRepository]
 
   ".set" - {
 
