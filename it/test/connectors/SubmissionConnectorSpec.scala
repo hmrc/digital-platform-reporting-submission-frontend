@@ -72,7 +72,7 @@ class SubmissionConnectorSpec
     "must return a Submission when the service responds with CREATED" in {
 
       wireMockServer.stubFor(
-        put(urlPathEqualTo("/submission/start"))
+        put(urlPathEqualTo("/digital-platform-reporting/submission/start"))
           .withHeader("User-Agent", equalTo("app"))
           .withHeader("Authorization", equalTo("auth"))
           .withRequestBody(equalToJson(Json.toJson(request).toString))
@@ -90,7 +90,7 @@ class SubmissionConnectorSpec
     "must return a Submission when the service responds with OK" in {
 
       wireMockServer.stubFor(
-        put(urlPathEqualTo("/submission/start"))
+        put(urlPathEqualTo("/digital-platform-reporting/submission/start"))
           .withQueryParam("id", equalTo("id"))
           .withHeader("User-Agent", equalTo("app"))
           .withHeader("Authorization", equalTo("auth"))
@@ -109,7 +109,7 @@ class SubmissionConnectorSpec
     "must return an error when the service responds with another status" in {
 
       wireMockServer.stubFor(
-        put(urlPathEqualTo("/submission/start"))
+        put(urlPathEqualTo("/digital-platform-reporting/submission/start"))
           .withHeader("User-Agent", equalTo("app"))
           .withHeader("Authorization", equalTo("auth"))
           .withRequestBody(equalToJson(Json.toJson(request).toString))
@@ -138,7 +138,7 @@ class SubmissionConnectorSpec
     "must return a submission when the service responds with OK" in {
 
       wireMockServer.stubFor(
-        get(urlPathEqualTo("/submission/id"))
+        get(urlPathEqualTo("/digital-platform-reporting/submission/id"))
           .withHeader("User-Agent", equalTo("app"))
           .withHeader("Authorization", equalTo("auth"))
           .willReturn(
@@ -155,7 +155,7 @@ class SubmissionConnectorSpec
     "must return None when the service responds wit NOT_FOUND" in {
 
       wireMockServer.stubFor(
-        get(urlPathEqualTo("/submission/id"))
+        get(urlPathEqualTo("/digital-platform-reporting/submission/id"))
           .withHeader("User-Agent", equalTo("app"))
           .withHeader("Authorization", equalTo("auth"))
           .willReturn(
@@ -171,7 +171,7 @@ class SubmissionConnectorSpec
     "must return an error when the service responds with another status" in {
 
       wireMockServer.stubFor(
-        get(urlPathEqualTo("/submission/id"))
+        get(urlPathEqualTo("/digital-platform-reporting/submission/id"))
           .withHeader("User-Agent", equalTo("app"))
           .withHeader("Authorization", equalTo("auth"))
           .willReturn(
@@ -190,7 +190,7 @@ class SubmissionConnectorSpec
     "must return successfully when the service returns OK" in {
 
       wireMockServer.stubFor(
-        post(urlPathEqualTo("/submission/id/start-upload"))
+        post(urlPathEqualTo("/digital-platform-reporting/submission/id/start-upload"))
           .withHeader("User-Agent", equalTo("app"))
           .withHeader("Authorization", equalTo("auth"))
           .willReturn(
@@ -205,7 +205,7 @@ class SubmissionConnectorSpec
     "must return a failure when the service returns another status" in {
 
       wireMockServer.stubFor(
-        post(urlPathEqualTo("/submission/id/start-upload"))
+        post(urlPathEqualTo("/digital-platform-reporting/submission/id/start-upload"))
           .withHeader("User-Agent", equalTo("app"))
           .withHeader("Authorization", equalTo("auth"))
           .willReturn(
@@ -224,7 +224,7 @@ class SubmissionConnectorSpec
     "must return successfully when the service returns OK" in {
 
       wireMockServer.stubFor(
-        post(urlPathEqualTo("/submission/id/upload-success"))
+        post(urlPathEqualTo("/digital-platform-reporting/submission/id/upload-success"))
           .withHeader("User-Agent", equalTo("app"))
           .withHeader("Authorization", equalTo("auth"))
           .willReturn(
@@ -239,7 +239,7 @@ class SubmissionConnectorSpec
     "must return a failure when the service returns another status" in {
 
       wireMockServer.stubFor(
-        post(urlPathEqualTo("/submission/id/upload-success"))
+        post(urlPathEqualTo("/digital-platform-reporting/submission/id/upload-success"))
           .withHeader("User-Agent", equalTo("app"))
           .withHeader("Authorization", equalTo("auth"))
           .willReturn(
@@ -258,7 +258,7 @@ class SubmissionConnectorSpec
     "must return successfully when the service returns OK" in {
 
       wireMockServer.stubFor(
-        post(urlPathEqualTo("/submission/id/upload-failed"))
+        post(urlPathEqualTo("/digital-platform-reporting/submission/id/upload-failed"))
           .withHeader("User-Agent", equalTo("app"))
           .withHeader("Authorization", equalTo("auth"))
           .withRequestBody(equalToJson(Json.toJson(UploadFailedRequest("reason")).toString))
@@ -274,7 +274,7 @@ class SubmissionConnectorSpec
     "must return a failure when the service returns another status" in {
 
       wireMockServer.stubFor(
-        post(urlPathEqualTo("/submission/id/upload-failed"))
+        post(urlPathEqualTo("/digital-platform-reporting/submission/id/upload-failed"))
           .withHeader("User-Agent", equalTo("app"))
           .withHeader("Authorization", equalTo("auth"))
           .withRequestBody(equalToJson(Json.toJson(UploadFailedRequest("reason")).toString))
@@ -294,7 +294,7 @@ class SubmissionConnectorSpec
     "must return successfully when the service returns OK" in {
 
       wireMockServer.stubFor(
-        post(urlPathEqualTo("/submission/id/submit"))
+        post(urlPathEqualTo("/digital-platform-reporting/submission/id/submit"))
           .withHeader("User-Agent", equalTo("app"))
           .withHeader("Authorization", equalTo("auth"))
           .willReturn(
@@ -309,7 +309,7 @@ class SubmissionConnectorSpec
     "must return a failure when the service returns another status" in {
 
       wireMockServer.stubFor(
-        post(urlPathEqualTo("/submission/id/submit"))
+        post(urlPathEqualTo("/digital-platform-reporting/submission/id/submit"))
           .withHeader("User-Agent", equalTo("app"))
           .withHeader("Authorization", equalTo("auth"))
           .willReturn(

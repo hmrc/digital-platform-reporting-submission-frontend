@@ -42,7 +42,7 @@ class SubmissionConnector @Inject() (
 
   // TODO remove POID from here, add it to the relevant states
   def start(platformOperatorId: String, id: Option[String])(using HeaderCarrier): Future[Submission] =
-    httpClient.put(url"$digitalPlatformReportingService/submission/start")
+    httpClient.put(url"$digitalPlatformReportingService/digital-platform-reporting/submission/start")
       .transform(_.withQueryStringParameters(Seq(id.map(id => "id" -> id)).flatten*))
       .withBody(Json.toJson(StartSubmissionRequest(platformOperatorId)))
       .execute[HttpResponse]
@@ -56,7 +56,7 @@ class SubmissionConnector @Inject() (
       }
 
   def get(id: String)(using HeaderCarrier): Future[Option[Submission]] =
-    httpClient.get(url"$digitalPlatformReportingService/submission/$id")
+    httpClient.get(url"$digitalPlatformReportingService/digital-platform-reporting/submission/$id")
       .execute[HttpResponse]
       .flatMap { response =>
         response.status match {
@@ -70,7 +70,7 @@ class SubmissionConnector @Inject() (
       }
 
   def startUpload(id: String)(using HeaderCarrier): Future[Done] =
-    httpClient.post(url"$digitalPlatformReportingService/submission/$id/start-upload")
+    httpClient.post(url"$digitalPlatformReportingService/digital-platform-reporting/submission/$id/start-upload")
       .execute[HttpResponse]
       .flatMap { response =>
         response.status match {
@@ -82,7 +82,7 @@ class SubmissionConnector @Inject() (
       }
 
   def uploadSuccess(id: String)(using HeaderCarrier): Future[Done] =
-    httpClient.post(url"$digitalPlatformReportingService/submission/$id/upload-success")
+    httpClient.post(url"$digitalPlatformReportingService/digital-platform-reporting/submission/$id/upload-success")
       .execute[HttpResponse]
       .flatMap { response =>
         response.status match {
@@ -94,7 +94,7 @@ class SubmissionConnector @Inject() (
       }
 
   def uploadFailed(id: String, reason: String)(using HeaderCarrier): Future[Done] =
-    httpClient.post(url"$digitalPlatformReportingService/submission/$id/upload-failed")
+    httpClient.post(url"$digitalPlatformReportingService/digital-platform-reporting/submission/$id/upload-failed")
       .withBody(Json.toJson(UploadFailedRequest(reason)))
       .execute[HttpResponse]
       .flatMap { response =>
@@ -107,7 +107,7 @@ class SubmissionConnector @Inject() (
       }
 
   def submit(id: String)(using HeaderCarrier): Future[Done] =
-    httpClient.post(url"$digitalPlatformReportingService/submission/$id/submit")
+    httpClient.post(url"$digitalPlatformReportingService/digital-platform-reporting/submission/$id/submit")
       .execute[HttpResponse]
       .flatMap { response =>
         response.status match {
