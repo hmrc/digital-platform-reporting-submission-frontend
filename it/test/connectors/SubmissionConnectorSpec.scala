@@ -17,7 +17,7 @@
 package connectors
 
 import com.github.tomakehurst.wiremock.client.WireMock.*
-import connectors.SubmissionConnector.GetFailure
+import connectors.SubmissionConnector.{GetFailure, StartUploadFailure, UploadSuccessFailure}
 import models.submission.Submission.State.Ready
 import models.submission.{StartSubmissionRequest, Submission}
 import org.scalatest.OptionValues
@@ -182,6 +182,74 @@ class SubmissionConnectorSpec
 
       val result = connector.get("id")(using hc).failed.futureValue
       result mustBe a[GetFailure]
+    }
+  }
+
+  "startUpload" - {
+
+    "must return successfully when the service returns OK" in {
+
+      wireMockServer.stubFor(
+        post(urlPathEqualTo("/submission/id/start-upload"))
+          .withHeader("User-Agent", equalTo("app"))
+          .withHeader("Authorization", equalTo("auth"))
+          .willReturn(
+            aResponse()
+              .withStatus(OK)
+          )
+      )
+
+      connector.startUpload("id")(using hc).futureValue
+    }
+
+    "must return a failure when the service returns another status" in {
+
+      wireMockServer.stubFor(
+        post(urlPathEqualTo("/submission/id/start-upload"))
+          .withHeader("User-Agent", equalTo("app"))
+          .withHeader("Authorization", equalTo("auth"))
+          .willReturn(
+            aResponse()
+              .withStatus(INTERNAL_SERVER_ERROR)
+          )
+      )
+
+      val result = connector.startUpload("id")(using hc).failed.futureValue
+      result mustBe a[StartUploadFailure]
+    }
+  }
+
+  "uploadSuccess" - {
+
+    "must return successfully when the service returns OK" in {
+
+      wireMockServer.stubFor(
+        post(urlPathEqualTo("/submission/id/upload-success"))
+          .withHeader("User-Agent", equalTo("app"))
+          .withHeader("Authorization", equalTo("auth"))
+          .willReturn(
+            aResponse()
+              .withStatus(OK)
+          )
+      )
+
+      connector.uploadSuccess("id")(using hc).futureValue
+    }
+
+    "must return a failure when the service returns another status" in {
+
+      wireMockServer.stubFor(
+        post(urlPathEqualTo("/submission/id/upload-success"))
+          .withHeader("User-Agent", equalTo("app"))
+          .withHeader("Authorization", equalTo("auth"))
+          .willReturn(
+            aResponse()
+              .withStatus(INTERNAL_SERVER_ERROR)
+          )
+      )
+
+      val result = connector.uploadSuccess("id")(using hc).failed.futureValue
+      result mustBe a[UploadSuccessFailure]
     }
   }
 }
