@@ -16,6 +16,7 @@
 
 package controllers.actions
 
+import auth.Retrievals._
 import base.SpecBase
 import com.google.inject.Inject
 import config.FrontendAppConfig
@@ -30,11 +31,19 @@ import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.{ExecutionContext, Future}
+import scala.util.Try
 
 class AuthActionSpec extends SpecBase {
 
+  private val application = applicationBuilder(userAnswers = None).build()
+  private val bodyParsers = application.injector.instanceOf[BodyParsers.Default]
+  private val appConfig = application.injector.instanceOf[FrontendAppConfig]
+  private val emptyEnrolments = Enrolments(Set.empty)
+
   class Harness(authAction: IdentifierAction) {
-    def onPageLoad(): Action[AnyContent] = authAction { _ => Results.Ok }
+    def onPageLoad(): Action[AnyContent] = authAction { request =>
+      Results.Ok(s"${request.userId} ${request.dprsId}")
+    }
   }
 
   "Auth Action" - {
@@ -43,142 +52,60 @@ class AuthActionSpec extends SpecBase {
 
       "must redirect the user to log in " in {
 
-        val application = applicationBuilder(userAnswers = None).build()
+        val authAction = new AuthenticatedIdentifierAction(new FakeFailingAuthConnector(new MissingBearerToken), appConfig, bodyParsers)
+        val controller = new Harness(authAction)
+        val result = controller.onPageLoad()(FakeRequest())
 
-        running(application) {
-          val bodyParsers = application.injector.instanceOf[BodyParsers.Default]
-          val appConfig   = application.injector.instanceOf[FrontendAppConfig]
-
-          val authAction = new AuthenticatedIdentifierAction(new FakeFailingAuthConnector(new MissingBearerToken), appConfig, bodyParsers)
-          val controller = new Harness(authAction)
-          val result = controller.onPageLoad()(FakeRequest())
-
-          status(result) mustBe SEE_OTHER
-          redirectLocation(result).value must startWith(appConfig.loginUrl)
-        }
+        status(result) mustBe SEE_OTHER
+        redirectLocation(result).value must startWith(appConfig.loginUrl)
       }
     }
 
-    "the user's session has expired" - {
+    "when the user's session has expired" - {
 
       "must redirect the user to log in " in {
 
-        val application = applicationBuilder(userAnswers = None).build()
+        val authAction = new AuthenticatedIdentifierAction(new FakeFailingAuthConnector(new BearerTokenExpired), appConfig, bodyParsers)
+        val controller = new Harness(authAction)
+        val result = controller.onPageLoad()(FakeRequest())
 
-        running(application) {
-          val bodyParsers = application.injector.instanceOf[BodyParsers.Default]
-          val appConfig   = application.injector.instanceOf[FrontendAppConfig]
-
-          val authAction = new AuthenticatedIdentifierAction(new FakeFailingAuthConnector(new BearerTokenExpired), appConfig, bodyParsers)
-          val controller = new Harness(authAction)
-          val result = controller.onPageLoad()(FakeRequest())
-
-          status(result) mustBe SEE_OTHER
-          redirectLocation(result).value must startWith(appConfig.loginUrl)
-        }
+        status(result) mustBe SEE_OTHER
+        redirectLocation(result).value must startWith(appConfig.loginUrl)
       }
     }
 
-    "the user doesn't have sufficient enrolments" - {
+    "when the user doesn't have a DPRS enrolments" - {
 
       "must redirect the user to the unauthorised page" in {
 
-        val application = applicationBuilder(userAnswers = None).build()
+        val authAction = new AuthenticatedIdentifierAction(new FakeAuthConnector(Some("internalId") ~ emptyEnrolments), appConfig, bodyParsers)
+        val controller = new Harness(authAction)
+        val result = controller.onPageLoad()(FakeRequest())
 
-        running(application) {
-          val bodyParsers = application.injector.instanceOf[BodyParsers.Default]
-          val appConfig   = application.injector.instanceOf[FrontendAppConfig]
-
-          val authAction = new AuthenticatedIdentifierAction(new FakeFailingAuthConnector(new InsufficientEnrolments), appConfig, bodyParsers)
-          val controller = new Harness(authAction)
-          val result = controller.onPageLoad()(FakeRequest())
-
-          status(result) mustBe SEE_OTHER
-          redirectLocation(result).value mustBe routes.UnauthorisedController.onPageLoad().url
-        }
+        status(result) mustBe SEE_OTHER
+        redirectLocation(result).value mustEqual routes.UnauthorisedController.onPageLoad().url
       }
     }
 
-    "the user doesn't have sufficient confidence level" - {
+    "when the user has a DPRS enrolment" -{
 
-      "must redirect the user to the unauthorised page" in {
+      "must succeed" in {
 
-        val application = applicationBuilder(userAnswers = None).build()
+        val enrolments = Enrolments(Set(Enrolment("HMRC-DPRS", Seq(EnrolmentIdentifier("DPRSID", "dprsId")), "activated", None)))
+        val authAction = new AuthenticatedIdentifierAction(new FakeAuthConnector(Some("internalId") ~ enrolments), appConfig, bodyParsers)
+        val controller = new Harness(authAction)
+        val result = controller.onPageLoad()(FakeRequest())
 
-        running(application) {
-          val bodyParsers = application.injector.instanceOf[BodyParsers.Default]
-          val appConfig   = application.injector.instanceOf[FrontendAppConfig]
-
-          val authAction = new AuthenticatedIdentifierAction(new FakeFailingAuthConnector(new InsufficientConfidenceLevel), appConfig, bodyParsers)
-          val controller = new Harness(authAction)
-          val result = controller.onPageLoad()(FakeRequest())
-
-          status(result) mustBe SEE_OTHER
-          redirectLocation(result).value mustBe routes.UnauthorisedController.onPageLoad().url
-        }
-      }
-    }
-
-    "the user used an unaccepted auth provider" - {
-
-      "must redirect the user to the unauthorised page" in {
-
-        val application = applicationBuilder(userAnswers = None).build()
-
-        running(application) {
-          val bodyParsers = application.injector.instanceOf[BodyParsers.Default]
-          val appConfig   = application.injector.instanceOf[FrontendAppConfig]
-
-          val authAction = new AuthenticatedIdentifierAction(new FakeFailingAuthConnector(new UnsupportedAuthProvider), appConfig, bodyParsers)
-          val controller = new Harness(authAction)
-          val result = controller.onPageLoad()(FakeRequest())
-
-          status(result) mustBe SEE_OTHER
-          redirectLocation(result).value mustBe routes.UnauthorisedController.onPageLoad().url
-        }
-      }
-    }
-
-    "the user has an unsupported affinity group" - {
-
-      "must redirect the user to the unauthorised page" in {
-
-        val application = applicationBuilder(userAnswers = None).build()
-
-        running(application) {
-          val bodyParsers = application.injector.instanceOf[BodyParsers.Default]
-          val appConfig   = application.injector.instanceOf[FrontendAppConfig]
-
-          val authAction = new AuthenticatedIdentifierAction(new FakeFailingAuthConnector(new UnsupportedAffinityGroup), appConfig, bodyParsers)
-          val controller = new Harness(authAction)
-          val result = controller.onPageLoad()(FakeRequest())
-
-          status(result) mustBe SEE_OTHER
-          redirectLocation(result) mustBe Some(routes.UnauthorisedController.onPageLoad().url)
-        }
-      }
-    }
-
-    "the user has an unsupported credential role" - {
-
-      "must redirect the user to the unauthorised page" in {
-
-        val application = applicationBuilder(userAnswers = None).build()
-
-        running(application) {
-          val bodyParsers = application.injector.instanceOf[BodyParsers.Default]
-          val appConfig   = application.injector.instanceOf[FrontendAppConfig]
-
-          val authAction = new AuthenticatedIdentifierAction(new FakeFailingAuthConnector(new UnsupportedCredentialRole), appConfig, bodyParsers)
-          val controller = new Harness(authAction)
-          val result = controller.onPageLoad()(FakeRequest())
-
-          status(result) mustBe SEE_OTHER
-          redirectLocation(result) mustBe Some(routes.UnauthorisedController.onPageLoad().url)
-        }
+        status(result) mustBe OK
+        contentAsString(result) mustEqual "internalId dprsId"
       }
     }
   }
+}
+
+class FakeAuthConnector[T](value: T) extends AuthConnector {
+  override def authorise[A](predicate: Predicate, retrieval: Retrieval[A])(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[A] =
+    Future.fromTry(Try(value.asInstanceOf[A]))
 }
 
 class FakeFailingAuthConnector @Inject()(exceptionToReturn: Throwable) extends AuthConnector {

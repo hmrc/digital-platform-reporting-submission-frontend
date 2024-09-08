@@ -14,8 +14,12 @@
  * limitations under the License.
  */
 
-package models.requests
+package auth
 
-import play.api.mvc.{Request, WrappedRequest}
+import uk.gov.hmrc.auth.core.retrieve.~
 
-final case class IdentifierRequest[A](request: Request[A], userId: String, dprsId: String) extends WrappedRequest[A](request)
+object Retrievals {
+  implicit class Ops[A](a: A) {
+    def ~[B](b: B): A ~ B = new ~(a, b)
+  }
+}
