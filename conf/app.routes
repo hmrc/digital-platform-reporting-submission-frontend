@@ -26,3 +26,5 @@ POST        /start-page                                  controllers.StartContro
 GET         /upload/:submissionId                        controllers.UploadController.onPageLoad(submissionId: String)
 
 GET        /uploading                       controllers.UploadingController.onPageLoad()
+
+GET        /uploadFailed                       controllers.UploadFailedController.onPageLoad()

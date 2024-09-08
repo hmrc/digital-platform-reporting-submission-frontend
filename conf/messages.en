@@ -63,3 +63,6 @@ upload.heading = upload
 
 uploading.title = uploading
 uploading.heading = uploading
+
+uploadFailed.title = uploadFailed
+uploadFailed.heading = uploadFailed
