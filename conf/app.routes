@@ -24,3 +24,5 @@ GET         /start-page                                  controllers.StartContro
 POST        /start-page                                  controllers.StartController.onSubmit()
 
 GET         /upload/:submissionId                        controllers.UploadController.onPageLoad(submissionId: String)
+
+GET        /uploading                       controllers.UploadingController.onPageLoad()

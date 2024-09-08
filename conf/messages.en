@@ -60,3 +60,6 @@ startPage.startSubmission = Start submission
 
 upload.title = upload
 upload.heading = upload
+
+uploading.title = uploading
+uploading.heading = uploading
