@@ -21,3 +21,5 @@ GET         /account/signed-out                          controllers.auth.Signed
 GET         /unauthorised                                controllers.UnauthorisedController.onPageLoad()
 
 GET         /start-page                                  controllers.StartPageController.onPageLoad()
+
+GET         /upload                                      controllers.UploadController.onPageLoad()
