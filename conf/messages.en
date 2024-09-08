@@ -66,3 +66,6 @@ uploading.heading = uploading
 
 uploadFailed.title = uploadFailed
 uploadFailed.heading = uploadFailed
+
+sendFile.title = sendFile
+sendFile.heading = sendFile

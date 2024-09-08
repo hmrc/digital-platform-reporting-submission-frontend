@@ -28,3 +28,5 @@ GET         /upload/:submissionId                        controllers.UploadContr
 GET        /uploading                       controllers.UploadingController.onPageLoad()
 
 GET        /uploadFailed                       controllers.UploadFailedController.onPageLoad()
+
+GET        /sendFile                       controllers.SendFileController.onPageLoad()
