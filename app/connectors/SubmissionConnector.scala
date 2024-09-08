@@ -17,7 +17,7 @@
 package connectors
 
 import config.Service
-import connectors.SubmissionConnector.{GetFailure, StartFailure, StartUploadFailure, UploadFailedFailure, UploadSuccessFailure}
+import connectors.SubmissionConnector.{GetFailure, StartFailure, StartUploadFailure, SubmitFailure, UploadFailedFailure, UploadSuccessFailure}
 import models.submission.{StartSubmissionRequest, Submission, UploadFailedRequest}
 import org.apache.pekko.Done
 import play.api.Configuration
@@ -104,6 +104,18 @@ class SubmissionConnector @Inject() (
             Future.failed(UploadFailedFailure(id))
         }
       }
+
+  def submit(id: String)(using HeaderCarrier): Future[Done] =
+    httpClient.post(url"$digitalPlatformReportingService/submission/$id/submit")
+      .execute[HttpResponse]
+      .flatMap { response =>
+        response.status match {
+          case OK =>
+            Future.successful(Done)
+          case _ =>
+            Future.failed(SubmitFailure(id))
+        }
+      }
 }
 
 object SubmissionConnector {
@@ -113,4 +125,5 @@ object SubmissionConnector {
   final case class StartUploadFailure(id: String) extends Throwable
   final case class UploadSuccessFailure(id: String) extends Throwable
   final case class UploadFailedFailure(id: String) extends Throwable
+  final case class SubmitFailure(id: String) extends Throwable
 }

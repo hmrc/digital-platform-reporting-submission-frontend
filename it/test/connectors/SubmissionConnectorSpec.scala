@@ -17,7 +17,7 @@
 package connectors
 
 import com.github.tomakehurst.wiremock.client.WireMock.*
-import connectors.SubmissionConnector.{GetFailure, StartUploadFailure, UploadFailedFailure, UploadSuccessFailure}
+import connectors.SubmissionConnector.{GetFailure, StartUploadFailure, SubmitFailure, UploadFailedFailure, UploadSuccessFailure}
 import models.submission.Submission.State.Ready
 import models.submission.{StartSubmissionRequest, Submission, UploadFailedRequest}
 import org.scalatest.OptionValues
@@ -286,6 +286,40 @@ class SubmissionConnectorSpec
 
       val result = connector.uploadFailed("id", "reason")(using hc).failed.futureValue
       result mustBe a[UploadFailedFailure]
+    }
+  }
+
+  "submit" - {
+
+    "must return successfully when the service returns OK" in {
+
+      wireMockServer.stubFor(
+        post(urlPathEqualTo("/submission/id/submit"))
+          .withHeader("User-Agent", equalTo("app"))
+          .withHeader("Authorization", equalTo("auth"))
+          .willReturn(
+            aResponse()
+              .withStatus(OK)
+          )
+      )
+
+      connector.submit("id")(using hc).futureValue
+    }
+
+    "must return a failure when the service returns another status" in {
+
+      wireMockServer.stubFor(
+        post(urlPathEqualTo("/submission/id/submit"))
+          .withHeader("User-Agent", equalTo("app"))
+          .withHeader("Authorization", equalTo("auth"))
+          .willReturn(
+            aResponse()
+              .withStatus(INTERNAL_SERVER_ERROR)
+          )
+      )
+
+      val result = connector.submit("id")(using hc).failed.futureValue
+      result mustBe a[SubmitFailure]
     }
   }
 }
