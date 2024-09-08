@@ -17,27 +17,99 @@
 package controllers
 
 import base.SpecBase
+import connectors.SubmissionConnector
+import models.submission.Submission
+import models.submission.Submission.State.Ready
+import org.mockito.ArgumentMatchers.{any, eq => eqTo}
+import org.mockito.Mockito
+import org.mockito.Mockito.{verify, when}
+import org.scalatest.BeforeAndAfterEach
+import org.scalatestplus.mockito.MockitoSugar
 import play.api.test.FakeRequest
-import play.api.test.Helpers._
+import play.api.test.Helpers.*
+import play.api.inject.bind
 import views.html.StartPageView
 
-class StartPageControllerSpec extends SpecBase {
+import java.time.Instant
+import scala.concurrent.Future
+
+class StartPageControllerSpec extends SpecBase with MockitoSugar with BeforeAndAfterEach {
+
+  private val mockSubmissionConnector: SubmissionConnector = mock[SubmissionConnector]
+
+  private val now: Instant = Instant.now()
+
+  override def beforeEach(): Unit = {
+    super.beforeEach()
+    Mockito.reset(mockSubmissionConnector)
+  }
 
   "StartPage Controller" - {
 
-    "must return OK and the correct view for a GET" in {
+    "onPageLoad" - {
 
-      val application = applicationBuilder(userAnswers = Some(emptyUserAnswers)).build()
+      "must return OK and the correct view for a GET" in {
 
-      running(application) {
-        val request = FakeRequest(GET, routes.StartPageController.onPageLoad().url)
+        val application = applicationBuilder(userAnswers = Some(emptyUserAnswers)).build()
 
-        val result = route(application, request).value
+        running(application) {
+          val request = FakeRequest(routes.StartPageController.onPageLoad())
+          val result = route(application, request).value
+          val view = application.injector.instanceOf[StartPageView]
 
-        val view = application.injector.instanceOf[StartPageView]
+          status(result) mustEqual OK
+          contentAsString(result) mustEqual view()(request, messages(application)).toString
+        }
+      }
+    }
 
-        status(result) mustEqual OK
-        contentAsString(result) mustEqual view()(request, messages(application)).toString
+    "onSubmit" - {
+
+      "must create a new submission and redirect to the upload page for that submission" in {
+
+        val submissionId = "id"
+        val application = applicationBuilder(userAnswers = Some(emptyUserAnswers))
+          .overrides(
+            bind[SubmissionConnector].toInstance(mockSubmissionConnector)
+          )
+          .build()
+
+        val submission = Submission(
+          _id = "id",
+          dprsId = "dprsId",
+          platformOperatorId = "poid",
+          state = Ready,
+          created = now,
+          updated = now
+        )
+
+        when(mockSubmissionConnector.start(any(), any())(using any())).thenReturn(Future.successful(submission))
+
+        running(application) {
+          val request = FakeRequest(routes.StartPageController.onSubmit())
+          val result = route(application, request).value
+
+          status(result) mustEqual SEE_OTHER
+          redirectLocation(result).value mustEqual routes.UploadController.onPageLoad(submissionId).url
+        }
+
+        verify(mockSubmissionConnector).start(eqTo("poid"), eqTo(None))(using any())
+      }
+
+      "must fail when the call to create a new submission fails" in {
+
+        val application = applicationBuilder(userAnswers = Some(emptyUserAnswers))
+          .overrides(
+            bind[SubmissionConnector].toInstance(mockSubmissionConnector)
+          )
+          .build()
+
+        when(mockSubmissionConnector.start(any(), any())(using any())).thenReturn(Future.failed(new RuntimeException()))
+
+        running(application) {
+          val request = FakeRequest(routes.StartPageController.onSubmit())
+          route(application, request).value.failed.futureValue
+        }
       }
     }
   }
