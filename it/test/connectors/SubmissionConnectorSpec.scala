@@ -17,9 +17,9 @@
 package connectors
 
 import com.github.tomakehurst.wiremock.client.WireMock.*
-import connectors.SubmissionConnector.{GetFailure, StartUploadFailure, UploadSuccessFailure}
+import connectors.SubmissionConnector.{GetFailure, StartUploadFailure, UploadFailedFailure, UploadSuccessFailure}
 import models.submission.Submission.State.Ready
-import models.submission.{StartSubmissionRequest, Submission}
+import models.submission.{StartSubmissionRequest, Submission, UploadFailedRequest}
 import org.scalatest.OptionValues
 import org.scalatest.concurrent.{IntegrationPatience, ScalaFutures}
 import org.scalatest.freespec.AnyFreeSpec
@@ -250,6 +250,42 @@ class SubmissionConnectorSpec
 
       val result = connector.uploadSuccess("id")(using hc).failed.futureValue
       result mustBe a[UploadSuccessFailure]
+    }
+  }
+
+  "uploadFailed" - {
+
+    "must return successfully when the service returns OK" in {
+
+      wireMockServer.stubFor(
+        post(urlPathEqualTo("/submission/id/upload-failed"))
+          .withHeader("User-Agent", equalTo("app"))
+          .withHeader("Authorization", equalTo("auth"))
+          .withRequestBody(equalToJson(Json.toJson(UploadFailedRequest("reason")).toString))
+          .willReturn(
+            aResponse()
+              .withStatus(OK)
+          )
+      )
+
+      connector.uploadFailed("id", "reason")(using hc).futureValue
+    }
+
+    "must return a failure when the service returns another status" in {
+
+      wireMockServer.stubFor(
+        post(urlPathEqualTo("/submission/id/upload-failed"))
+          .withHeader("User-Agent", equalTo("app"))
+          .withHeader("Authorization", equalTo("auth"))
+          .withRequestBody(equalToJson(Json.toJson(UploadFailedRequest("reason")).toString))
+          .willReturn(
+            aResponse()
+              .withStatus(INTERNAL_SERVER_ERROR)
+          )
+      )
+
+      val result = connector.uploadFailed("id", "reason")(using hc).failed.futureValue
+      result mustBe a[UploadFailedFailure]
     }
   }
 }
