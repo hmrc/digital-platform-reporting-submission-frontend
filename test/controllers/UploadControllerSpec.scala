@@ -48,7 +48,7 @@ class UploadControllerSpec extends SpecBase with MockitoSugar with BeforeAndAfte
 
     "onPageLoad" - {
 
-      "when there is a valid submission for the given id" - {
+      "when there is a submission in a ready state for the given id" - {
 
         "must return OK and the correct view for a GET" in {
 
@@ -104,7 +104,47 @@ class UploadControllerSpec extends SpecBase with MockitoSugar with BeforeAndAfte
         }
       }
 
-      // TODO redirect to different pages depending on the state of the submission
+      "when the submission is in an uploading state" - {
+
+        "must redirect to the uploading page" ignore {
+
+        }
+      }
+
+      "when the submission is in an upload failed state" - {
+
+        "must redirect to the upload failed page" ignore {
+
+        }
+      }
+
+      "when the submission is in a validated state" - {
+
+        "must redirect to the send file page" ignore {
+
+        }
+      }
+
+      "when the submission is in a submitted state" - {
+
+        "must redirect to the checking file page" ignore {
+
+        }
+      }
+
+      "when the submission is in an approved state" - {
+
+        "must redirect to the file passed page" ignore {
+
+        }
+      }
+
+      "when the submission is in a rejected state" - {
+
+        "must redirect to the file failed page" ignore {
+
+        }
+      }
     }
   }
 }

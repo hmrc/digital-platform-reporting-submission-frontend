@@ -24,9 +24,6 @@ GET         /start-page                                  controllers.StartContro
 POST        /start-page                                  controllers.StartController.onSubmit()
 
 GET         /upload/:submissionId                        controllers.UploadController.onPageLoad(submissionId: String)
-
-GET         /uploading                                   controllers.UploadingController.onPageLoad()
-
-GET         /upload-failed                               controllers.UploadFailedController.onPageLoad()
-
-GET         /send-file                                   controllers.SendFileController.onPageLoad()
+GET         /uploading/:submissionId                     controllers.UploadingController.onPageLoad(submissionId: String)
+GET         /upload-failed/:submissionId                 controllers.UploadFailedController.onPageLoad(submissionId: String)
+GET         /send-file/:submissionId                     controllers.SendFileController.onPageLoad(submissionId: String)
