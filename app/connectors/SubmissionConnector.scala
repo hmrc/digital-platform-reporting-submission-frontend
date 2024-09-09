@@ -18,7 +18,7 @@ package connectors
 
 import config.Service
 import connectors.SubmissionConnector.{GetFailure, StartFailure, StartUploadFailure, SubmitFailure, UploadFailedFailure, UploadSuccessFailure}
-import models.submission.{StartSubmissionRequest, Submission, UploadFailedRequest}
+import models.submission.{StartSubmissionRequest, Submission, UploadFailedRequest, UploadSuccessRequest}
 import org.apache.pekko.Done
 import play.api.Configuration
 import play.api.http.Status.{CREATED, NOT_FOUND, OK}
@@ -81,8 +81,9 @@ class SubmissionConnector @Inject() (
         }
       }
 
-  def uploadSuccess(id: String)(using HeaderCarrier): Future[Done] =
-    httpClient.post(url"$digitalPlatformReportingService/digital-platform-reporting/submission/$id/upload-success")
+  def uploadSuccess(dprsId: String, id: String): Future[Done] =
+    httpClient.post(url"$digitalPlatformReportingService/digital-platform-reporting/submission/$id/upload-success")(HeaderCarrier())
+      .withBody(Json.toJson(UploadSuccessRequest(dprsId)))
       .execute[HttpResponse]
       .flatMap { response =>
         response.status match {
@@ -93,9 +94,9 @@ class SubmissionConnector @Inject() (
         }
       }
 
-  def uploadFailed(id: String, reason: String)(using HeaderCarrier): Future[Done] =
-    httpClient.post(url"$digitalPlatformReportingService/digital-platform-reporting/submission/$id/upload-failed")
-      .withBody(Json.toJson(UploadFailedRequest(reason)))
+  def uploadFailed(dprsId: String, id: String, reason: String): Future[Done] =
+    httpClient.post(url"$digitalPlatformReportingService/digital-platform-reporting/submission/$id/upload-failed")(HeaderCarrier())
+      .withBody(Json.toJson(UploadFailedRequest(dprsId, reason)))
       .execute[HttpResponse]
       .flatMap { response =>
         response.status match {

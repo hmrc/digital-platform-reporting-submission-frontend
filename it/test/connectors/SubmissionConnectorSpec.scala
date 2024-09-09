@@ -19,7 +19,7 @@ package connectors
 import com.github.tomakehurst.wiremock.client.WireMock.*
 import connectors.SubmissionConnector.{GetFailure, StartUploadFailure, SubmitFailure, UploadFailedFailure, UploadSuccessFailure}
 import models.submission.Submission.State.Ready
-import models.submission.{StartSubmissionRequest, Submission, UploadFailedRequest}
+import models.submission.{StartSubmissionRequest, Submission, UploadFailedRequest, UploadSuccessRequest}
 import org.scalatest.OptionValues
 import org.scalatest.concurrent.{IntegrationPatience, ScalaFutures}
 import org.scalatest.freespec.AnyFreeSpec
@@ -223,30 +223,30 @@ class SubmissionConnectorSpec
 
       wireMockServer.stubFor(
         post(urlPathEqualTo("/digital-platform-reporting/submission/id/upload-success"))
+          .withRequestBody(equalToJson(Json.toJson(UploadSuccessRequest("dprsId")).toString))
           .withHeader("User-Agent", equalTo("app"))
-          .withHeader("Authorization", equalTo("auth"))
           .willReturn(
             aResponse()
               .withStatus(OK)
           )
       )
 
-      connector.uploadSuccess("id")(using hc).futureValue
+      connector.uploadSuccess("dprsId", "id").futureValue
     }
 
     "must return a failure when the service returns another status" in {
 
       wireMockServer.stubFor(
         post(urlPathEqualTo("/digital-platform-reporting/submission/id/upload-success"))
+          .withRequestBody(equalToJson(Json.toJson(UploadSuccessRequest("dprsId")).toString))
           .withHeader("User-Agent", equalTo("app"))
-          .withHeader("Authorization", equalTo("auth"))
           .willReturn(
             aResponse()
               .withStatus(INTERNAL_SERVER_ERROR)
           )
       )
 
-      val result = connector.uploadSuccess("id")(using hc).failed.futureValue
+      val result = connector.uploadSuccess("dprsId", "id").failed.futureValue
       result mustBe a[UploadSuccessFailure]
     }
   }
@@ -258,15 +258,14 @@ class SubmissionConnectorSpec
       wireMockServer.stubFor(
         post(urlPathEqualTo("/digital-platform-reporting/submission/id/upload-failed"))
           .withHeader("User-Agent", equalTo("app"))
-          .withHeader("Authorization", equalTo("auth"))
-          .withRequestBody(equalToJson(Json.toJson(UploadFailedRequest("reason")).toString))
+          .withRequestBody(equalToJson(Json.toJson(UploadFailedRequest("dprsId", "reason")).toString))
           .willReturn(
             aResponse()
               .withStatus(OK)
           )
       )
 
-      connector.uploadFailed("id", "reason")(using hc).futureValue
+      connector.uploadFailed("dprsId", "id", "reason").futureValue
     }
 
     "must return a failure when the service returns another status" in {
@@ -274,15 +273,14 @@ class SubmissionConnectorSpec
       wireMockServer.stubFor(
         post(urlPathEqualTo("/digital-platform-reporting/submission/id/upload-failed"))
           .withHeader("User-Agent", equalTo("app"))
-          .withHeader("Authorization", equalTo("auth"))
-          .withRequestBody(equalToJson(Json.toJson(UploadFailedRequest("reason")).toString))
+          .withRequestBody(equalToJson(Json.toJson(UploadFailedRequest("dprsId", "reason")).toString))
           .willReturn(
             aResponse()
               .withStatus(INTERNAL_SERVER_ERROR)
           )
       )
 
-      val result = connector.uploadFailed("id", "reason")(using hc).failed.futureValue
+      val result = connector.uploadFailed("dprsId", "id", "reason").failed.futureValue
       result mustBe a[UploadFailedFailure]
     }
   }
