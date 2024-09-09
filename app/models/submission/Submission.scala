@@ -17,7 +17,6 @@
 package models.submission
 
 import play.api.libs.json.*
-import uk.gov.hmrc.mongo.play.json.formats.MongoJavatimeFormats
 
 import java.time.Instant
 
