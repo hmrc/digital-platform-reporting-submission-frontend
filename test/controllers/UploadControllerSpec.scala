@@ -61,7 +61,6 @@ class UploadControllerSpec extends SpecBase with MockitoSugar with BeforeAndAfte
           val submission = Submission(
             _id = "id",
             dprsId = "dprsId",
-            platformOperatorId = "poid",
             state = Ready,
             created = now,
             updated = now

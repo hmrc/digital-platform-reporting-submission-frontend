@@ -61,7 +61,6 @@ class SendFileControllerSpec extends SpecBase with MockitoSugar with BeforeAndAf
           val submission = Submission(
             _id = "id",
             dprsId = "dprsId",
-            platformOperatorId = "poid",
             state = Validated,
             created = now,
             updated = now

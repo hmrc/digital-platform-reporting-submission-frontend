@@ -63,7 +63,6 @@ class SubmissionConnectorSpec
     val expectedSubmission = Submission(
       _id = "id",
       dprsId = "dprsId",
-      platformOperatorId = platformOperatorId,
       state = Ready,
       created = now,
       updated = now
@@ -129,7 +128,6 @@ class SubmissionConnectorSpec
     val expectedSubmission = Submission(
       _id = "id",
       dprsId = "dprsId",
-      platformOperatorId = "poid",
       state = Ready,
       created = now,
       updated = now

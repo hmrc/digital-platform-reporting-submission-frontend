@@ -61,7 +61,6 @@ class UploadFailedControllerSpec extends SpecBase with MockitoSugar with BeforeA
           val submission = Submission(
             _id = "id",
             dprsId = "dprsId",
-            platformOperatorId = "poid",
             state = UploadFailed("reason"),
             created = now,
             updated = now

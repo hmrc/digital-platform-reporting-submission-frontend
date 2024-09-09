@@ -77,7 +77,6 @@ class StartControllerSpec extends SpecBase with MockitoSugar with BeforeAndAfter
         val submission = Submission(
           _id = "id",
           dprsId = "dprsId",
-          platformOperatorId = "poid",
           state = Ready,
           created = now,
           updated = now
