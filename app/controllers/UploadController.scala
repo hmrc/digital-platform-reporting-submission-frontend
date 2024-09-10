@@ -22,26 +22,30 @@ import controllers.actions.*
 import javax.inject.Inject
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
+import services.UpscanService
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
-import views.html.uploadView
+import views.html.UploadView
 
-import scala.concurrent.ExecutionContext
+import scala.concurrent.{ExecutionContext, Future}
 
 class UploadController @Inject()(
                                   override val messagesApi: MessagesApi,
                                   identify: IdentifierAction,
                                   val controllerComponents: MessagesControllerComponents,
-                                  view: uploadView,
-                                  submissionConnector: SubmissionConnector
+                                  view: UploadView,
+                                  submissionConnector: SubmissionConnector,
+                                  upscanService: UpscanService
                                 )(using ExecutionContext) extends FrontendBaseController with I18nSupport {
 
   def onPageLoad(submissionId: String): Action[AnyContent] = identify.async {
     implicit request =>
-      submissionConnector.get(submissionId).map {
+      submissionConnector.get(submissionId).flatMap {
         _.map { _ =>
-          Ok(view())
+          upscanService.initiate(request.dprsId, submissionId).map { uploadRequest =>
+            Ok(view(uploadRequest))
+          }
         }.getOrElse {
-          Redirect(routes.JourneyRecoveryController.onPageLoad())
+          Future.successful(Redirect(routes.JourneyRecoveryController.onPageLoad()))
         }
       }
   }

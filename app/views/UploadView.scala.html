@@ -14,14 +14,40 @@
  * limitations under the License.
  *@
 
+@import models.upscan.UpscanInitiateResponse.UploadRequest
+
 @this(
         layout: templates.Layout,
         govukButton: GovukButton
 )
 
-@()(implicit request: Request[_], messages: Messages)
+@(uploadRequest: UploadRequest)(implicit request: Request[_], messages: Messages)
 
 @layout(pageTitle = titleNoForm(messages("upload.title"))) {
 
-    <h1 class="govuk-heading-xl">@messages("upload.heading")</h1>
+  <h1 class="govuk-heading-xl">@messages("upload.heading")</h1>
+
+  <form action="@uploadRequest.href" method="post" enctype="multipart/form-data">
+
+    @for(field <- uploadRequest.fields) {
+      <input type="hidden" name="@field._1" value="@field._2"/>
+    }
+
+    <div class="govuk-form-group">
+      <input
+        type="file"
+        id="file-input"
+        name="file"
+        class="govuk-file-upload"
+        accept=".xml"
+      />
+    </div>
+
+    @govukButton(
+      ButtonViewModel(
+        messages("upload.button")
+      )
+      .preventingDoubleClick()
+    )
+  </form>
 }

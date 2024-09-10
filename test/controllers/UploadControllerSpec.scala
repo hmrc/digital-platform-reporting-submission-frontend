@@ -20,15 +20,17 @@ import base.SpecBase
 import connectors.SubmissionConnector
 import models.submission.Submission
 import models.submission.Submission.State.Ready
-import org.mockito.ArgumentMatchers.{any, eq => eqTo}
+import models.upscan.UpscanInitiateResponse.UploadRequest
+import org.mockito.ArgumentMatchers.{any, eq as eqTo}
 import org.mockito.Mockito
-import org.mockito.Mockito.{verify, when}
+import org.mockito.Mockito.{never, verify, when}
 import org.scalatest.BeforeAndAfterEach
 import org.scalatestplus.mockito.MockitoSugar
+import play.api.inject.bind
 import play.api.test.FakeRequest
 import play.api.test.Helpers.*
-import play.api.inject.bind
-import views.html.uploadView
+import services.UpscanService
+import views.html.UploadView
 
 import java.time.Instant
 import scala.concurrent.Future
@@ -36,12 +38,13 @@ import scala.concurrent.Future
 class UploadControllerSpec extends SpecBase with MockitoSugar with BeforeAndAfterEach {
 
   private val mockSubmissionConnector: SubmissionConnector = mock[SubmissionConnector]
+  private val mockUpscanService: UpscanService = mock[UpscanService]
 
   private val now: Instant = Instant.now()
 
   override def beforeEach(): Unit = {
     super.beforeEach()
-    Mockito.reset(mockSubmissionConnector)
+    Mockito.reset(mockSubmissionConnector, mockUpscanService)
   }
 
   "UploadController" - {
@@ -50,11 +53,12 @@ class UploadControllerSpec extends SpecBase with MockitoSugar with BeforeAndAfte
 
       "when there is a submission in a ready state for the given id" - {
 
-        "must return OK and the correct view for a GET" in {
+        "must initiate an upscan journey and return OK and the correct view for a GET" in {
 
           val application = applicationBuilder(userAnswers = Some(emptyUserAnswers))
             .overrides(
-              bind[SubmissionConnector].toInstance(mockSubmissionConnector)
+              bind[SubmissionConnector].toInstance(mockSubmissionConnector),
+              bind[UpscanService].toInstance(mockUpscanService)
             )
             .build()
 
@@ -66,18 +70,25 @@ class UploadControllerSpec extends SpecBase with MockitoSugar with BeforeAndAfte
             updated = now
           )
 
+          val uploadRequest = UploadRequest(
+            href = "href",
+            fields = Map.empty
+          )
+
           when(mockSubmissionConnector.get(any())(using any())).thenReturn(Future.successful(Some(submission)))
+          when(mockUpscanService.initiate(any(), any())(using any())).thenReturn(Future.successful(uploadRequest))
 
           running(application) {
             val request = FakeRequest(GET, routes.UploadController.onPageLoad("id").url)
             val result = route(application, request).value
-            val view = application.injector.instanceOf[uploadView]
+            val view = application.injector.instanceOf[UploadView]
 
             status(result) mustEqual OK
-            contentAsString(result) mustEqual view()(request, messages(application)).toString
+            contentAsString(result) mustEqual view(uploadRequest)(request, messages(application)).toString
           }
 
           verify(mockSubmissionConnector).get(eqTo("id"))(using any())
+          verify(mockUpscanService).initiate(eqTo("dprsId"), eqTo("id"))(using any())
         }
       }
 
@@ -100,6 +111,8 @@ class UploadControllerSpec extends SpecBase with MockitoSugar with BeforeAndAfte
             status(result) mustEqual SEE_OTHER
             redirectLocation(result).value mustEqual routes.JourneyRecoveryController.onPageLoad().url
           }
+
+          verify(mockUpscanService, never()).initiate(any(), any())(using any())
         }
       }
 

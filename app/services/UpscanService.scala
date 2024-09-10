@@ -38,7 +38,7 @@ class UpscanService @Inject() (
   private val maxFileSize: Long = configuration.underlying.getBytes("microservice.services.upscan-initiate.maximum-file-size")
 
   private val dprsSubmissionFrontend: Service = configuration.get[Service]("microservice.services.digital-platform-reporting-submission-frontend")
-  private val callbackRoute: String =
+  private lazy val callbackRoute: String =
     s"$dprsSubmissionFrontend${controllers.internal.routes.UpscanCallbackController.callback().path()}"
 
   private val redirectBase: String = configuration.get[String]("microservice.services.upscan-initiate.redirect-base")
