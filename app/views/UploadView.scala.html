@@ -15,10 +15,12 @@
  *@
 
 @import models.upscan.UpscanInitiateResponse.UploadRequest
+@import uk.gov.hmrc.govukfrontend.views.html.components.GovukFileUpload
 
 @this(
         layout: templates.Layout,
-        govukButton: GovukButton
+        govukButton: GovukButton ,
+        govukFileUpload: GovukFileUpload
 )
 
 @(uploadRequest: UploadRequest)(implicit request: Request[_], messages: Messages)
@@ -35,15 +37,16 @@
 
     <p class="govuk-body">@messages("upload.body")</p>
 
-    <div class="govuk-form-group">
-      <input
-        type="file"
-        id="file-input"
-        name="file"
-        class="govuk-file-upload"
-        accept=".xml"
-      />
-    </div>
+    @govukFileUpload(FileUpload(
+      name = "file",
+      id = "file-input",
+      label = Label(
+        classes = "govuk-label--s govuk-visually-hidden",
+        content = messages("upload.heading")
+      ),
+      errorMessage = None,
+      attributes = Map("accept" -> ".xml")
+    ))
 
     @govukButton(
       ButtonViewModel(
