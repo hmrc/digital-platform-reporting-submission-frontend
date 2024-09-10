@@ -67,8 +67,10 @@ uploading.title = Upload an XML file
 uploading.heading = Upload an XML file
 uploading.body = We will automatically check the formatting of the file and send you to another page once completed.
 
-uploadFailed.title = uploadFailed
-uploadFailed.heading = uploadFailed
+uploadFailed.title = Upload an XML file
+uploadFailed.heading = Upload an XML file
+uploadFailed.body = We will automatically check the formatting of the file and send you to another page once completed.
+uploadFailed.button = Upload file
 
 sendFile.title = sendFile
 sendFile.heading = sendFile

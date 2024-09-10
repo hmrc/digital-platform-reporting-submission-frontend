@@ -14,14 +14,54 @@
  * limitations under the License.
  *@
 
+@import models.upscan.UpscanInitiateResponse.UploadRequest
+@import uk.gov.hmrc.govukfrontend.views.html.components.GovukFileUpload
+@import uk.gov.hmrc.govukfrontend.views.html.components.GovukErrorSummary
+@import uk.gov.hmrc.govukfrontend.views.viewmodels.errorsummary.ErrorSummary
+@import uk.gov.hmrc.govukfrontend.views.viewmodels.errormessage.ErrorMessage
+
 @this(
         layout: templates.Layout,
-        govukButton: GovukButton
+        govukButton: GovukButton,
+        govukFileUpload: GovukFileUpload,
+        govukErrorSummary: GovukErrorSummary
 )
 
-@()(implicit request: Request[_], messages: Messages)
+@(uploadRequest: UploadRequest, error: String)(implicit request: Request[_], messages: Messages)
 
 @layout(pageTitle = titleNoForm(messages("uploadFailed.title"))) {
 
-    <h1 class="govuk-heading-xl">@messages("uploadFailed.heading")</h1>
+  <h1 class="govuk-heading-xl">@messages("uploadFailed.heading")</h1>
+
+  <form action="@uploadRequest.href" method="post" enctype="multipart/form-data">
+
+    @govukErrorSummary(ErrorSummaryViewModel.withoutForm(Map("file-input" -> messages(error))))
+
+    @for(field <- uploadRequest.fields) {
+      <input type="hidden" name="@field._1" value="@field._2"/>
+    }
+
+    <p class="govuk-body">@messages("uploadFailed.body")</p>
+
+    @govukFileUpload(FileUpload(
+      name = "file",
+      id = "file-input",
+      label = Label(
+        classes = "govuk-label--s visually-hidden",
+        content = messages("uploadFailed.label")
+      ),
+      errorMessage = Some(ErrorMessage(
+        content = messages(error),
+        visuallyHiddenText = Some(messages("error.message.prefix"))
+      )),
+      attributes = Map("accept" -> ".xml")
+    ))
+
+    @govukButton(
+      ButtonViewModel(
+        messages("uploadFailed.button")
+      )
+      .preventingDoubleClick()
+    )
+  </form>
 }
