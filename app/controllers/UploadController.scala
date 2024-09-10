@@ -18,10 +18,12 @@ package controllers
 
 import connectors.SubmissionConnector
 import controllers.actions.*
+import models.submission.Submission
+import models.submission.Submission.State.{Ready, UploadFailed, Uploading, Validated}
 
 import javax.inject.Inject
 import play.api.i18n.{I18nSupport, MessagesApi}
-import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
+import play.api.mvc.{Action, AnyContent, MessagesControllerComponents, Result}
 import services.UpscanService
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import views.html.UploadView
@@ -40,13 +42,35 @@ class UploadController @Inject()(
   def onPageLoad(submissionId: String): Action[AnyContent] = identify.async {
     implicit request =>
       submissionConnector.get(submissionId).flatMap {
-        _.map { _ =>
-          upscanService.initiate(request.dprsId, submissionId).map { uploadRequest =>
-            Ok(view(uploadRequest))
+        _.map { submission =>
+          handleSubmission(submission) {
+            case Ready =>
+              upscanService.initiate(request.dprsId, submissionId).map { uploadRequest =>
+                Ok(view(uploadRequest))
+              }
           }
         }.getOrElse {
           Future.successful(Redirect(routes.JourneyRecoveryController.onPageLoad()))
         }
       }
   }
+
+  private def handleSubmission(submission: Submission)(f: PartialFunction[Submission.State, Future[Result]]): Future[Result] =
+    f.lift(submission.state).getOrElse {
+
+      val redirectLocation = submission.state match {
+        case Ready =>
+          routes.UploadController.onPageLoad(submission._id)
+        case Uploading =>
+          routes.UploadingController.onPageLoad(submission._id)
+        case _: UploadFailed =>
+          routes.UploadFailedController.onPageLoad(submission._id)
+        case Validated =>
+          routes.SendFileController.onPageLoad(submission._id)
+        case _ =>
+          routes.JourneyRecoveryController.onPageLoad()
+      }
+
+      Future.successful(Redirect(redirectLocation))
+    }
 }
