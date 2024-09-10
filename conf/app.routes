@@ -26,4 +26,5 @@ POST        /start-page                                  controllers.StartContro
 GET         /upload/:submissionId                        controllers.UploadController.onPageLoad(submissionId: String)
 GET         /uploading/:submissionId                     controllers.UploadingController.onPageLoad(submissionId: String)
 GET         /upload-failed/:submissionId                 controllers.UploadFailedController.onPageLoad(submissionId: String)
+GET         /upload-failed-redirect/:submissionId        controllers.UploadFailedController.onRedirect(submissionId: String, errorCode: Option[String] ?= None)
 GET         /send-file/:submissionId                     controllers.SendFileController.onPageLoad(submissionId: String)

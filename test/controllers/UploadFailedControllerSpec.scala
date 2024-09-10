@@ -19,10 +19,12 @@ package controllers
 import base.SpecBase
 import connectors.SubmissionConnector
 import models.submission.Submission
-import models.submission.Submission.State.{UploadFailed, Uploading}
-import org.mockito.ArgumentMatchers.any
+import models.submission.Submission.State.{Ready, UploadFailed, Uploading}
+import org.apache.pekko.Done
+import org.mockito.ArgumentMatchers.{any, eq as eqTo}
 import org.mockito.Mockito
-import org.mockito.Mockito.when
+import org.mockito.Mockito.{verify, when}
+import org.scalacheck.Gen
 import org.scalatest.BeforeAndAfterEach
 import org.scalatestplus.mockito.MockitoSugar
 import play.api.inject.bind
@@ -43,6 +45,10 @@ class UploadFailedControllerSpec extends SpecBase with MockitoSugar with BeforeA
     super.beforeEach()
     Mockito.reset(mockSubmissionConnector)
   }
+
+  private val readyGen: Gen[Ready.type] = Gen.const(Ready)
+  private val uploadingGen: Gen[Uploading.type] = Gen.const(Uploading)
+  private val uploadFailedGen: Gen[UploadFailed] = Gen.asciiPrintableStr.map(UploadFailed.apply)
 
   "UploadFailed Controller" - {
 
@@ -112,6 +118,132 @@ class UploadFailedControllerSpec extends SpecBase with MockitoSugar with BeforeA
 
         "must redirect to the uploading page" ignore {
 
+        }
+      }
+
+      "when the submission is in a validated state" - {
+
+        "must redirect to the send file page" ignore {
+
+        }
+      }
+
+      "when the submission is in a submitted state" - {
+
+        "must redirect to the checking file page" ignore {
+
+        }
+      }
+
+      "when the submission is in an approved state" - {
+
+        "must redirect to the file passed page" ignore {
+
+        }
+      }
+
+      "when the submission is in a rejected state" - {
+
+        "must redirect to the file failed page" ignore {
+
+        }
+      }
+    }
+
+    "onRedirect" - {
+
+      "when there is a submission in a ready, uploading, or upload failed state" - {
+
+        "when errorCode is given" - {
+
+          "must update update the state of the submission and  redirect to the uploading failed page" in {
+
+            val application = applicationBuilder(userAnswers = Some(emptyUserAnswers))
+              .overrides(
+                bind[SubmissionConnector].toInstance(mockSubmissionConnector)
+              )
+              .build()
+
+            val state = Gen.oneOf(readyGen, uploadingGen, uploadFailedGen).sample.value
+            val submission = Submission(
+              _id = "id",
+              dprsId = "dprsId",
+              state = state,
+              created = now,
+              updated = now
+            )
+
+            when(mockSubmissionConnector.get(any())(using any())).thenReturn(Future.successful(Some(submission)))
+            when(mockSubmissionConnector.uploadFailed(any(), any(), any())).thenReturn(Future.successful(Done))
+
+            running(application) {
+              val request = FakeRequest(routes.UploadFailedController.onRedirect("id", Some("some reason")))
+              val result = route(application, request).value
+
+              status(result) mustEqual SEE_OTHER
+              redirectLocation(result).value mustEqual routes.UploadFailedController.onPageLoad("id").url
+            }
+
+            verify(mockSubmissionConnector).get(eqTo("id"))(using any())
+            verify(mockSubmissionConnector).uploadFailed("dprsId", "id", "some reason")
+          }
+        }
+
+        "when no errorCode is given" - {
+
+          "must update update the state of the submission and  redirect to the uploading failed page" in {
+
+            val application = applicationBuilder(userAnswers = Some(emptyUserAnswers))
+              .overrides(
+                bind[SubmissionConnector].toInstance(mockSubmissionConnector)
+              )
+              .build()
+
+            val state = Gen.oneOf(readyGen, uploadingGen, uploadFailedGen).sample.value
+            val submission = Submission(
+              _id = "id",
+              dprsId = "dprsId",
+              state = state,
+              created = now,
+              updated = now
+            )
+
+            when(mockSubmissionConnector.get(any())(using any())).thenReturn(Future.successful(Some(submission)))
+            when(mockSubmissionConnector.uploadFailed(any(), any(), any())).thenReturn(Future.successful(Done))
+
+            running(application) {
+              val request = FakeRequest(routes.UploadFailedController.onRedirect("id", None))
+              val result = route(application, request).value
+
+              status(result) mustEqual SEE_OTHER
+              redirectLocation(result).value mustEqual routes.UploadFailedController.onPageLoad("id").url
+            }
+
+            verify(mockSubmissionConnector).get(eqTo("id"))(using any())
+            verify(mockSubmissionConnector).uploadFailed("dprsId", "id", "Unknown")
+          }
+        }
+      }
+
+      "when there is no submission for the given id" - {
+
+        "must redirect to the journey recovery page" in {
+
+          val application = applicationBuilder(userAnswers = Some(emptyUserAnswers))
+            .overrides(
+              bind[SubmissionConnector].toInstance(mockSubmissionConnector)
+            )
+            .build()
+
+          when(mockSubmissionConnector.get(any())(using any())).thenReturn(Future.successful(None))
+
+          running(application) {
+            val request = FakeRequest(routes.UploadFailedController.onRedirect("id", None))
+            val result = route(application, request).value
+
+            status(result) mustEqual SEE_OTHER
+            redirectLocation(result).value mustEqual routes.JourneyRecoveryController.onPageLoad().url
+          }
         }
       }
 

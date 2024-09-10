@@ -25,7 +25,7 @@ import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import views.html.UploadFailedView
 
-import scala.concurrent.ExecutionContext
+import scala.concurrent.{ExecutionContext, Future}
 
 class UploadFailedController @Inject()(
                                        override val messagesApi: MessagesApi,
@@ -44,5 +44,17 @@ class UploadFailedController @Inject()(
           Redirect(routes.JourneyRecoveryController.onPageLoad())
         }
       }
+  }
+
+  def onRedirect(submissionId: String, errorCode: Option[String]): Action[AnyContent] = identify.async { implicit request =>
+    submissionConnector.get(submissionId).flatMap {
+      _.map { submission =>
+        submissionConnector.uploadFailed(request.dprsId, submissionId, errorCode.getOrElse("Unknown")).map { _ =>
+          Redirect(routes.UploadFailedController.onPageLoad(submissionId))
+        }
+      }.getOrElse {
+        Future.successful(Redirect(routes.JourneyRecoveryController.onPageLoad()))
+      }
+    }
   }
 }
