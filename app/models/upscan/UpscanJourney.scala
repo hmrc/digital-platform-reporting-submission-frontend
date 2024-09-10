@@ -14,8 +14,21 @@
  * limitations under the License.
  */
 
-package models.requests
+package models.upscan
 
-import play.api.mvc.{Request, WrappedRequest}
+import play.api.libs.json.{Json, OFormat}
+import uk.gov.hmrc.mongo.play.json.formats.MongoJavatimeFormats
 
-final case class IdentifierRequest[A](request: Request[A], userId: String, dprsId: String) extends WrappedRequest[A](request)
+import java.time.Instant
+
+final case class UpscanJourney(
+                                dprsId: String,
+                                submissionId: String,
+                                uploadId: String,
+                                createdAt: Instant
+                              )
+
+object UpscanJourney extends MongoJavatimeFormats.Implicits {
+
+  given mongoFormat: OFormat[UpscanJourney] = Json.format
+}

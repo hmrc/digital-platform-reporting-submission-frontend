@@ -37,7 +37,7 @@ checkYourAnswers.heading = Check your answers
 journeyRecovery.continue.title = Sorry, there is a problem with the service
 journeyRecovery.continue.heading = Sorry, there is a problem with the service
 journeyRecovery.continue.guidance = [Add content to explain how to proceed.]
-journeyRecovery.startAgain.title = Sorry, there is a problem with the service
+journeyRecovery.startAgain.title = Sorry,G there is a problem with the service
 journeyRecovery.startAgain.heading = Sorry, there is a problem with the service
 journeyRecovery.startAgain.guidance = [Add content to explain why the user needs to start again.]
 
@@ -47,3 +47,30 @@ signedOut.guidance = We did not save your answers.
 
 unauthorised.title = You can’t access this service with this account
 unauthorised.heading = You can’t access this service with this account
+
+startPage.title = Make a new submission
+startPage.heading = Make a new submission
+startPage.p1 = In the next few screens you can submit an XML file containing the information of sellers using your platform.
+startPage.p2.1 = Your file must comply with the XML schema rules. When you submit your data it will be processed to make sure it fits with the schema. You can refer to the
+startPage.p2.link = schema and supporting documents (opens in new tab)
+startPage.p2.2 = for guidance.
+startPage.p3 = The maximum file size is 100MB.
+startPage.p4 = Doing a file submission takes around 10 minutes, but it may take longer for your file to process in the background once submitted. A large file may take up to 2 days to process.
+startPage.startSubmission = Start submission
+
+upload.title = Upload an XML file
+upload.heading = Upload an XML file
+upload.body = We will automatically check the formatting of the file and send you to another page once completed.
+upload.button = Upload file
+
+uploading.title = Upload an XML file
+uploading.heading = Upload an XML file
+uploading.body = We will automatically check the formatting of the file and send you to another page once completed.
+
+uploadFailed.title = Upload an XML file
+uploadFailed.heading = Upload an XML file
+uploadFailed.body = We will automatically check the formatting of the file and send you to another page once completed.
+uploadFailed.button = Upload file
+
+sendFile.title = sendFile
+sendFile.heading = sendFile

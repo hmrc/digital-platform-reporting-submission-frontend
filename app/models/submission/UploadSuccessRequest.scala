@@ -14,8 +14,13 @@
  * limitations under the License.
  */
 
-package models.requests
+package models.submission
 
-import play.api.mvc.{Request, WrappedRequest}
+import play.api.libs.json.{Json, OFormat}
 
-final case class IdentifierRequest[A](request: Request[A], userId: String, dprsId: String) extends WrappedRequest[A](request)
+final case class UploadSuccessRequest(dprsId: String)
+
+object UploadSuccessRequest {
+
+  given OFormat[UploadSuccessRequest] = Json.format
+}

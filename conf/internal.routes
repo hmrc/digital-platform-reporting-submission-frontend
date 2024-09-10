@@ -1,0 +1,2 @@
++no-csrf
+POST                /upscan/callback                controllers.internal.UpscanCallbackController.callback()

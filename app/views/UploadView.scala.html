@@ -1,0 +1,58 @@
+@*
+ * Copyright 2024 HM Revenue & Customs
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *@
+
+@import models.upscan.UpscanInitiateResponse.UploadRequest
+@import uk.gov.hmrc.govukfrontend.views.html.components.GovukFileUpload
+
+@this(
+        layout: templates.Layout,
+        govukButton: GovukButton ,
+        govukFileUpload: GovukFileUpload
+)
+
+@(uploadRequest: UploadRequest)(implicit request: Request[_], messages: Messages)
+
+@layout(pageTitle = titleNoForm(messages("upload.title"))) {
+
+  <h1 class="govuk-heading-xl">@messages("upload.heading")</h1>
+
+  <form action="@uploadRequest.href" method="post" enctype="multipart/form-data">
+
+    @for(field <- uploadRequest.fields) {
+      <input type="hidden" name="@field._1" value="@field._2"/>
+    }
+
+    <p class="govuk-body">@messages("upload.body")</p>
+
+    @govukFileUpload(FileUpload(
+      name = "file",
+      id = "file-input",
+      label = Label(
+        classes = "govuk-label--s govuk-visually-hidden",
+        content = messages("upload.heading")
+      ),
+      errorMessage = None,
+      attributes = Map("accept" -> ".xml")
+    ))
+
+    @govukButton(
+      ButtonViewModel(
+        messages("upload.button")
+      )
+      .preventingDoubleClick()
+    )
+  </form>
+}
