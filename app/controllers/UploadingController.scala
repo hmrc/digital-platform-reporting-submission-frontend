@@ -18,11 +18,13 @@ package controllers
 
 import connectors.SubmissionConnector
 import controllers.actions.*
-import models.submission.Submission.State.{Ready, UploadFailed}
+import models.submission.Submission
+import models.submission.Submission.State.*
+import play.api.Configuration
 
 import javax.inject.Inject
 import play.api.i18n.{I18nSupport, MessagesApi}
-import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
+import play.api.mvc.{Action, AnyContent, MessagesControllerComponents, Result}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import views.html.UploadingView
 
@@ -33,16 +35,22 @@ class UploadingController @Inject()(
                                      identify: IdentifierAction,
                                      val controllerComponents: MessagesControllerComponents,
                                      view: UploadingView,
-                                     submissionConnector: SubmissionConnector
+                                     submissionConnector: SubmissionConnector,
+                                     configuration: Configuration
                                    )(using ExecutionContext) extends FrontendBaseController with I18nSupport {
+
+  private val refreshRate: String = configuration.get[Int]("uploading-refresh").toString
 
   def onPageLoad(submissionId: String): Action[AnyContent] = identify.async {
     implicit request =>
-      submissionConnector.get(submissionId).map {
+      submissionConnector.get(submissionId).flatMap {
         _.map { submission =>
-          Ok(view())
+          handleSubmission(submission) {
+            case Uploading =>
+              Future.successful(Ok(view()).withHeaders("Refresh" -> refreshRate))
+          }
         }.getOrElse {
-          Redirect(routes.JourneyRecoveryController.onPageLoad())
+          Future.successful(Redirect(routes.JourneyRecoveryController.onPageLoad()))
         }
       }
   }
@@ -50,16 +58,34 @@ class UploadingController @Inject()(
   def onRedirect(submissionId: String): Action[AnyContent] = identify.async { implicit request =>
     submissionConnector.get(submissionId).flatMap {
       _.map { submission =>
-        if (submission.state.isInstanceOf[Ready.type] || submission.state.isInstanceOf[UploadFailed]) {
-          submissionConnector.startUpload(submissionId).map { _ =>
-            Redirect(routes.UploadingController.onPageLoad(submissionId))
-          }
-        } else {
-          Future.successful(Redirect(routes.UploadingController.onPageLoad(submissionId)))
+        handleSubmission(submission) {
+          case Ready | _: UploadFailed =>
+            submissionConnector.startUpload(submissionId).map { _ =>
+              Redirect(routes.UploadingController.onPageLoad(submissionId))
+            }
         }
       }.getOrElse {
         Future.successful(Redirect(routes.JourneyRecoveryController.onPageLoad()))
       }
     }
   }
+
+  private def handleSubmission(submission: Submission)(f: PartialFunction[Submission.State, Future[Result]]): Future[Result] =
+    f.lift(submission.state).getOrElse {
+
+      val redirectLocation = submission.state match {
+        case Ready =>
+          routes.UploadController.onPageLoad(submission._id)
+        case Uploading =>
+          routes.UploadingController.onPageLoad(submission._id)
+        case _: UploadFailed =>
+          routes.UploadFailedController.onPageLoad(submission._id)
+        case Validated =>
+          routes.SendFileController.onPageLoad(submission._id)
+        case _ =>
+          routes.JourneyRecoveryController.onPageLoad()
+      }
+
+      Future.successful(Redirect(redirectLocation))
+    }
 }

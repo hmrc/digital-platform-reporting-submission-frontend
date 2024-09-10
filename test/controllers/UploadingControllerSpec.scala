@@ -19,7 +19,7 @@ package controllers
 import base.SpecBase
 import connectors.SubmissionConnector
 import models.submission.Submission
-import models.submission.Submission.State.{Ready, UploadFailed, Uploading}
+import models.submission.Submission.State.{Ready, UploadFailed, Uploading, Validated}
 import org.apache.pekko.Done
 import org.mockito.ArgumentMatchers.{any, eq as eqTo}
 import org.mockito.Mockito
@@ -54,6 +54,9 @@ class UploadingControllerSpec extends SpecBase with MockitoSugar with BeforeAndA
         "must return OK and the correct view for a GET" in {
 
           val application = applicationBuilder(userAnswers = Some(emptyUserAnswers))
+            .configure(
+              "uploading-refresh" -> 1337
+            )
             .overrides(
               bind[SubmissionConnector].toInstance(mockSubmissionConnector)
             )
@@ -76,6 +79,7 @@ class UploadingControllerSpec extends SpecBase with MockitoSugar with BeforeAndA
 
             status(result) mustEqual OK
             contentAsString(result) mustEqual view()(request, messages(application)).toString
+            header("Refresh", result).value mustEqual "1337"
           }
 
           verify(mockSubmissionConnector).get(eqTo("id"))(using any())
@@ -106,22 +110,97 @@ class UploadingControllerSpec extends SpecBase with MockitoSugar with BeforeAndA
 
       "when the submission is in a ready state" - {
 
-        "must redirect to the upload page" ignore {
+        "must redirect to the upload page" in {
 
+          val application = applicationBuilder(userAnswers = Some(emptyUserAnswers))
+            .overrides(
+              bind[SubmissionConnector].toInstance(mockSubmissionConnector)
+            )
+            .build()
+
+          val submission = Submission(
+            _id = "id",
+            dprsId = "dprsId",
+            state = Ready,
+            created = now,
+            updated = now
+          )
+
+          when(mockSubmissionConnector.get(any())(using any())).thenReturn(Future.successful(Some(submission)))
+
+          running(application) {
+            val request = FakeRequest(GET, routes.UploadingController.onPageLoad("id").url)
+            val result = route(application, request).value
+
+            status(result) mustEqual SEE_OTHER
+            redirectLocation(result).value mustEqual routes.UploadController.onPageLoad("id").url
+          }
+
+          verify(mockSubmissionConnector).get(eqTo("id"))(using any())
         }
       }
 
       "when the submission is in an upload failed state" - {
 
-        "must redirect to the upload failed page" ignore {
+        "must redirect to the upload failed page" in {
 
+          val application = applicationBuilder(userAnswers = Some(emptyUserAnswers))
+            .overrides(
+              bind[SubmissionConnector].toInstance(mockSubmissionConnector)
+            )
+            .build()
+
+          val submission = Submission(
+            _id = "id",
+            dprsId = "dprsId",
+            state = UploadFailed("reason"),
+            created = now,
+            updated = now
+          )
+
+          when(mockSubmissionConnector.get(any())(using any())).thenReturn(Future.successful(Some(submission)))
+
+          running(application) {
+            val request = FakeRequest(GET, routes.UploadingController.onPageLoad("id").url)
+            val result = route(application, request).value
+
+            status(result) mustEqual SEE_OTHER
+            redirectLocation(result).value mustEqual routes.UploadFailedController.onPageLoad("id").url
+          }
+
+          verify(mockSubmissionConnector).get(eqTo("id"))(using any())
         }
       }
 
       "when the submission is in a validated state" - {
 
-        "must redirect to the send file page" ignore {
+        "must redirect to the send file page" in {
 
+          val application = applicationBuilder(userAnswers = Some(emptyUserAnswers))
+            .overrides(
+              bind[SubmissionConnector].toInstance(mockSubmissionConnector)
+            )
+            .build()
+
+          val submission = Submission(
+            _id = "id",
+            dprsId = "dprsId",
+            state = Validated,
+            created = now,
+            updated = now
+          )
+
+          when(mockSubmissionConnector.get(any())(using any())).thenReturn(Future.successful(Some(submission)))
+
+          running(application) {
+            val request = FakeRequest(GET, routes.UploadingController.onPageLoad("id").url)
+            val result = route(application, request).value
+
+            status(result) mustEqual SEE_OTHER
+            redirectLocation(result).value mustEqual routes.SendFileController.onPageLoad("id").url
+          }
+
+          verify(mockSubmissionConnector).get(eqTo("id"))(using any())
         }
       }
 
@@ -278,8 +357,35 @@ class UploadingControllerSpec extends SpecBase with MockitoSugar with BeforeAndA
 
       "when the submission is in a validated state" - {
 
-        "must redirect to the send file page" ignore {
+        "must redirect to the send file page" in {
 
+          val application = applicationBuilder(userAnswers = Some(emptyUserAnswers))
+            .overrides(
+              bind[SubmissionConnector].toInstance(mockSubmissionConnector)
+            )
+            .build()
+
+          val submission = Submission(
+            _id = "id",
+            dprsId = "dprsId",
+            state = Validated,
+            created = now,
+            updated = now
+          )
+
+          when(mockSubmissionConnector.get(any())(using any())).thenReturn(Future.successful(Some(submission)))
+          when(mockSubmissionConnector.startUpload(any())(using any())).thenReturn(Future.successful(Done))
+
+          running(application) {
+            val request = FakeRequest(routes.UploadingController.onRedirect("id"))
+            val result = route(application, request).value
+
+            status(result) mustEqual SEE_OTHER
+            redirectLocation(result).value mustEqual routes.SendFileController.onPageLoad("id").url
+          }
+
+          verify(mockSubmissionConnector).get(eqTo("id"))(using any())
+          verify(mockSubmissionConnector, never()).startUpload(any())(using any())
         }
       }
 
