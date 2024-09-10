@@ -17,16 +17,16 @@
 package connectors
 
 import config.Service
-import connectors.SubmissionConnector.{GetFailure, StartFailure, StartUploadFailure, SubmitFailure, UploadFailedFailure, UploadSuccessFailure}
-import models.submission.{StartSubmissionRequest, Submission, UploadFailedRequest, UploadSuccessRequest}
+import connectors.SubmissionConnector.*
+import models.submission.{Submission, UploadFailedRequest, UploadSuccessRequest}
 import org.apache.pekko.Done
 import play.api.Configuration
 import play.api.http.Status.{CREATED, NOT_FOUND, OK}
 import play.api.libs.json.{JsValue, Json}
 import play.api.libs.ws.JsonBodyWritables.writeableOf_JsValue
-import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse, StringContextOps}
-import uk.gov.hmrc.http.client.HttpClientV2
 import uk.gov.hmrc.http.HttpReads.Implicits.*
+import uk.gov.hmrc.http.client.HttpClientV2
+import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse, StringContextOps}
 
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
@@ -40,18 +40,16 @@ class SubmissionConnector @Inject() (
   private val digitalPlatformReportingService: Service =
     configuration.get[Service]("microservice.services.digital-platform-reporting")
 
-  // TODO remove POID from here, add it to the relevant states
-  def start(platformOperatorId: String, id: Option[String])(using HeaderCarrier): Future[Submission] =
+  def start(id: Option[String])(using HeaderCarrier): Future[Submission] =
     httpClient.put(url"$digitalPlatformReportingService/digital-platform-reporting/submission/start")
       .transform(_.withQueryStringParameters(Seq(id.map(id => "id" -> id)).flatten*))
-      .withBody(Json.toJson(StartSubmissionRequest(platformOperatorId)))
       .execute[HttpResponse]
       .flatMap { response =>
         response.status match {
           case OK | CREATED =>
             Future.successful(response.json.as[Submission])
           case _ =>
-            Future.failed(StartFailure(platformOperatorId, id))
+            Future.failed(StartFailure(id))
         }
       }
 
@@ -122,7 +120,7 @@ class SubmissionConnector @Inject() (
 
 object SubmissionConnector {
 
-  final case class StartFailure(platformOperatorId: String, id: Option[String]) extends Throwable
+  final case class StartFailure(id: Option[String]) extends Throwable
   final case class GetFailure(id: String) extends Throwable
   final case class StartUploadFailure(id: String) extends Throwable
   final case class UploadSuccessFailure(id: String) extends Throwable

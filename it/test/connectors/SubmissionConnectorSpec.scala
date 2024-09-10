@@ -19,7 +19,7 @@ package connectors
 import com.github.tomakehurst.wiremock.client.WireMock.*
 import connectors.SubmissionConnector.{GetFailure, StartUploadFailure, SubmitFailure, UploadFailedFailure, UploadSuccessFailure}
 import models.submission.Submission.State.Ready
-import models.submission.{StartSubmissionRequest, Submission, UploadFailedRequest, UploadSuccessRequest}
+import models.submission.{Submission, UploadFailedRequest, UploadSuccessRequest}
 import org.scalatest.OptionValues
 import org.scalatest.concurrent.{IntegrationPatience, ScalaFutures}
 import org.scalatest.freespec.AnyFreeSpec
@@ -57,9 +57,6 @@ class SubmissionConnectorSpec
 
   "start" - {
 
-    val platformOperatorId = "poid"
-    val request = StartSubmissionRequest(platformOperatorId)
-
     val expectedSubmission = Submission(
       _id = "id",
       dprsId = "dprsId",
@@ -74,7 +71,6 @@ class SubmissionConnectorSpec
         put(urlPathEqualTo("/digital-platform-reporting/submission/start"))
           .withHeader("User-Agent", equalTo("app"))
           .withHeader("Authorization", equalTo("auth"))
-          .withRequestBody(equalToJson(Json.toJson(request).toString))
           .willReturn(
             aResponse()
               .withStatus(CREATED)
@@ -82,7 +78,7 @@ class SubmissionConnectorSpec
           )
       )
 
-      val result = connector.start(platformOperatorId, None)(using hc).futureValue
+      val result = connector.start(None)(using hc).futureValue
       result mustEqual expectedSubmission
     }
 
@@ -93,7 +89,6 @@ class SubmissionConnectorSpec
           .withQueryParam("id", equalTo("id"))
           .withHeader("User-Agent", equalTo("app"))
           .withHeader("Authorization", equalTo("auth"))
-          .withRequestBody(equalToJson(Json.toJson(request).toString))
           .willReturn(
             aResponse()
               .withStatus(CREATED)
@@ -101,7 +96,7 @@ class SubmissionConnectorSpec
           )
       )
 
-      val result = connector.start(platformOperatorId, Some("id"))(using hc).futureValue
+      val result = connector.start(Some("id"))(using hc).futureValue
       result mustEqual expectedSubmission
     }
 
@@ -111,14 +106,13 @@ class SubmissionConnectorSpec
         put(urlPathEqualTo("/digital-platform-reporting/submission/start"))
           .withHeader("User-Agent", equalTo("app"))
           .withHeader("Authorization", equalTo("auth"))
-          .withRequestBody(equalToJson(Json.toJson(request).toString))
           .willReturn(
             aResponse()
               .withStatus(INTERNAL_SERVER_ERROR)
           )
       )
 
-      val result = connector.start(platformOperatorId, Some("id"))(using hc).failed.futureValue
+      val result = connector.start(Some("id"))(using hc).failed.futureValue
       result mustBe a[SubmissionConnector.StartFailure]
     }
   }

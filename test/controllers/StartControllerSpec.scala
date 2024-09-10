@@ -82,7 +82,7 @@ class StartControllerSpec extends SpecBase with MockitoSugar with BeforeAndAfter
           updated = now
         )
 
-        when(mockSubmissionConnector.start(any(), any())(using any())).thenReturn(Future.successful(submission))
+        when(mockSubmissionConnector.start(any())(using any())).thenReturn(Future.successful(submission))
 
         running(application) {
           val request = FakeRequest(routes.StartController.onSubmit())
@@ -92,7 +92,7 @@ class StartControllerSpec extends SpecBase with MockitoSugar with BeforeAndAfter
           redirectLocation(result).value mustEqual routes.UploadController.onPageLoad(submissionId).url
         }
 
-        verify(mockSubmissionConnector).start(eqTo("poid"), eqTo(None))(using any())
+        verify(mockSubmissionConnector).start(eqTo(None))(using any())
       }
 
       "must fail when the call to create a new submission fails" in {
@@ -103,7 +103,7 @@ class StartControllerSpec extends SpecBase with MockitoSugar with BeforeAndAfter
           )
           .build()
 
-        when(mockSubmissionConnector.start(any(), any())(using any())).thenReturn(Future.failed(new RuntimeException()))
+        when(mockSubmissionConnector.start(any())(using any())).thenReturn(Future.failed(new RuntimeException()))
 
         running(application) {
           val request = FakeRequest(routes.StartController.onSubmit())

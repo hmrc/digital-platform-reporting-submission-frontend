@@ -40,7 +40,7 @@ class StartController @Inject()(
   }
 
   def onSubmit: Action[AnyContent] = identify.async { implicit request =>
-    submissionConnector.start("poid", None).map { submission =>
+    submissionConnector.start(None).map { submission =>
       Redirect(routes.UploadController.onPageLoad(submission._id))
     }
   }
