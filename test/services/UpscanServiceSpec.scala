@@ -75,8 +75,8 @@ class UpscanServiceSpec extends AnyFreeSpec with Matchers with ScalaFutures with
 
       val expectedRequest = UpscanInitiateRequest(
         callbackUrl = "http://localhost:20007/internal/upscan/callback",
-        successRedirect = "http://example.com/digital-platform-reporting-submission-frontend/uploading/submissionId",
-        errorRedirect = "http://example.com/digital-platform-reporting-submission-frontend/upload-failed/submissionId",
+        successRedirect = "http://example.com/digital-platform-reporting-submission-frontend/uploading-redirect/submissionId",
+        errorRedirect = "http://example.com/digital-platform-reporting-submission-frontend/upload-failed-redirect/submissionId",
         minimumFileSize = 1,
         maximumFileSize = 1000000L
       )

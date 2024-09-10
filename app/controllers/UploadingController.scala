@@ -18,6 +18,7 @@ package controllers
 
 import connectors.SubmissionConnector
 import controllers.actions.*
+import models.submission.Submission.State.{Ready, UploadFailed}
 
 import javax.inject.Inject
 import play.api.i18n.{I18nSupport, MessagesApi}
@@ -25,15 +26,15 @@ import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import views.html.UploadingView
 
-import scala.concurrent.ExecutionContext
+import scala.concurrent.{ExecutionContext, Future}
 
 class UploadingController @Inject()(
-                                       override val messagesApi: MessagesApi,
-                                       identify: IdentifierAction,
-                                       val controllerComponents: MessagesControllerComponents,
-                                       view: UploadingView,
-                                       submissionConnector: SubmissionConnector
-                                     )(using ExecutionContext) extends FrontendBaseController with I18nSupport {
+                                     override val messagesApi: MessagesApi,
+                                     identify: IdentifierAction,
+                                     val controllerComponents: MessagesControllerComponents,
+                                     view: UploadingView,
+                                     submissionConnector: SubmissionConnector
+                                   )(using ExecutionContext) extends FrontendBaseController with I18nSupport {
 
   def onPageLoad(submissionId: String): Action[AnyContent] = identify.async {
     implicit request =>
@@ -44,5 +45,21 @@ class UploadingController @Inject()(
           Redirect(routes.JourneyRecoveryController.onPageLoad())
         }
       }
+  }
+
+  def onRedirect(submissionId: String): Action[AnyContent] = identify.async { implicit request =>
+    submissionConnector.get(submissionId).flatMap {
+      _.map { submission =>
+        if (submission.state.isInstanceOf[Ready.type] || submission.state.isInstanceOf[UploadFailed]) {
+          submissionConnector.startUpload(submissionId).map { _ =>
+            Redirect(routes.UploadingController.onPageLoad(submissionId))
+          }
+        } else {
+          Future.successful(Redirect(routes.UploadingController.onPageLoad(submissionId)))
+        }
+      }.getOrElse {
+        Future.successful(Redirect(routes.JourneyRecoveryController.onPageLoad()))
+      }
+    }
   }
 }
