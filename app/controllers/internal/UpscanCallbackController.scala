@@ -16,16 +16,38 @@
 
 package controllers.internal
 
+import connectors.SubmissionConnector
 import models.upscan.UpscanCallbackRequest
+import play.api.Logging
 import play.api.mvc.{Action, MessagesControllerComponents}
+import repositories.UpscanJourneyRepository
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
 
 import javax.inject.{Inject, Singleton}
+import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
 class UpscanCallbackController @Inject() (
-                                           mcc: MessagesControllerComponents
-                                         ) extends FrontendController(mcc) {
+                                           mcc: MessagesControllerComponents,
+                                           upscanJourneyRepository: UpscanJourneyRepository,
+                                           submissionConnector: SubmissionConnector
+                                         )(using ExecutionContext) extends FrontendController(mcc) with Logging {
 
-  def callback(): Action[UpscanCallbackRequest] = ???
+  def callback(): Action[UpscanCallbackRequest] = Action.async(parse.json[UpscanCallbackRequest]) { implicit request =>
+    upscanJourneyRepository.getByUploadId(request.body.reference).flatMap {
+      _.map { journey =>
+        request.body match {
+          case _: UpscanCallbackRequest.Ready =>
+            submissionConnector.uploadSuccess(journey.dprsId, journey.submissionId)
+              .map(_ => Ok)
+          case failed: UpscanCallbackRequest.Failed =>
+            submissionConnector.uploadFailed(journey.dprsId, journey.submissionId, failed.failureDetails.message)
+              .map(_ => Ok)
+        }
+      }.getOrElse {
+        logger.info("Upscan callback for a journey which doesn't exist")
+        Future.successful(Ok)
+      }
+    }
+  }
 }

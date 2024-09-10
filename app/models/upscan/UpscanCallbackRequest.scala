@@ -22,7 +22,9 @@ import play.api.libs.json.*
 
 import java.time.Instant
 
-sealed trait UpscanCallbackRequest
+sealed trait UpscanCallbackRequest {
+  def reference: String
+}
 
 object UpscanCallbackRequest {
 
