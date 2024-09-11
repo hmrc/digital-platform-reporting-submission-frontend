@@ -79,9 +79,9 @@ class SubmissionConnector @Inject() (
         }
       }
 
-  def uploadSuccess(dprsId: String, id: String): Future[Done] =
+  def uploadSuccess(id: String, request: UploadSuccessRequest): Future[Done] =
     httpClient.post(url"$digitalPlatformReportingService/digital-platform-reporting/submission/$id/upload-success")(HeaderCarrier())
-      .withBody(Json.toJson(UploadSuccessRequest(dprsId)))
+      .withBody(Json.toJson(request))
       .execute[HttpResponse]
       .flatMap { response =>
         response.status match {

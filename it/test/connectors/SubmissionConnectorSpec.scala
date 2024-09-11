@@ -217,7 +217,7 @@ class SubmissionConnectorSpec
 
       wireMockServer.stubFor(
         post(urlPathEqualTo("/digital-platform-reporting/submission/id/upload-success"))
-          .withRequestBody(equalToJson(Json.toJson(UploadSuccessRequest("dprsId")).toString))
+          .withRequestBody(equalToJson(Json.toJson(UploadSuccessRequest("dprsId", "downloadUrl")).toString))
           .withHeader("User-Agent", equalTo("app"))
           .willReturn(
             aResponse()
@@ -225,14 +225,14 @@ class SubmissionConnectorSpec
           )
       )
 
-      connector.uploadSuccess("dprsId", "id").futureValue
+      connector.uploadSuccess("id", UploadSuccessRequest("dprsId", "downloadUrl")).futureValue
     }
 
     "must return a failure when the service returns another status" in {
 
       wireMockServer.stubFor(
         post(urlPathEqualTo("/digital-platform-reporting/submission/id/upload-success"))
-          .withRequestBody(equalToJson(Json.toJson(UploadSuccessRequest("dprsId")).toString))
+          .withRequestBody(equalToJson(Json.toJson(UploadSuccessRequest("dprsId", "downloadUrl")).toString))
           .withHeader("User-Agent", equalTo("app"))
           .willReturn(
             aResponse()
@@ -240,7 +240,7 @@ class SubmissionConnectorSpec
           )
       )
 
-      val result = connector.uploadSuccess("dprsId", "id").failed.futureValue
+      val result = connector.uploadSuccess("id", UploadSuccessRequest("dprsId", "downloadUrl")).failed.futureValue
       result mustBe a[UploadSuccessFailure]
     }
   }

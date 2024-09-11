@@ -18,6 +18,7 @@ package controllers.internal
 
 import base.SpecBase
 import connectors.SubmissionConnector
+import models.submission.UploadSuccessRequest
 import models.upscan.UpscanCallbackRequest.FailureReason.Rejected
 import models.upscan.UpscanCallbackRequest.{ErrorDetails, UploadDetails}
 import models.upscan.{UpscanCallbackRequest, UpscanJourney}
@@ -93,7 +94,7 @@ class UpscanCallbackControllerSpec extends SpecBase with BeforeAndAfterEach {
             status(result) mustEqual OK
 
             verify(mockUpscanJourneyRepository).getByUploadId("uploadId")
-            verify(mockSubmissionConector).uploadSuccess("dprsId", "submissionId")
+            verify(mockSubmissionConector).uploadSuccess("submissionId", UploadSuccessRequest("dprsId", "someurl"))
           }
         }
       }
