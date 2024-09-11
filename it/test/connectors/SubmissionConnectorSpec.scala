@@ -29,7 +29,7 @@ import play.api.Application
 import play.api.http.Status.{CREATED, INTERNAL_SERVER_ERROR, NOT_FOUND, OK}
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.json.Json
-import uk.gov.hmrc.http.{Authorization, HeaderCarrier}
+import uk.gov.hmrc.http.{Authorization, HeaderCarrier, StringContextOps}
 import uk.gov.hmrc.http.test.WireMockSupport
 
 import java.time.Instant
@@ -217,7 +217,7 @@ class SubmissionConnectorSpec
 
       wireMockServer.stubFor(
         post(urlPathEqualTo("/digital-platform-reporting/submission/id/upload-success"))
-          .withRequestBody(equalToJson(Json.toJson(UploadSuccessRequest("dprsId", "downloadUrl")).toString))
+          .withRequestBody(equalToJson(Json.toJson(UploadSuccessRequest("dprsId", url"http://example.com/test.xml", "platformOperatorId")).toString))
           .withHeader("User-Agent", equalTo("app"))
           .willReturn(
             aResponse()
@@ -225,14 +225,14 @@ class SubmissionConnectorSpec
           )
       )
 
-      connector.uploadSuccess("id", UploadSuccessRequest("dprsId", "downloadUrl")).futureValue
+      connector.uploadSuccess("id", UploadSuccessRequest("dprsId", url"http://example.com/test.xml", "platformOperatorId")).futureValue
     }
 
     "must return a failure when the service returns another status" in {
 
       wireMockServer.stubFor(
         post(urlPathEqualTo("/digital-platform-reporting/submission/id/upload-success"))
-          .withRequestBody(equalToJson(Json.toJson(UploadSuccessRequest("dprsId", "downloadUrl")).toString))
+          .withRequestBody(equalToJson(Json.toJson(UploadSuccessRequest("dprsId", url"http://example.com/test.xml", "platformOperatorId")).toString))
           .withHeader("User-Agent", equalTo("app"))
           .willReturn(
             aResponse()
@@ -240,7 +240,7 @@ class SubmissionConnectorSpec
           )
       )
 
-      val result = connector.uploadSuccess("id", UploadSuccessRequest("dprsId", "downloadUrl")).failed.futureValue
+      val result = connector.uploadSuccess("id", UploadSuccessRequest("dprsId", url"http://example.com/test.xml", "platformOperatorId")).failed.futureValue
       result mustBe a[UploadSuccessFailure]
     }
   }

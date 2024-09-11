@@ -33,6 +33,7 @@ import play.api.libs.json.Json
 import play.api.test.FakeRequest
 import play.api.test.Helpers.*
 import repositories.UpscanJourneyRepository
+import uk.gov.hmrc.http.StringContextOps
 
 import java.time.Instant
 import scala.concurrent.Future
@@ -73,7 +74,7 @@ class UpscanCallbackControllerSpec extends SpecBase with BeforeAndAfterEach {
 
           val requestBody = UpscanCallbackRequest.Ready(
             reference = "uploadId",
-            downloadUrl = "someurl",
+            downloadUrl = url"http://example.com/test.xml",
             uploadDetails = UploadDetails(
               uploadTimestamp = now,
               checksum = "checksum",
@@ -94,7 +95,7 @@ class UpscanCallbackControllerSpec extends SpecBase with BeforeAndAfterEach {
             status(result) mustEqual OK
 
             verify(mockUpscanJourneyRepository).getByUploadId("uploadId")
-            verify(mockSubmissionConector).uploadSuccess("submissionId", UploadSuccessRequest("dprsId", "someurl"))
+            verify(mockSubmissionConector).uploadSuccess("submissionId", UploadSuccessRequest("dprsId", url"http://example.com/test.xml", "platformOperatorId"))
           }
         }
       }
@@ -155,7 +156,7 @@ class UpscanCallbackControllerSpec extends SpecBase with BeforeAndAfterEach {
 
         val requestBody = UpscanCallbackRequest.Ready(
           reference = "uploadId",
-          downloadUrl = "someurl",
+          downloadUrl = url"http://example.com/test.xml",
           uploadDetails = UploadDetails(
             uploadTimestamp = now,
             checksum = "checksum",
