@@ -17,6 +17,7 @@
 package controllers.internal
 
 import connectors.SubmissionConnector
+import models.submission.UploadSuccessRequest
 import models.upscan.UpscanCallbackRequest
 import play.api.Logging
 import play.api.mvc.{Action, MessagesControllerComponents}
@@ -37,8 +38,9 @@ class UpscanCallbackController @Inject() (
     upscanJourneyRepository.getByUploadId(request.body.reference).flatMap {
       _.map { journey =>
         request.body match {
-          case _: UpscanCallbackRequest.Ready =>
-            submissionConnector.uploadSuccess(journey.dprsId, journey.submissionId)
+          case callback: UpscanCallbackRequest.Ready =>
+            // TODO get platform operator Id from user's answers
+            submissionConnector.uploadSuccess(journey.submissionId, UploadSuccessRequest(journey.dprsId, callback.downloadUrl, "platformOperatorId"))
               .map(_ => Ok)
           case failed: UpscanCallbackRequest.Failed =>
             submissionConnector.uploadFailed(journey.dprsId, journey.submissionId, failed.failureDetails.message)

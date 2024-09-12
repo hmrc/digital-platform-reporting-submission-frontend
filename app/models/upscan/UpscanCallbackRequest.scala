@@ -20,7 +20,9 @@ import enumeratum.{EnumEntry, PlayEnum}
 import enumeratum.EnumEntry.Uppercase
 import play.api.libs.json.*
 
+import java.net.URL
 import java.time.Instant
+import models.urlFormat
 
 sealed trait UpscanCallbackRequest {
   def reference: String
@@ -30,7 +32,7 @@ object UpscanCallbackRequest {
 
   final case class Ready(
                           reference: String,
-                          downloadUrl: String,
+                          downloadUrl: URL,
                           uploadDetails: UploadDetails
                         ) extends UpscanCallbackRequest
 

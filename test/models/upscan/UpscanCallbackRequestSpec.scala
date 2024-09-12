@@ -21,6 +21,7 @@ import models.upscan.UpscanCallbackRequest.{ErrorDetails, UploadDetails}
 import org.scalatest.freespec.AnyFreeSpec
 import org.scalatest.matchers.must.Matchers
 import play.api.libs.json.Json
+import uk.gov.hmrc.http.StringContextOps
 
 import java.time.Instant
 
@@ -32,7 +33,7 @@ class UpscanCallbackRequestSpec extends AnyFreeSpec with Matchers {
 
     val callback = UpscanCallbackRequest.Ready(
       reference = "reference",
-      downloadUrl = "downloadUrl",
+      downloadUrl = url"http://example.com/test.xml",
       uploadDetails = UploadDetails(
         uploadTimestamp = now,
         checksum = "checksum",
@@ -45,7 +46,7 @@ class UpscanCallbackRequestSpec extends AnyFreeSpec with Matchers {
     val json = Json.obj(
       "fileStatus" -> "READY",
       "reference" -> "reference",
-      "downloadUrl" -> "downloadUrl",
+      "downloadUrl" -> "http://example.com/test.xml",
       "uploadDetails" -> Json.obj(
         "uploadTimestamp" -> now,
         "checksum" -> "checksum",
