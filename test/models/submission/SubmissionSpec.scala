@@ -20,6 +20,7 @@ import models.submission.Submission.State.*
 import org.scalatest.freespec.AnyFreeSpec
 import org.scalatest.matchers.must.Matchers
 import play.api.libs.json.Json
+import uk.gov.hmrc.http.StringContextOps
 
 import java.time.Instant
 import java.time.temporal.ChronoUnit
@@ -122,7 +123,13 @@ class SubmissionSpec extends AnyFreeSpec with Matchers {
     val submission = Submission(
       _id = "id",
       dprsId = "dprsId",
-      state = Validated,
+      state = Validated(
+        downloadUrl = url"http://example.com/test.xml",
+        platformOperatorId = "poid",
+        fileName = "test.xml",
+        checksum = "checksum",
+        size = 1337L
+      ),
       created = created,
       updated = updated
     )
@@ -131,7 +138,12 @@ class SubmissionSpec extends AnyFreeSpec with Matchers {
       "_id" -> "id",
       "dprsId" -> "dprsId",
       "state" -> Json.obj(
-        "type" -> "Validated"
+        "type" -> "Validated",
+        "downloadUrl" -> "http://example.com/test.xml",
+        "platformOperatorId" -> "poid",
+        "fileName" -> "test.xml",
+        "checksum" -> "checksum",
+        "size" -> 1337L
       ),
       "created" -> created,
       "updated" -> updated
@@ -209,7 +221,7 @@ class SubmissionSpec extends AnyFreeSpec with Matchers {
     val submission = Submission(
       _id = "id",
       dprsId = "dprsId",
-      state = Rejected("some reason"),
+      state = Rejected,
       created = created,
       updated = updated
     )
@@ -218,8 +230,7 @@ class SubmissionSpec extends AnyFreeSpec with Matchers {
       "_id" -> "id",
       "dprsId" -> "dprsId",
       "state" -> Json.obj(
-        "type" -> "Rejected",
-        "reason" -> "some reason"
+        "type" -> "Rejected"
       ),
       "created" -> created,
       "updated" -> updated

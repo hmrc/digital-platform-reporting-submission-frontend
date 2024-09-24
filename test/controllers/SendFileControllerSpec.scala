@@ -28,6 +28,7 @@ import org.scalatestplus.mockito.MockitoSugar
 import play.api.test.FakeRequest
 import play.api.test.Helpers.*
 import play.api.inject.bind
+import uk.gov.hmrc.http.StringContextOps
 import views.html.SendFileView
 
 import java.time.Instant
@@ -61,7 +62,13 @@ class SendFileControllerSpec extends SpecBase with MockitoSugar with BeforeAndAf
           val submission = Submission(
             _id = "id",
             dprsId = "dprsId",
-            state = Validated,
+            state = Validated(
+              downloadUrl = url"http://example.com/test.xml",
+              platformOperatorId = "poid",
+              fileName = "test.xml",
+              checksum = "checksum",
+              size = 1337L
+            ),
             created = now,
             updated = now
           )

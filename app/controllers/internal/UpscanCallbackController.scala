@@ -39,8 +39,17 @@ class UpscanCallbackController @Inject() (
       _.map { journey =>
         request.body match {
           case callback: UpscanCallbackRequest.Ready =>
-            // TODO get platform operator Id from user's answers
-            submissionConnector.uploadSuccess(journey.submissionId, UploadSuccessRequest(journey.dprsId, callback.downloadUrl, "platformOperatorId"))
+
+            val uploadSuccessRequest = UploadSuccessRequest(
+              dprsId = journey.dprsId,
+              downloadUrl = callback.downloadUrl,
+              platformOperatorId = "platformOperatorId", // TODO get platform operator id from user's answers
+              fileName = callback.uploadDetails.fileName,
+              checksum = callback.uploadDetails.checksum,
+              size = callback.uploadDetails.size
+            )
+
+            submissionConnector.uploadSuccess(journey.submissionId, uploadSuccessRequest)
               .map(_ => Ok)
           case failed: UpscanCallbackRequest.Failed =>
             submissionConnector.uploadFailed(journey.dprsId, journey.submissionId, failed.failureDetails.message)

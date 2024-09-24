@@ -212,12 +212,21 @@ class SubmissionConnectorSpec
   }
 
   "uploadSuccess" - {
+    
+    val request = UploadSuccessRequest(
+      dprsId = "dprsId",
+      downloadUrl = url"http://example.com/test.xml",
+      platformOperatorId = "platformOperatorId",
+      fileName = "test.xml",
+      checksum = "checksum",
+      size = 1337L
+    )
 
     "must return successfully when the service returns OK" in {
 
       wireMockServer.stubFor(
         post(urlPathEqualTo("/digital-platform-reporting/submission/id/upload-success"))
-          .withRequestBody(equalToJson(Json.toJson(UploadSuccessRequest("dprsId", url"http://example.com/test.xml", "platformOperatorId")).toString))
+          .withRequestBody(equalToJson(Json.toJson(request).toString))
           .withHeader("User-Agent", equalTo("app"))
           .willReturn(
             aResponse()
@@ -225,14 +234,14 @@ class SubmissionConnectorSpec
           )
       )
 
-      connector.uploadSuccess("id", UploadSuccessRequest("dprsId", url"http://example.com/test.xml", "platformOperatorId")).futureValue
+      connector.uploadSuccess("id", request).futureValue
     }
 
     "must return a failure when the service returns another status" in {
 
       wireMockServer.stubFor(
         post(urlPathEqualTo("/digital-platform-reporting/submission/id/upload-success"))
-          .withRequestBody(equalToJson(Json.toJson(UploadSuccessRequest("dprsId", url"http://example.com/test.xml", "platformOperatorId")).toString))
+          .withRequestBody(equalToJson(Json.toJson(request).toString))
           .withHeader("User-Agent", equalTo("app"))
           .willReturn(
             aResponse()
@@ -240,7 +249,7 @@ class SubmissionConnectorSpec
           )
       )
 
-      val result = connector.uploadSuccess("id", UploadSuccessRequest("dprsId", url"http://example.com/test.xml", "platformOperatorId")).failed.futureValue
+      val result = connector.uploadSuccess("id", request).failed.futureValue
       result mustBe a[UploadSuccessFailure]
     }
   }

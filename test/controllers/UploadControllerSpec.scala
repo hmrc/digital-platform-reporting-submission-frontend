@@ -30,6 +30,7 @@ import play.api.inject.bind
 import play.api.test.FakeRequest
 import play.api.test.Helpers.*
 import services.UpscanService
+import uk.gov.hmrc.http.StringContextOps
 import views.html.UploadView
 
 import java.time.Instant
@@ -198,7 +199,13 @@ class UploadControllerSpec extends SpecBase with MockitoSugar with BeforeAndAfte
           val submission = Submission(
             _id = "id",
             dprsId = "dprsId",
-            state = Validated,
+            state = Validated(
+              downloadUrl = url"http://example.com/test.xml",
+              platformOperatorId = "poid",
+              fileName = "test.xml",
+              checksum = "checksum",
+              size = 1337
+            ),
             created = now,
             updated = now
           )
