@@ -18,7 +18,9 @@ package models.submission
 
 import play.api.libs.json.*
 
+import java.net.URL
 import java.time.Instant
+import models.urlFormat
 
 final case class Submission(
                              _id: String,
@@ -37,10 +39,10 @@ object Submission {
     case object Ready extends State
     case object Uploading extends State
     final case class UploadFailed(reason: String) extends State
-    case object Validated extends State
+    final case class Validated(downloadUrl: URL, platformOperatorId: String, fileName: String, checksum: String, size: Long) extends State
     case object Submitted extends State
     case object Approved extends State
-    final case class Rejected(reason: String) extends State
+    case object Rejected extends State
 
     private def singletonOFormat[A](a: A): OFormat[A] =
       OFormat(Reads.pure(a), OWrites[A](_ => Json.obj()))
@@ -48,10 +50,10 @@ object Submission {
     private implicit lazy val readyFormat: OFormat[Ready.type] = singletonOFormat(Ready)
     private implicit lazy val uploadFailedFormat: OFormat[UploadFailed] = Json.format
     private implicit lazy val uploadingFormat: OFormat[Uploading.type] = singletonOFormat(Uploading)
-    private implicit lazy val validatedFormat: OFormat[Validated.type] = singletonOFormat(Validated)
+    private implicit lazy val validatedFormat: OFormat[Validated] = Json.format
     private implicit lazy val submittedFormat: OFormat[Submitted.type] = singletonOFormat(Submitted)
     private implicit lazy val approvedFormat: OFormat[Approved.type] = singletonOFormat(Approved)
-    private implicit lazy val rejectedFormat: OFormat[Rejected] = Json.format
+    private implicit lazy val rejectedFormat: OFormat[Rejected.type] = Json.format
 
     private implicit val jsonConfig: JsonConfiguration = JsonConfiguration(
       discriminator = "type",

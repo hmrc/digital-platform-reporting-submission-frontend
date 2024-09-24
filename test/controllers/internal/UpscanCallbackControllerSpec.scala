@@ -84,6 +84,15 @@ class UpscanCallbackControllerSpec extends SpecBase with BeforeAndAfterEach {
             )
           )
 
+          val expectedUploadSuccessRequest = UploadSuccessRequest(
+            dprsId = "dprsId",
+            downloadUrl = url"http://example.com/test.xml",
+            platformOperatorId = "platformOperatorId",
+            fileName = "filename",
+            checksum = "checksum",
+            size = 1337
+          )
+
           running(application) {
             val request = FakeRequest(routes.UpscanCallbackController.callback())
               .withBody(Json.toJson[UpscanCallbackRequest](requestBody))
@@ -95,7 +104,7 @@ class UpscanCallbackControllerSpec extends SpecBase with BeforeAndAfterEach {
             status(result) mustEqual OK
 
             verify(mockUpscanJourneyRepository).getByUploadId("uploadId")
-            verify(mockSubmissionConector).uploadSuccess("submissionId", UploadSuccessRequest("dprsId", url"http://example.com/test.xml", "platformOperatorId"))
+            verify(mockSubmissionConector).uploadSuccess("submissionId", expectedUploadSuccessRequest)
           }
         }
       }

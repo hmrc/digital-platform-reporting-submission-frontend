@@ -32,6 +32,7 @@ import play.api.inject.bind
 import play.api.test.FakeRequest
 import play.api.test.Helpers.*
 import services.UpscanService
+import uk.gov.hmrc.http.StringContextOps
 import views.html.UploadFailedView
 
 import java.time.Instant
@@ -200,7 +201,13 @@ class UploadFailedControllerSpec extends SpecBase with MockitoSugar with BeforeA
           val submission = Submission(
             _id = "id",
             dprsId = "dprsId",
-            state = Validated,
+            state = Validated(
+              downloadUrl = url"http://example.com/test.xml",
+              platformOperatorId = "poid",
+              fileName = "test.xml",
+              checksum = "checksum",
+              size = 1337L
+            ),
             created = now,
             updated = now
           )
@@ -351,7 +358,13 @@ class UploadFailedControllerSpec extends SpecBase with MockitoSugar with BeforeA
           val submission = Submission(
             _id = "id",
             dprsId = "dprsId",
-            state = Validated,
+            state = Validated(
+              downloadUrl = url"http://example.com/test.xml",
+              platformOperatorId = "poid",
+              fileName = "test.xml",
+              checksum = "checksum",
+              size = 1337L
+            ),
             created = now,
             updated = now
           )

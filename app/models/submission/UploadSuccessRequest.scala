@@ -21,7 +21,14 @@ import models.urlFormat
 
 import java.net.URL
 
-final case class UploadSuccessRequest(dprsId: String, downloadUrl: URL, platformOperatorId: String)
+final case class UploadSuccessRequest(
+                                       dprsId: String,
+                                       downloadUrl: URL,
+                                       platformOperatorId: String,
+                                       fileName: String,
+                                       checksum: String,
+                                       size: Long
+                                     )
 
 object UploadSuccessRequest {
 

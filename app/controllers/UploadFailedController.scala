@@ -80,7 +80,7 @@ class UploadFailedController @Inject()(
           routes.UploadingController.onPageLoad(submission._id)
         case _: UploadFailed =>
           routes.UploadFailedController.onPageLoad(submission._id)
-        case Validated =>
+        case _: Validated =>
           routes.SendFileController.onPageLoad(submission._id)
         case _ =>
           routes.JourneyRecoveryController.onPageLoad()
