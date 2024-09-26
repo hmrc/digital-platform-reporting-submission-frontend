@@ -36,9 +36,10 @@ trait SpecBase
     with ScalaFutures
     with IntegrationPatience {
 
-  val userAnswersId: String = "id"
+  val userId: String = "userId"
+  val operatorId: String = "operatorId"
 
-  def emptyUserAnswers : UserAnswers = UserAnswers(userAnswersId)
+  def emptyUserAnswers : UserAnswers = UserAnswers(userId, operatorId)
 
   def messages(app: Application): Messages = app.injector.instanceOf[MessagesApi].preferred(FakeRequest())
 
@@ -47,6 +48,6 @@ trait SpecBase
       .overrides(
         bind[DataRequiredAction].to[DataRequiredActionImpl],
         bind[IdentifierAction].to[FakeIdentifierAction],
-        bind[DataRetrievalAction].toInstance(new FakeDataRetrievalAction(userAnswers))
+        bind[DataRetrievalActionProvider].toInstance(new FakeDataRetrievalActionProvider(userAnswers))
       )
 }

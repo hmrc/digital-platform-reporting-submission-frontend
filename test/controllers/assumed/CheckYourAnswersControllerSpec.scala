@@ -14,13 +14,15 @@
  * limitations under the License.
  */
 
-package controllers
+package controllers.assumed
 
 import base.SpecBase
+import controllers.assumed.routes
+import controllers.routes as baseRoutes
 import play.api.test.FakeRequest
-import play.api.test.Helpers._
+import play.api.test.Helpers.*
 import viewmodels.govuk.SummaryListFluency
-import views.html.CheckYourAnswersView
+import views.html.assumed.CheckYourAnswersView
 
 class CheckYourAnswersControllerSpec extends SpecBase with SummaryListFluency {
 
@@ -31,7 +33,7 @@ class CheckYourAnswersControllerSpec extends SpecBase with SummaryListFluency {
       val application = applicationBuilder(userAnswers = Some(emptyUserAnswers)).build()
 
       running(application) {
-        val request = FakeRequest(GET, routes.CheckYourAnswersController.onPageLoad().url)
+        val request = FakeRequest(GET, routes.CheckYourAnswersController.onPageLoad(operatorId).url)
 
         val result = route(application, request).value
 
@@ -39,7 +41,7 @@ class CheckYourAnswersControllerSpec extends SpecBase with SummaryListFluency {
         val list = SummaryListViewModel(Seq.empty)
 
         status(result) mustEqual OK
-        contentAsString(result) mustEqual view(list)(request, messages(application)).toString
+        contentAsString(result) mustEqual view(list, operatorId)(request, messages(application)).toString
       }
     }
 
@@ -48,12 +50,12 @@ class CheckYourAnswersControllerSpec extends SpecBase with SummaryListFluency {
       val application = applicationBuilder(userAnswers = None).build()
 
       running(application) {
-        val request = FakeRequest(GET, routes.CheckYourAnswersController.onPageLoad().url)
+        val request = FakeRequest(GET, routes.CheckYourAnswersController.onPageLoad(operatorId).url)
 
         val result = route(application, request).value
 
         status(result) mustEqual SEE_OTHER
-        redirectLocation(result).value mustEqual routes.JourneyRecoveryController.onPageLoad().url
+        redirectLocation(result).value mustEqual baseRoutes.JourneyRecoveryController.onPageLoad().url
       }
     }
   }

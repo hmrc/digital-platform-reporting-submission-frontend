@@ -28,7 +28,7 @@ import pages.assumed.HasTaxIdentifierPage
 import play.api.inject.bind
 import play.api.mvc.Call
 import play.api.test.FakeRequest
-import play.api.test.Helpers._
+import play.api.test.Helpers.*
 import repositories.SessionRepository
 import views.html.assumed.HasTaxIdentifierView
 
@@ -41,7 +41,7 @@ class HasTaxIdentifierControllerSpec extends SpecBase with MockitoSugar {
   val formProvider = new HasTaxIdentifierFormProvider()
   val form = formProvider()
 
-  lazy val hasTaxIdentifierRoute = routes.HasTaxIdentifierController.onPageLoad(NormalMode).url
+  lazy val hasTaxIdentifierRoute = routes.HasTaxIdentifierController.onPageLoad(NormalMode, operatorId).url
 
   "HasTaxIdentifier Controller" - {
 
@@ -57,13 +57,13 @@ class HasTaxIdentifierControllerSpec extends SpecBase with MockitoSugar {
         val view = application.injector.instanceOf[HasTaxIdentifierView]
 
         status(result) mustEqual OK
-        contentAsString(result) mustEqual view(form, NormalMode)(request, messages(application)).toString
+        contentAsString(result) mustEqual view(form, NormalMode, operatorId)(request, messages(application)).toString
       }
     }
 
     "must populate the view correctly on a GET when the question has previously been answered" in {
 
-      val userAnswers = UserAnswers(userAnswersId).set(HasTaxIdentifierPage, true).success.value
+      val userAnswers = emptyUserAnswers.set(HasTaxIdentifierPage, true).success.value
 
       val application = applicationBuilder(userAnswers = Some(userAnswers)).build()
 
@@ -75,7 +75,7 @@ class HasTaxIdentifierControllerSpec extends SpecBase with MockitoSugar {
         val result = route(application, request).value
 
         status(result) mustEqual OK
-        contentAsString(result) mustEqual view(form.fill(true), NormalMode)(request, messages(application)).toString
+        contentAsString(result) mustEqual view(form.fill(true), NormalMode, operatorId)(request, messages(application)).toString
       }
     }
 
@@ -121,7 +121,7 @@ class HasTaxIdentifierControllerSpec extends SpecBase with MockitoSugar {
         val result = route(application, request).value
 
         status(result) mustEqual BAD_REQUEST
-        contentAsString(result) mustEqual view(boundForm, NormalMode)(request, messages(application)).toString
+        contentAsString(result) mustEqual view(boundForm, NormalMode, operatorId)(request, messages(application)).toString
       }
     }
 

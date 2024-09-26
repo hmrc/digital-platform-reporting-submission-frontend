@@ -36,7 +36,7 @@ object HasTaxIdentifierSummary  {
           key     = "hasTaxIdentifier.checkYourAnswersLabel",
           value   = ValueViewModel(value),
           actions = Seq(
-            ActionItemViewModel("site.change", routes.HasTaxIdentifierController.onPageLoad(CheckMode).url)
+            ActionItemViewModel("site.change", routes.HasTaxIdentifierController.onPageLoad(CheckMode, answers.operatorId).url)
               .withVisuallyHiddenText(messages("hasTaxIdentifier.change.hidden"))
           )
         )

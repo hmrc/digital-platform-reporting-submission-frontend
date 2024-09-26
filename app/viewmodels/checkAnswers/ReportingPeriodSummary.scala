@@ -34,7 +34,7 @@ object ReportingPeriodSummary  {
           key     = "reportingPeriod.checkYourAnswersLabel",
           value   = ValueViewModel(answer.toString),
           actions = Seq(
-            ActionItemViewModel("site.change", routes.ReportingPeriodController.onPageLoad(CheckMode).url)
+            ActionItemViewModel("site.change", routes.ReportingPeriodController.onPageLoad(CheckMode, answers.operatorId).url)
               .withVisuallyHiddenText(messages("reportingPeriod.change.hidden"))
           )
         )

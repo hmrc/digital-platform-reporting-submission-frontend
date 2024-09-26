@@ -29,7 +29,7 @@ import play.api.inject.bind
 import play.api.libs.json.Json
 import play.api.mvc.Call
 import play.api.test.FakeRequest
-import play.api.test.Helpers._
+import play.api.test.Helpers.*
 import repositories.SessionRepository
 import views.html.assumed.UkAddressView
 
@@ -42,10 +42,11 @@ class UkAddressControllerSpec extends SpecBase with MockitoSugar {
   val formProvider = new UkAddressFormProvider()
   val form = formProvider()
 
-  lazy val ukAddressRoute = routes.UkAddressController.onPageLoad(NormalMode).url
+  lazy val ukAddressRoute = routes.UkAddressController.onPageLoad(NormalMode, operatorId).url
 
   val userAnswers = UserAnswers(
-    userAnswersId,
+    userId,
+    operatorId,
     Json.obj(
       UkAddressPage.toString -> Json.obj(
         "line1" -> "value 1",
@@ -68,7 +69,7 @@ class UkAddressControllerSpec extends SpecBase with MockitoSugar {
         val result = route(application, request).value
 
         status(result) mustEqual OK
-        contentAsString(result) mustEqual view(form, NormalMode)(request, messages(application)).toString
+        contentAsString(result) mustEqual view(form, NormalMode, operatorId)(request, messages(application)).toString
       }
     }
 
@@ -84,7 +85,7 @@ class UkAddressControllerSpec extends SpecBase with MockitoSugar {
         val result = route(application, request).value
 
         status(result) mustEqual OK
-        contentAsString(result) mustEqual view(form.fill(UkAddress("value 1", "value 2")), NormalMode)(request, messages(application)).toString
+        contentAsString(result) mustEqual view(form.fill(UkAddress("value 1", "value 2")), NormalMode, operatorId)(request, messages(application)).toString
       }
     }
 
@@ -130,7 +131,7 @@ class UkAddressControllerSpec extends SpecBase with MockitoSugar {
         val result = route(application, request).value
 
         status(result) mustEqual BAD_REQUEST
-        contentAsString(result) mustEqual view(boundForm, NormalMode)(request, messages(application)).toString
+        contentAsString(result) mustEqual view(boundForm, NormalMode, operatorId)(request, messages(application)).toString
       }
     }
 

@@ -36,7 +36,7 @@ object TaxResidentInUkSummary  {
           key     = "taxResidentInUk.checkYourAnswersLabel",
           value   = ValueViewModel(value),
           actions = Seq(
-            ActionItemViewModel("site.change", routes.TaxResidentInUkController.onPageLoad(CheckMode).url)
+            ActionItemViewModel("site.change", routes.TaxResidentInUkController.onPageLoad(CheckMode, answers.operatorId).url)
               .withVisuallyHiddenText(messages("taxResidentInUk.change.hidden"))
           )
         )

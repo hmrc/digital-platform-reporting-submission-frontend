@@ -44,6 +44,12 @@ class SessionRepository @Inject()(
     domainFormat   = UserAnswers.format,
     indexes        = Seq(
       IndexModel(
+        Indexes.ascending("userId", "operatorId"),
+        IndexOptions()
+          .name("userId-operatorId-idx")
+          .unique(true)
+      ),
+      IndexModel(
         Indexes.ascending("lastUpdated"),
         IndexOptions()
           .name("lastUpdatedIdx")
@@ -54,23 +60,29 @@ class SessionRepository @Inject()(
 
   implicit val instantFormat: Format[Instant] = MongoJavatimeFormats.instantFormat
 
-  private def byId(id: String): Bson = Filters.equal("_id", id)
+  private def byUserId(userId: String): Bson = Filters.equal("userId", userId)
 
-  def keepAlive(id: String): Future[Boolean] = Mdc.preservingMdc {
+  private def byIds(userId: String, operatorId: String): Bson =
+    Filters.and(
+      Filters.eq("userId", userId),
+      Filters.eq("operatorId", operatorId)
+    )
+
+  def keepAlive(userId: String): Future[Boolean] = Mdc.preservingMdc {
     collection
       .updateOne(
-        filter = byId(id),
+        filter = byUserId(userId),
         update = Updates.set("lastUpdated", Instant.now(clock)),
       )
       .toFuture()
       .map(_ => true)
   }
 
-  def get(id: String): Future[Option[UserAnswers]] = Mdc.preservingMdc {
-    keepAlive(id).flatMap {
+  def get(userId: String, operatorId: String): Future[Option[UserAnswers]] = Mdc.preservingMdc {
+    keepAlive(userId).flatMap {
       _ =>
         collection
-          .find(byId(id))
+          .find(byIds(userId, operatorId))
           .headOption()
     }
   }
@@ -81,7 +93,7 @@ class SessionRepository @Inject()(
 
     collection
       .replaceOne(
-        filter      = byId(updatedAnswers.id),
+        filter      = byIds(updatedAnswers.userId, updatedAnswers.operatorId),
         replacement = updatedAnswers,
         options     = ReplaceOptions().upsert(true)
       )
@@ -89,9 +101,16 @@ class SessionRepository @Inject()(
       .map(_ => true)
   }
 
-  def clear(id: String): Future[Boolean] = Mdc.preservingMdc {
+  def clear(userId: String, operatorId: String): Future[Boolean] = Mdc.preservingMdc {
     collection
-      .deleteOne(byId(id))
+      .deleteOne(byIds(userId, operatorId))
+      .toFuture()
+      .map(_ => true)
+  }
+
+  def clear(userId: String): Future[Boolean] = Mdc.preservingMdc {
+    collection
+      .deleteOne(byUserId(userId))
       .toFuture()
       .map(_ => true)
   }

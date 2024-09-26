@@ -19,7 +19,7 @@
     govukSummaryList: GovukSummaryList
 )
 
-@(list: SummaryList)(implicit request: Request[_], messages: Messages)
+@(list: SummaryList, operatorId: String)(implicit request: Request[_], messages: Messages)
 
 @layout(pageTitle = titleNoForm(messages("checkYourAnswers.title"))) {
 

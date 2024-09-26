@@ -29,7 +29,7 @@ import scala.concurrent.Future
 
 class DataRetrievalActionSpec extends SpecBase with MockitoSugar {
 
-  class Harness(sessionRepository: SessionRepository) extends DataRetrievalActionImpl(sessionRepository) {
+  class Harness(operatorId: String, sessionRepository: SessionRepository) extends DataRetrievalAction(operatorId, sessionRepository) {
     def callTransform[A](request: IdentifierRequest[A]): Future[OptionalDataRequest[A]] = transform(request)
   }
 
@@ -40,10 +40,10 @@ class DataRetrievalActionSpec extends SpecBase with MockitoSugar {
       "must set userAnswers to 'None' in the request" in {
 
         val sessionRepository = mock[SessionRepository]
-        when(sessionRepository.get("id")).thenReturn(Future.successful(None))
-        val action = new Harness(sessionRepository)
+        when(sessionRepository.get("userId", "operatorId")).thenReturn(Future.successful(None))
+        val action = new Harness("operatorId", sessionRepository)
 
-        val result = action.callTransform(IdentifierRequest(FakeRequest(), "id", "dprsId")).futureValue
+        val result = action.callTransform(IdentifierRequest(FakeRequest(), "userId", "operatorId")).futureValue
 
         result.userAnswers must not be defined
       }
@@ -54,10 +54,10 @@ class DataRetrievalActionSpec extends SpecBase with MockitoSugar {
       "must build a userAnswers object and add it to the request" in {
 
         val sessionRepository = mock[SessionRepository]
-        when(sessionRepository.get("id")).thenReturn(Future.successful(Some(UserAnswers("id"))))
-        val action = new Harness(sessionRepository)
+        when(sessionRepository.get("userId", "operatorId")).thenReturn(Future.successful(Some(UserAnswers("userId", "operatorId"))))
+        val action = new Harness("operatorId", sessionRepository)
 
-        val result = action.callTransform(IdentifierRequest(FakeRequest(), "id", "dprsId")).futureValue
+        val result = action.callTransform(IdentifierRequest(FakeRequest(), "userId", "operatorId")).futureValue
 
         result.userAnswers mustBe defined
       }

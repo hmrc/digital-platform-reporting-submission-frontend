@@ -35,7 +35,7 @@ object OperatorNameSummary  {
           key     = "operatorName.checkYourAnswersLabel",
           value   = ValueViewModel(HtmlFormat.escape(answer).toString),
           actions = Seq(
-            ActionItemViewModel("site.change", routes.OperatorNameController.onPageLoad(CheckMode).url)
+            ActionItemViewModel("site.change", routes.OperatorNameController.onPageLoad(CheckMode, answers.operatorId).url)
               .withVisuallyHiddenText(messages("operatorName.change.hidden"))
           )
         )

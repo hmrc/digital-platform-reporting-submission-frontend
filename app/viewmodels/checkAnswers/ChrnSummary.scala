@@ -35,7 +35,7 @@ object ChrnSummary  {
           key     = "chrn.checkYourAnswersLabel",
           value   = ValueViewModel(HtmlFormat.escape(answer).toString),
           actions = Seq(
-            ActionItemViewModel("site.change", routes.ChrnController.onPageLoad(CheckMode).url)
+            ActionItemViewModel("site.change", routes.ChrnController.onPageLoad(CheckMode, answers.operatorId).url)
               .withVisuallyHiddenText(messages("chrn.change.hidden"))
           )
         )
