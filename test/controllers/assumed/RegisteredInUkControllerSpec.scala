@@ -20,13 +20,11 @@ import base.SpecBase
 import controllers.routes as baseRoutes
 import forms.RegisteredInUkFormProvider
 import models.NormalMode
-import navigation.{FakeNavigator, Navigator}
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.when
 import org.scalatestplus.mockito.MockitoSugar
 import pages.assumed.RegisteredInUkPage
 import play.api.inject.bind
-import play.api.mvc.Call
 import play.api.test.FakeRequest
 import play.api.test.Helpers.*
 import repositories.SessionRepository
@@ -35,8 +33,6 @@ import views.html.assumed.RegisteredInUkView
 import scala.concurrent.Future
 
 class RegisteredInUkControllerSpec extends SpecBase with MockitoSugar {
-
-  def onwardRoute = Call("GET", "/foo")
 
   val formProvider = new RegisteredInUkFormProvider()
   val form = formProvider()
@@ -88,7 +84,6 @@ class RegisteredInUkControllerSpec extends SpecBase with MockitoSugar {
       val application =
         applicationBuilder(userAnswers = Some(emptyUserAnswers))
           .overrides(
-            bind[Navigator].toInstance(new FakeNavigator(onwardRoute)),
             bind[SessionRepository].toInstance(mockSessionRepository)
           )
           .build()
@@ -99,9 +94,10 @@ class RegisteredInUkControllerSpec extends SpecBase with MockitoSugar {
             .withFormUrlEncodedBody(("value", "true"))
 
         val result = route(application, request).value
+        val answers = emptyUserAnswers.set(RegisteredInUkPage, true).success.value
 
         status(result) mustEqual SEE_OTHER
-        redirectLocation(result).value mustEqual onwardRoute.url
+        redirectLocation(result).value mustEqual RegisteredInUkPage.nextPage(NormalMode, answers).url
       }
     }
 

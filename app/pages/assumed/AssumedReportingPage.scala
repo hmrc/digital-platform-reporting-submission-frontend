@@ -16,14 +16,20 @@
 
 package pages.assumed
 
-import models.UserAnswers
-import play.api.libs.json.JsPath
+import models.{CheckMode, Mode, NormalMode, UserAnswers}
 import play.api.mvc.Call
 
-case object InternationalTaxIdentifierPage extends AssumedReportingQuestionPage[String] {
+trait AssumedReportingPage {
 
-  override def path: JsPath = JsPath \ toString
+  final def nextPage(mode: Mode, answers: UserAnswers): Call =
+    mode match {
+      case NormalMode => nextPageNormalMode(answers)
+      case CheckMode => nextPageCheckMode(answers)
+    }
+    
+  protected def nextPageNormalMode(answers: UserAnswers): Call =
+    controllers.routes.IndexController.onPageLoad() // TODO: Remove implementation when navigation is done
 
-  override def toString: String = "internationalTaxIdentifier"
-
+  protected def nextPageCheckMode(answers: UserAnswers): Call =
+    controllers.assumed.routes.CheckYourAnswersController.onPageLoad(answers.operatorId)
 }

@@ -20,7 +20,6 @@ import controllers.actions._
 import forms.InternationalTaxIdentifierFormProvider
 import javax.inject.Inject
 import models.Mode
-import navigation.Navigator
 import pages.assumed.InternationalTaxIdentifierPage
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
@@ -33,7 +32,6 @@ import scala.concurrent.{ExecutionContext, Future}
 class InternationalTaxIdentifierController @Inject()(
                                         override val messagesApi: MessagesApi,
                                         sessionRepository: SessionRepository,
-                                        navigator: Navigator,
                                         identify: IdentifierAction,
                                         getData: DataRetrievalActionProvider,
                                         requireData: DataRequiredAction,
@@ -66,7 +64,7 @@ class InternationalTaxIdentifierController @Inject()(
           for {
             updatedAnswers <- Future.fromTry(request.userAnswers.set(InternationalTaxIdentifierPage, value))
             _              <- sessionRepository.set(updatedAnswers)
-          } yield Redirect(navigator.nextPage(InternationalTaxIdentifierPage, mode, updatedAnswers))
+          } yield Redirect(InternationalTaxIdentifierPage.nextPage(mode, updatedAnswers))
       )
   }
 }

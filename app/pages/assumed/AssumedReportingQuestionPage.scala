@@ -14,14 +14,8 @@
  * limitations under the License.
  */
 
-package navigation
+package pages.assumed
 
-import play.api.mvc.Call
-import pages._
-import models.{Mode, UserAnswers}
+import pages.QuestionPage
 
-class FakeNavigator(desiredRoute: Call) extends Navigator {
-
-  override def nextPage(page: Page, mode: Mode, userAnswers: UserAnswers): Call =
-    desiredRoute
-}
+trait AssumedReportingQuestionPage[A] extends QuestionPage[A] with AssumedReportingPage

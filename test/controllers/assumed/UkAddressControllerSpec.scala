@@ -19,15 +19,12 @@ package controllers.assumed
 import base.SpecBase
 import controllers.routes as baseRoutes
 import forms.UkAddressFormProvider
-import models.{NormalMode, UkAddress, UserAnswers}
-import navigation.{FakeNavigator, Navigator}
+import models.{NormalMode, UkAddress}
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.when
 import org.scalatestplus.mockito.MockitoSugar
 import pages.assumed.UkAddressPage
 import play.api.inject.bind
-import play.api.libs.json.Json
-import play.api.mvc.Call
 import play.api.test.FakeRequest
 import play.api.test.Helpers.*
 import repositories.SessionRepository
@@ -37,23 +34,12 @@ import scala.concurrent.Future
 
 class UkAddressControllerSpec extends SpecBase with MockitoSugar {
 
-  def onwardRoute = Call("GET", "/foo")
-
   val formProvider = new UkAddressFormProvider()
   val form = formProvider()
 
   lazy val ukAddressRoute = routes.UkAddressController.onPageLoad(NormalMode, operatorId).url
-
-  val userAnswers = UserAnswers(
-    userId,
-    operatorId,
-    Json.obj(
-      UkAddressPage.toString -> Json.obj(
-        "line1" -> "value 1",
-        "line2" -> "value 2"
-      )
-    )
-  )
+  val address = UkAddress("line 1", "line 2")
+  val userAnswers = emptyUserAnswers.set(UkAddressPage, address).success.value
 
   "UkAddress Controller" - {
 
@@ -85,7 +71,7 @@ class UkAddressControllerSpec extends SpecBase with MockitoSugar {
         val result = route(application, request).value
 
         status(result) mustEqual OK
-        contentAsString(result) mustEqual view(form.fill(UkAddress("value 1", "value 2")), NormalMode, operatorId)(request, messages(application)).toString
+        contentAsString(result) mustEqual view(form.fill(UkAddress("line 1", "line 2")), NormalMode, operatorId)(request, messages(application)).toString
       }
     }
 
@@ -98,7 +84,6 @@ class UkAddressControllerSpec extends SpecBase with MockitoSugar {
       val application =
         applicationBuilder(userAnswers = Some(emptyUserAnswers))
           .overrides(
-            bind[Navigator].toInstance(new FakeNavigator(onwardRoute)),
             bind[SessionRepository].toInstance(mockSessionRepository)
           )
           .build()
@@ -106,12 +91,12 @@ class UkAddressControllerSpec extends SpecBase with MockitoSugar {
       running(application) {
         val request =
           FakeRequest(POST, ukAddressRoute)
-            .withFormUrlEncodedBody(("line1", "value 1"), ("line2", "value 2"))
+            .withFormUrlEncodedBody(("line1", "line 1"), ("line2", "line 2"))
 
         val result = route(application, request).value
 
         status(result) mustEqual SEE_OTHER
-        redirectLocation(result).value mustEqual onwardRoute.url
+        redirectLocation(result).value mustEqual UkAddressPage.nextPage(NormalMode, userAnswers).url
       }
     }
 

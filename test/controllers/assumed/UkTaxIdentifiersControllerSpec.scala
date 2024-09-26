@@ -20,13 +20,11 @@ import base.SpecBase
 import controllers.routes as baseRoutes
 import forms.UkTaxIdentifiersFormProvider
 import models.{NormalMode, UkTaxIdentifiers}
-import navigation.{FakeNavigator, Navigator}
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.when
 import org.scalatestplus.mockito.MockitoSugar
 import pages.assumed.UkTaxIdentifiersPage
 import play.api.inject.bind
-import play.api.mvc.Call
 import play.api.test.FakeRequest
 import play.api.test.Helpers.*
 import repositories.SessionRepository
@@ -35,8 +33,6 @@ import views.html.assumed.UkTaxIdentifiersView
 import scala.concurrent.Future
 
 class UkTaxIdentifiersControllerSpec extends SpecBase with MockitoSugar {
-
-  def onwardRoute = Call("GET", "/foo")
 
   lazy val ukTaxIdentifiersRoute = routes.UkTaxIdentifiersController.onPageLoad(NormalMode, operatorId).url
 
@@ -89,7 +85,6 @@ class UkTaxIdentifiersControllerSpec extends SpecBase with MockitoSugar {
       val application =
         applicationBuilder(userAnswers = Some(emptyUserAnswers))
           .overrides(
-            bind[Navigator].toInstance(new FakeNavigator(onwardRoute)),
             bind[SessionRepository].toInstance(mockSessionRepository)
           )
           .build()
@@ -100,9 +95,10 @@ class UkTaxIdentifiersControllerSpec extends SpecBase with MockitoSugar {
             .withFormUrlEncodedBody(("value[0]", UkTaxIdentifiers.values.head.toString))
 
         val result = route(application, request).value
+        val answers = emptyUserAnswers.set(UkTaxIdentifiersPage, Set[UkTaxIdentifiers](UkTaxIdentifiers.values.head)).success.value
 
         status(result) mustEqual SEE_OTHER
-        redirectLocation(result).value mustEqual onwardRoute.url
+        redirectLocation(result).value mustEqual UkTaxIdentifiersPage.nextPage(NormalMode, answers).url
       }
     }
 

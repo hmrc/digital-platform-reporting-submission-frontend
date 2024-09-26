@@ -19,15 +19,12 @@ package controllers.assumed
 import base.SpecBase
 import controllers.routes as baseRoutes
 import forms.InternationalAddressFormProvider
-import models.{InternationalAddress, NormalMode, UserAnswers}
-import navigation.{FakeNavigator, Navigator}
+import models.{InternationalAddress, NormalMode}
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.when
 import org.scalatestplus.mockito.MockitoSugar
 import pages.assumed.InternationalAddressPage
 import play.api.inject.bind
-import play.api.libs.json.Json
-import play.api.mvc.Call
 import play.api.test.FakeRequest
 import play.api.test.Helpers.*
 import repositories.SessionRepository
@@ -37,23 +34,12 @@ import scala.concurrent.Future
 
 class InternationalAddressControllerSpec extends SpecBase with MockitoSugar {
 
-  def onwardRoute = Call("GET", "/foo")
-
   val formProvider = new InternationalAddressFormProvider()
   val form = formProvider()
 
   lazy val internationalAddressRoute = routes.InternationalAddressController.onPageLoad(NormalMode, operatorId).url
-
-  val userAnswers = UserAnswers(
-    userId,
-    operatorId,
-    Json.obj(
-      InternationalAddressPage.toString -> Json.obj(
-        "line1" -> "value 1",
-        "line2" -> "value 2"
-      )
-    )
-  )
+  val address = InternationalAddress("line 1", "line 2")
+  val userAnswers = emptyUserAnswers.set(InternationalAddressPage, address).success.value
 
   "InternationalAddress Controller" - {
 
@@ -85,7 +71,7 @@ class InternationalAddressControllerSpec extends SpecBase with MockitoSugar {
         val result = route(application, request).value
 
         status(result) mustEqual OK
-        contentAsString(result) mustEqual view(form.fill(InternationalAddress("value 1", "value 2")), NormalMode, operatorId)(request, messages(application)).toString
+        contentAsString(result) mustEqual view(form.fill(InternationalAddress("line 1", "line 2")), NormalMode, operatorId)(request, messages(application)).toString
       }
     }
 
@@ -98,7 +84,6 @@ class InternationalAddressControllerSpec extends SpecBase with MockitoSugar {
       val application =
         applicationBuilder(userAnswers = Some(emptyUserAnswers))
           .overrides(
-            bind[Navigator].toInstance(new FakeNavigator(onwardRoute)),
             bind[SessionRepository].toInstance(mockSessionRepository)
           )
           .build()
@@ -106,12 +91,12 @@ class InternationalAddressControllerSpec extends SpecBase with MockitoSugar {
       running(application) {
         val request =
           FakeRequest(POST, internationalAddressRoute)
-            .withFormUrlEncodedBody(("line1", "value 1"), ("line2", "value 2"))
+            .withFormUrlEncodedBody(("line1", "line 1"), ("line2", "line 2"))
 
         val result = route(application, request).value
 
         status(result) mustEqual SEE_OTHER
-        redirectLocation(result).value mustEqual onwardRoute.url
+        redirectLocation(result).value mustEqual InternationalAddressPage.nextPage(NormalMode, userAnswers).url
       }
     }
 

@@ -20,13 +20,11 @@ import base.SpecBase
 import controllers.routes as baseRoutes
 import forms.TaxResidencyCountryFormProvider
 import models.NormalMode
-import navigation.{FakeNavigator, Navigator}
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.when
 import org.scalatestplus.mockito.MockitoSugar
 import pages.assumed.TaxResidencyCountryPage
 import play.api.inject.bind
-import play.api.mvc.Call
 import play.api.test.FakeRequest
 import play.api.test.Helpers.*
 import repositories.SessionRepository
@@ -35,8 +33,6 @@ import views.html.assumed.TaxResidencyCountryView
 import scala.concurrent.Future
 
 class TaxResidencyCountryControllerSpec extends SpecBase with MockitoSugar {
-
-  def onwardRoute = Call("GET", "/foo")
 
   val formProvider = new TaxResidencyCountryFormProvider()
   val form = formProvider()
@@ -88,7 +84,6 @@ class TaxResidencyCountryControllerSpec extends SpecBase with MockitoSugar {
       val application =
         applicationBuilder(userAnswers = Some(emptyUserAnswers))
           .overrides(
-            bind[Navigator].toInstance(new FakeNavigator(onwardRoute)),
             bind[SessionRepository].toInstance(mockSessionRepository)
           )
           .build()
@@ -99,9 +94,10 @@ class TaxResidencyCountryControllerSpec extends SpecBase with MockitoSugar {
             .withFormUrlEncodedBody(("value", "answer"))
 
         val result = route(application, request).value
+        val answers = emptyUserAnswers.set(TaxResidencyCountryPage, "answer").success.value
 
         status(result) mustEqual SEE_OTHER
-        redirectLocation(result).value mustEqual onwardRoute.url
+        redirectLocation(result).value mustEqual TaxResidencyCountryPage.nextPage(NormalMode, answers).url
       }
     }
 

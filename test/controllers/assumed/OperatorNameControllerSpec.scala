@@ -20,13 +20,12 @@ import base.SpecBase
 import controllers.routes as baseRoutes
 import forms.OperatorNameFormProvider
 import models.NormalMode
-import navigation.{FakeNavigator, Navigator}
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.when
 import org.scalatestplus.mockito.MockitoSugar
+import pages.assumed
 import pages.assumed.OperatorNamePage
 import play.api.inject.bind
-import play.api.mvc.Call
 import play.api.test.FakeRequest
 import play.api.test.Helpers.*
 import repositories.SessionRepository
@@ -35,8 +34,6 @@ import views.html.assumed.OperatorNameView
 import scala.concurrent.Future
 
 class OperatorNameControllerSpec extends SpecBase with MockitoSugar {
-
-  def onwardRoute = Call("GET", "/foo")
 
   val formProvider = new OperatorNameFormProvider()
   val form = formProvider()
@@ -88,7 +85,6 @@ class OperatorNameControllerSpec extends SpecBase with MockitoSugar {
       val application =
         applicationBuilder(userAnswers = Some(emptyUserAnswers))
           .overrides(
-            bind[Navigator].toInstance(new FakeNavigator(onwardRoute)),
             bind[SessionRepository].toInstance(mockSessionRepository)
           )
           .build()
@@ -99,9 +95,10 @@ class OperatorNameControllerSpec extends SpecBase with MockitoSugar {
             .withFormUrlEncodedBody(("value", "answer"))
 
         val result = route(application, request).value
+        val answers = emptyUserAnswers.set(OperatorNamePage, "answer").success.value
 
         status(result) mustEqual SEE_OTHER
-        redirectLocation(result).value mustEqual onwardRoute.url
+        redirectLocation(result).value mustEqual OperatorNamePage.nextPage(NormalMode, answers).url
       }
     }
 

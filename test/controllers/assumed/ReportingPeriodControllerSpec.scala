@@ -20,13 +20,11 @@ import base.SpecBase
 import controllers.routes as baseRoutes
 import forms.ReportingPeriodFormProvider
 import models.NormalMode
-import navigation.{FakeNavigator, Navigator}
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.when
 import org.scalatestplus.mockito.MockitoSugar
 import pages.assumed.ReportingPeriodPage
 import play.api.inject.bind
-import play.api.mvc.Call
 import play.api.test.FakeRequest
 import play.api.test.Helpers.*
 import repositories.SessionRepository
@@ -38,8 +36,6 @@ class ReportingPeriodControllerSpec extends SpecBase with MockitoSugar {
 
   val formProvider = new ReportingPeriodFormProvider()
   val form = formProvider()
-
-  def onwardRoute = Call("GET", "/foo")
 
   val validAnswer = 2024
 
@@ -90,7 +86,6 @@ class ReportingPeriodControllerSpec extends SpecBase with MockitoSugar {
       val application =
         applicationBuilder(userAnswers = Some(emptyUserAnswers))
           .overrides(
-            bind[Navigator].toInstance(new FakeNavigator(onwardRoute)),
             bind[SessionRepository].toInstance(mockSessionRepository)
           )
           .build()
@@ -101,9 +96,10 @@ class ReportingPeriodControllerSpec extends SpecBase with MockitoSugar {
             .withFormUrlEncodedBody(("value", validAnswer.toString))
 
         val result = route(application, request).value
+        val answers = emptyUserAnswers.set(ReportingPeriodPage, validAnswer).success.value
 
         status(result) mustEqual SEE_OTHER
-        redirectLocation(result).value mustEqual onwardRoute.url
+        redirectLocation(result).value mustEqual ReportingPeriodPage.nextPage(NormalMode, answers).url
       }
     }
 

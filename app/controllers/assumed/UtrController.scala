@@ -20,7 +20,6 @@ import controllers.actions._
 import forms.UtrFormProvider
 import javax.inject.Inject
 import models.Mode
-import navigation.Navigator
 import pages.assumed.UtrPage
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
@@ -33,7 +32,6 @@ import scala.concurrent.{ExecutionContext, Future}
 class UtrController @Inject()(
                                         override val messagesApi: MessagesApi,
                                         sessionRepository: SessionRepository,
-                                        navigator: Navigator,
                                         identify: IdentifierAction,
                                         getData: DataRetrievalActionProvider,
                                         requireData: DataRequiredAction,
@@ -66,7 +64,7 @@ class UtrController @Inject()(
           for {
             updatedAnswers <- Future.fromTry(request.userAnswers.set(UtrPage, value))
             _              <- sessionRepository.set(updatedAnswers)
-          } yield Redirect(navigator.nextPage(UtrPage, mode, updatedAnswers))
+          } yield Redirect(UtrPage.nextPage(mode, updatedAnswers))
       )
   }
 }
