@@ -1,106 +1,32 @@
 # microservice specific routes
 
-->          /hmrc-frontend                               hmrcfrontend.Routes
+->          /assumed-reporting                           assumed.Routes
+->          /submission/hmrc-frontend                               hmrcfrontend.Routes
 
-GET         /                                            controllers.IndexController.onPageLoad()
+GET         /submission/                                            controllers.IndexController.onPageLoad()
 
-GET         /assets/*file                                controllers.Assets.versioned(path="/public", file: Asset)
+GET         /submission/assets/*file                                controllers.Assets.versioned(path="/public", file: Asset)
 
 GET         /language/:lang                              controllers.LanguageSwitchController.switchToLanguage(lang: String)
 
-GET         /refresh-session                             controllers.KeepAliveController.keepAlive()
+GET         /submission/refresh-session                             controllers.KeepAliveController.keepAlive()
 
-GET         /there-is-a-problem                          controllers.JourneyRecoveryController.onPageLoad(continueUrl: Option[RedirectUrl] ?= None)
+GET         /submission/there-is-a-problem                          controllers.JourneyRecoveryController.onPageLoad(continueUrl: Option[RedirectUrl] ?= None)
 
-GET         /check-your-answers                          controllers.CheckYourAnswersController.onPageLoad()
+GET         /submission/check-your-answers                          controllers.CheckYourAnswersController.onPageLoad()
 
-GET         /account/sign-out-survey                     controllers.auth.AuthController.signOut()
-GET         /account/sign-out                            controllers.auth.AuthController.signOutNoSurvey()
-GET         /account/signed-out                          controllers.auth.SignedOutController.onPageLoad()
+GET         /submission/account/sign-out-survey                     controllers.auth.AuthController.signOut()
+GET         /submission/account/sign-out                            controllers.auth.AuthController.signOutNoSurvey()
+GET         /submission/account/signed-out                          controllers.auth.SignedOutController.onPageLoad()
 
-GET         /unauthorised                                controllers.UnauthorisedController.onPageLoad()
+GET         /submission/unauthorised                                controllers.UnauthorisedController.onPageLoad()
 
-GET         /start-page                                  controllers.StartController.onPageLoad()
-POST        /start-page                                  controllers.StartController.onSubmit()
+GET         /submission/start-page                                  controllers.StartController.onPageLoad()
+POST        /submission/start-page                                  controllers.StartController.onSubmit()
 
-GET         /upload/:submissionId                        controllers.UploadController.onPageLoad(submissionId: String)
-GET         /uploading-redirect/:submissionId            controllers.UploadingController.onRedirect(submissionId: String)
-GET         /uploading/:submissionId                     controllers.UploadingController.onPageLoad(submissionId: String)
-GET         /upload-failed/:submissionId                 controllers.UploadFailedController.onPageLoad(submissionId: String)
-GET         /upload-failed-redirect/:submissionId        controllers.UploadFailedController.onRedirect(submissionId: String, errorCode: Option[String] ?= None)
-GET         /send-file/:submissionId                     controllers.SendFileController.onPageLoad(submissionId: String)
-
-GET        /chrn                        controllers.ChrnController.onPageLoad(mode: Mode = NormalMode)
-POST       /chrn                        controllers.ChrnController.onSubmit(mode: Mode = NormalMode)
-GET        /changeChrn                  controllers.ChrnController.onPageLoad(mode: Mode = CheckMode)
-POST       /changeChrn                  controllers.ChrnController.onSubmit(mode: Mode = CheckMode)
-
-GET        /crn                        controllers.CrnController.onPageLoad(mode: Mode = NormalMode)
-POST       /crn                        controllers.CrnController.onSubmit(mode: Mode = NormalMode)
-GET        /changeCrn                  controllers.CrnController.onPageLoad(mode: Mode = CheckMode)
-POST       /changeCrn                  controllers.CrnController.onSubmit(mode: Mode = CheckMode)
-
-GET        /empref                        controllers.EmprefController.onPageLoad(mode: Mode = NormalMode)
-POST       /empref                        controllers.EmprefController.onSubmit(mode: Mode = NormalMode)
-GET        /changeEmpref                  controllers.EmprefController.onPageLoad(mode: Mode = CheckMode)
-POST       /changeEmpref                  controllers.EmprefController.onSubmit(mode: Mode = CheckMode)
-
-GET        /hasTaxIdentifier                        controllers.HasTaxIdentifierController.onPageLoad(mode: Mode = NormalMode)
-POST       /hasTaxIdentifier                        controllers.HasTaxIdentifierController.onSubmit(mode: Mode = NormalMode)
-GET        /changeHasTaxIdentifier                  controllers.HasTaxIdentifierController.onPageLoad(mode: Mode = CheckMode)
-POST       /changeHasTaxIdentifier                  controllers.HasTaxIdentifierController.onSubmit(mode: Mode = CheckMode)
-
-GET        /internationalAddress                        controllers.InternationalAddressController.onPageLoad(mode: Mode = NormalMode)
-POST       /internationalAddress                        controllers.InternationalAddressController.onSubmit(mode: Mode = NormalMode)
-GET        /changeInternationalAddress                  controllers.InternationalAddressController.onPageLoad(mode: Mode = CheckMode)
-POST       /changeInternationalAddress                  controllers.InternationalAddressController.onSubmit(mode: Mode = CheckMode)
-
-GET        /internationalTaxIdentifier                        controllers.InternationalTaxIdentifierController.onPageLoad(mode: Mode = NormalMode)
-POST       /internationalTaxIdentifier                        controllers.InternationalTaxIdentifierController.onSubmit(mode: Mode = NormalMode)
-GET        /changeInternationalTaxIdentifier                  controllers.InternationalTaxIdentifierController.onPageLoad(mode: Mode = CheckMode)
-POST       /changeInternationalTaxIdentifier                  controllers.InternationalTaxIdentifierController.onSubmit(mode: Mode = CheckMode)
-
-GET        /operatorName                        controllers.OperatorNameController.onPageLoad(mode: Mode = NormalMode)
-POST       /operatorName                        controllers.OperatorNameController.onSubmit(mode: Mode = NormalMode)
-GET        /changeOperatorName                  controllers.OperatorNameController.onPageLoad(mode: Mode = CheckMode)
-POST       /changeOperatorName                  controllers.OperatorNameController.onSubmit(mode: Mode = CheckMode)
-
-GET        /registeredInUk                        controllers.RegisteredInUkController.onPageLoad(mode: Mode = NormalMode)
-POST       /registeredInUk                        controllers.RegisteredInUkController.onSubmit(mode: Mode = NormalMode)
-GET        /changeRegisteredInUk                  controllers.RegisteredInUkController.onPageLoad(mode: Mode = CheckMode)
-POST       /changeRegisteredInUk                  controllers.RegisteredInUkController.onSubmit(mode: Mode = CheckMode)
-
-GET        /reportingPeriod                  controllers.ReportingPeriodController.onPageLoad(mode: Mode = NormalMode)
-POST       /reportingPeriod                  controllers.ReportingPeriodController.onSubmit(mode: Mode = NormalMode)
-GET        /changeReportingPeriod                        controllers.ReportingPeriodController.onPageLoad(mode: Mode = CheckMode)
-POST       /changeReportingPeriod                        controllers.ReportingPeriodController.onSubmit(mode: Mode = CheckMode)
-
-GET        /taxResidencyCountry                        controllers.TaxResidencyCountryController.onPageLoad(mode: Mode = NormalMode)
-POST       /taxResidencyCountry                        controllers.TaxResidencyCountryController.onSubmit(mode: Mode = NormalMode)
-GET        /changeTaxResidencyCountry                  controllers.TaxResidencyCountryController.onPageLoad(mode: Mode = CheckMode)
-POST       /changeTaxResidencyCountry                  controllers.TaxResidencyCountryController.onSubmit(mode: Mode = CheckMode)
-
-GET        /taxResidentInUk                        controllers.TaxResidentInUkController.onPageLoad(mode: Mode = NormalMode)
-POST       /taxResidentInUk                        controllers.TaxResidentInUkController.onSubmit(mode: Mode = NormalMode)
-GET        /changeTaxResidentInUk                  controllers.TaxResidentInUkController.onPageLoad(mode: Mode = CheckMode)
-POST       /changeTaxResidentInUk                  controllers.TaxResidentInUkController.onSubmit(mode: Mode = CheckMode)
-
-GET        /ukAddress                        controllers.UkAddressController.onPageLoad(mode: Mode = NormalMode)
-POST       /ukAddress                        controllers.UkAddressController.onSubmit(mode: Mode = NormalMode)
-GET        /changeUkAddress                  controllers.UkAddressController.onPageLoad(mode: Mode = CheckMode)
-POST       /changeUkAddress                  controllers.UkAddressController.onSubmit(mode: Mode = CheckMode)
-
-GET        /ukTaxIdentifiers                        controllers.UkTaxIdentifiersController.onPageLoad(mode: Mode = NormalMode)
-POST       /ukTaxIdentifiers                        controllers.UkTaxIdentifiersController.onSubmit(mode: Mode = NormalMode)
-GET        /changeUkTaxIdentifiers                  controllers.UkTaxIdentifiersController.onPageLoad(mode: Mode = CheckMode)
-POST       /changeUkTaxIdentifiers                  controllers.UkTaxIdentifiersController.onSubmit(mode: Mode = CheckMode)
-
-GET        /utr                        controllers.UtrController.onPageLoad(mode: Mode = NormalMode)
-POST       /utr                        controllers.UtrController.onSubmit(mode: Mode = NormalMode)
-GET        /changeUtr                  controllers.UtrController.onPageLoad(mode: Mode = CheckMode)
-POST       /changeUtr                  controllers.UtrController.onSubmit(mode: Mode = CheckMode)
-
-GET        /vrn                        controllers.VrnController.onPageLoad(mode: Mode = NormalMode)
-POST       /vrn                        controllers.VrnController.onSubmit(mode: Mode = NormalMode)
-GET        /changeVrn                  controllers.VrnController.onPageLoad(mode: Mode = CheckMode)
-POST       /changeVrn                  controllers.VrnController.onSubmit(mode: Mode = CheckMode)
+GET         /submission/upload/:submissionId                        controllers.UploadController.onPageLoad(submissionId: String)
+GET         /submission/uploading-redirect/:submissionId            controllers.UploadingController.onRedirect(submissionId: String)
+GET         /submission/uploading/:submissionId                     controllers.UploadingController.onPageLoad(submissionId: String)
+GET         /submission/upload-failed/:submissionId                 controllers.UploadFailedController.onPageLoad(submissionId: String)
+GET         /submission/upload-failed-redirect/:submissionId        controllers.UploadFailedController.onRedirect(submissionId: String, errorCode: Option[String] ?= None)
+GET         /submission/send-file/:submissionId                     controllers.SendFileController.onPageLoad(submissionId: String)

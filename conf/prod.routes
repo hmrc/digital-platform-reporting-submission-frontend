@@ -1,4 +1,4 @@
 # Add all the application routes to the app.routes file
-->         /digital-platform-reporting-submission-frontend                    app.Routes
+->         /digital-platform-reporting                    app.Routes
 ->         /internal                                                          internal.Routes
-->         /                          health.Routes
+->         /                                    health.Routes
