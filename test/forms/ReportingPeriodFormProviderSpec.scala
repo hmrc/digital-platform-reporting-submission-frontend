@@ -17,46 +17,48 @@
 package forms
 
 import forms.behaviours.IntFieldBehaviours
+import org.scalacheck.Gen
 import play.api.data.FormError
+
+import java.time.{Clock, Instant, LocalDate, ZoneOffset}
 
 class ReportingPeriodFormProviderSpec extends IntFieldBehaviours {
 
-  val form = new ReportingPeriodFormProvider()()
+  private val requiredKey = "reportingPeriod.error.required"
+
+  private val operatorName = "name"
+  private val clock = Clock.fixed(Instant.parse("2100-12-31T00:00:00Z"), ZoneOffset.UTC)
+  private val form = new ReportingPeriodFormProvider(clock)(operatorName)
 
   ".value" - {
 
     val fieldName = "value"
 
-    val minimum = 2024
-    val maximum = 2025
-
-    val validDataGenerator = intsInRangeWithCommas(minimum, maximum)
-
     behave like fieldThatBindsValidData(
       form,
       fieldName,
-      validDataGenerator
-    )
-
-    behave like intField(
-      form,
-      fieldName,
-      nonNumericError  = FormError(fieldName, "reportingPeriod.error.nonNumeric"),
-      wholeNumberError = FormError(fieldName, "reportingPeriod.error.wholeNumber")
-    )
-
-    behave like intFieldWithRange(
-      form,
-      fieldName,
-      minimum       = minimum,
-      maximum       = maximum,
-      expectedError = FormError(fieldName, "reportingPeriod.error.outOfRange", Seq(minimum, maximum))
+      Gen.choose(LocalDate.now(clock).getYear, LocalDate.now(clock).getYear).map(_.toString)
     )
 
     behave like mandatoryField(
       form,
       fieldName,
-      requiredError = FormError(fieldName, "reportingPeriod.error.required")
+      FormError(fieldName, requiredKey, Seq(operatorName))
+    )
+
+    behave like intFieldWithMinimum(
+      form,
+      fieldName,
+      2024,
+      FormError(fieldName, "reportingPeriod.error.belowMinimum", Seq(2024, "2024"))
+    )
+
+    val maxYear = LocalDate.now(clock).getYear
+    behave like intFieldWithMaximum(
+      form,
+      fieldName,
+      maxYear,
+      FormError(fieldName, "reportingPeriod.error.aboveMaximum", Seq(maxYear, maxYear.toString))
     )
   }
 }

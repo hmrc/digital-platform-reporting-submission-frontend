@@ -19,11 +19,11 @@ package controllers.assumed
 import base.SpecBase
 import controllers.routes as baseRoutes
 import forms.InternationalTaxIdentifierFormProvider
-import models.{NormalMode, UserAnswers}
+import models.{Country, NormalMode, UserAnswers}
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.when
 import org.scalatestplus.mockito.MockitoSugar
-import pages.assumed.InternationalTaxIdentifierPage
+import pages.assumed.{InternationalTaxIdentifierPage, OperatorNamePage, TaxResidencyCountryPage}
 import play.api.inject.bind
 import play.api.test.FakeRequest
 import play.api.test.Helpers.*
@@ -35,7 +35,9 @@ import scala.concurrent.Future
 class InternationalTaxIdentifierControllerSpec extends SpecBase with MockitoSugar {
 
   val formProvider = new InternationalTaxIdentifierFormProvider()
-  val form = formProvider()
+  private val country = Country.internationalCountries.head
+  private val form = formProvider(country)
+  private val baseAnswers = emptyUserAnswers.set(TaxResidencyCountryPage, country).success.value
 
   lazy val internationalTaxIdentifierRoute = routes.InternationalTaxIdentifierController.onPageLoad(NormalMode, operatorId).url
 
@@ -43,7 +45,7 @@ class InternationalTaxIdentifierControllerSpec extends SpecBase with MockitoSuga
 
     "must return OK and the correct view for a GET" in {
 
-      val application = applicationBuilder(userAnswers = Some(emptyUserAnswers)).build()
+      val application = applicationBuilder(userAnswers = Some(baseAnswers)).build()
 
       running(application) {
         val request = FakeRequest(GET, internationalTaxIdentifierRoute)
@@ -53,13 +55,13 @@ class InternationalTaxIdentifierControllerSpec extends SpecBase with MockitoSuga
         val view = application.injector.instanceOf[InternationalTaxIdentifierView]
 
         status(result) mustEqual OK
-        contentAsString(result) mustEqual view(form, NormalMode, operatorId)(request, messages(application)).toString
+        contentAsString(result) mustEqual view(form, NormalMode, operatorId, country)(request, messages(application)).toString
       }
     }
 
     "must populate the view correctly on a GET when the question has previously been answered" in {
 
-      val userAnswers = emptyUserAnswers.set(InternationalTaxIdentifierPage, "answer").success.value
+      val userAnswers = baseAnswers.set(InternationalTaxIdentifierPage, "answer").success.value
 
       val application = applicationBuilder(userAnswers = Some(userAnswers)).build()
 
@@ -71,7 +73,7 @@ class InternationalTaxIdentifierControllerSpec extends SpecBase with MockitoSuga
         val result = route(application, request).value
 
         status(result) mustEqual OK
-        contentAsString(result) mustEqual view(form.fill("answer"), NormalMode, operatorId)(request, messages(application)).toString
+        contentAsString(result) mustEqual view(form.fill("answer"), NormalMode, operatorId, country)(request, messages(application)).toString
       }
     }
 
@@ -82,7 +84,7 @@ class InternationalTaxIdentifierControllerSpec extends SpecBase with MockitoSuga
       when(mockSessionRepository.set(any())) thenReturn Future.successful(true)
 
       val application =
-        applicationBuilder(userAnswers = Some(emptyUserAnswers))
+        applicationBuilder(userAnswers = Some(baseAnswers))
           .overrides(
             bind[SessionRepository].toInstance(mockSessionRepository)
           )
@@ -94,7 +96,7 @@ class InternationalTaxIdentifierControllerSpec extends SpecBase with MockitoSuga
             .withFormUrlEncodedBody(("value", "answer"))
 
         val result = route(application, request).value
-        val answers = emptyUserAnswers.set(InternationalTaxIdentifierPage, "answer").success.value
+        val answers = baseAnswers.set(InternationalTaxIdentifierPage, "answer").success.value
 
         status(result) mustEqual SEE_OTHER
         redirectLocation(result).value mustEqual InternationalTaxIdentifierPage.nextPage(NormalMode, answers).url
@@ -103,7 +105,7 @@ class InternationalTaxIdentifierControllerSpec extends SpecBase with MockitoSuga
 
     "must return a Bad Request and errors when invalid data is submitted" in {
 
-      val application = applicationBuilder(userAnswers = Some(emptyUserAnswers)).build()
+      val application = applicationBuilder(userAnswers = Some(baseAnswers)).build()
 
       running(application) {
         val request =
@@ -117,7 +119,7 @@ class InternationalTaxIdentifierControllerSpec extends SpecBase with MockitoSuga
         val result = route(application, request).value
 
         status(result) mustEqual BAD_REQUEST
-        contentAsString(result) mustEqual view(boundForm, NormalMode, operatorId)(request, messages(application)).toString
+        contentAsString(result) mustEqual view(boundForm, NormalMode, operatorId, country)(request, messages(application)).toString
       }
     }
 

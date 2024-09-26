@@ -16,16 +16,16 @@
 
 package forms
 
-import javax.inject.Inject
-
 import forms.mappings.Mappings
 import play.api.data.Form
 
+import javax.inject.Inject
+
 class UtrFormProvider @Inject() extends Mappings {
 
-  def apply(): Form[String] =
+  def apply(operatorName: String): Form[String] =
     Form(
-      "value" -> text("utr.error.required")
-        .verifying(maxLength(100, "utr.error.length"))
+      "value" -> text("utr.error.required", args = Seq(operatorName))
+        .verifying(regexp(Validation.utrPattern.toString, "utr.error.format", args = operatorName))
     )
 }

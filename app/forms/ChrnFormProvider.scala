@@ -16,16 +16,16 @@
 
 package forms
 
-import javax.inject.Inject
-
 import forms.mappings.Mappings
 import play.api.data.Form
 
+import javax.inject.Inject
+
 class ChrnFormProvider @Inject() extends Mappings {
 
-  def apply(): Form[String] =
+  def apply(operatorName: String): Form[String] =
     Form(
-      "value" -> text("chrn.error.required")
-        .verifying(maxLength(100, "chrn.error.length"))
+      "value" -> text("chrn.error.required", args = Seq(operatorName))
+        .verifying(regexp(Validation.chrnPattern.toString, "chrn.error.format", args = operatorName))
     )
 }

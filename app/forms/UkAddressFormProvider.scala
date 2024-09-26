@@ -16,21 +16,42 @@
 
 package forms
 
-import javax.inject.Inject
-
 import forms.mappings.Mappings
+import models.{Country, UkAddress}
 import play.api.data.Form
 import play.api.data.Forms._
-import models.UkAddress
+
+import javax.inject.Inject
 
 class UkAddressFormProvider @Inject() extends Mappings {
 
-   def apply(): Form[UkAddress] = Form(
-     mapping(
+  def apply(): Form[UkAddress] = Form(
+    mapping(
       "line1" -> text("ukAddress.error.line1.required")
-        .verifying(maxLength(35, "ukAddress.error.line1.length")),
-      "line2" -> text("ukAddress.error.line2.required")
-        .verifying(maxLength(35, "ukAddress.error.line2.length"))
-    )(UkAddress.apply)(x => Some((x.line1, x.line2)))
-   )
- }
+        .verifying(firstError(
+          maxLength(35, "ukAddress.error.line1.length"),
+          regexp(Validation.textInputPattern.toString, "ukAddress.error.line1.format")
+        )),
+      "line2" -> optional(text("")
+        .verifying(firstError(
+          maxLength(35, "ukAddress.error.line2.length"),
+          regexp(Validation.textInputPattern.toString, "ukAddress.error.line2.format")
+        ))),
+      "town" -> text("ukAddress.error.town.required")
+        .verifying(firstError(
+          maxLength(35, "ukAddress.error.town.length"),
+          regexp(Validation.textInputPattern.toString, "ukAddress.error.town.format")
+        )),
+      "county" -> optional(text("")
+        .verifying(firstError(
+          maxLength(35, "ukAddress.error.county.length"),
+          regexp(Validation.textInputPattern.toString, "ukAddress.error.county.format")
+        ))),
+      "postCode" -> text("ukAddress.error.postCode.required")
+        .verifying(regexp(Validation.ukPostcodePattern.toString, "ukAddress.error.postCode.format")),
+      "country" -> text("ukAddress.error.country.required")
+        .verifying("ukAddress.error.country.required", value => Country.ukCountries.exists(_.code == value))
+        .transform[Country](value => Country.ukCountries.find(_.code == value).get, _.code)
+    )(UkAddress.apply)(x => Some((x.line1, x.line2, x.town, x.county, x.postCode, x.country)))
+  )
+}

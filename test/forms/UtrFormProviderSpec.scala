@@ -17,37 +17,51 @@
 package forms
 
 import forms.behaviours.StringFieldBehaviours
+import org.scalacheck.Arbitrary.arbitrary
+import org.scalacheck.Gen
 import play.api.data.FormError
 
 class UtrFormProviderSpec extends StringFieldBehaviours {
 
-  val requiredKey = "utr.error.required"
-  val lengthKey = "utr.error.length"
-  val maxLength = 100
 
-  val form = new UtrFormProvider()()
+  private val operatorName = "name"
+  private val form = new UtrFormProvider()(operatorName)
+
+  private val requiredKey = "utr.error.required"
+  private val formatKey = "utr.error.format"
 
   ".value" - {
+
+    val validData = for {
+      first <- Gen.option(Gen.oneOf('K', 'k'))
+      numberOfDigits <- Gen.oneOf(10, 13)
+      digits <- Gen.listOfN(numberOfDigits, Gen.numChar)
+      last <- Gen.option(Gen.oneOf('K', 'k'))
+    } yield first.map(_.toString).getOrElse("") + digits.mkString + last.map(_.toString).getOrElse("")
 
     val fieldName = "value"
 
     behave like fieldThatBindsValidData(
       form,
       fieldName,
-      stringsWithMaxLength(maxLength)
+      validData
     )
 
-    behave like fieldWithMaxLength(
-      form,
-      fieldName,
-      maxLength = maxLength,
-      lengthError = FormError(fieldName, lengthKey, Seq(maxLength))
-    )
+    "must not bind invalid values" in {
+
+      forAll(arbitrary[String]) { input =>
+
+        whenever(input.trim.nonEmpty && !input.trim.matches(Validation.utrPattern.toString)) {
+          val result = form.bind(Map(fieldName -> input)).apply(fieldName)
+          result.errors must contain only FormError(fieldName, formatKey, Seq(Validation.utrPattern.toString, operatorName))
+        }
+      }
+    }
 
     behave like mandatoryField(
       form,
       fieldName,
-      requiredError = FormError(fieldName, requiredKey)
+      requiredError = FormError(fieldName, requiredKey, Seq(operatorName))
     )
   }
 }

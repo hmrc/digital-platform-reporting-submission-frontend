@@ -16,11 +16,13 @@
 
 package controllers.assumed
 
-import controllers.actions._
+import controllers.AnswerExtractor
+import controllers.actions.*
 import forms.InternationalTaxIdentifierFormProvider
+
 import javax.inject.Inject
 import models.Mode
-import pages.assumed.InternationalTaxIdentifierPage
+import pages.assumed.{InternationalTaxIdentifierPage, TaxResidencyCountryPage}
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import repositories.SessionRepository
@@ -38,33 +40,38 @@ class InternationalTaxIdentifierController @Inject()(
                                         formProvider: InternationalTaxIdentifierFormProvider,
                                         val controllerComponents: MessagesControllerComponents,
                                         view: InternationalTaxIdentifierView
-                                    )(implicit ec: ExecutionContext) extends FrontendBaseController with I18nSupport {
+                                    )(implicit ec: ExecutionContext)
+  extends FrontendBaseController with I18nSupport with AnswerExtractor {
 
-  val form = formProvider()
+  def onPageLoad(mode: Mode, operatorId: String): Action[AnyContent] = (identify andThen getData(operatorId) andThen requireData) { implicit request =>
+    getAnswer(TaxResidencyCountryPage) { country =>
 
-  def onPageLoad(mode: Mode, operatorId: String): Action[AnyContent] = (identify andThen getData(operatorId) andThen requireData) {
-    implicit request =>
+      val form = formProvider(country)
 
       val preparedForm = request.userAnswers.get(InternationalTaxIdentifierPage) match {
         case None => form
         case Some(value) => form.fill(value)
       }
 
-      Ok(view(preparedForm, mode, operatorId))
+      Ok(view(preparedForm, mode, operatorId, country))
+    }
   }
 
-  def onSubmit(mode: Mode, operatorId: String): Action[AnyContent] = (identify andThen getData(operatorId) andThen requireData).async {
-    implicit request =>
+  def onSubmit(mode: Mode, operatorId: String): Action[AnyContent] = (identify andThen getData(operatorId) andThen requireData).async { implicit request =>
+    getAnswerAsync(TaxResidencyCountryPage) { country =>
 
+      val form = formProvider(country)
+      
       form.bindFromRequest().fold(
         formWithErrors =>
-          Future.successful(BadRequest(view(formWithErrors, mode, operatorId))),
+          Future.successful(BadRequest(view(formWithErrors, mode, operatorId, country))),
 
         value =>
           for {
             updatedAnswers <- Future.fromTry(request.userAnswers.set(InternationalTaxIdentifierPage, value))
-            _              <- sessionRepository.set(updatedAnswers)
+            _ <- sessionRepository.set(updatedAnswers)
           } yield Redirect(InternationalTaxIdentifierPage.nextPage(mode, updatedAnswers))
       )
+    }
   }
 }

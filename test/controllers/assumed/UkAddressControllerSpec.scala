@@ -19,11 +19,11 @@ package controllers.assumed
 import base.SpecBase
 import controllers.routes as baseRoutes
 import forms.UkAddressFormProvider
-import models.{NormalMode, UkAddress}
+import models.{Country, NormalMode, UkAddress}
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.when
 import org.scalatestplus.mockito.MockitoSugar
-import pages.assumed.UkAddressPage
+import pages.assumed.{OperatorNamePage, UkAddressPage}
 import play.api.inject.bind
 import play.api.test.FakeRequest
 import play.api.test.Helpers.*
@@ -35,17 +35,19 @@ import scala.concurrent.Future
 class UkAddressControllerSpec extends SpecBase with MockitoSugar {
 
   val formProvider = new UkAddressFormProvider()
-  val form = formProvider()
+  private val operatorName = "name"
+  private val form = formProvider()
+  private val baseAnswers = emptyUserAnswers.set(OperatorNamePage, operatorName).success.value
 
   lazy val ukAddressRoute = routes.UkAddressController.onPageLoad(NormalMode, operatorId).url
-  val address = UkAddress("line 1", "line 2")
-  val userAnswers = emptyUserAnswers.set(UkAddressPage, address).success.value
+  val address = UkAddress("line 1", None, "town", None, "AA1 1AA", Country.ukCountries.head)
+  val userAnswers = baseAnswers.set(UkAddressPage, address).success.value
 
   "UkAddress Controller" - {
 
     "must return OK and the correct view for a GET" in {
 
-      val application = applicationBuilder(userAnswers = Some(emptyUserAnswers)).build()
+      val application = applicationBuilder(userAnswers = Some(baseAnswers)).build()
 
       running(application) {
         val request = FakeRequest(GET, ukAddressRoute)
@@ -55,7 +57,7 @@ class UkAddressControllerSpec extends SpecBase with MockitoSugar {
         val result = route(application, request).value
 
         status(result) mustEqual OK
-        contentAsString(result) mustEqual view(form, NormalMode, operatorId)(request, messages(application)).toString
+        contentAsString(result) mustEqual view(form, NormalMode, operatorId, operatorName)(request, messages(application)).toString
       }
     }
 
@@ -71,7 +73,7 @@ class UkAddressControllerSpec extends SpecBase with MockitoSugar {
         val result = route(application, request).value
 
         status(result) mustEqual OK
-        contentAsString(result) mustEqual view(form.fill(UkAddress("line 1", "line 2")), NormalMode, operatorId)(request, messages(application)).toString
+        contentAsString(result) mustEqual view(form.fill(address), NormalMode, operatorId, operatorName)(request, messages(application)).toString
       }
     }
 
@@ -79,10 +81,10 @@ class UkAddressControllerSpec extends SpecBase with MockitoSugar {
 
       val mockSessionRepository = mock[SessionRepository]
 
-      when(mockSessionRepository.set(any())) thenReturn Future.successful(true)
+      when(mockSessionRepository.set(any())).thenReturn(Future.successful(true))
 
       val application =
-        applicationBuilder(userAnswers = Some(emptyUserAnswers))
+        applicationBuilder(userAnswers = Some(baseAnswers))
           .overrides(
             bind[SessionRepository].toInstance(mockSessionRepository)
           )
@@ -91,7 +93,7 @@ class UkAddressControllerSpec extends SpecBase with MockitoSugar {
       running(application) {
         val request =
           FakeRequest(POST, ukAddressRoute)
-            .withFormUrlEncodedBody(("line1", "line 1"), ("line2", "line 2"))
+            .withFormUrlEncodedBody(("line1", "line 1"), ("town", "town"), ("postCode", "AA1 1AA"), ("country" -> Country.ukCountries.head.code))
 
         val result = route(application, request).value
 
@@ -102,7 +104,7 @@ class UkAddressControllerSpec extends SpecBase with MockitoSugar {
 
     "must return a Bad Request and errors when invalid data is submitted" in {
 
-      val application = applicationBuilder(userAnswers = Some(emptyUserAnswers)).build()
+      val application = applicationBuilder(userAnswers = Some(baseAnswers)).build()
 
       running(application) {
         val request =
@@ -116,7 +118,7 @@ class UkAddressControllerSpec extends SpecBase with MockitoSugar {
         val result = route(application, request).value
 
         status(result) mustEqual BAD_REQUEST
-        contentAsString(result) mustEqual view(boundForm, NormalMode, operatorId)(request, messages(application)).toString
+        contentAsString(result) mustEqual view(boundForm, NormalMode, operatorId, operatorName)(request, messages(application)).toString
       }
     }
 

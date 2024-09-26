@@ -17,15 +17,19 @@
 package forms
 
 import forms.behaviours.StringFieldBehaviours
+import models.Country
+import org.scalacheck.Gen
 import play.api.data.FormError
+import play.api.i18n.Messages
+import play.api.test.Helpers.stubMessages
 
 class TaxResidencyCountryFormProviderSpec extends StringFieldBehaviours {
 
-  val requiredKey = "taxResidencyCountry.error.required"
-  val lengthKey = "taxResidencyCountry.error.length"
-  val maxLength = 100
+  private val requiredKey = "taxResidencyCountry.error.required"
 
-  val form = new TaxResidencyCountryFormProvider()()
+  private implicit val msgs: Messages = stubMessages()
+  private val operatorName = "name"
+  private val form = new TaxResidencyCountryFormProvider()(operatorName)
 
   ".value" - {
 
@@ -34,14 +38,7 @@ class TaxResidencyCountryFormProviderSpec extends StringFieldBehaviours {
     behave like fieldThatBindsValidData(
       form,
       fieldName,
-      stringsWithMaxLength(maxLength)
-    )
-
-    behave like fieldWithMaxLength(
-      form,
-      fieldName,
-      maxLength = maxLength,
-      lengthError = FormError(fieldName, lengthKey, Seq(maxLength))
+      Gen.oneOf(Country.internationalCountries.map(_.code))
     )
 
     behave like mandatoryField(

@@ -17,37 +17,49 @@
 package forms
 
 import forms.behaviours.StringFieldBehaviours
+import org.scalacheck.Arbitrary.arbitrary
+import org.scalacheck.Gen
 import play.api.data.FormError
 
 class VrnFormProviderSpec extends StringFieldBehaviours {
 
   val requiredKey = "vrn.error.required"
-  val lengthKey = "vrn.error.length"
-  val maxLength = 100
+  val formatKey = "vrn.error.format"
 
-  val form = new VrnFormProvider()()
+  val operatorName = "name"
+  val form = new VrnFormProvider()(operatorName)
 
   ".value" - {
 
     val fieldName = "value"
 
+    val validData = for {
+      prefix <- Gen.option(Gen.const("GB"))
+      digits <- Gen.listOfN(9, Gen.numChar)
+    } yield prefix.getOrElse("") + digits.mkString
+
     behave like fieldThatBindsValidData(
       form,
       fieldName,
-      stringsWithMaxLength(maxLength)
+      validData
     )
 
-    behave like fieldWithMaxLength(
-      form,
-      fieldName,
-      maxLength = maxLength,
-      lengthError = FormError(fieldName, lengthKey, Seq(maxLength))
-    )
+    "must not bind invalid values" in {
+
+      forAll(arbitrary[String]) { input =>
+
+        whenever(input.trim.nonEmpty && !input.trim.matches(Validation.vrnPattern.toString)) {
+          val result = form.bind(Map(fieldName -> input)).apply(fieldName)
+          result.errors must contain only FormError(fieldName, formatKey, Seq(Validation.vrnPattern.toString, operatorName))
+        }
+      }
+    }
+
 
     behave like mandatoryField(
       form,
       fieldName,
-      requiredError = FormError(fieldName, requiredKey)
+      requiredError = FormError(fieldName, requiredKey, Seq(operatorName))
     )
   }
 }

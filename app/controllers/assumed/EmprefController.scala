@@ -16,11 +16,13 @@
 
 package controllers.assumed
 
-import controllers.actions._
+import controllers.AnswerExtractor
+import controllers.actions.*
 import forms.EmprefFormProvider
+
 import javax.inject.Inject
 import models.Mode
-import pages.assumed.EmprefPage
+import pages.assumed.{EmprefPage, OperatorNamePage}
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import repositories.SessionRepository
@@ -38,27 +40,31 @@ class EmprefController @Inject()(
                                         formProvider: EmprefFormProvider,
                                         val controllerComponents: MessagesControllerComponents,
                                         view: EmprefView
-                                    )(implicit ec: ExecutionContext) extends FrontendBaseController with I18nSupport {
+                                    )(implicit ec: ExecutionContext)
+  extends FrontendBaseController with I18nSupport with AnswerExtractor {
 
-  val form = formProvider()
+  def onPageLoad(mode: Mode, operatorId: String): Action[AnyContent] = (identify andThen getData(operatorId) andThen requireData) { implicit request =>
+    getAnswer(OperatorNamePage) { operatorName =>
 
-  def onPageLoad(mode: Mode, operatorId: String): Action[AnyContent] = (identify andThen getData(operatorId) andThen requireData) {
-    implicit request =>
+      val form = formProvider(operatorName)
 
       val preparedForm = request.userAnswers.get(EmprefPage) match {
         case None => form
         case Some(value) => form.fill(value)
       }
 
-      Ok(view(preparedForm, mode, operatorId))
+      Ok(view(preparedForm, mode, operatorId, operatorName))
+    }
   }
 
-  def onSubmit(mode: Mode, operatorId: String): Action[AnyContent] = (identify andThen getData(operatorId) andThen requireData).async {
-    implicit request =>
+  def onSubmit(mode: Mode, operatorId: String): Action[AnyContent] = (identify andThen getData(operatorId) andThen requireData).async { implicit request =>
+    getAnswerAsync(OperatorNamePage) { operatorName =>
 
+      val form = formProvider(operatorName)
+      
       form.bindFromRequest().fold(
         formWithErrors =>
-          Future.successful(BadRequest(view(formWithErrors, mode, operatorId))),
+          Future.successful(BadRequest(view(formWithErrors, mode, operatorId, operatorName))),
 
         value =>
           for {
@@ -66,5 +72,6 @@ class EmprefController @Inject()(
             _              <- sessionRepository.set(updatedAnswers)
           } yield Redirect(EmprefPage.nextPage(mode, updatedAnswers))
       )
+    }
   }
 }

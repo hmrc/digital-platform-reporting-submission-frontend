@@ -19,11 +19,11 @@ package controllers.assumed
 import base.SpecBase
 import controllers.routes as baseRoutes
 import forms.TaxResidencyCountryFormProvider
-import models.NormalMode
+import models.{Country, NormalMode}
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.when
 import org.scalatestplus.mockito.MockitoSugar
-import pages.assumed.TaxResidencyCountryPage
+import pages.assumed.{OperatorNamePage, TaxResidencyCountryPage}
 import play.api.inject.bind
 import play.api.test.FakeRequest
 import play.api.test.Helpers.*
@@ -35,7 +35,8 @@ import scala.concurrent.Future
 class TaxResidencyCountryControllerSpec extends SpecBase with MockitoSugar {
 
   val formProvider = new TaxResidencyCountryFormProvider()
-  val form = formProvider()
+  private val operatorName = "name"
+  private val baseAnswers = emptyUserAnswers.set(OperatorNamePage, operatorName).success.value
 
   lazy val taxResidencyCountryRoute = routes.TaxResidencyCountryController.onPageLoad(NormalMode, operatorId).url
 
@@ -43,7 +44,7 @@ class TaxResidencyCountryControllerSpec extends SpecBase with MockitoSugar {
 
     "must return OK and the correct view for a GET" in {
 
-      val application = applicationBuilder(userAnswers = Some(emptyUserAnswers)).build()
+      val application = applicationBuilder(userAnswers = Some(baseAnswers)).build()
 
       running(application) {
         val request = FakeRequest(GET, taxResidencyCountryRoute)
@@ -51,15 +52,16 @@ class TaxResidencyCountryControllerSpec extends SpecBase with MockitoSugar {
         val result = route(application, request).value
 
         val view = application.injector.instanceOf[TaxResidencyCountryView]
+        val form = formProvider(operatorName)(messages(application))
 
         status(result) mustEqual OK
-        contentAsString(result) mustEqual view(form, NormalMode, operatorId)(request, messages(application)).toString
+        contentAsString(result) mustEqual view(form, NormalMode, operatorId, operatorName)(request, messages(application)).toString
       }
     }
 
     "must populate the view correctly on a GET when the question has previously been answered" in {
 
-      val userAnswers = emptyUserAnswers.set(TaxResidencyCountryPage, "answer").success.value
+      val userAnswers = baseAnswers.set(TaxResidencyCountryPage, Country.internationalCountries.head).success.value
 
       val application = applicationBuilder(userAnswers = Some(userAnswers)).build()
 
@@ -67,11 +69,12 @@ class TaxResidencyCountryControllerSpec extends SpecBase with MockitoSugar {
         val request = FakeRequest(GET, taxResidencyCountryRoute)
 
         val view = application.injector.instanceOf[TaxResidencyCountryView]
+        val form = formProvider(operatorName)(messages(application))
 
         val result = route(application, request).value
 
         status(result) mustEqual OK
-        contentAsString(result) mustEqual view(form.fill("answer"), NormalMode, operatorId)(request, messages(application)).toString
+        contentAsString(result) mustEqual view(form.fill(Country.internationalCountries.head), NormalMode, operatorId, operatorName)(request, messages(application)).toString
       }
     }
 
@@ -82,7 +85,7 @@ class TaxResidencyCountryControllerSpec extends SpecBase with MockitoSugar {
       when(mockSessionRepository.set(any())) thenReturn Future.successful(true)
 
       val application =
-        applicationBuilder(userAnswers = Some(emptyUserAnswers))
+        applicationBuilder(userAnswers = Some(baseAnswers))
           .overrides(
             bind[SessionRepository].toInstance(mockSessionRepository)
           )
@@ -91,10 +94,10 @@ class TaxResidencyCountryControllerSpec extends SpecBase with MockitoSugar {
       running(application) {
         val request =
           FakeRequest(POST, taxResidencyCountryRoute)
-            .withFormUrlEncodedBody(("value", "answer"))
+            .withFormUrlEncodedBody(("value", Country.internationalCountries.head.code))
 
         val result = route(application, request).value
-        val answers = emptyUserAnswers.set(TaxResidencyCountryPage, "answer").success.value
+        val answers = baseAnswers.set(TaxResidencyCountryPage, Country.internationalCountries.head).success.value
 
         status(result) mustEqual SEE_OTHER
         redirectLocation(result).value mustEqual TaxResidencyCountryPage.nextPage(NormalMode, answers).url
@@ -103,13 +106,14 @@ class TaxResidencyCountryControllerSpec extends SpecBase with MockitoSugar {
 
     "must return a Bad Request and errors when invalid data is submitted" in {
 
-      val application = applicationBuilder(userAnswers = Some(emptyUserAnswers)).build()
+      val application = applicationBuilder(userAnswers = Some(baseAnswers)).build()
 
       running(application) {
         val request =
           FakeRequest(POST, taxResidencyCountryRoute)
             .withFormUrlEncodedBody(("value", ""))
 
+        val form = formProvider(operatorName)(messages(application))
         val boundForm = form.bind(Map("value" -> ""))
 
         val view = application.injector.instanceOf[TaxResidencyCountryView]
@@ -117,7 +121,7 @@ class TaxResidencyCountryControllerSpec extends SpecBase with MockitoSugar {
         val result = route(application, request).value
 
         status(result) mustEqual BAD_REQUEST
-        contentAsString(result) mustEqual view(boundForm, NormalMode, operatorId)(request, messages(application)).toString
+        contentAsString(result) mustEqual view(boundForm, NormalMode, operatorId, operatorName)(request, messages(application)).toString
       }
     }
 
@@ -142,7 +146,7 @@ class TaxResidencyCountryControllerSpec extends SpecBase with MockitoSugar {
       running(application) {
         val request =
           FakeRequest(POST, taxResidencyCountryRoute)
-            .withFormUrlEncodedBody(("value", "answer"))
+            .withFormUrlEncodedBody(("value", Country.internationalCountries.head.code))
 
         val result = route(application, request).value
 

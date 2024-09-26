@@ -16,16 +16,20 @@
 
 package forms
 
-import javax.inject.Inject
-
 import forms.mappings.Mappings
+import models.Country
 import play.api.data.Form
+
+import javax.inject.Inject
 
 class InternationalTaxIdentifierFormProvider @Inject() extends Mappings {
 
-  def apply(): Form[String] =
+  def apply(country: Country): Form[String] =
     Form(
-      "value" -> text("internationalTaxIdentifier.error.required")
-        .verifying(maxLength(100, "internationalTaxIdentifier.error.length"))
+      "value" -> text("internationalTaxIdentifier.error.required", args = Seq(country.name))
+        .verifying(firstError(
+          maxLength(25, "internationalTaxIdentifier.error.length", args = country.name),
+          regexp(Validation.textInputPattern.toString, "internationalTaxIdentifier.error.format")
+        ))
     )
 }
