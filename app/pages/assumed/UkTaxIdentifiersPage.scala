@@ -16,13 +16,14 @@
 
 package pages.assumed
 
-import models.UkTaxIdentifiers
-import pages.QuestionPage
+import models.{UkTaxIdentifiers, UserAnswers}
 import play.api.libs.json.JsPath
+import play.api.mvc.Call
 
-case object UkTaxIdentifiersPage extends QuestionPage[Set[UkTaxIdentifiers]] {
+case object UkTaxIdentifiersPage extends AssumedReportingQuestionPage[Set[UkTaxIdentifiers]] {
 
   override def path: JsPath = JsPath \ toString
 
   override def toString: String = "ukTaxIdentifiers"
+
 }

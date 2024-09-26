@@ -24,11 +24,11 @@
     govukButton: GovukButton
 )
 
-@(form: Form[_], mode: Mode)(implicit request: Request[_], messages: Messages)
+@(form: Form[_], mode: Mode, operatorId: String)(implicit request: Request[_], messages: Messages)
 
 @layout(pageTitle = title(form, messages("taxResidentInUk.title"))) {
 
-    @formHelper(action = routes.TaxResidentInUkController.onSubmit(mode), Symbol("autoComplete") -> "off") {
+    @formHelper(action = routes.TaxResidentInUkController.onSubmit(mode, operatorId), Symbol("autoComplete") -> "off") {
 
         @if(form.errors.nonEmpty) {
             @govukErrorSummary(ErrorSummaryViewModel(form))

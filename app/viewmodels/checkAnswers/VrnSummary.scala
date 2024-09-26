@@ -35,7 +35,7 @@ object VrnSummary  {
           key     = "vrn.checkYourAnswersLabel",
           value   = ValueViewModel(HtmlFormat.escape(answer).toString),
           actions = Seq(
-            ActionItemViewModel("site.change", routes.VrnController.onPageLoad(CheckMode).url)
+            ActionItemViewModel("site.change", routes.VrnController.onPageLoad(CheckMode, answers.operatorId).url)
               .withVisuallyHiddenText(messages("vrn.change.hidden"))
           )
         )

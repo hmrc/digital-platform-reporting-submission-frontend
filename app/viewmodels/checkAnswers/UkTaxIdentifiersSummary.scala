@@ -30,11 +30,11 @@ object UkTaxIdentifiersSummary  {
 
   def row(answers: UserAnswers)(implicit messages: Messages): Option[SummaryListRow] =
     answers.get(UkTaxIdentifiersPage).map {
-      answers =>
+      identifiers =>
 
         val value = ValueViewModel(
           HtmlContent(
-            answers.map {
+            identifiers.map {
               answer => HtmlFormat.escape(messages(s"ukTaxIdentifiers.$answer")).toString
             }
             .mkString(",<br>")
@@ -45,7 +45,7 @@ object UkTaxIdentifiersSummary  {
           key     = "ukTaxIdentifiers.checkYourAnswersLabel",
           value   = value,
           actions = Seq(
-            ActionItemViewModel("site.change", routes.UkTaxIdentifiersController.onPageLoad(CheckMode).url)
+            ActionItemViewModel("site.change", routes.UkTaxIdentifiersController.onPageLoad(CheckMode, answers.operatorId).url)
               .withVisuallyHiddenText(messages("ukTaxIdentifiers.change.hidden"))
           )
         )

@@ -14,30 +14,22 @@
  * limitations under the License.
  */
 
-package navigation
+package pages.assumed
 
-import javax.inject.{Inject, Singleton}
-
+import models.{CheckMode, Mode, NormalMode, UserAnswers}
 import play.api.mvc.Call
-import controllers.routes
-import pages._
-import models._
 
-@Singleton
-class Navigator @Inject()() {
+trait AssumedReportingPage {
 
-  private val normalRoutes: Page => UserAnswers => Call = {
-    case _ => _ => routes.IndexController.onPageLoad()
-  }
+  final def nextPage(mode: Mode, answers: UserAnswers): Call =
+    mode match {
+      case NormalMode => nextPageNormalMode(answers)
+      case CheckMode => nextPageCheckMode(answers)
+    }
+    
+  protected def nextPageNormalMode(answers: UserAnswers): Call =
+    controllers.routes.IndexController.onPageLoad() // TODO: Remove implementation when navigation is done
 
-  private val checkRouteMap: Page => UserAnswers => Call = {
-    case _ => _ => routes.CheckYourAnswersController.onPageLoad()
-  }
-
-  def nextPage(page: Page, mode: Mode, userAnswers: UserAnswers): Call = mode match {
-    case NormalMode =>
-      normalRoutes(page)(userAnswers)
-    case CheckMode =>
-      checkRouteMap(page)(userAnswers)
-  }
+  protected def nextPageCheckMode(answers: UserAnswers): Call =
+    controllers.assumed.routes.CheckYourAnswersController.onPageLoad(answers.operatorId)
 }

@@ -20,7 +20,6 @@ import controllers.actions._
 import forms.UkTaxIdentifiersFormProvider
 import javax.inject.Inject
 import models.Mode
-import navigation.Navigator
 import pages.assumed.UkTaxIdentifiersPage
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
@@ -33,9 +32,8 @@ import scala.concurrent.{ExecutionContext, Future}
 class UkTaxIdentifiersController @Inject()(
                                         override val messagesApi: MessagesApi,
                                         sessionRepository: SessionRepository,
-                                        navigator: Navigator,
                                         identify: IdentifierAction,
-                                        getData: DataRetrievalAction,
+                                        getData: DataRetrievalActionProvider,
                                         requireData: DataRequiredAction,
                                         formProvider: UkTaxIdentifiersFormProvider,
                                         val controllerComponents: MessagesControllerComponents,
@@ -44,7 +42,7 @@ class UkTaxIdentifiersController @Inject()(
 
   val form = formProvider()
 
-  def onPageLoad(mode: Mode): Action[AnyContent] = (identify andThen getData andThen requireData) {
+  def onPageLoad(mode: Mode, operatorId: String): Action[AnyContent] = (identify andThen getData(operatorId) andThen requireData) {
     implicit request =>
 
       val preparedForm = request.userAnswers.get(UkTaxIdentifiersPage) match {
@@ -52,21 +50,21 @@ class UkTaxIdentifiersController @Inject()(
         case Some(value) => form.fill(value)
       }
 
-      Ok(view(preparedForm, mode))
+      Ok(view(preparedForm, mode, operatorId))
   }
 
-  def onSubmit(mode: Mode): Action[AnyContent] = (identify andThen getData andThen requireData).async {
+  def onSubmit(mode: Mode, operatorId: String): Action[AnyContent] = (identify andThen getData(operatorId) andThen requireData).async {
     implicit request =>
 
       form.bindFromRequest().fold(
         formWithErrors =>
-          Future.successful(BadRequest(view(formWithErrors, mode))),
+          Future.successful(BadRequest(view(formWithErrors, mode, operatorId))),
 
         value =>
           for {
             updatedAnswers <- Future.fromTry(request.userAnswers.set(UkTaxIdentifiersPage, value))
             _              <- sessionRepository.set(updatedAnswers)
-          } yield Redirect(navigator.nextPage(UkTaxIdentifiersPage, mode, updatedAnswers))
+          } yield Redirect(UkTaxIdentifiersPage.nextPage(mode, updatedAnswers))
       )
   }
 }

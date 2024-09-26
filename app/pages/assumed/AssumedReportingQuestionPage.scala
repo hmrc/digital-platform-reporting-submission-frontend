@@ -1,4 +1,4 @@
-@*
+/*
  * Copyright 2024 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -12,18 +12,10 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *@
+ */
 
-@this(
-    layout: templates.Layout,
-    govukSummaryList: GovukSummaryList
-)
+package pages.assumed
 
-@(list: SummaryList)(implicit request: Request[_], messages: Messages)
+import pages.QuestionPage
 
-@layout(pageTitle = titleNoForm(messages("checkYourAnswers.title"))) {
-
-    <h1 class="govuk-heading-xl">@messages("checkYourAnswers.heading")</h1>
-
-    @govukSummaryList(list)
-}
+trait AssumedReportingQuestionPage[A] extends QuestionPage[A] with AssumedReportingPage

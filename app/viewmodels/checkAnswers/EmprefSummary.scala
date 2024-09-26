@@ -35,7 +35,7 @@ object EmprefSummary  {
           key     = "empref.checkYourAnswersLabel",
           value   = ValueViewModel(HtmlFormat.escape(answer).toString),
           actions = Seq(
-            ActionItemViewModel("site.change", routes.EmprefController.onPageLoad(CheckMode).url)
+            ActionItemViewModel("site.change", routes.EmprefController.onPageLoad(CheckMode, answers.operatorId).url)
               .withVisuallyHiddenText(messages("empref.change.hidden"))
           )
         )

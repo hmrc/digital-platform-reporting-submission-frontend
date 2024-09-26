@@ -25,11 +25,11 @@
     govukButton: GovukButton
 )
 
-@(form: Form[_], mode: Mode)(implicit request: Request[_], messages: Messages)
+@(form: Form[_], mode: Mode, operatorId: String)(implicit request: Request[_], messages: Messages)
 
 @layout(pageTitle = title(form, messages("taxResidencyCountry.title"))) {
 
-    @formHelper(action = routes.TaxResidencyCountryController.onSubmit(mode)) {
+    @formHelper(action = routes.TaxResidencyCountryController.onSubmit(mode, operatorId)) {
 
         @if(form.errors.nonEmpty) {
             @govukErrorSummary(ErrorSummaryViewModel(form))

@@ -16,12 +16,14 @@
 
 package pages.assumed
 
-import pages.QuestionPage
+import models.UserAnswers
 import play.api.libs.json.JsPath
+import play.api.mvc.Call
 
-case object ReportingPeriodPage extends QuestionPage[Int] {
+case object ReportingPeriodPage extends AssumedReportingQuestionPage[Int] {
 
   override def path: JsPath = JsPath \ toString
 
   override def toString: String = "reportingPeriod"
+
 }

@@ -35,7 +35,7 @@ object UtrSummary  {
           key     = "utr.checkYourAnswersLabel",
           value   = ValueViewModel(HtmlFormat.escape(answer).toString),
           actions = Seq(
-            ActionItemViewModel("site.change", routes.UtrController.onPageLoad(CheckMode).url)
+            ActionItemViewModel("site.change", routes.UtrController.onPageLoad(CheckMode, answers.operatorId).url)
               .withVisuallyHiddenText(messages("utr.change.hidden"))
           )
         )

@@ -35,7 +35,7 @@ object TaxResidencyCountrySummary  {
           key     = "taxResidencyCountry.checkYourAnswersLabel",
           value   = ValueViewModel(HtmlFormat.escape(answer).toString),
           actions = Seq(
-            ActionItemViewModel("site.change", routes.TaxResidencyCountryController.onPageLoad(CheckMode).url)
+            ActionItemViewModel("site.change", routes.TaxResidencyCountryController.onPageLoad(CheckMode, answers.operatorId).url)
               .withVisuallyHiddenText(messages("taxResidencyCountry.change.hidden"))
           )
         )

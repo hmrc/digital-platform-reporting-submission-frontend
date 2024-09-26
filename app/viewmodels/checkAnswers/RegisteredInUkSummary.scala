@@ -36,7 +36,7 @@ object RegisteredInUkSummary  {
           key     = "registeredInUk.checkYourAnswersLabel",
           value   = ValueViewModel(value),
           actions = Seq(
-            ActionItemViewModel("site.change", routes.RegisteredInUkController.onPageLoad(CheckMode).url)
+            ActionItemViewModel("site.change", routes.RegisteredInUkController.onPageLoad(CheckMode, answers.operatorId).url)
               .withVisuallyHiddenText(messages("registeredInUk.change.hidden"))
           )
         )

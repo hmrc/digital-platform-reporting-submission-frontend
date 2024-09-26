@@ -16,13 +16,14 @@
 
 package pages.assumed
 
-import models.InternationalAddress
-import pages.QuestionPage
+import models.{InternationalAddress, UserAnswers}
 import play.api.libs.json.JsPath
+import play.api.mvc.Call
 
-case object InternationalAddressPage extends QuestionPage[InternationalAddress] {
+case object InternationalAddressPage extends AssumedReportingQuestionPage[InternationalAddress] {
 
   override def path: JsPath = JsPath \ toString
 
   override def toString: String = "internationalAddress"
+
 }

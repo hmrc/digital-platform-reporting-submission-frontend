@@ -19,16 +19,15 @@ package controllers.assumed
 import base.SpecBase
 import controllers.routes as baseRoutes
 import forms.OperatorNameFormProvider
-import models.{NormalMode, UserAnswers}
-import navigation.{FakeNavigator, Navigator}
+import models.NormalMode
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.when
 import org.scalatestplus.mockito.MockitoSugar
+import pages.assumed
 import pages.assumed.OperatorNamePage
 import play.api.inject.bind
-import play.api.mvc.Call
 import play.api.test.FakeRequest
-import play.api.test.Helpers._
+import play.api.test.Helpers.*
 import repositories.SessionRepository
 import views.html.assumed.OperatorNameView
 
@@ -36,12 +35,10 @@ import scala.concurrent.Future
 
 class OperatorNameControllerSpec extends SpecBase with MockitoSugar {
 
-  def onwardRoute = Call("GET", "/foo")
-
   val formProvider = new OperatorNameFormProvider()
   val form = formProvider()
 
-  lazy val operatorNameRoute = routes.OperatorNameController.onPageLoad(NormalMode).url
+  lazy val operatorNameRoute = routes.OperatorNameController.onPageLoad(NormalMode, operatorId).url
 
   "OperatorName Controller" - {
 
@@ -57,13 +54,13 @@ class OperatorNameControllerSpec extends SpecBase with MockitoSugar {
         val view = application.injector.instanceOf[OperatorNameView]
 
         status(result) mustEqual OK
-        contentAsString(result) mustEqual view(form, NormalMode)(request, messages(application)).toString
+        contentAsString(result) mustEqual view(form, NormalMode, operatorId)(request, messages(application)).toString
       }
     }
 
     "must populate the view correctly on a GET when the question has previously been answered" in {
 
-      val userAnswers = UserAnswers(userAnswersId).set(OperatorNamePage, "answer").success.value
+      val userAnswers = emptyUserAnswers.set(OperatorNamePage, "answer").success.value
 
       val application = applicationBuilder(userAnswers = Some(userAnswers)).build()
 
@@ -75,7 +72,7 @@ class OperatorNameControllerSpec extends SpecBase with MockitoSugar {
         val result = route(application, request).value
 
         status(result) mustEqual OK
-        contentAsString(result) mustEqual view(form.fill("answer"), NormalMode)(request, messages(application)).toString
+        contentAsString(result) mustEqual view(form.fill("answer"), NormalMode, operatorId)(request, messages(application)).toString
       }
     }
 
@@ -88,7 +85,6 @@ class OperatorNameControllerSpec extends SpecBase with MockitoSugar {
       val application =
         applicationBuilder(userAnswers = Some(emptyUserAnswers))
           .overrides(
-            bind[Navigator].toInstance(new FakeNavigator(onwardRoute)),
             bind[SessionRepository].toInstance(mockSessionRepository)
           )
           .build()
@@ -99,9 +95,10 @@ class OperatorNameControllerSpec extends SpecBase with MockitoSugar {
             .withFormUrlEncodedBody(("value", "answer"))
 
         val result = route(application, request).value
+        val answers = emptyUserAnswers.set(OperatorNamePage, "answer").success.value
 
         status(result) mustEqual SEE_OTHER
-        redirectLocation(result).value mustEqual onwardRoute.url
+        redirectLocation(result).value mustEqual OperatorNamePage.nextPage(NormalMode, answers).url
       }
     }
 
@@ -121,7 +118,7 @@ class OperatorNameControllerSpec extends SpecBase with MockitoSugar {
         val result = route(application, request).value
 
         status(result) mustEqual BAD_REQUEST
-        contentAsString(result) mustEqual view(boundForm, NormalMode)(request, messages(application)).toString
+        contentAsString(result) mustEqual view(boundForm, NormalMode, operatorId)(request, messages(application)).toString
       }
     }
 
