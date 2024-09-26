@@ -74,3 +74,118 @@ uploadFailed.button = Upload file
 
 sendFile.title = sendFile
 sendFile.heading = sendFile
+
+chrn.title = chrn
+chrn.heading = chrn
+chrn.checkYourAnswersLabel = chrn
+chrn.error.required = Enter chrn
+chrn.error.length = Chrn must be 100 characters or less
+chrn.change.hidden = Chrn
+
+crn.title = crn
+crn.heading = crn
+crn.checkYourAnswersLabel = crn
+crn.error.required = Enter crn
+crn.error.length = Crn must be 100 characters or less
+crn.change.hidden = Crn
+
+empref.title = empref
+empref.heading = empref
+empref.checkYourAnswersLabel = empref
+empref.error.required = Enter empref
+empref.error.length = Empref must be 100 characters or less
+empref.change.hidden = Empref
+
+hasTaxIdentifier.title = hasTaxIdentifier
+hasTaxIdentifier.heading = hasTaxIdentifier
+hasTaxIdentifier.checkYourAnswersLabel = hasTaxIdentifier
+hasTaxIdentifier.error.required = Select yes if hasTaxIdentifier
+hasTaxIdentifier.change.hidden = HasTaxIdentifier
+
+internationalAddress.title = internationalAddress
+internationalAddress.heading = internationalAddress
+internationalAddress.line1 = line1
+internationalAddress.line2 = line2
+internationalAddress.checkYourAnswersLabel = InternationalAddress
+internationalAddress.error.line1.required = Enter line1
+internationalAddress.error.line2.required = Enter line2
+internationalAddress.error.line1.length = line1 must be 35 characters or less
+internationalAddress.error.line2.length = line2 must be 35 characters or less
+internationalAddress.line1.change.hidden = line1
+internationalAddress.line2.change.hidden = line2
+
+internationalTaxIdentifier.title = internationalTaxIdentifier
+internationalTaxIdentifier.heading = internationalTaxIdentifier
+internationalTaxIdentifier.checkYourAnswersLabel = internationalTaxIdentifier
+internationalTaxIdentifier.error.required = Enter internationalTaxIdentifier
+internationalTaxIdentifier.error.length = InternationalTaxIdentifier must be 100 characters or less
+internationalTaxIdentifier.change.hidden = InternationalTaxIdentifier
+
+operatorName.title = operatorName
+operatorName.heading = operatorName
+operatorName.checkYourAnswersLabel = operatorName
+operatorName.error.required = Enter operatorName
+operatorName.error.length = OperatorName must be 100 characters or less
+operatorName.change.hidden = OperatorName
+
+registeredInUk.title = registeredInUk
+registeredInUk.heading = registeredInUk
+registeredInUk.checkYourAnswersLabel = registeredInUk
+registeredInUk.error.required = Select yes if registeredInUk
+registeredInUk.change.hidden = RegisteredInUk
+
+reportingPeriod.title = ReportingPeriod
+reportingPeriod.heading = ReportingPeriod
+reportingPeriod.checkYourAnswersLabel = ReportingPeriod
+reportingPeriod.error.nonNumeric = Enter your reportingPeriod using numbers
+reportingPeriod.error.required = Enter your reportingPeriod
+reportingPeriod.error.wholeNumber = Enter your reportingPeriod using whole numbers
+reportingPeriod.error.outOfRange = ReportingPeriod must be between {0} and {1}
+reportingPeriod.change.hidden = ReportingPeriod
+
+taxResidencyCountry.title = taxResidencyCountry
+taxResidencyCountry.heading = taxResidencyCountry
+taxResidencyCountry.checkYourAnswersLabel = taxResidencyCountry
+taxResidencyCountry.error.required = Enter taxResidencyCountry
+taxResidencyCountry.error.length = TaxResidencyCountry must be 100 characters or less
+taxResidencyCountry.change.hidden = TaxResidencyCountry
+
+taxResidentInUk.title = taxResidentInUk
+taxResidentInUk.heading = taxResidentInUk
+taxResidentInUk.checkYourAnswersLabel = taxResidentInUk
+taxResidentInUk.error.required = Select yes if taxResidentInUk
+taxResidentInUk.change.hidden = TaxResidentInUk
+
+ukAddress.title = ukAddress
+ukAddress.heading = ukAddress
+ukAddress.line1 = line1
+ukAddress.line2 = line2
+ukAddress.checkYourAnswersLabel = UkAddress
+ukAddress.error.line1.required = Enter line1
+ukAddress.error.line2.required = Enter line2
+ukAddress.error.line1.length = line1 must be 35 characters or less
+ukAddress.error.line2.length = line2 must be 35 characters or less
+ukAddress.line1.change.hidden = line1
+ukAddress.line2.change.hidden = line2
+
+ukTaxIdentifiers.title = ukTaxIdentifiers
+ukTaxIdentifiers.heading = ukTaxIdentifiers
+ukTaxIdentifiers.option1 = Option 1
+ukTaxIdentifiers.option2 = Option 2
+ukTaxIdentifiers.checkYourAnswersLabel = ukTaxIdentifiers
+ukTaxIdentifiers.error.required = Select ukTaxIdentifiers
+ukTaxIdentifiers.change.hidden = UkTaxIdentifiers
+
+utr.title = utr
+utr.heading = utr
+utr.checkYourAnswersLabel = utr
+utr.error.required = Enter utr
+utr.error.length = Utr must be 100 characters or less
+utr.change.hidden = Utr
+
+vrn.title = vrn
+vrn.heading = vrn
+vrn.checkYourAnswersLabel = vrn
+vrn.error.required = Enter vrn
+vrn.error.length = Vrn must be 100 characters or less
+vrn.change.hidden = Vrn

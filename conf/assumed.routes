@@ -1,0 +1,74 @@
+GET        /chrn                        controllers.assumed.ChrnController.onPageLoad(mode: Mode = NormalMode)
+POST       /chrn                        controllers.assumed.ChrnController.onSubmit(mode: Mode = NormalMode)
+GET        /changeChrn                  controllers.assumed.ChrnController.onPageLoad(mode: Mode = CheckMode)
+POST       /changeChrn                  controllers.assumed.ChrnController.onSubmit(mode: Mode = CheckMode)
+
+GET        /crn                        controllers.assumed.CrnController.onPageLoad(mode: Mode = NormalMode)
+POST       /crn                        controllers.assumed.CrnController.onSubmit(mode: Mode = NormalMode)
+GET        /changeCrn                  controllers.assumed.CrnController.onPageLoad(mode: Mode = CheckMode)
+POST       /changeCrn                  controllers.assumed.CrnController.onSubmit(mode: Mode = CheckMode)
+
+GET        /empref                        controllers.assumed.EmprefController.onPageLoad(mode: Mode = NormalMode)
+POST       /empref                        controllers.assumed.EmprefController.onSubmit(mode: Mode = NormalMode)
+GET        /changeEmpref                  controllers.assumed.EmprefController.onPageLoad(mode: Mode = CheckMode)
+POST       /changeEmpref                  controllers.assumed.EmprefController.onSubmit(mode: Mode = CheckMode)
+
+GET        /hasTaxIdentifier                        controllers.assumed.HasTaxIdentifierController.onPageLoad(mode: Mode = NormalMode)
+POST       /hasTaxIdentifier                        controllers.assumed.HasTaxIdentifierController.onSubmit(mode: Mode = NormalMode)
+GET        /changeHasTaxIdentifier                  controllers.assumed.HasTaxIdentifierController.onPageLoad(mode: Mode = CheckMode)
+POST       /changeHasTaxIdentifier                  controllers.assumed.HasTaxIdentifierController.onSubmit(mode: Mode = CheckMode)
+
+GET        /internationalAddress                        controllers.assumed.InternationalAddressController.onPageLoad(mode: Mode = NormalMode)
+POST       /internationalAddress                        controllers.assumed.InternationalAddressController.onSubmit(mode: Mode = NormalMode)
+GET        /changeInternationalAddress                  controllers.assumed.InternationalAddressController.onPageLoad(mode: Mode = CheckMode)
+POST       /changeInternationalAddress                  controllers.assumed.InternationalAddressController.onSubmit(mode: Mode = CheckMode)
+
+GET        /internationalTaxIdentifier                        controllers.assumed.InternationalTaxIdentifierController.onPageLoad(mode: Mode = NormalMode)
+POST       /internationalTaxIdentifier                        controllers.assumed.InternationalTaxIdentifierController.onSubmit(mode: Mode = NormalMode)
+GET        /changeInternationalTaxIdentifier                  controllers.assumed.InternationalTaxIdentifierController.onPageLoad(mode: Mode = CheckMode)
+POST       /changeInternationalTaxIdentifier                  controllers.assumed.InternationalTaxIdentifierController.onSubmit(mode: Mode = CheckMode)
+
+GET        /operatorName                        controllers.assumed.OperatorNameController.onPageLoad(mode: Mode = NormalMode)
+POST       /operatorName                        controllers.assumed.OperatorNameController.onSubmit(mode: Mode = NormalMode)
+GET        /changeOperatorName                  controllers.assumed.OperatorNameController.onPageLoad(mode: Mode = CheckMode)
+POST       /changeOperatorName                  controllers.assumed.OperatorNameController.onSubmit(mode: Mode = CheckMode)
+
+GET        /registeredInUk                        controllers.assumed.RegisteredInUkController.onPageLoad(mode: Mode = NormalMode)
+POST       /registeredInUk                        controllers.assumed.RegisteredInUkController.onSubmit(mode: Mode = NormalMode)
+GET        /changeRegisteredInUk                  controllers.assumed.RegisteredInUkController.onPageLoad(mode: Mode = CheckMode)
+POST       /changeRegisteredInUk                  controllers.assumed.RegisteredInUkController.onSubmit(mode: Mode = CheckMode)
+
+GET        /reportingPeriod                  controllers.assumed.ReportingPeriodController.onPageLoad(mode: Mode = NormalMode)
+POST       /reportingPeriod                  controllers.assumed.ReportingPeriodController.onSubmit(mode: Mode = NormalMode)
+GET        /changeReportingPeriod                        controllers.assumed.ReportingPeriodController.onPageLoad(mode: Mode = CheckMode)
+POST       /changeReportingPeriod                        controllers.assumed.ReportingPeriodController.onSubmit(mode: Mode = CheckMode)
+
+GET        /taxResidencyCountry                        controllers.assumed.TaxResidencyCountryController.onPageLoad(mode: Mode = NormalMode)
+POST       /taxResidencyCountry                        controllers.assumed.TaxResidencyCountryController.onSubmit(mode: Mode = NormalMode)
+GET        /changeTaxResidencyCountry                  controllers.assumed.TaxResidencyCountryController.onPageLoad(mode: Mode = CheckMode)
+POST       /changeTaxResidencyCountry                  controllers.assumed.TaxResidencyCountryController.onSubmit(mode: Mode = CheckMode)
+
+GET        /taxResidentInUk                        controllers.assumed.TaxResidentInUkController.onPageLoad(mode: Mode = NormalMode)
+POST       /taxResidentInUk                        controllers.assumed.TaxResidentInUkController.onSubmit(mode: Mode = NormalMode)
+GET        /changeTaxResidentInUk                  controllers.assumed.TaxResidentInUkController.onPageLoad(mode: Mode = CheckMode)
+POST       /changeTaxResidentInUk                  controllers.assumed.TaxResidentInUkController.onSubmit(mode: Mode = CheckMode)
+
+GET        /ukAddress                        controllers.assumed.UkAddressController.onPageLoad(mode: Mode = NormalMode)
+POST       /ukAddress                        controllers.assumed.UkAddressController.onSubmit(mode: Mode = NormalMode)
+GET        /changeUkAddress                  controllers.assumed.UkAddressController.onPageLoad(mode: Mode = CheckMode)
+POST       /changeUkAddress                  controllers.assumed.UkAddressController.onSubmit(mode: Mode = CheckMode)
+
+GET        /ukTaxIdentifiers                        controllers.assumed.UkTaxIdentifiersController.onPageLoad(mode: Mode = NormalMode)
+POST       /ukTaxIdentifiers                        controllers.assumed.UkTaxIdentifiersController.onSubmit(mode: Mode = NormalMode)
+GET        /changeUkTaxIdentifiers                  controllers.assumed.UkTaxIdentifiersController.onPageLoad(mode: Mode = CheckMode)
+POST       /changeUkTaxIdentifiers                  controllers.assumed.UkTaxIdentifiersController.onSubmit(mode: Mode = CheckMode)
+
+GET        /utr                        controllers.assumed.UtrController.onPageLoad(mode: Mode = NormalMode)
+POST       /utr                        controllers.assumed.UtrController.onSubmit(mode: Mode = NormalMode)
+GET        /changeUtr                  controllers.assumed.UtrController.onPageLoad(mode: Mode = CheckMode)
+POST       /changeUtr                  controllers.assumed.UtrController.onSubmit(mode: Mode = CheckMode)
+
+GET        /vrn                        controllers.assumed.VrnController.onPageLoad(mode: Mode = NormalMode)
+POST       /vrn                        controllers.assumed.VrnController.onSubmit(mode: Mode = NormalMode)
+GET        /changeVrn                  controllers.assumed.VrnController.onPageLoad(mode: Mode = CheckMode)
+POST       /changeVrn                  controllers.assumed.VrnController.onSubmit(mode: Mode = CheckMode)

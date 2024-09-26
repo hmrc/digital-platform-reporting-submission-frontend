@@ -1,31 +1,32 @@
 # microservice specific routes
 
-->          /hmrc-frontend                               hmrcfrontend.Routes
+->          /assumed-reporting                           assumed.Routes
+->          /submission/hmrc-frontend                               hmrcfrontend.Routes
 
-GET         /                                            controllers.IndexController.onPageLoad()
+GET         /submission/                                            controllers.IndexController.onPageLoad()
 
-GET         /assets/*file                                controllers.Assets.versioned(path="/public", file: Asset)
+GET         /submission/assets/*file                                controllers.Assets.versioned(path="/public", file: Asset)
 
 GET         /language/:lang                              controllers.LanguageSwitchController.switchToLanguage(lang: String)
 
-GET         /refresh-session                             controllers.KeepAliveController.keepAlive()
+GET         /submission/refresh-session                             controllers.KeepAliveController.keepAlive()
 
-GET         /there-is-a-problem                          controllers.JourneyRecoveryController.onPageLoad(continueUrl: Option[RedirectUrl] ?= None)
+GET         /submission/there-is-a-problem                          controllers.JourneyRecoveryController.onPageLoad(continueUrl: Option[RedirectUrl] ?= None)
 
-GET         /check-your-answers                          controllers.CheckYourAnswersController.onPageLoad()
+GET         /submission/check-your-answers                          controllers.CheckYourAnswersController.onPageLoad()
 
-GET         /account/sign-out-survey                     controllers.auth.AuthController.signOut()
-GET         /account/sign-out                            controllers.auth.AuthController.signOutNoSurvey()
-GET         /account/signed-out                          controllers.auth.SignedOutController.onPageLoad()
+GET         /submission/account/sign-out-survey                     controllers.auth.AuthController.signOut()
+GET         /submission/account/sign-out                            controllers.auth.AuthController.signOutNoSurvey()
+GET         /submission/account/signed-out                          controllers.auth.SignedOutController.onPageLoad()
 
-GET         /unauthorised                                controllers.UnauthorisedController.onPageLoad()
+GET         /submission/unauthorised                                controllers.UnauthorisedController.onPageLoad()
 
-GET         /start-page                                  controllers.StartController.onPageLoad()
-POST        /start-page                                  controllers.StartController.onSubmit()
+GET         /submission/start-page                                  controllers.StartController.onPageLoad()
+POST        /submission/start-page                                  controllers.StartController.onSubmit()
 
-GET         /upload/:submissionId                        controllers.UploadController.onPageLoad(submissionId: String)
-GET         /uploading-redirect/:submissionId            controllers.UploadingController.onRedirect(submissionId: String)
-GET         /uploading/:submissionId                     controllers.UploadingController.onPageLoad(submissionId: String)
-GET         /upload-failed/:submissionId                 controllers.UploadFailedController.onPageLoad(submissionId: String)
-GET         /upload-failed-redirect/:submissionId        controllers.UploadFailedController.onRedirect(submissionId: String, errorCode: Option[String] ?= None)
-GET         /send-file/:submissionId                     controllers.SendFileController.onPageLoad(submissionId: String)
+GET         /submission/upload/:submissionId                        controllers.UploadController.onPageLoad(submissionId: String)
+GET         /submission/uploading-redirect/:submissionId            controllers.UploadingController.onRedirect(submissionId: String)
+GET         /submission/uploading/:submissionId                     controllers.UploadingController.onPageLoad(submissionId: String)
+GET         /submission/upload-failed/:submissionId                 controllers.UploadFailedController.onPageLoad(submissionId: String)
+GET         /submission/upload-failed-redirect/:submissionId        controllers.UploadFailedController.onRedirect(submissionId: String, errorCode: Option[String] ?= None)
+GET         /submission/send-file/:submissionId                     controllers.SendFileController.onPageLoad(submissionId: String)
