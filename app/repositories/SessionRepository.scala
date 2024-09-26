@@ -70,7 +70,7 @@ class SessionRepository @Inject()(
 
   def keepAlive(userId: String): Future[Boolean] = Mdc.preservingMdc {
     collection
-      .updateOne(
+      .updateMany(
         filter = byUserId(userId),
         update = Updates.set("lastUpdated", Instant.now(clock)),
       )
@@ -110,7 +110,7 @@ class SessionRepository @Inject()(
 
   def clear(userId: String): Future[Boolean] = Mdc.preservingMdc {
     collection
-      .deleteOne(byUserId(userId))
+      .deleteMany(byUserId(userId))
       .toFuture()
       .map(_ => true)
   }

@@ -26,18 +26,13 @@ import org.scalatest.concurrent.{IntegrationPatience, ScalaFutures}
 import org.scalatest.freespec.AnyFreeSpec
 import org.scalatest.matchers.must.Matchers
 import org.scalatestplus.mockito.MockitoSugar
-import org.scalatestplus.play.guice.GuiceOneAppPerSuite
 import org.slf4j.MDC
-import play.api.Application
-import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.json.Json
-import play.api.inject.bind
-import uk.gov.hmrc.mongo.MongoComponent
 import uk.gov.hmrc.mongo.test.DefaultPlayMongoRepositorySupport
 import uk.gov.hmrc.play.bootstrap.dispatchers.MDCPropagatingExecutorService
 
-import java.time.temporal.ChronoUnit
 import java.time.{Clock, Instant, ZoneId}
+import java.time.temporal.ChronoUnit
 import java.util.concurrent.Executors
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -48,54 +43,65 @@ class SessionRepositorySpec
     with ScalaFutures
     with IntegrationPatience
     with OptionValues
-    with MockitoSugar
-    with GuiceOneAppPerSuite {
+    with MockitoSugar {
 
   private val instant = Instant.now.truncatedTo(ChronoUnit.MILLIS)
   private val stubClock: Clock = Clock.fixed(instant, ZoneId.systemDefault)
 
-  private val userAnswers = UserAnswers("id", Json.obj("foo" -> "bar"), Instant.ofEpochSecond(1))
+  private val userAnswers1 = UserAnswers("id", "operator1", Json.obj("foo" -> "bar"), Instant.ofEpochSecond(1))
+  private val userAnswers2 = UserAnswers("id", "operator2", Json.obj("foo" -> "bar"), Instant.ofEpochSecond(1))
+
+  private def byIds(userId: String, operatorId: String) =
+    Filters.and(
+      Filters.equal("userId", userId),
+      Filters.equal("operatorId", operatorId)
+    )
 
   private val mockAppConfig = mock[FrontendAppConfig]
   when(mockAppConfig.cacheTtl).thenReturn(1L)
 
-  override def fakeApplication(): Application = GuiceApplicationBuilder()
-    .overrides(
-      bind[MongoComponent].toInstance(mongoComponent),
-      bind[Clock].toInstance(stubClock),
-      bind[FrontendAppConfig].toInstance(mockAppConfig)
-    )
-    .build()
-
-  protected override val repository: SessionRepository = app.injector.instanceOf[SessionRepository]
+  protected override val repository: SessionRepository = new SessionRepository(
+    mongoComponent = mongoComponent,
+    appConfig      = mockAppConfig,
+    clock          = stubClock
+  )(scala.concurrent.ExecutionContext.Implicits.global)
 
   ".set" - {
 
     "must set the last updated time on the supplied user answers to `now`, and save them" in {
 
-      val expectedResult = userAnswers.copy(lastUpdated = instant)
+      insert(userAnswers1).futureValue
+      insert(userAnswers2).futureValue
 
-      repository.set(userAnswers).futureValue
-      val updatedRecord = find(Filters.equal("_id", userAnswers.userId)).futureValue.headOption.value
+      val expectedRecord1 = userAnswers1.copy(lastUpdated = instant)
 
-      updatedRecord mustEqual expectedResult
+      repository.set(userAnswers1).futureValue
+      val record1 = find(byIds(userAnswers1.userId, userAnswers1.operatorId)).futureValue.headOption.value
+      val record2 = find(byIds(userAnswers2.userId, userAnswers2.operatorId)).futureValue.headOption.value
+
+      record1 mustEqual expectedRecord1
+      record2 mustEqual userAnswers2
     }
 
-    mustPreserveMdc(repository.set(userAnswers))
+    mustPreserveMdc(repository.set(userAnswers1))
   }
 
   ".get" - {
 
-    "when there is a record for this id" - {
+    "when there is a record for this user id and operator id" - {
 
-      "must update the lastUpdated time and get the record" in {
+      "must update the lastUpdated time of all of this user's records and get the specific record" in {
 
-        insert(userAnswers).futureValue
+        insert(userAnswers1).futureValue
+        insert(userAnswers2).futureValue
 
-        val result         = repository.get(userAnswers.userId).futureValue
-        val expectedResult = userAnswers.copy(lastUpdated = instant)
+        val result1         = repository.get(userAnswers1.userId, userAnswers1.operatorId).futureValue
+        val result2         = repository.get(userAnswers2.userId, userAnswers2.operatorId).futureValue
+        val expectedResult1 = userAnswers1.copy(lastUpdated = instant)
+        val expectedResult2 = userAnswers2.copy(lastUpdated = instant)
 
-        result.value mustEqual expectedResult
+        result1.value mustEqual expectedResult1
+        result2.value mustEqual expectedResult2
       }
     }
 
@@ -103,47 +109,72 @@ class SessionRepositorySpec
 
       "must return None" in {
 
-        repository.get("id that does not exist").futureValue must not be defined
+        repository.get("id that does not exist", "foo").futureValue must not be defined
       }
     }
 
-    mustPreserveMdc(repository.get(userAnswers.userId))
+    mustPreserveMdc(repository.get(userAnswers1.userId, userAnswers1.operatorId))
   }
 
   ".clear" - {
 
-    "must remove a record" in {
+    "must remove a record when an operator id is specified" in {
 
-      insert(userAnswers).futureValue
+      insert(userAnswers1).futureValue
+      insert(userAnswers2).futureValue
 
-      repository.clear(userAnswers.userId).futureValue
+      repository.clear(userAnswers1.userId, userAnswers1.operatorId).futureValue
 
-      repository.get(userAnswers.userId).futureValue must not be defined
+      repository.get(userAnswers1.userId, userAnswers1.operatorId).futureValue must not be defined
+      repository.get(userAnswers2.userId, userAnswers2.operatorId).futureValue mustBe defined
+    }
+
+    "must remove all records for a user when an operator id is not specified" in {
+
+      insert(userAnswers1).futureValue
+      insert(userAnswers2).futureValue
+
+      repository.clear(userAnswers1.userId).futureValue
+
+      repository.get(userAnswers1.userId, userAnswers1.operatorId).futureValue must not be defined
+      repository.get(userAnswers2.userId, userAnswers2.operatorId).futureValue must not be defined
     }
 
     "must return true when there is no record to remove" in {
-      val result = repository.clear("id that does not exist").futureValue
+      val result = repository.clear("id that does not exist", "foo").futureValue
 
       result mustEqual true
     }
 
-    mustPreserveMdc(repository.clear(userAnswers.userId))
+    "when operator id is not specified" - {
+
+      mustPreserveMdc(repository.clear(userAnswers1.userId))
+    }
+
+    "when operator id is specified" - {
+
+      mustPreserveMdc(repository.clear(userAnswers1.userId, userAnswers1.operatorId))
+    }
   }
 
   ".keepAlive" - {
 
-    "when there is a record for this id" - {
+    "when there are records for this user id" - {
 
-      "must update its lastUpdated to `now` and return true" in {
+      "must update lastUpdated to `now` and return true" in {
 
-        insert(userAnswers).futureValue
+        insert(userAnswers1).futureValue
+        insert(userAnswers2).futureValue
 
-        repository.keepAlive(userAnswers.userId).futureValue
+        repository.keepAlive(userAnswers1.userId).futureValue
 
-        val expectedUpdatedAnswers = userAnswers.copy(lastUpdated = instant)
+        val expectedUpdatedAnswers1 = userAnswers1.copy(lastUpdated = instant)
+        val expectedUpdatedAnswers2 = userAnswers2.copy(lastUpdated = instant)
 
-        val updatedAnswers = find(Filters.equal("_id", userAnswers.userId)).futureValue.headOption.value
-        updatedAnswers mustEqual expectedUpdatedAnswers
+        val updatedAnswers1 = find(byIds(userAnswers1.userId, userAnswers1.operatorId)).futureValue.headOption.value
+        val updatedAnswers2 = find(byIds(userAnswers2.userId, userAnswers2.operatorId)).futureValue.headOption.value
+        updatedAnswers1 mustEqual expectedUpdatedAnswers1
+        updatedAnswers2 mustEqual expectedUpdatedAnswers2
       }
     }
 
@@ -155,7 +186,7 @@ class SessionRepositorySpec
       }
     }
 
-    mustPreserveMdc(repository.keepAlive(userAnswers.userId))
+    mustPreserveMdc(repository.keepAlive(userAnswers1.userId))
   }
 
   private def mustPreserveMdc[A](f: => Future[A])(implicit pos: Position): Unit =
