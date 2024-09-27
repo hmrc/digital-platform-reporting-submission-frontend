@@ -25,7 +25,7 @@ import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import views.html.SendFileView
 
-import scala.concurrent.ExecutionContext
+import scala.concurrent.{ExecutionContext, Future}
 
 class SendFileController @Inject()(
                                     override val messagesApi: MessagesApi,
@@ -43,6 +43,17 @@ class SendFileController @Inject()(
         }.getOrElse {
           Redirect(routes.JourneyRecoveryController.onPageLoad())
         }
+      }
+  }
+
+  def onSubmit(submissionId: String): Action[AnyContent] = identify.async {
+    implicit request =>
+      submissionConnector.get(submissionId).flatMap {
+        _.map { submission =>
+          submissionConnector.submit(submissionId).map { _ =>
+            Redirect(routes.JourneyRecoveryController.onPageLoad()) // TODO point to the right place when the page exists
+          }
+        }.getOrElse(Future.successful(Redirect(routes.JourneyRecoveryController.onPageLoad())))
       }
   }
 }

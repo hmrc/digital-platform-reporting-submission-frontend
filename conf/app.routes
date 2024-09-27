@@ -28,3 +28,4 @@ GET         /submission/uploading/:submissionId                     controllers.
 GET         /submission/upload-failed/:submissionId                 controllers.UploadFailedController.onPageLoad(submissionId: String)
 GET         /submission/upload-failed-redirect/:submissionId        controllers.UploadFailedController.onRedirect(submissionId: String, errorCode: Option[String] ?= None)
 GET         /submission/send-file/:submissionId                     controllers.SendFileController.onPageLoad(submissionId: String)
+POST        /submission/send-file/:submissionId                     controllers.SendFileController.onSubmit(submissionId: String)
