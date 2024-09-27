@@ -24,8 +24,8 @@ import play.api.data.FormError
 class UtrFormProviderSpec extends StringFieldBehaviours {
 
 
-  private val operatorName = "name"
-  private val form = new UtrFormProvider()(operatorName)
+  private val assumingOperatorName = "name"
+  private val form = new UtrFormProvider()(assumingOperatorName)
 
   private val requiredKey = "utr.error.required"
   private val formatKey = "utr.error.format"
@@ -53,7 +53,7 @@ class UtrFormProviderSpec extends StringFieldBehaviours {
 
         whenever(input.trim.nonEmpty && !input.trim.matches(Validation.utrPattern.toString)) {
           val result = form.bind(Map(fieldName -> input)).apply(fieldName)
-          result.errors must contain only FormError(fieldName, formatKey, Seq(Validation.utrPattern.toString, operatorName))
+          result.errors must contain only FormError(fieldName, formatKey, Seq(Validation.utrPattern.toString, assumingOperatorName))
         }
       }
     }
@@ -61,7 +61,7 @@ class UtrFormProviderSpec extends StringFieldBehaviours {
     behave like mandatoryField(
       form,
       fieldName,
-      requiredError = FormError(fieldName, requiredKey, Seq(operatorName))
+      requiredError = FormError(fieldName, requiredKey, Seq(assumingOperatorName))
     )
   }
 }

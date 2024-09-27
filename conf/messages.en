@@ -140,13 +140,13 @@ internationalTaxIdentifier.error.length = Tax identification number must be {0} 
 internationalTaxIdentifier.error.format = Tax identification number must only include letters, numbers, hyphens, spaces, commas, full stops, ampersands, underscores and apostrophes
 internationalTaxIdentifier.change.hidden = the tax identification number issued by {0}
 
-operatorName.title = What is the name of the platform operator that will report?
-operatorName.heading = What is the name of the platform operator that will report for {0}?
-operatorName.checkYourAnswersLabel = Platform operator
-operatorName.error.required = Enter the platform operator’s name
-operatorName.error.length = Name must be {0} characters or less
-operatorName.error.format = Name must only include letters, numbers, hyphens, spaces, commas, full stops, ampersands, underscores and apostrophes
-operatorName.change.hidden = the platform operator
+assumingOperatorName.title = What is the name of the platform operator that will report?
+assumingOperatorName.heading = What is the name of the platform operator that will report for {0}?
+assumingOperatorName.checkYourAnswersLabel = Platform operator
+assumingOperatorName.error.required = Enter the platform operator’s name
+assumingOperatorName.error.length = Name must be {0} characters or less
+assumingOperatorName.error.format = Name must only include letters, numbers, hyphens, spaces, commas, full stops, ampersands, underscores and apostrophes
+assumingOperatorName.change.hidden = the platform operator
 
 registeredInUk.title = Is the platform operator’s registered address in the UK, Jersey, Guernsey or the Isle of Man?
 registeredInUk.heading = Is {0}’s registered address in the UK, Jersey, Guernsey or the Isle of Man?

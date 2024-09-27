@@ -21,11 +21,11 @@ import javax.inject.Inject
 import forms.mappings.Mappings
 import play.api.data.Form
 
-class OperatorNameFormProvider @Inject() extends Mappings {
+class AssumingOperatorNameFormProvider @Inject() extends Mappings {
 
   def apply(): Form[String] =
     Form(
-      "value" -> text("operatorName.error.required")
-        .verifying(maxLength(105, "operatorName.error.length"))
+      "value" -> text("assumingOperatorName.error.required")
+        .verifying(maxLength(105, "assumingOperatorName.error.length"))
     )
 }

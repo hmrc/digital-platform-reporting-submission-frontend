@@ -23,8 +23,8 @@ import javax.inject.Inject
 
 class HasTaxIdentifierFormProvider @Inject() extends Mappings {
 
-  def apply(operatorName: String): Form[Boolean] =
+  def apply(assumingOperatorName: String): Form[Boolean] =
     Form(
-      "value" -> boolean("hasTaxIdentifier.error.required", args = Seq(operatorName))
+      "value" -> boolean("hasTaxIdentifier.error.required", args = Seq(assumingOperatorName))
     )
 }

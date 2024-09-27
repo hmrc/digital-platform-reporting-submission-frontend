@@ -23,7 +23,7 @@ import models.{NormalMode, UserAnswers}
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.when
 import org.scalatestplus.mockito.MockitoSugar
-import pages.assumed.{CrnPage, OperatorNamePage}
+import pages.assumed.{CrnPage, AssumingOperatorNamePage}
 import play.api.inject.bind
 import play.api.test.FakeRequest
 import play.api.test.Helpers.*
@@ -35,9 +35,9 @@ import scala.concurrent.Future
 class CrnControllerSpec extends SpecBase with MockitoSugar {
 
   val formProvider = new CrnFormProvider()
-  private val operatorName = "name"
-  private val form = formProvider(operatorName)
-  private val baseAnswers = emptyUserAnswers.set(OperatorNamePage, operatorName).success.value
+  private val assumingOperatorName = "name"
+  private val form = formProvider(assumingOperatorName)
+  private val baseAnswers = emptyUserAnswers.set(AssumingOperatorNamePage, assumingOperatorName).success.value
 
   lazy val crnRoute = routes.CrnController.onPageLoad(NormalMode, operatorId).url
 
@@ -55,7 +55,7 @@ class CrnControllerSpec extends SpecBase with MockitoSugar {
         val view = application.injector.instanceOf[CrnView]
 
         status(result) mustEqual OK
-        contentAsString(result) mustEqual view(form, NormalMode, operatorId, operatorName)(request, messages(application)).toString
+        contentAsString(result) mustEqual view(form, NormalMode, operatorId, assumingOperatorName)(request, messages(application)).toString
       }
     }
 
@@ -73,7 +73,7 @@ class CrnControllerSpec extends SpecBase with MockitoSugar {
         val result = route(application, request).value
 
         status(result) mustEqual OK
-        contentAsString(result) mustEqual view(form.fill("AB123456"), NormalMode, operatorId, operatorName)(request, messages(application)).toString
+        contentAsString(result) mustEqual view(form.fill("AB123456"), NormalMode, operatorId, assumingOperatorName)(request, messages(application)).toString
       }
     }
 
@@ -119,7 +119,7 @@ class CrnControllerSpec extends SpecBase with MockitoSugar {
         val result = route(application, request).value
 
         status(result) mustEqual BAD_REQUEST
-        contentAsString(result) mustEqual view(boundForm, NormalMode, operatorId, operatorName)(request, messages(application)).toString
+        contentAsString(result) mustEqual view(boundForm, NormalMode, operatorId, assumingOperatorName)(request, messages(application)).toString
       }
     }
 

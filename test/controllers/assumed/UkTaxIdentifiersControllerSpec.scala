@@ -23,7 +23,7 @@ import models.{NormalMode, UkTaxIdentifiers}
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.when
 import org.scalatestplus.mockito.MockitoSugar
-import pages.assumed.{OperatorNamePage, UkTaxIdentifiersPage}
+import pages.assumed.{AssumingOperatorNamePage, UkTaxIdentifiersPage}
 import play.api.inject.bind
 import play.api.test.FakeRequest
 import play.api.test.Helpers.*
@@ -37,9 +37,9 @@ class UkTaxIdentifiersControllerSpec extends SpecBase with MockitoSugar {
   lazy val ukTaxIdentifiersRoute = routes.UkTaxIdentifiersController.onPageLoad(NormalMode, operatorId).url
 
   val formProvider = new UkTaxIdentifiersFormProvider()
-  private val operatorName = "name"
-  private val form = formProvider(operatorName)
-  private val baseAnswers = emptyUserAnswers.set(OperatorNamePage, operatorName).success.value
+  private val assumingOperatorName = "name"
+  private val form = formProvider(assumingOperatorName)
+  private val baseAnswers = emptyUserAnswers.set(AssumingOperatorNamePage, assumingOperatorName).success.value
 
   "UkTaxIdentifiers Controller" - {
 
@@ -56,7 +56,7 @@ class UkTaxIdentifiersControllerSpec extends SpecBase with MockitoSugar {
 
         status(result) mustEqual OK
 
-        contentAsString(result) mustEqual view(form, NormalMode, operatorId, operatorName)(request, messages(application)).toString
+        contentAsString(result) mustEqual view(form, NormalMode, operatorId, assumingOperatorName)(request, messages(application)).toString
       }
     }
 
@@ -74,7 +74,7 @@ class UkTaxIdentifiersControllerSpec extends SpecBase with MockitoSugar {
         val result = route(application, request).value
 
         status(result) mustEqual OK
-        contentAsString(result) mustEqual view(form.fill(UkTaxIdentifiers.values.toSet), NormalMode, operatorId, operatorName)(request, messages(application)).toString
+        contentAsString(result) mustEqual view(form.fill(UkTaxIdentifiers.values.toSet), NormalMode, operatorId, assumingOperatorName)(request, messages(application)).toString
       }
     }
 
@@ -120,7 +120,7 @@ class UkTaxIdentifiersControllerSpec extends SpecBase with MockitoSugar {
         val result = route(application, request).value
 
         status(result) mustEqual BAD_REQUEST
-        contentAsString(result) mustEqual view(boundForm, NormalMode, operatorId, operatorName)(request, messages(application)).toString
+        contentAsString(result) mustEqual view(boundForm, NormalMode, operatorId, assumingOperatorName)(request, messages(application)).toString
       }
     }
 

@@ -24,8 +24,8 @@ class RegisteredInUkFormProviderSpec extends BooleanFieldBehaviours {
   val requiredKey = "registeredInUk.error.required"
   val invalidKey = "error.boolean"
 
-  val operatorName = "name"
-  val form = new RegisteredInUkFormProvider()(operatorName)
+  val assumingOperatorName = "name"
+  val form = new RegisteredInUkFormProvider()(assumingOperatorName)
 
   ".value" - {
 
@@ -34,13 +34,13 @@ class RegisteredInUkFormProviderSpec extends BooleanFieldBehaviours {
     behave like booleanField(
       form,
       fieldName,
-      invalidError = FormError(fieldName, invalidKey, Seq(operatorName))
+      invalidError = FormError(fieldName, invalidKey, Seq(assumingOperatorName))
     )
 
     behave like mandatoryField(
       form,
       fieldName,
-      requiredError = FormError(fieldName, requiredKey, Seq(operatorName))
+      requiredError = FormError(fieldName, requiredKey, Seq(assumingOperatorName))
     )
   }
 }

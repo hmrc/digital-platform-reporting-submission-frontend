@@ -26,8 +26,8 @@ class ChrnFormProviderSpec extends StringFieldBehaviours {
   val requiredKey = "chrn.error.required"
   val formatKey = "chrn.error.format"
 
-  val operatorName = "name"
-  val form = new ChrnFormProvider()(operatorName)
+  val assumingOperatorName = "name"
+  val form = new ChrnFormProvider()(assumingOperatorName)
 
   ".value" - {
 
@@ -55,7 +55,7 @@ class ChrnFormProviderSpec extends StringFieldBehaviours {
 
       forAll(invalidGen) { invalidNumber =>
         val result = form.bind(Map(fieldName -> invalidNumber)).apply(fieldName)
-        result.errors must contain only FormError(fieldName, formatKey, Seq(Validation.chrnPattern.toString, operatorName))
+        result.errors must contain only FormError(fieldName, formatKey, Seq(Validation.chrnPattern.toString, assumingOperatorName))
       }
     }
 
@@ -65,7 +65,7 @@ class ChrnFormProviderSpec extends StringFieldBehaviours {
 
         whenever(input.trim.nonEmpty && !input.trim.matches(Validation.chrnPattern.toString)) {
           val result = form.bind(Map(fieldName -> input)).apply(fieldName)
-          result.errors must contain only FormError(fieldName, formatKey, Seq(Validation.chrnPattern.toString, operatorName))
+          result.errors must contain only FormError(fieldName, formatKey, Seq(Validation.chrnPattern.toString, assumingOperatorName))
         }
       }
     }
@@ -73,7 +73,7 @@ class ChrnFormProviderSpec extends StringFieldBehaviours {
     behave like mandatoryField(
       form,
       fieldName,
-      requiredError = FormError(fieldName, requiredKey, Seq(operatorName))
+      requiredError = FormError(fieldName, requiredKey, Seq(assumingOperatorName))
     )
   }
 }

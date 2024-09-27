@@ -25,10 +25,10 @@ import javax.inject.Inject
 
 class UkTaxIdentifiersFormProvider @Inject() extends Mappings {
 
-  def apply(operatorName: String): Form[Set[UkTaxIdentifiers]] =
+  def apply(assumingOperatorName: String): Form[Set[UkTaxIdentifiers]] =
     Form(
-      "value" -> set(enumerable[UkTaxIdentifiers]("ukTaxIdentifiers.error.required", args = Seq(operatorName)))
-        .verifying(nonEmptySet("ukTaxIdentifiers.error.required", operatorName))
+      "value" -> set(enumerable[UkTaxIdentifiers]("ukTaxIdentifiers.error.required", args = Seq(assumingOperatorName)))
+        .verifying(nonEmptySet("ukTaxIdentifiers.error.required", assumingOperatorName))
     )
 }
 

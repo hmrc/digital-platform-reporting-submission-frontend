@@ -22,7 +22,7 @@ import forms.UkAddressFormProvider
 
 import javax.inject.Inject
 import models.Mode
-import pages.assumed.{OperatorNamePage, UkAddressPage}
+import pages.assumed.{AssumingOperatorNamePage, UkAddressPage}
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import repositories.SessionRepository
@@ -46,23 +46,23 @@ class UkAddressController @Inject()(
   val form = formProvider()
 
   def onPageLoad(mode: Mode, operatorId: String): Action[AnyContent] = (identify andThen getData(operatorId) andThen requireData) { implicit request =>
-    getAnswer(OperatorNamePage) { operatorName =>
+    getAnswer(AssumingOperatorNamePage) { assumingOperatorName =>
 
       val preparedForm = request.userAnswers.get(UkAddressPage) match {
         case None => form
         case Some(value) => form.fill(value)
       }
 
-      Ok(view(preparedForm, mode, operatorId, operatorName))
+      Ok(view(preparedForm, mode, operatorId, assumingOperatorName))
     }
   }
 
   def onSubmit(mode: Mode, operatorId: String): Action[AnyContent] = (identify andThen getData(operatorId) andThen requireData).async { implicit request =>
-    getAnswerAsync(OperatorNamePage) { operatorName =>
+    getAnswerAsync(AssumingOperatorNamePage) { assumingOperatorName =>
 
       form.bindFromRequest().fold(
         formWithErrors =>
-          Future.successful(BadRequest(view(formWithErrors, mode, operatorId, operatorName))),
+          Future.successful(BadRequest(view(formWithErrors, mode, operatorId, assumingOperatorName))),
 
         value =>
           for {

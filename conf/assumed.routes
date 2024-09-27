@@ -28,10 +28,10 @@ POST       /:operatorId/internationalTaxIdentifier                        contro
 GET        /:operatorId/changeInternationalTaxIdentifier                  controllers.assumed.InternationalTaxIdentifierController.onPageLoad(mode: Mode = CheckMode, operatorId: String)
 POST       /:operatorId/changeInternationalTaxIdentifier                  controllers.assumed.InternationalTaxIdentifierController.onSubmit(mode: Mode = CheckMode, operatorId: String)
 
-GET        /:operatorId/operatorName                        controllers.assumed.OperatorNameController.onPageLoad(mode: Mode = NormalMode, operatorId: String)
-POST       /:operatorId/operatorName                        controllers.assumed.OperatorNameController.onSubmit(mode: Mode = NormalMode, operatorId: String)
-GET        /:operatorId/changeOperatorName                  controllers.assumed.OperatorNameController.onPageLoad(mode: Mode = CheckMode, operatorId: String)
-POST       /:operatorId/changeOperatorName                  controllers.assumed.OperatorNameController.onSubmit(mode: Mode = CheckMode, operatorId: String)
+GET        /:operatorId/assumingOperatorName                        controllers.assumed.AssumingOperatorNameController.onPageLoad(mode: Mode = NormalMode, operatorId: String)
+POST       /:operatorId/assumingOperatorName                        controllers.assumed.AssumingOperatorNameController.onSubmit(mode: Mode = NormalMode, operatorId: String)
+GET        /:operatorId/changeOperatorName                  controllers.assumed.AssumingOperatorNameController.onPageLoad(mode: Mode = CheckMode, operatorId: String)
+POST       /:operatorId/changeOperatorName                  controllers.assumed.AssumingOperatorNameController.onSubmit(mode: Mode = CheckMode, operatorId: String)
 
 GET        /:operatorId/registeredInUk                        controllers.assumed.RegisteredInUkController.onPageLoad(mode: Mode = NormalMode, operatorId: String)
 POST       /:operatorId/registeredInUk                        controllers.assumed.RegisteredInUkController.onSubmit(mode: Mode = NormalMode, operatorId: String)

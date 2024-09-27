@@ -17,35 +17,35 @@
 package controllers.assumed
 
 import controllers.actions._
-import forms.OperatorNameFormProvider
+import forms.AssumingOperatorNameFormProvider
 import javax.inject.Inject
 import models.Mode
-import pages.assumed.OperatorNamePage
+import pages.assumed.AssumingOperatorNamePage
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import repositories.SessionRepository
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
-import views.html.assumed.OperatorNameView
+import views.html.assumed.AssumingOperatorNameView
 
 import scala.concurrent.{ExecutionContext, Future}
 
-class OperatorNameController @Inject()(
-                                        override val messagesApi: MessagesApi,
-                                        sessionRepository: SessionRepository,
-                                        identify: IdentifierAction,
-                                        getData: DataRetrievalActionProvider,
-                                        requireData: DataRequiredAction,
-                                        formProvider: OperatorNameFormProvider,
-                                        val controllerComponents: MessagesControllerComponents,
-                                        view: OperatorNameView
-                                    )(implicit ec: ExecutionContext) extends FrontendBaseController with I18nSupport {
+class AssumingOperatorNameController @Inject()(
+                                                override val messagesApi: MessagesApi,
+                                                sessionRepository: SessionRepository,
+                                                identify: IdentifierAction,
+                                                getData: DataRetrievalActionProvider,
+                                                requireData: DataRequiredAction,
+                                                formProvider: AssumingOperatorNameFormProvider,
+                                                val controllerComponents: MessagesControllerComponents,
+                                                view: AssumingOperatorNameView
+                                              )(implicit ec: ExecutionContext) extends FrontendBaseController with I18nSupport {
 
   val form = formProvider()
 
   def onPageLoad(mode: Mode, operatorId: String): Action[AnyContent] = (identify andThen getData(operatorId) andThen requireData) {
     implicit request =>
 
-      val preparedForm = request.userAnswers.get(OperatorNamePage) match {
+      val preparedForm = request.userAnswers.get(AssumingOperatorNamePage) match {
         case None => form
         case Some(value) => form.fill(value)
       }
@@ -62,9 +62,9 @@ class OperatorNameController @Inject()(
 
         value =>
           for {
-            updatedAnswers <- Future.fromTry(request.userAnswers.set(OperatorNamePage, value))
+            updatedAnswers <- Future.fromTry(request.userAnswers.set(AssumingOperatorNamePage, value))
             _              <- sessionRepository.set(updatedAnswers)
-          } yield Redirect(OperatorNamePage.nextPage(mode, updatedAnswers))
+          } yield Redirect(AssumingOperatorNamePage.nextPage(mode, updatedAnswers))
       )
   }
 }

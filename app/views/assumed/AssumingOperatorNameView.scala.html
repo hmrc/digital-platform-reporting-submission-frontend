@@ -27,9 +27,9 @@
 
 @(form: Form[_], mode: Mode, operatorId: String)(implicit request: Request[_], messages: Messages)
 
-@layout(pageTitle = title(form, messages("operatorName.title"))) {
+@layout(pageTitle = title(form, messages("assumingOperatorName.title"))) {
 
-    @formHelper(action = routes.OperatorNameController.onSubmit(mode, operatorId)) {
+    @formHelper(action = routes.AssumingOperatorNameController.onSubmit(mode, operatorId)) {
 
         @if(form.errors.nonEmpty) {
             @govukErrorSummary(ErrorSummaryViewModel(form))
@@ -38,7 +38,7 @@
         @govukInput(
             InputViewModel(
                 field = form("value"),
-                label = LabelViewModel(messages("operatorName.heading")).asPageHeading()
+                label = LabelViewModel(messages("assumingOperatorName.heading")).asPageHeading()
             )
             .withWidth(Full)
         )

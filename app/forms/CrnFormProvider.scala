@@ -23,9 +23,9 @@ import javax.inject.Inject
 
 class CrnFormProvider @Inject() extends Mappings {
 
-  def apply(operatorName: String): Form[String] =
+  def apply(assumingOperatorName: String): Form[String] =
     Form(
-      "value" -> text("crn.error.required", args = Seq(operatorName))
-        .verifying(regexp(Validation.crnPattern.toString, "crn.error.format", args = operatorName))
+      "value" -> text("crn.error.required", args = Seq(assumingOperatorName))
+        .verifying(regexp(Validation.crnPattern.toString, "crn.error.format", args = assumingOperatorName))
     )
 }
