@@ -16,7 +16,8 @@
 
 package pages.assumed
 
-import models.UserAnswers
+import controllers.assumed.routes
+import models.{NormalMode, UserAnswers}
 import play.api.libs.json.JsPath
 import play.api.mvc.Call
 
@@ -26,4 +27,6 @@ case object ReportingPeriodPage extends AssumedReportingQuestionPage[Int] {
 
   override def toString: String = "reportingPeriod"
 
+  override protected def nextPageNormalMode(answers: UserAnswers): Call =
+    routes.AssumingOperatorNameController.onPageLoad(NormalMode, answers.operatorId)
 }

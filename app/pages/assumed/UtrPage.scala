@@ -16,7 +16,10 @@
 
 package pages.assumed
 
-import models.UserAnswers
+import controllers.assumed.routes
+import controllers.routes as baseRoutes
+import models.{CheckMode, NormalMode, UserAnswers}
+import models.UkTaxIdentifiers.*
 import play.api.libs.json.JsPath
 import play.api.mvc.Call
 
@@ -26,4 +29,27 @@ case object UtrPage extends AssumedReportingQuestionPage[String] {
 
   override def toString: String = "utr"
 
+  override protected def nextPageNormalMode(answers: UserAnswers): Call =
+    answers.get(UkTaxIdentifiersPage).map {
+      case x if x.contains(Crn) => routes.CrnController.onPageLoad(NormalMode, answers.operatorId)
+      case x if x.contains(Vrn) => routes.VrnController.onPageLoad(NormalMode, answers.operatorId)
+      case x if x.contains(Empref) => routes.EmprefController.onPageLoad(NormalMode, answers.operatorId)
+      case x if x.contains(Chrn) => routes.ChrnController.onPageLoad(NormalMode, answers.operatorId)
+      case _ => routes.RegisteredInUkController.onPageLoad(NormalMode, answers.operatorId)
+    }.getOrElse(baseRoutes.JourneyRecoveryController.onPageLoad())
+
+  override protected def nextPageCheckMode(answers: UserAnswers): Call =
+    answers.get(UkTaxIdentifiersPage).map { identifiers =>
+      if (identifiers.contains(Crn) && answers.get(CrnPage).isEmpty) {
+        routes.CrnController.onPageLoad(CheckMode, answers.operatorId)
+      } else if (identifiers.contains(Vrn) && answers.get(VrnPage).isEmpty) {
+        routes.VrnController.onPageLoad(CheckMode, answers.operatorId)
+      } else if (identifiers.contains(Empref) && answers.get(EmprefPage).isEmpty) {
+        routes.EmprefController.onPageLoad(CheckMode, answers.operatorId)
+      } else if (identifiers.contains(Chrn) && answers.get(ChrnPage).isEmpty) {
+        routes.ChrnController.onPageLoad(CheckMode, answers.operatorId)
+      } else {
+        routes.CheckYourAnswersController.onPageLoad(answers.operatorId)
+      }
+    }.getOrElse(baseRoutes.JourneyRecoveryController.onPageLoad())
 }
