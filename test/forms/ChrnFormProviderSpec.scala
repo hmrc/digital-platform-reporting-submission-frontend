@@ -17,37 +17,63 @@
 package forms
 
 import forms.behaviours.StringFieldBehaviours
+import org.scalacheck.Arbitrary.arbitrary
+import org.scalacheck.Gen
 import play.api.data.FormError
 
 class ChrnFormProviderSpec extends StringFieldBehaviours {
 
   val requiredKey = "chrn.error.required"
-  val lengthKey = "chrn.error.length"
-  val maxLength = 100
+  val formatKey = "chrn.error.format"
 
-  val form = new ChrnFormProvider()()
+  val operatorName = "name"
+  val form = new ChrnFormProvider()(operatorName)
 
   ".value" - {
 
     val fieldName = "value"
 
+    val validReferences = for {
+      firstChars <- Gen.option(Gen.listOfN(2, Gen.alphaChar))
+      numberOfDigits <- Gen.choose(1, 5)
+      digits <- Gen.listOfN(numberOfDigits, Gen.numChar)
+    } yield firstChars.map(_.mkString).getOrElse("X") + digits.mkString
+
     behave like fieldThatBindsValidData(
       form,
       fieldName,
-      stringsWithMaxLength(maxLength)
+      validReferences
     )
 
-    behave like fieldWithMaxLength(
-      form,
-      fieldName,
-      maxLength = maxLength,
-      lengthError = FormError(fieldName, lengthKey, Seq(maxLength))
-    )
+    "must not bind single characters (other than X) followed by numbers" in {
+
+      val invalidGen = for {
+        char <- Gen.alphaChar.suchThat(c => c != 'X' && c != 'x')
+        numberOfDigits <- Gen.choose(1, 5)
+        digits <- Gen.listOfN(numberOfDigits, Gen.numChar)
+      } yield s"$char" + digits.mkString
+
+      forAll(invalidGen) { invalidNumber =>
+        val result = form.bind(Map(fieldName -> invalidNumber)).apply(fieldName)
+        result.errors must contain only FormError(fieldName, formatKey, Seq(Validation.chrnPattern.toString, operatorName))
+      }
+    }
+
+    "must not bind invalid values" in {
+
+      forAll(arbitrary[String]) { input =>
+
+        whenever(input.trim.nonEmpty && !input.trim.matches(Validation.chrnPattern.toString)) {
+          val result = form.bind(Map(fieldName -> input)).apply(fieldName)
+          result.errors must contain only FormError(fieldName, formatKey, Seq(Validation.chrnPattern.toString, operatorName))
+        }
+      }
+    }
 
     behave like mandatoryField(
       form,
       fieldName,
-      requiredError = FormError(fieldName, requiredKey)
+      requiredError = FormError(fieldName, requiredKey, Seq(operatorName))
     )
   }
 }

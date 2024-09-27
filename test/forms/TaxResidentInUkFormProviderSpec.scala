@@ -24,7 +24,8 @@ class TaxResidentInUkFormProviderSpec extends BooleanFieldBehaviours {
   val requiredKey = "taxResidentInUk.error.required"
   val invalidKey = "error.boolean"
 
-  val form = new TaxResidentInUkFormProvider()()
+  val operatorName = "name"
+  val form = new TaxResidentInUkFormProvider()(operatorName)
 
   ".value" - {
 
@@ -33,13 +34,13 @@ class TaxResidentInUkFormProviderSpec extends BooleanFieldBehaviours {
     behave like booleanField(
       form,
       fieldName,
-      invalidError = FormError(fieldName, invalidKey)
+      invalidError = FormError(fieldName, invalidKey, Seq(operatorName))
     )
 
     behave like mandatoryField(
       form,
       fieldName,
-      requiredError = FormError(fieldName, requiredKey)
+      requiredError = FormError(fieldName, requiredKey, Seq(operatorName))
     )
   }
 }

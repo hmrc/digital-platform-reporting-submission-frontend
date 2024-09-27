@@ -23,7 +23,7 @@ import models.NormalMode
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.when
 import org.scalatestplus.mockito.MockitoSugar
-import pages.assumed.ChrnPage
+import pages.assumed.{ChrnPage, OperatorNamePage}
 import play.api.inject.bind
 import play.api.test.FakeRequest
 import play.api.test.Helpers.*
@@ -34,8 +34,10 @@ import scala.concurrent.Future
 
 class ChrnControllerSpec extends SpecBase with MockitoSugar {
 
-  val formProvider = new ChrnFormProvider()
-  val form = formProvider()
+  private val formProvider = new ChrnFormProvider()
+  private val operatorName = "name"
+  private val form = formProvider(operatorName)
+  private val baseAnswers = emptyUserAnswers.set(OperatorNamePage, operatorName).success.value
 
   lazy val chrnRoute = routes.ChrnController.onPageLoad(NormalMode, operatorId).url
 
@@ -43,7 +45,7 @@ class ChrnControllerSpec extends SpecBase with MockitoSugar {
 
     "must return OK and the correct view for a GET" in {
 
-      val application = applicationBuilder(userAnswers = Some(emptyUserAnswers)).build()
+      val application = applicationBuilder(userAnswers = Some(baseAnswers)).build()
 
       running(application) {
         val request = FakeRequest(GET, chrnRoute)
@@ -53,13 +55,13 @@ class ChrnControllerSpec extends SpecBase with MockitoSugar {
         val view = application.injector.instanceOf[ChrnView]
 
         status(result) mustEqual OK
-        contentAsString(result) mustEqual view(form, NormalMode, operatorId)(request, messages(application)).toString
+        contentAsString(result) mustEqual view(form, NormalMode, operatorId, operatorName)(request, messages(application)).toString
       }
     }
 
     "must populate the view correctly on a GET when the question has previously been answered" in {
 
-      val userAnswers = emptyUserAnswers.set(ChrnPage, "answer").success.value
+      val userAnswers = baseAnswers.set(ChrnPage, "X00000").success.value
 
       val application = applicationBuilder(userAnswers = Some(userAnswers)).build()
 
@@ -71,7 +73,7 @@ class ChrnControllerSpec extends SpecBase with MockitoSugar {
         val result = route(application, request).value
 
         status(result) mustEqual OK
-        contentAsString(result) mustEqual view(form.fill("answer"), NormalMode, operatorId)(request, messages(application)).toString
+        contentAsString(result) mustEqual view(form.fill("X00000"), NormalMode, operatorId, operatorName)(request, messages(application)).toString
       }
     }
 
@@ -79,10 +81,10 @@ class ChrnControllerSpec extends SpecBase with MockitoSugar {
 
       val mockSessionRepository = mock[SessionRepository]
 
-      when(mockSessionRepository.set(any())) thenReturn Future.successful(true)
+      when(mockSessionRepository.set(any())).thenReturn(Future.successful(true))
 
       val application =
-        applicationBuilder(userAnswers = Some(emptyUserAnswers))
+        applicationBuilder(userAnswers = Some(baseAnswers))
           .overrides(
             bind[SessionRepository].toInstance(mockSessionRepository)
           )
@@ -91,10 +93,10 @@ class ChrnControllerSpec extends SpecBase with MockitoSugar {
       running(application) {
         val request =
           FakeRequest(POST, chrnRoute)
-            .withFormUrlEncodedBody(("value", "answer"))
+            .withFormUrlEncodedBody(("value", "X00000"))
 
         val result = route(application, request).value
-        val answers = emptyUserAnswers.set(ChrnPage, "answer").success.value
+        val answers = baseAnswers.set(ChrnPage, "X00000").success.value
 
         status(result) mustEqual SEE_OTHER
         redirectLocation(result).value mustEqual ChrnPage.nextPage(NormalMode, answers).url
@@ -103,7 +105,7 @@ class ChrnControllerSpec extends SpecBase with MockitoSugar {
 
     "must return a Bad Request and errors when invalid data is submitted" in {
 
-      val application = applicationBuilder(userAnswers = Some(emptyUserAnswers)).build()
+      val application = applicationBuilder(userAnswers = Some(baseAnswers)).build()
 
       running(application) {
         val request =
@@ -117,7 +119,7 @@ class ChrnControllerSpec extends SpecBase with MockitoSugar {
         val result = route(application, request).value
 
         status(result) mustEqual BAD_REQUEST
-        contentAsString(result) mustEqual view(boundForm, NormalMode, operatorId)(request, messages(application)).toString
+        contentAsString(result) mustEqual view(boundForm, NormalMode, operatorId, operatorName)(request, messages(application)).toString
       }
     }
 
@@ -142,7 +144,7 @@ class ChrnControllerSpec extends SpecBase with MockitoSugar {
       running(application) {
         val request =
           FakeRequest(POST, chrnRoute)
-            .withFormUrlEncodedBody(("value", "answer"))
+            .withFormUrlEncodedBody(("value", "X00000"))
 
         val result = route(application, request).value
 

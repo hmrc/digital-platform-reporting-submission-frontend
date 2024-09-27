@@ -25,12 +25,14 @@ sealed trait UkTaxIdentifiers
 
 object UkTaxIdentifiers extends Enumerable.Implicits {
 
-  case object Option1 extends WithName("option1") with UkTaxIdentifiers
-  case object Option2 extends WithName("option2") with UkTaxIdentifiers
+  case object Utr extends WithName("utr") with UkTaxIdentifiers
+  case object Crn extends WithName("crn") with UkTaxIdentifiers
+  case object Vrn extends WithName("vrn") with UkTaxIdentifiers
+  case object Empref extends WithName("empref") with UkTaxIdentifiers
+  case object Chrn extends WithName("chrn") with UkTaxIdentifiers
 
   val values: Seq[UkTaxIdentifiers] = Seq(
-    Option1,
-    Option2
+    Utr, Crn, Vrn, Empref, Chrn
   )
 
   def checkboxItems(implicit messages: Messages): Seq[CheckboxItem] =

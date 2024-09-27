@@ -16,16 +16,19 @@
 
 package forms
 
-import javax.inject.Inject
-
 import forms.mappings.Mappings
+import models.Country
 import play.api.data.Form
+import play.api.i18n.Messages
+
+import javax.inject.Inject
 
 class TaxResidencyCountryFormProvider @Inject() extends Mappings {
 
-  def apply(): Form[String] =
+  def apply(operatorName: String)(implicit messages: Messages): Form[Country] =
     Form(
-      "value" -> text("taxResidencyCountry.error.required")
-        .verifying(maxLength(100, "taxResidencyCountry.error.length"))
+      "value" -> text(messages("taxResidencyCountry.error.required", operatorName))
+        .verifying(messages("taxResidencyCountry.error.required", operatorName), value => Country.internationalCountries.exists(_.code == value))
+        .transform[Country](value => Country.internationalCountries.find(_.code == value).get, _.code)
     )
 }

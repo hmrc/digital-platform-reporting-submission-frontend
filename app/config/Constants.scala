@@ -14,18 +14,9 @@
  * limitations under the License.
  */
 
-package forms
+package config
 
-import forms.mappings.Mappings
-import play.api.data.Form
+object Constants {
 
-import javax.inject.Inject
-
-class EmprefFormProvider @Inject() extends Mappings {
-
-  def apply(operatorName: String): Form[String] =
-    Form(
-      "value" -> text("empref.error.required", args = Seq(operatorName))
-        .verifying(regexp(Validation.emprefPattern.toString, "empref.error.format", args = operatorName))
-    )
+  val firstLegislativeYear: Int = 2024
 }

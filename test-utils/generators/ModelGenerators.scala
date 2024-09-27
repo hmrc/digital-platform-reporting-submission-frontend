@@ -22,24 +22,18 @@ import org.scalacheck.{Arbitrary, Gen}
 
 trait ModelGenerators {
 
+  def ukPostcodeGen: Gen[String] =
+    for {
+      firstChars <- Gen.choose(1, 2)
+      first <- Gen.listOfN(firstChars, Gen.alphaUpperChar).map(_.mkString)
+      second <- Gen.numChar.map(_.toString)
+      third <- Gen.oneOf(Gen.alphaUpperChar, Gen.numChar).map(_.toString)
+      fourth <- Gen.numChar.map(_.toString)
+      fifth <- Gen.listOfN(2, Gen.alphaUpperChar).map(_.mkString)
+    } yield s"$first$second$third$fourth$fifth"
+    
   implicit lazy val arbitraryUkTaxIdentifiers: Arbitrary[UkTaxIdentifiers] =
     Arbitrary {
       Gen.oneOf(UkTaxIdentifiers.values)
-    }
-
-  implicit lazy val arbitraryUkAddress: Arbitrary[UkAddress] =
-    Arbitrary {
-      for {
-        line1 <- arbitrary[String]
-        line2 <- arbitrary[String]
-      } yield UkAddress(line1, line2)
-    }
-
-  implicit lazy val arbitraryInternationalAddress: Arbitrary[InternationalAddress] =
-    Arbitrary {
-      for {
-        line1 <- arbitrary[String]
-        line2 <- arbitrary[String]
-      } yield InternationalAddress(line1, line2)
     }
 }

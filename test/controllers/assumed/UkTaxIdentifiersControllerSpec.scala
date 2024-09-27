@@ -23,7 +23,7 @@ import models.{NormalMode, UkTaxIdentifiers}
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.when
 import org.scalatestplus.mockito.MockitoSugar
-import pages.assumed.UkTaxIdentifiersPage
+import pages.assumed.{OperatorNamePage, UkTaxIdentifiersPage}
 import play.api.inject.bind
 import play.api.test.FakeRequest
 import play.api.test.Helpers.*
@@ -37,13 +37,15 @@ class UkTaxIdentifiersControllerSpec extends SpecBase with MockitoSugar {
   lazy val ukTaxIdentifiersRoute = routes.UkTaxIdentifiersController.onPageLoad(NormalMode, operatorId).url
 
   val formProvider = new UkTaxIdentifiersFormProvider()
-  val form = formProvider()
+  private val operatorName = "name"
+  private val form = formProvider(operatorName)
+  private val baseAnswers = emptyUserAnswers.set(OperatorNamePage, operatorName).success.value
 
   "UkTaxIdentifiers Controller" - {
 
     "must return OK and the correct view for a GET" in {
 
-      val application = applicationBuilder(userAnswers = Some(emptyUserAnswers)).build()
+      val application = applicationBuilder(userAnswers = Some(baseAnswers)).build()
 
       running(application) {
         val request = FakeRequest(GET, ukTaxIdentifiersRoute)
@@ -54,13 +56,13 @@ class UkTaxIdentifiersControllerSpec extends SpecBase with MockitoSugar {
 
         status(result) mustEqual OK
 
-        contentAsString(result) mustEqual view(form, NormalMode, operatorId)(request, messages(application)).toString
+        contentAsString(result) mustEqual view(form, NormalMode, operatorId, operatorName)(request, messages(application)).toString
       }
     }
 
     "must populate the view correctly on a GET when the question has previously been answered" in {
 
-      val userAnswers = emptyUserAnswers.set(UkTaxIdentifiersPage, UkTaxIdentifiers.values.toSet).success.value
+      val userAnswers = baseAnswers.set(UkTaxIdentifiersPage, UkTaxIdentifiers.values.toSet).success.value
 
       val application = applicationBuilder(userAnswers = Some(userAnswers)).build()
 
@@ -72,7 +74,7 @@ class UkTaxIdentifiersControllerSpec extends SpecBase with MockitoSugar {
         val result = route(application, request).value
 
         status(result) mustEqual OK
-        contentAsString(result) mustEqual view(form.fill(UkTaxIdentifiers.values.toSet), NormalMode, operatorId)(request, messages(application)).toString
+        contentAsString(result) mustEqual view(form.fill(UkTaxIdentifiers.values.toSet), NormalMode, operatorId, operatorName)(request, messages(application)).toString
       }
     }
 
@@ -80,10 +82,10 @@ class UkTaxIdentifiersControllerSpec extends SpecBase with MockitoSugar {
 
       val mockSessionRepository = mock[SessionRepository]
 
-      when(mockSessionRepository.set(any())) thenReturn Future.successful(true)
+      when(mockSessionRepository.set(any())).thenReturn(Future.successful(true))
 
       val application =
-        applicationBuilder(userAnswers = Some(emptyUserAnswers))
+        applicationBuilder(userAnswers = Some(baseAnswers))
           .overrides(
             bind[SessionRepository].toInstance(mockSessionRepository)
           )
@@ -95,7 +97,7 @@ class UkTaxIdentifiersControllerSpec extends SpecBase with MockitoSugar {
             .withFormUrlEncodedBody(("value[0]", UkTaxIdentifiers.values.head.toString))
 
         val result = route(application, request).value
-        val answers = emptyUserAnswers.set(UkTaxIdentifiersPage, Set[UkTaxIdentifiers](UkTaxIdentifiers.values.head)).success.value
+        val answers = baseAnswers.set(UkTaxIdentifiersPage, Set[UkTaxIdentifiers](UkTaxIdentifiers.values.head)).success.value
 
         status(result) mustEqual SEE_OTHER
         redirectLocation(result).value mustEqual UkTaxIdentifiersPage.nextPage(NormalMode, answers).url
@@ -104,7 +106,7 @@ class UkTaxIdentifiersControllerSpec extends SpecBase with MockitoSugar {
 
     "must return a Bad Request and errors when invalid data is submitted" in {
 
-      val application = applicationBuilder(userAnswers = Some(emptyUserAnswers)).build()
+      val application = applicationBuilder(userAnswers = Some(baseAnswers)).build()
 
       running(application) {
         val request =
@@ -118,7 +120,7 @@ class UkTaxIdentifiersControllerSpec extends SpecBase with MockitoSugar {
         val result = route(application, request).value
 
         status(result) mustEqual BAD_REQUEST
-        contentAsString(result) mustEqual view(boundForm, NormalMode, operatorId)(request, messages(application)).toString
+        contentAsString(result) mustEqual view(boundForm, NormalMode, operatorId, operatorName)(request, messages(application)).toString
       }
     }
 

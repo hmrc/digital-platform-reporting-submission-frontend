@@ -16,15 +16,15 @@
 
 package forms
 
-import javax.inject.Inject
-
 import forms.mappings.Mappings
 import play.api.data.Form
 
+import javax.inject.Inject
+
 class RegisteredInUkFormProvider @Inject() extends Mappings {
 
-  def apply(): Form[Boolean] =
+  def apply(operatorName: String): Form[Boolean] =
     Form(
-      "value" -> boolean("registeredInUk.error.required")
+      "value" -> boolean("registeredInUk.error.required", args = Seq(operatorName))
     )
 }

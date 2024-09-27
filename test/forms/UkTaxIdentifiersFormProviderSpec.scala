@@ -22,7 +22,8 @@ import play.api.data.FormError
 
 class UkTaxIdentifiersFormProviderSpec extends CheckboxFieldBehaviours {
 
-  val form = new UkTaxIdentifiersFormProvider()()
+  val operatorName = "name"
+  val form = new UkTaxIdentifiersFormProvider()(operatorName)
 
   ".value" - {
 
@@ -33,13 +34,14 @@ class UkTaxIdentifiersFormProviderSpec extends CheckboxFieldBehaviours {
       form,
       fieldName,
       validValues  = UkTaxIdentifiers.values,
-      invalidError = FormError(s"$fieldName[0]", "error.invalid")
+      invalidError = FormError(s"$fieldName[0]", "error.invalid", Seq(operatorName))
     )
 
     behave like mandatoryCheckboxField(
       form,
       fieldName,
-      requiredKey
+      requiredKey,
+      Seq(operatorName)
     )
   }
 }

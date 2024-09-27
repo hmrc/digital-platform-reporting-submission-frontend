@@ -117,4 +117,50 @@ trait Generators extends ModelGenerators {
         Instant.ofEpochMilli(millis).atOffset(ZoneOffset.UTC).toLocalDate
     }
   }
+
+  def safeTextInputs: Gen[Char] = Gen.oneOf(
+    Gen.alphaChar,
+    Gen.const('-'),
+    Gen.const(' '),
+    Gen.const('’'),
+    Gen.const('\''),
+    Gen.const('.'),
+    Gen.const(','),
+    Gen.const('_'),
+    Gen.const('&'),
+    Gen.oneOf('À' to 'Å'),
+    Gen.oneOf('Ç' to 'Ö'),
+    Gen.oneOf('Ø' to 'Ý'),
+    Gen.oneOf('à' to 'å'),
+    Gen.oneOf('ç' to 'ö'),
+    Gen.oneOf('ø' to 'ý'),
+    Gen.oneOf('Ā' to 'ľ'),
+    Gen.oneOf('Ł' to 'ň'),
+    Gen.oneOf('Ŋ' to 'ő'),
+    Gen.oneOf('Ŕ' to 'ſ'),
+    Gen.const('ÿ')
+  )
+
+  def unsafeTextInputs: Gen[Char] = Gen.oneOf(
+    Gen.const('<'),
+    Gen.const('>'),
+    Gen.const('='),
+    Gen.const('|'),
+    Gen.const('!'),
+    Gen.const('"'),
+    Gen.const('$'),
+    Gen.const('(')
+  )
+
+  def safeTextInputsWithMaxLength(length: Int): Gen[String] =
+    (for {
+      length <- Gen.choose(1, length)
+      chars <- Gen.listOfN(length, safeTextInputs)
+    } yield chars.mkString).suchThat(_.trim.nonEmpty)
+
+  def unsafeTextInputsWithMaxLength(maxLength: Int): Gen[String] = (for {
+    length <- choose(2, maxLength)
+    invalidChar <- unsafeTextInputs
+    validChars <- listOfN(length - 1, unsafeTextInputs)
+  } yield (validChars :+ invalidChar).mkString).suchThat(_.trim.nonEmpty)
 }

@@ -31,7 +31,7 @@ trait Constraints {
           .getOrElse(Valid)
     }
 
-  protected def minimumValue[A](minimum: A, errorKey: String)(implicit ev: Ordering[A]): Constraint[A] =
+  protected def minimumValue[A](minimum: A, errorKey: String, args: Any*)(implicit ev: Ordering[A]): Constraint[A] =
     Constraint {
       input =>
 
@@ -40,11 +40,11 @@ trait Constraints {
         if (input >= minimum) {
           Valid
         } else {
-          Invalid(errorKey, minimum)
+          Invalid(errorKey, minimum +: args: _*)
         }
     }
 
-  protected def maximumValue[A](maximum: A, errorKey: String)(implicit ev: Ordering[A]): Constraint[A] =
+  protected def maximumValue[A](maximum: A, errorKey: String, args: Any*)(implicit ev: Ordering[A]): Constraint[A] =
     Constraint {
       input =>
 
@@ -53,10 +53,10 @@ trait Constraints {
         if (input <= maximum) {
           Valid
         } else {
-          Invalid(errorKey, maximum)
+          Invalid(errorKey, maximum +: args: _*)
         }
     }
-
+    
   protected def inRange[A](minimum: A, maximum: A, errorKey: String)(implicit ev: Ordering[A]): Constraint[A] =
     Constraint {
       input =>
@@ -70,20 +70,20 @@ trait Constraints {
         }
     }
 
-  protected def regexp(regex: String, errorKey: String): Constraint[String] =
+  protected def regexp(regex: String, errorKey: String, args: Any*): Constraint[String] =
     Constraint {
       case str if str.matches(regex) =>
         Valid
       case _ =>
-        Invalid(errorKey, regex)
+        Invalid(errorKey, regex +: args: _*)
     }
 
-  protected def maxLength(maximum: Int, errorKey: String): Constraint[String] =
+  protected def maxLength(maximum: Int, errorKey: String, args: Any*): Constraint[String] =
     Constraint {
       case str if str.length <= maximum =>
         Valid
       case _ =>
-        Invalid(errorKey, maximum)
+        Invalid(errorKey, maximum +: args: _*)
     }
 
   protected def maxDate(maximum: LocalDate, errorKey: String, args: Any*): Constraint[LocalDate] =
@@ -102,11 +102,11 @@ trait Constraints {
         Valid
     }
 
-  protected def nonEmptySet(errorKey: String): Constraint[Set[?]] =
+  protected def nonEmptySet(errorKey: String, args: Any*): Constraint[Set[_]] =
     Constraint {
       case set if set.nonEmpty =>
         Valid
       case _ =>
-        Invalid(errorKey)
+        Invalid(errorKey, args: _*)
     }
 }

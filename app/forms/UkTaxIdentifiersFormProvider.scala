@@ -16,17 +16,19 @@
 
 package forms
 
-import javax.inject.Inject
-
 import forms.mappings.Mappings
+import models.UkTaxIdentifiers
 import play.api.data.Form
 import play.api.data.Forms.set
-import models.UkTaxIdentifiers
+
+import javax.inject.Inject
 
 class UkTaxIdentifiersFormProvider @Inject() extends Mappings {
 
-  def apply(): Form[Set[UkTaxIdentifiers]] =
+  def apply(operatorName: String): Form[Set[UkTaxIdentifiers]] =
     Form(
-      "value" -> set(enumerable[UkTaxIdentifiers]("ukTaxIdentifiers.error.required")).verifying(nonEmptySet("ukTaxIdentifiers.error.required"))
+      "value" -> set(enumerable[UkTaxIdentifiers]("ukTaxIdentifiers.error.required", args = Seq(operatorName)))
+        .verifying(nonEmptySet("ukTaxIdentifiers.error.required", operatorName))
     )
 }
+

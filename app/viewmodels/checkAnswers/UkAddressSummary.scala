@@ -32,7 +32,14 @@ object UkAddressSummary  {
     answers.get(UkAddressPage).map {
       answer =>
 
-      val value = HtmlFormat.escape(answer.line1).toString + "<br/>" + HtmlFormat.escape(answer.line2).toString
+        val value = Seq(
+          Some(HtmlFormat.escape(answer.line1)),
+          answer.line2.map(HtmlFormat.escape),
+          Some(HtmlFormat.escape(answer.town)),
+          answer.county.map(HtmlFormat.escape),
+          Some(HtmlFormat.escape(answer.postCode)),
+          Some(HtmlFormat.escape(answer.country.name))
+        ).flatten.map(_.toString).mkString("<br/>")
 
         SummaryListRowViewModel(
           key     = "ukAddress.checkYourAnswersLabel",

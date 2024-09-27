@@ -23,7 +23,7 @@ class OperatorNameFormProviderSpec extends StringFieldBehaviours {
 
   val requiredKey = "operatorName.error.required"
   val lengthKey = "operatorName.error.length"
-  val maxLength = 100
+  val maxLength = 105
 
   val form = new OperatorNameFormProvider()()
 
