@@ -19,13 +19,13 @@ package forms
 import forms.behaviours.StringFieldBehaviours
 import play.api.data.FormError
 
-class OperatorNameFormProviderSpec extends StringFieldBehaviours {
+class AssumingOperatorNameFormProviderSpec extends StringFieldBehaviours {
 
-  val requiredKey = "operatorName.error.required"
-  val lengthKey = "operatorName.error.length"
+  val requiredKey = "assumingOperatorName.error.required"
+  val lengthKey = "assumingOperatorName.error.length"
   val maxLength = 105
 
-  val form = new OperatorNameFormProvider()()
+  val form = new AssumingOperatorNameFormProvider()()
 
   ".value" - {
 

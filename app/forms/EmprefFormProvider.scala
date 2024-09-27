@@ -23,9 +23,9 @@ import javax.inject.Inject
 
 class EmprefFormProvider @Inject() extends Mappings {
 
-  def apply(operatorName: String): Form[String] =
+  def apply(assumingOperatorName: String): Form[String] =
     Form(
-      "value" -> text("empref.error.required", args = Seq(operatorName))
-        .verifying(regexp(Validation.emprefPattern.toString, "empref.error.format", args = operatorName))
+      "value" -> text("empref.error.required", args = Seq(assumingOperatorName))
+        .verifying(regexp(Validation.emprefPattern.toString, "empref.error.format", args = assumingOperatorName))
     )
 }

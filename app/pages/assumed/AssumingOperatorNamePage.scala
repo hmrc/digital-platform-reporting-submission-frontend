@@ -20,10 +20,10 @@ import models.UserAnswers
 import play.api.libs.json.JsPath
 import play.api.mvc.Call
 
-case object OperatorNamePage extends AssumedReportingQuestionPage[String] {
+case object AssumingOperatorNamePage extends AssumedReportingQuestionPage[String] {
 
   override def path: JsPath = JsPath \ toString
 
-  override def toString: String = "operatorName"
+  override def toString: String = "assumingOperatorName"
 
 }

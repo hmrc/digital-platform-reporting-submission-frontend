@@ -23,7 +23,7 @@ import models.{Country, NormalMode}
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.when
 import org.scalatestplus.mockito.MockitoSugar
-import pages.assumed.{OperatorNamePage, TaxResidencyCountryPage}
+import pages.assumed.{AssumingOperatorNamePage, TaxResidencyCountryPage}
 import play.api.inject.bind
 import play.api.test.FakeRequest
 import play.api.test.Helpers.*
@@ -35,8 +35,8 @@ import scala.concurrent.Future
 class TaxResidencyCountryControllerSpec extends SpecBase with MockitoSugar {
 
   val formProvider = new TaxResidencyCountryFormProvider()
-  private val operatorName = "name"
-  private val baseAnswers = emptyUserAnswers.set(OperatorNamePage, operatorName).success.value
+  private val assumingOperatorName = "name"
+  private val baseAnswers = emptyUserAnswers.set(AssumingOperatorNamePage, assumingOperatorName).success.value
 
   lazy val taxResidencyCountryRoute = routes.TaxResidencyCountryController.onPageLoad(NormalMode, operatorId).url
 
@@ -52,10 +52,10 @@ class TaxResidencyCountryControllerSpec extends SpecBase with MockitoSugar {
         val result = route(application, request).value
 
         val view = application.injector.instanceOf[TaxResidencyCountryView]
-        val form = formProvider(operatorName)(messages(application))
+        val form = formProvider(assumingOperatorName)(messages(application))
 
         status(result) mustEqual OK
-        contentAsString(result) mustEqual view(form, NormalMode, operatorId, operatorName)(request, messages(application)).toString
+        contentAsString(result) mustEqual view(form, NormalMode, operatorId, assumingOperatorName)(request, messages(application)).toString
       }
     }
 
@@ -69,12 +69,12 @@ class TaxResidencyCountryControllerSpec extends SpecBase with MockitoSugar {
         val request = FakeRequest(GET, taxResidencyCountryRoute)
 
         val view = application.injector.instanceOf[TaxResidencyCountryView]
-        val form = formProvider(operatorName)(messages(application))
+        val form = formProvider(assumingOperatorName)(messages(application))
 
         val result = route(application, request).value
 
         status(result) mustEqual OK
-        contentAsString(result) mustEqual view(form.fill(Country.internationalCountries.head), NormalMode, operatorId, operatorName)(request, messages(application)).toString
+        contentAsString(result) mustEqual view(form.fill(Country.internationalCountries.head), NormalMode, operatorId, assumingOperatorName)(request, messages(application)).toString
       }
     }
 
@@ -113,7 +113,7 @@ class TaxResidencyCountryControllerSpec extends SpecBase with MockitoSugar {
           FakeRequest(POST, taxResidencyCountryRoute)
             .withFormUrlEncodedBody(("value", ""))
 
-        val form = formProvider(operatorName)(messages(application))
+        val form = formProvider(assumingOperatorName)(messages(application))
         val boundForm = form.bind(Map("value" -> ""))
 
         val view = application.injector.instanceOf[TaxResidencyCountryView]
@@ -121,7 +121,7 @@ class TaxResidencyCountryControllerSpec extends SpecBase with MockitoSugar {
         val result = route(application, request).value
 
         status(result) mustEqual BAD_REQUEST
-        contentAsString(result) mustEqual view(boundForm, NormalMode, operatorId, operatorName)(request, messages(application)).toString
+        contentAsString(result) mustEqual view(boundForm, NormalMode, operatorId, assumingOperatorName)(request, messages(application)).toString
       }
     }
 

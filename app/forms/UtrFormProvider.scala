@@ -23,9 +23,9 @@ import javax.inject.Inject
 
 class UtrFormProvider @Inject() extends Mappings {
 
-  def apply(operatorName: String): Form[String] =
+  def apply(assumingOperatorName: String): Form[String] =
     Form(
-      "value" -> text("utr.error.required", args = Seq(operatorName))
-        .verifying(regexp(Validation.utrPattern.toString, "utr.error.format", args = operatorName))
+      "value" -> text("utr.error.required", args = Seq(assumingOperatorName))
+        .verifying(regexp(Validation.utrPattern.toString, "utr.error.format", args = assumingOperatorName))
     )
 }

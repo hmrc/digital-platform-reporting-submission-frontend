@@ -23,7 +23,7 @@ import models.NormalMode
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.when
 import org.scalatestplus.mockito.MockitoSugar
-import pages.assumed.{OperatorNamePage, VrnPage}
+import pages.assumed.{AssumingOperatorNamePage, VrnPage}
 import play.api.inject.bind
 import play.api.test.FakeRequest
 import play.api.test.Helpers.*
@@ -35,9 +35,9 @@ import scala.concurrent.Future
 class VrnControllerSpec extends SpecBase with MockitoSugar {
 
   val formProvider = new VrnFormProvider()
-  private val operatorName = "name"
-  private val form = formProvider(operatorName)
-  private val baseAnswers = emptyUserAnswers.set(OperatorNamePage, operatorName).success.value
+  private val assumingOperatorName = "name"
+  private val form = formProvider(assumingOperatorName)
+  private val baseAnswers = emptyUserAnswers.set(AssumingOperatorNamePage, assumingOperatorName).success.value
   lazy val vrnRoute = routes.VrnController.onPageLoad(NormalMode, operatorId).url
 
   "Vrn Controller" - {
@@ -54,7 +54,7 @@ class VrnControllerSpec extends SpecBase with MockitoSugar {
         val view = application.injector.instanceOf[VrnView]
 
         status(result) mustEqual OK
-        contentAsString(result) mustEqual view(form, NormalMode, operatorId, operatorName)(request, messages(application)).toString
+        contentAsString(result) mustEqual view(form, NormalMode, operatorId, assumingOperatorName)(request, messages(application)).toString
       }
     }
 
@@ -72,7 +72,7 @@ class VrnControllerSpec extends SpecBase with MockitoSugar {
         val result = route(application, request).value
 
         status(result) mustEqual OK
-        contentAsString(result) mustEqual view(form.fill("GB123456789"), NormalMode, operatorId, operatorName)(request, messages(application)).toString
+        contentAsString(result) mustEqual view(form.fill("GB123456789"), NormalMode, operatorId, assumingOperatorName)(request, messages(application)).toString
       }
     }
 
@@ -118,7 +118,7 @@ class VrnControllerSpec extends SpecBase with MockitoSugar {
         val result = route(application, request).value
 
         status(result) mustEqual BAD_REQUEST
-        contentAsString(result) mustEqual view(boundForm, NormalMode, operatorId, operatorName)(request, messages(application)).toString
+        contentAsString(result) mustEqual view(boundForm, NormalMode, operatorId, assumingOperatorName)(request, messages(application)).toString
       }
     }
 

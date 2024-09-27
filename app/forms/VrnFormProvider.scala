@@ -23,9 +23,9 @@ import javax.inject.Inject
 
 class VrnFormProvider @Inject() extends Mappings {
 
-  def apply(operatorName: String): Form[String] =
+  def apply(assumingOperatorName: String): Form[String] =
     Form(
-      "value" -> text("vrn.error.required", args = Seq(operatorName))
-        .verifying(regexp(Validation.vrnPattern.toString, "vrn.error.format", args = operatorName))
+      "value" -> text("vrn.error.required", args = Seq(assumingOperatorName))
+        .verifying(regexp(Validation.vrnPattern.toString, "vrn.error.format", args = assumingOperatorName))
     )
 }

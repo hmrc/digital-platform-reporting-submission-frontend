@@ -26,8 +26,8 @@ class VrnFormProviderSpec extends StringFieldBehaviours {
   val requiredKey = "vrn.error.required"
   val formatKey = "vrn.error.format"
 
-  val operatorName = "name"
-  val form = new VrnFormProvider()(operatorName)
+  val assumingOperatorName = "name"
+  val form = new VrnFormProvider()(assumingOperatorName)
 
   ".value" - {
 
@@ -50,7 +50,7 @@ class VrnFormProviderSpec extends StringFieldBehaviours {
 
         whenever(input.trim.nonEmpty && !input.trim.matches(Validation.vrnPattern.toString)) {
           val result = form.bind(Map(fieldName -> input)).apply(fieldName)
-          result.errors must contain only FormError(fieldName, formatKey, Seq(Validation.vrnPattern.toString, operatorName))
+          result.errors must contain only FormError(fieldName, formatKey, Seq(Validation.vrnPattern.toString, assumingOperatorName))
         }
       }
     }
@@ -59,7 +59,7 @@ class VrnFormProviderSpec extends StringFieldBehaviours {
     behave like mandatoryField(
       form,
       fieldName,
-      requiredError = FormError(fieldName, requiredKey, Seq(operatorName))
+      requiredError = FormError(fieldName, requiredKey, Seq(assumingOperatorName))
     )
   }
 }

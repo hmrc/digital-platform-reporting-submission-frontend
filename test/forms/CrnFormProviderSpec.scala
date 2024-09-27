@@ -26,8 +26,8 @@ class CrnFormProviderSpec extends StringFieldBehaviours {
   val requiredKey = "crn.error.required"
   val formatKey = "crn.error.format"
 
-  val operatorName = "name"
-  val form = new CrnFormProvider()(operatorName)
+  val assumingOperatorName = "name"
+  val form = new CrnFormProvider()(assumingOperatorName)
 
   ".value" - {
 
@@ -50,7 +50,7 @@ class CrnFormProviderSpec extends StringFieldBehaviours {
 
         whenever(input.trim.nonEmpty && !input.trim.matches(Validation.crnPattern.toString)) {
           val result = form.bind(Map(fieldName -> input)).apply(fieldName)
-          result.errors must contain only FormError(fieldName, formatKey, Seq(Validation.crnPattern.toString, operatorName))
+          result.errors must contain only FormError(fieldName, formatKey, Seq(Validation.crnPattern.toString, assumingOperatorName))
         }
       }
     }
@@ -58,7 +58,7 @@ class CrnFormProviderSpec extends StringFieldBehaviours {
     behave like mandatoryField(
       form,
       fieldName,
-      requiredError = FormError(fieldName, requiredKey, Seq(operatorName))
+      requiredError = FormError(fieldName, requiredKey, Seq(assumingOperatorName))
     )
   }
 }

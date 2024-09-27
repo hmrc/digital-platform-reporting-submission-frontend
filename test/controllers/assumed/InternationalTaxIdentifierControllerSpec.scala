@@ -23,7 +23,7 @@ import models.{Country, NormalMode, UserAnswers}
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.when
 import org.scalatestplus.mockito.MockitoSugar
-import pages.assumed.{InternationalTaxIdentifierPage, OperatorNamePage, TaxResidencyCountryPage}
+import pages.assumed.{InternationalTaxIdentifierPage, AssumingOperatorNamePage, TaxResidencyCountryPage}
 import play.api.inject.bind
 import play.api.test.FakeRequest
 import play.api.test.Helpers.*

@@ -26,8 +26,8 @@ class EmprefFormProviderSpec extends StringFieldBehaviours {
   val requiredKey = "empref.error.required"
   val formatKey = "empref.error.format"
 
-  val operatorName = "name"
-  val form = new EmprefFormProvider()(operatorName)
+  val assumingOperatorName = "name"
+  val form = new EmprefFormProvider()(assumingOperatorName)
 
   ".value" - {
 
@@ -50,7 +50,7 @@ class EmprefFormProviderSpec extends StringFieldBehaviours {
 
         whenever(input.trim.nonEmpty && !input.trim.matches(Validation.emprefPattern.toString)) {
           val result = form.bind(Map(fieldName -> input)).apply(fieldName)
-          result.errors must contain only FormError(fieldName, formatKey, Seq(Validation.emprefPattern.toString, operatorName))
+          result.errors must contain only FormError(fieldName, formatKey, Seq(Validation.emprefPattern.toString, assumingOperatorName))
         }
       }
     }
@@ -58,7 +58,7 @@ class EmprefFormProviderSpec extends StringFieldBehaviours {
     behave like mandatoryField(
       form,
       fieldName,
-      requiredError = FormError(fieldName, requiredKey, Seq(operatorName))
+      requiredError = FormError(fieldName, requiredKey, Seq(assumingOperatorName))
     )
   }
 }
