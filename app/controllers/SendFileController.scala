@@ -18,10 +18,12 @@ package controllers
 
 import connectors.SubmissionConnector
 import controllers.actions.*
+import models.submission.Submission
+import models.submission.Submission.State.{Approved, Ready, Rejected, Submitted, UploadFailed, Uploading, Validated}
 
 import javax.inject.Inject
 import play.api.i18n.{I18nSupport, MessagesApi}
-import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
+import play.api.mvc.{Action, AnyContent, MessagesControllerComponents, Result}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import views.html.SendFileView
 
@@ -37,11 +39,13 @@ class SendFileController @Inject()(
 
   def onPageLoad(submissionId: String): Action[AnyContent] = identify.async {
     implicit request =>
-      submissionConnector.get(submissionId).map {
+      submissionConnector.get(submissionId).flatMap {
         _.map { submission =>
-          Ok(view())
+          handleSubmission(submission) { case _: Validated =>
+            Future.successful(Ok(view()))
+          }
         }.getOrElse {
-          Redirect(routes.JourneyRecoveryController.onPageLoad())
+          Future.successful(Redirect(routes.JourneyRecoveryController.onPageLoad()))
         }
       }
   }
@@ -50,10 +54,39 @@ class SendFileController @Inject()(
     implicit request =>
       submissionConnector.get(submissionId).flatMap {
         _.map { submission =>
-          submissionConnector.submit(submissionId).map { _ =>
-            Redirect(routes.CheckFileController.onPageLoad(submissionId))
+          handleSubmission(submission) { case _: Validated =>
+            submissionConnector.submit(submissionId).map { _ =>
+              Redirect(routes.CheckFileController.onPageLoad(submissionId))
+            }
           }
-        }.getOrElse(Future.successful(Redirect(routes.JourneyRecoveryController.onPageLoad())))
+        }.getOrElse {
+          Future.successful(Redirect(routes.JourneyRecoveryController.onPageLoad()))
+        }
       }
   }
+
+  private def handleSubmission(submission: Submission)(f: PartialFunction[Submission.State, Future[Result]]): Future[Result] =
+    f.lift(submission.state).getOrElse {
+
+      val redirectLocation = submission.state match {
+        case Ready =>
+          routes.UploadController.onPageLoad(submission._id)
+        case Uploading =>
+          routes.UploadingController.onPageLoad(submission._id)
+        case _: UploadFailed =>
+          routes.UploadFailedController.onPageLoad(submission._id)
+        case _: Validated =>
+          routes.SendFileController.onPageLoad(submission._id)
+        case Submitted =>
+          routes.CheckFileController.onPageLoad(submission._id)
+        case Approved =>
+          routes.SubmissionConfirmationController.onPageLoad(submission._id)
+        case Rejected =>
+          routes.FileErrorsController.onPageLoad(submission._id)
+        case _ =>
+          routes.JourneyRecoveryController.onPageLoad()
+      }
+
+      Future.successful(Redirect(redirectLocation))
+    }
 }

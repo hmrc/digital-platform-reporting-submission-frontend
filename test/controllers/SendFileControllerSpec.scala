@@ -19,7 +19,7 @@ package controllers
 import base.SpecBase
 import connectors.SubmissionConnector
 import models.submission.Submission
-import models.submission.Submission.State.Validated
+import models.submission.Submission.State.{Approved, Ready, Rejected, Submitted, UploadFailed, Uploading, Validated}
 import org.apache.pekko.Done
 import org.mockito.ArgumentMatchers.{any, eq as eqTo}
 import org.mockito.Mockito
@@ -112,43 +112,193 @@ class SendFileControllerSpec extends SpecBase with MockitoSugar with BeforeAndAf
 
         "when the submission is in a ready state" - {
 
-          "must redirect to the upload page" ignore {
+          "must redirect to the upload page" in {
 
+            val application = applicationBuilder(userAnswers = Some(emptyUserAnswers))
+              .overrides(
+                bind[SubmissionConnector].toInstance(mockSubmissionConnector)
+              )
+              .build()
+
+            val submission = Submission(
+              _id = "id",
+              dprsId = "dprsId",
+              state = Ready,
+              created = now,
+              updated = now
+            )
+
+            when(mockSubmissionConnector.get(any())(using any())).thenReturn(Future.successful(Some(submission)))
+
+            running(application) {
+              val request = FakeRequest(GET, routes.SendFileController.onPageLoad("id").url)
+              val result = route(application, request).value
+
+              status(result) mustEqual SEE_OTHER
+              redirectLocation(result).value mustEqual routes.UploadController.onPageLoad("id").url
+            }
+
+            verify(mockSubmissionConnector).get(eqTo("id"))(using any())
           }
         }
 
         "when the submission is in an uploading state" - {
 
-          "must redirect to the uploading page" ignore {
+          "must redirect to the uploading page" in {
 
+            val application = applicationBuilder(userAnswers = Some(emptyUserAnswers))
+              .overrides(
+                bind[SubmissionConnector].toInstance(mockSubmissionConnector)
+              )
+              .build()
+
+            val submission = Submission(
+              _id = "id",
+              dprsId = "dprsId",
+              state = Uploading,
+              created = now,
+              updated = now
+            )
+
+            when(mockSubmissionConnector.get(any())(using any())).thenReturn(Future.successful(Some(submission)))
+
+            running(application) {
+              val request = FakeRequest(GET, routes.SendFileController.onPageLoad("id").url)
+              val result = route(application, request).value
+
+              status(result) mustEqual SEE_OTHER
+              redirectLocation(result).value mustEqual routes.UploadingController.onPageLoad("id").url
+            }
+
+            verify(mockSubmissionConnector).get(eqTo("id"))(using any())
           }
         }
 
         "when the submission is in an upload failed state" - {
 
-          "must redirect to the upload failed page" ignore {
+          "must redirect to the upload failed page" in {
 
+            val application = applicationBuilder(userAnswers = Some(emptyUserAnswers))
+              .overrides(
+                bind[SubmissionConnector].toInstance(mockSubmissionConnector)
+              )
+              .build()
+
+            val submission = Submission(
+              _id = "id",
+              dprsId = "dprsId",
+              state = UploadFailed("reason"),
+              created = now,
+              updated = now
+            )
+
+            when(mockSubmissionConnector.get(any())(using any())).thenReturn(Future.successful(Some(submission)))
+
+            running(application) {
+              val request = FakeRequest(GET, routes.SendFileController.onPageLoad("id").url)
+              val result = route(application, request).value
+
+              status(result) mustEqual SEE_OTHER
+              redirectLocation(result).value mustEqual routes.UploadFailedController.onPageLoad("id").url
+            }
+
+            verify(mockSubmissionConnector).get(eqTo("id"))(using any())
           }
         }
 
         "when the submission is in a submitted state" - {
 
-          "must redirect to the checking file page" ignore {
+          "must redirect to the checking file page" in {
 
+            val application = applicationBuilder(userAnswers = Some(emptyUserAnswers))
+              .overrides(
+                bind[SubmissionConnector].toInstance(mockSubmissionConnector)
+              )
+              .build()
+
+            val submission = Submission(
+              _id = "id",
+              dprsId = "dprsId",
+              state = Submitted,
+              created = now,
+              updated = now
+            )
+
+            when(mockSubmissionConnector.get(any())(using any())).thenReturn(Future.successful(Some(submission)))
+
+            running(application) {
+              val request = FakeRequest(GET, routes.SendFileController.onPageLoad("id").url)
+              val result = route(application, request).value
+
+              status(result) mustEqual SEE_OTHER
+              redirectLocation(result).value mustEqual routes.CheckFileController.onPageLoad("id").url
+            }
+
+            verify(mockSubmissionConnector).get(eqTo("id"))(using any())
           }
         }
 
         "when the submission is in an approved state" - {
 
-          "must redirect to the file passed page" ignore {
+          "must redirect to the file passed page" in {
 
+            val application = applicationBuilder(userAnswers = Some(emptyUserAnswers))
+              .overrides(
+                bind[SubmissionConnector].toInstance(mockSubmissionConnector)
+              )
+              .build()
+
+            val submission = Submission(
+              _id = "id",
+              dprsId = "dprsId",
+              state = Approved,
+              created = now,
+              updated = now
+            )
+
+            when(mockSubmissionConnector.get(any())(using any())).thenReturn(Future.successful(Some(submission)))
+
+            running(application) {
+              val request = FakeRequest(GET, routes.SendFileController.onPageLoad("id").url)
+              val result = route(application, request).value
+
+              status(result) mustEqual SEE_OTHER
+              redirectLocation(result).value mustEqual routes.SubmissionConfirmationController.onPageLoad("id").url
+            }
+
+            verify(mockSubmissionConnector).get(eqTo("id"))(using any())
           }
         }
 
         "when the submission is in a rejected state" - {
 
-          "must redirect to the file failed page" ignore {
+          "must redirect to the file failed page" in {
 
+            val application = applicationBuilder(userAnswers = Some(emptyUserAnswers))
+              .overrides(
+                bind[SubmissionConnector].toInstance(mockSubmissionConnector)
+              )
+              .build()
+
+            val submission = Submission(
+              _id = "id",
+              dprsId = "dprsId",
+              state = Rejected,
+              created = now,
+              updated = now
+            )
+
+            when(mockSubmissionConnector.get(any())(using any())).thenReturn(Future.successful(Some(submission)))
+
+            running(application) {
+              val request = FakeRequest(GET, routes.SendFileController.onPageLoad("id").url)
+              val result = route(application, request).value
+
+              status(result) mustEqual SEE_OTHER
+              redirectLocation(result).value mustEqual routes.FileErrorsController.onPageLoad("id").url
+            }
+
+            verify(mockSubmissionConnector).get(eqTo("id"))(using any())
           }
         }
       }
@@ -221,43 +371,205 @@ class SendFileControllerSpec extends SpecBase with MockitoSugar with BeforeAndAf
 
         "when the submission is in a ready state" - {
 
-          "must redirect to the upload page" ignore {
+          "must redirect to the upload page" in {
 
+            val application = applicationBuilder(userAnswers = Some(emptyUserAnswers))
+              .overrides(
+                bind[SubmissionConnector].toInstance(mockSubmissionConnector)
+              )
+              .build()
+
+            val submission = Submission(
+              _id = "id",
+              dprsId = "dprsId",
+              state = Ready,
+              created = now,
+              updated = now
+            )
+
+            when(mockSubmissionConnector.submit(any())(using any())).thenReturn(Future.successful(Done))
+            when(mockSubmissionConnector.get(any())(using any())).thenReturn(Future.successful(Some(submission)))
+
+            running(application) {
+              val request = FakeRequest(routes.SendFileController.onSubmit(submission._id))
+              val result = route(application, request).value
+
+              status(result) mustEqual SEE_OTHER
+              redirectLocation(result).value mustEqual routes.UploadController.onPageLoad(submission._id).url
+            }
+
+            verify(mockSubmissionConnector).get(eqTo("id"))(using any())
+            verify(mockSubmissionConnector, never()).submit(any())(using any())
           }
         }
 
         "when the submission is in an uploading state" - {
 
-          "must redirect to the uploading page" ignore {
+          "must redirect to the uploading page" in {
 
+            val application = applicationBuilder(userAnswers = Some(emptyUserAnswers))
+              .overrides(
+                bind[SubmissionConnector].toInstance(mockSubmissionConnector)
+              )
+              .build()
+
+            val submission = Submission(
+              _id = "id",
+              dprsId = "dprsId",
+              state = Uploading,
+              created = now,
+              updated = now
+            )
+
+            when(mockSubmissionConnector.submit(any())(using any())).thenReturn(Future.successful(Done))
+            when(mockSubmissionConnector.get(any())(using any())).thenReturn(Future.successful(Some(submission)))
+
+            running(application) {
+              val request = FakeRequest(routes.SendFileController.onSubmit(submission._id))
+              val result = route(application, request).value
+
+              status(result) mustEqual SEE_OTHER
+              redirectLocation(result).value mustEqual routes.UploadingController.onPageLoad(submission._id).url
+            }
+
+            verify(mockSubmissionConnector).get(eqTo("id"))(using any())
+            verify(mockSubmissionConnector, never()).submit(any())(using any())
           }
         }
 
         "when the submission is in an upload failed state" - {
 
-          "must redirect to the upload failed page" ignore {
+          "must redirect to the upload failed page" in {
 
+            val application = applicationBuilder(userAnswers = Some(emptyUserAnswers))
+              .overrides(
+                bind[SubmissionConnector].toInstance(mockSubmissionConnector)
+              )
+              .build()
+
+            val submission = Submission(
+              _id = "id",
+              dprsId = "dprsId",
+              state = UploadFailed("reason"),
+              created = now,
+              updated = now
+            )
+
+            when(mockSubmissionConnector.submit(any())(using any())).thenReturn(Future.successful(Done))
+            when(mockSubmissionConnector.get(any())(using any())).thenReturn(Future.successful(Some(submission)))
+
+            running(application) {
+              val request = FakeRequest(routes.SendFileController.onSubmit(submission._id))
+              val result = route(application, request).value
+
+              status(result) mustEqual SEE_OTHER
+              redirectLocation(result).value mustEqual routes.UploadFailedController.onPageLoad(submission._id).url
+            }
+
+            verify(mockSubmissionConnector).get(eqTo("id"))(using any())
+            verify(mockSubmissionConnector, never()).submit(any())(using any())
           }
         }
 
         "when the submission is in a submitted state" - {
 
-          "must redirect to the checking file page" ignore {
+          "must redirect to the checking file page" in {
 
+            val application = applicationBuilder(userAnswers = Some(emptyUserAnswers))
+              .overrides(
+                bind[SubmissionConnector].toInstance(mockSubmissionConnector)
+              )
+              .build()
+
+            val submission = Submission(
+              _id = "id",
+              dprsId = "dprsId",
+              state = Submitted,
+              created = now,
+              updated = now
+            )
+
+            when(mockSubmissionConnector.submit(any())(using any())).thenReturn(Future.successful(Done))
+            when(mockSubmissionConnector.get(any())(using any())).thenReturn(Future.successful(Some(submission)))
+
+            running(application) {
+              val request = FakeRequest(routes.SendFileController.onSubmit(submission._id))
+              val result = route(application, request).value
+
+              status(result) mustEqual SEE_OTHER
+              redirectLocation(result).value mustEqual routes.CheckFileController.onPageLoad(submission._id).url
+            }
+
+            verify(mockSubmissionConnector).get(eqTo("id"))(using any())
+            verify(mockSubmissionConnector, never()).submit(any())(using any())
           }
         }
 
         "when the submission is in an approved state" - {
 
-          "must redirect to the file passed page" ignore {
+          "must redirect to the file passed page" in {
 
+            val application = applicationBuilder(userAnswers = Some(emptyUserAnswers))
+              .overrides(
+                bind[SubmissionConnector].toInstance(mockSubmissionConnector)
+              )
+              .build()
+
+            val submission = Submission(
+              _id = "id",
+              dprsId = "dprsId",
+              state = Approved,
+              created = now,
+              updated = now
+            )
+
+            when(mockSubmissionConnector.submit(any())(using any())).thenReturn(Future.successful(Done))
+            when(mockSubmissionConnector.get(any())(using any())).thenReturn(Future.successful(Some(submission)))
+
+            running(application) {
+              val request = FakeRequest(routes.SendFileController.onSubmit(submission._id))
+              val result = route(application, request).value
+
+              status(result) mustEqual SEE_OTHER
+              redirectLocation(result).value mustEqual routes.SubmissionConfirmationController.onPageLoad(submission._id).url
+            }
+
+            verify(mockSubmissionConnector).get(eqTo("id"))(using any())
+            verify(mockSubmissionConnector, never()).submit(any())(using any())
           }
         }
 
         "when the submission is in a rejected state" - {
 
-          "must redirect to the file failed page" ignore {
+          "must redirect to the file failed page" in {
 
+            val application = applicationBuilder(userAnswers = Some(emptyUserAnswers))
+              .overrides(
+                bind[SubmissionConnector].toInstance(mockSubmissionConnector)
+              )
+              .build()
+
+            val submission = Submission(
+              _id = "id",
+              dprsId = "dprsId",
+              state = Rejected,
+              created = now,
+              updated = now
+            )
+
+            when(mockSubmissionConnector.submit(any())(using any())).thenReturn(Future.successful(Done))
+            when(mockSubmissionConnector.get(any())(using any())).thenReturn(Future.successful(Some(submission)))
+
+            running(application) {
+              val request = FakeRequest(routes.SendFileController.onSubmit(submission._id))
+              val result = route(application, request).value
+
+              status(result) mustEqual SEE_OTHER
+              redirectLocation(result).value mustEqual routes.FileErrorsController.onPageLoad(submission._id).url
+            }
+
+            verify(mockSubmissionConnector).get(eqTo("id"))(using any())
+            verify(mockSubmissionConnector, never()).submit(any())(using any())
           }
         }
       }
