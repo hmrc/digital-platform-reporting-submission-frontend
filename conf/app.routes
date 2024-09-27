@@ -30,3 +30,4 @@ GET         /submission/upload-failed-redirect/:submissionId        controllers.
 GET         /submission/send-file/:submissionId                     controllers.SendFileController.onPageLoad(submissionId: String)
 POST        /submission/send-file/:submissionId                     controllers.SendFileController.onSubmit(submissionId: String)
 GET         /submission/check-file/:submissionId                    controllers.CheckFileController.onPageLoad(submissionId: String)
+GET         /submission/confirmation/:submissionId                  controllers.SubmissionConfirmationController.onPageLoad(submissionId: String)
