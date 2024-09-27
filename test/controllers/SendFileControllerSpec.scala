@@ -188,8 +188,7 @@ class SendFileControllerSpec extends SpecBase with MockitoSugar with BeforeAndAf
             val result = route(application, request).value
 
             status(result) mustEqual SEE_OTHER
-            // TODO fill this in when the page exists
-//            redirectLocation(result) mustEqual ???
+            redirectLocation(result).value mustEqual routes.CheckFileController.onPageLoad(submission._id).url
           }
 
           verify(mockSubmissionConnector).get(eqTo("id"))(using any())

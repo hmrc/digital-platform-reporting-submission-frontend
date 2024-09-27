@@ -51,7 +51,7 @@ class SendFileController @Inject()(
       submissionConnector.get(submissionId).flatMap {
         _.map { submission =>
           submissionConnector.submit(submissionId).map { _ =>
-            Redirect(routes.JourneyRecoveryController.onPageLoad()) // TODO point to the right place when the page exists
+            Redirect(routes.CheckFileController.onPageLoad(submissionId))
           }
         }.getOrElse(Future.successful(Redirect(routes.JourneyRecoveryController.onPageLoad())))
       }
