@@ -19,7 +19,7 @@ package controllers
 import connectors.SubmissionConnector
 import controllers.actions.*
 import models.submission.Submission
-import models.submission.Submission.State.{Ready, UploadFailed, Uploading, Validated}
+import models.submission.Submission.State.{Approved, Ready, Rejected, Submitted, UploadFailed, Uploading, Validated}
 
 import javax.inject.Inject
 import play.api.i18n.{I18nSupport, MessagesApi}
@@ -67,6 +67,12 @@ class UploadController @Inject()(
           routes.UploadFailedController.onPageLoad(submission._id)
         case _: Validated =>
           routes.SendFileController.onPageLoad(submission._id)
+        case Submitted =>
+          routes.CheckFileController.onPageLoad(submission._id)
+        case Approved =>
+          routes.SubmissionConfirmationController.onPageLoad(submission._id)
+        case Rejected =>
+          routes.FileErrorsController.onPageLoad(submission._id)
         case _ =>
           routes.JourneyRecoveryController.onPageLoad()
       }
