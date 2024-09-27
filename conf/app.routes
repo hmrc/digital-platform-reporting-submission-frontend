@@ -31,3 +31,4 @@ GET         /submission/send-file/:submissionId                     controllers.
 POST        /submission/send-file/:submissionId                     controllers.SendFileController.onSubmit(submissionId: String)
 GET         /submission/check-file/:submissionId                    controllers.CheckFileController.onPageLoad(submissionId: String)
 GET         /submission/confirmation/:submissionId                  controllers.SubmissionConfirmationController.onPageLoad(submissionId: String)
+GET         /submission/file-errors/:submissionId                   controllers.FileErrorsController.onPageLoad(submissionId: String)
