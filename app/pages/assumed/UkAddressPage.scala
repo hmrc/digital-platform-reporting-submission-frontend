@@ -16,6 +16,7 @@
 
 package pages.assumed
 
+import controllers.assumed.routes
 import models.{UkAddress, UserAnswers}
 import play.api.libs.json.JsPath
 import play.api.mvc.Call
@@ -26,4 +27,6 @@ case object UkAddressPage extends AssumedReportingQuestionPage[UkAddress] {
 
   override def toString: String = "ukAddress"
 
+  override protected def nextPageNormalMode(answers: UserAnswers): Call =
+    routes.CheckYourAnswersController.onPageLoad(answers.operatorId)
 }
