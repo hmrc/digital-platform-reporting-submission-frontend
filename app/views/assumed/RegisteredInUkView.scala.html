@@ -37,7 +37,7 @@
         @govukRadios(
             RadiosViewModel.yesNo(
                 field = form("value"),
-                legend = LegendViewModel(messages("registeredInUk.heading")).asPageHeading()
+                legend = LegendViewModel(messages("registeredInUk.heading", assumingOperatorName)).asPageHeading()
             )
         )
 

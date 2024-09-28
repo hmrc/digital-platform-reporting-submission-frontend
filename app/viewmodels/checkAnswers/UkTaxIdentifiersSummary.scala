@@ -18,36 +18,38 @@ package viewmodels.checkAnswers
 
 import controllers.assumed.routes
 import models.{CheckMode, UserAnswers}
-import pages.assumed.UkTaxIdentifiersPage
+import pages.assumed.{AssumingOperatorNamePage, UkTaxIdentifiersPage}
 import play.api.i18n.Messages
 import play.twirl.api.HtmlFormat
 import uk.gov.hmrc.govukfrontend.views.viewmodels.content.HtmlContent
 import uk.gov.hmrc.govukfrontend.views.viewmodels.summarylist.SummaryListRow
-import viewmodels.govuk.summarylist._
-import viewmodels.implicits._
+import viewmodels.govuk.summarylist.*
+import viewmodels.implicits.*
 
 object UkTaxIdentifiersSummary  {
 
   def row(answers: UserAnswers)(implicit messages: Messages): Option[SummaryListRow] =
-    answers.get(UkTaxIdentifiersPage).map {
-      identifiers =>
+    for {
+      identifiers          <- answers.get(UkTaxIdentifiersPage)
+      assumingOperatorName <- answers.get(AssumingOperatorNamePage)
+    } yield {
 
-        val value = ValueViewModel(
-          HtmlContent(
-            identifiers.map {
-              answer => HtmlFormat.escape(messages(s"ukTaxIdentifiers.$answer")).toString
-            }
-            .mkString(",<br>")
-          )
+      val value = ValueViewModel(
+        HtmlContent(
+          identifiers.map {
+            answer => HtmlFormat.escape(messages(s"ukTaxIdentifiers.$answer")).toString
+          }
+          .mkString(",<br>")
         )
+      )
 
-        SummaryListRowViewModel(
-          key     = "ukTaxIdentifiers.checkYourAnswersLabel",
-          value   = value,
-          actions = Seq(
-            ActionItemViewModel("site.change", routes.UkTaxIdentifiersController.onPageLoad(CheckMode, answers.operatorId).url)
-              .withVisuallyHiddenText(messages("ukTaxIdentifiers.change.hidden"))
-          )
+      SummaryListRowViewModel(
+        key     = "ukTaxIdentifiers.checkYourAnswersLabel",
+        value   = value,
+        actions = Seq(
+          ActionItemViewModel("site.change", routes.UkTaxIdentifiersController.onPageLoad(CheckMode, answers.operatorId).url)
+            .withVisuallyHiddenText(messages("ukTaxIdentifiers.change.hidden", assumingOperatorName))
         )
+      )
     }
 }

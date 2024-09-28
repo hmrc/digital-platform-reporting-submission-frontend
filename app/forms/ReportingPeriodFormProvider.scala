@@ -25,13 +25,13 @@ import javax.inject.Inject
 
 class ReportingPeriodFormProvider @Inject()(clock: Clock) extends Mappings {
 
-  def apply(assumingOperatorName: String): Form[Int] = {
+  def apply(): Form[Int] = {
 
     val maxYear = LocalDate.now(clock).getYear
     val minYear = Constants.firstLegislativeYear
 
     Form(
-      "value" -> int("reportingPeriod.error.required", args = Seq(assumingOperatorName))
+      "value" -> int("reportingPeriod.error.required")
         .verifying(minimumValue(minYear, "reportingPeriod.error.belowMinimum", args = minYear.toString))
         .verifying(maximumValue(maxYear, "reportingPeriod.error.aboveMaximum", args = maxYear.toString))
     )

@@ -14,12 +14,14 @@
  * limitations under the License.
  *@
 
+@import config.FrontendAppConfig
 @import controllers.assumed.routes
 
 @this(
         layout: templates.Layout,
         formHelper: FormWithCSRF,
-        govukButton: GovukButton
+        govukButton: GovukButton,
+        appConfig: FrontendAppConfig
 )
 
 @(operatorId: String, businessName: String)(implicit request: Request[_], messages: Messages)
@@ -32,6 +34,11 @@
     @formHelper(action = routes.SelectPlatformOperatorController.onSubmit) {
 
         <h1 class="govuk-heading-xl">@messages("selectPlatformOperator.single.heading", businessName)</h1>
+
+        <p class="govuk-body">
+            @messages("selectPlatformOperator.single.p1")
+            <a href="@appConfig.addOperatorUrl" class="govuk-link">@messages("selectPlatformOperator.single.link.text")</a>.
+        </p>
 
         <input type="hidden" id="value" name="value" value="@operatorId" />
 

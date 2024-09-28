@@ -15,13 +15,17 @@
  *@
 
 @import controllers.assumed.routes
-@import viewmodels.InputWidth._
+@import models.Country.*
+@import viewmodels.InputWidth.*
+@import uk.gov.hmrc.govukfrontend.views.Implicits.RichSelect
+@import uk.gov.hmrc.hmrcfrontend.views.viewmodels.accessibleautocomplete.AccessibleAutocomplete
 
 @this(
     layout: templates.Layout,
     formHelper: FormWithCSRF,
     govukErrorSummary: GovukErrorSummary,
     govukInput: GovukInput,
+    govukSelect: GovukSelect,
     govukButton: GovukButton
 )
 
@@ -35,7 +39,7 @@
             @govukErrorSummary(ErrorSummaryViewModel(form))
         }
 
-        <h1 class="govuk-heading-xl">@messages("internationalAddress.heading")</h1>
+        <h1 class="govuk-heading-xl">@messages("internationalAddress.heading", assumingOperatorName)</h1>
 
         @govukInput(
             InputViewModel(
@@ -51,6 +55,40 @@
                 label = LabelViewModel(messages("internationalAddress.line2"))
             )
             .withWidth(Full)
+        )
+
+        @govukInput(
+            InputViewModel(
+                field = form("city"),
+                label = LabelViewModel(messages("internationalAddress.city"))
+            )
+            .withWidth(TwoThirds)
+        )
+
+        @govukInput(
+            InputViewModel(
+                field = form("region"),
+                label = LabelViewModel(messages("internationalAddress.region"))
+            )
+            .withWidth(TwoThirds)
+        )
+
+        @govukInput(
+            InputViewModel(
+                field = form("postal"),
+                label = LabelViewModel(messages("internationalAddress.postal"))
+            )
+            .withWidth(Fixed10)
+        )
+
+        @govukSelect(
+            SelectViewModel(
+                field = form("country"),
+                items = selectItems(internationalCountries),
+                label = LabelViewModel(messages("internationalAddress.country"))
+            )
+            .withCssClass("govuk-input")
+            .asAccessibleAutocomplete(Some(AccessibleAutocomplete(showAllValues = true)))
         )
 
         @govukButton(

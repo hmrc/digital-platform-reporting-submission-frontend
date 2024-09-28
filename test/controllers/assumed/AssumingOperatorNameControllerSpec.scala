@@ -28,6 +28,7 @@ import pages.assumed.AssumingOperatorNamePage
 import play.api.inject.bind
 import play.api.test.FakeRequest
 import play.api.test.Helpers.*
+import queries.BusinessNameQuery
 import repositories.SessionRepository
 import views.html.assumed.AssumingOperatorNameView
 
@@ -35,16 +36,18 @@ import scala.concurrent.Future
 
 class AssumingOperatorNameControllerSpec extends SpecBase with MockitoSugar {
 
-  val formProvider = new AssumingOperatorNameFormProvider()
-  val form = formProvider()
+  private val businessName = "name"
+  private val baseAnswers = emptyUserAnswers.set(BusinessNameQuery, businessName).success.value
+  private val formProvider = new AssumingOperatorNameFormProvider()
+  private val form = formProvider(businessName)
 
-  lazy val assumingOperatorNameRoute = routes.AssumingOperatorNameController.onPageLoad(NormalMode, operatorId).url
+  private lazy val assumingOperatorNameRoute = routes.AssumingOperatorNameController.onPageLoad(NormalMode, operatorId).url
 
   "AssumingOperatorName Controller" - {
 
     "must return OK and the correct view for a GET" in {
 
-      val application = applicationBuilder(userAnswers = Some(emptyUserAnswers)).build()
+      val application = applicationBuilder(userAnswers = Some(baseAnswers)).build()
 
       running(application) {
         val request = FakeRequest(GET, assumingOperatorNameRoute)
@@ -54,13 +57,13 @@ class AssumingOperatorNameControllerSpec extends SpecBase with MockitoSugar {
         val view = application.injector.instanceOf[AssumingOperatorNameView]
 
         status(result) mustEqual OK
-        contentAsString(result) mustEqual view(form, NormalMode, operatorId)(request, messages(application)).toString
+        contentAsString(result) mustEqual view(form, NormalMode, operatorId, businessName)(request, messages(application)).toString
       }
     }
 
     "must populate the view correctly on a GET when the question has previously been answered" in {
 
-      val userAnswers = emptyUserAnswers.set(AssumingOperatorNamePage, "answer").success.value
+      val userAnswers = baseAnswers.set(AssumingOperatorNamePage, "answer").success.value
 
       val application = applicationBuilder(userAnswers = Some(userAnswers)).build()
 
@@ -72,7 +75,7 @@ class AssumingOperatorNameControllerSpec extends SpecBase with MockitoSugar {
         val result = route(application, request).value
 
         status(result) mustEqual OK
-        contentAsString(result) mustEqual view(form.fill("answer"), NormalMode, operatorId)(request, messages(application)).toString
+        contentAsString(result) mustEqual view(form.fill("answer"), NormalMode, operatorId, businessName)(request, messages(application)).toString
       }
     }
 
@@ -83,7 +86,7 @@ class AssumingOperatorNameControllerSpec extends SpecBase with MockitoSugar {
       when(mockSessionRepository.set(any())).thenReturn(Future.successful(true))
 
       val application =
-        applicationBuilder(userAnswers = Some(emptyUserAnswers))
+        applicationBuilder(userAnswers = Some(baseAnswers))
           .overrides(
             bind[SessionRepository].toInstance(mockSessionRepository)
           )
@@ -95,7 +98,7 @@ class AssumingOperatorNameControllerSpec extends SpecBase with MockitoSugar {
             .withFormUrlEncodedBody(("value", "answer"))
 
         val result = route(application, request).value
-        val answers = emptyUserAnswers.set(AssumingOperatorNamePage, "answer").success.value
+        val answers = baseAnswers.set(AssumingOperatorNamePage, "answer").success.value
 
         status(result) mustEqual SEE_OTHER
         redirectLocation(result).value mustEqual AssumingOperatorNamePage.nextPage(NormalMode, answers).url
@@ -104,7 +107,7 @@ class AssumingOperatorNameControllerSpec extends SpecBase with MockitoSugar {
 
     "must return a Bad Request and errors when invalid data is submitted" in {
 
-      val application = applicationBuilder(userAnswers = Some(emptyUserAnswers)).build()
+      val application = applicationBuilder(userAnswers = Some(baseAnswers)).build()
 
       running(application) {
         val request =
@@ -118,7 +121,7 @@ class AssumingOperatorNameControllerSpec extends SpecBase with MockitoSugar {
         val result = route(application, request).value
 
         status(result) mustEqual BAD_REQUEST
-        contentAsString(result) mustEqual view(boundForm, NormalMode, operatorId)(request, messages(application)).toString
+        contentAsString(result) mustEqual view(boundForm, NormalMode, operatorId, businessName)(request, messages(application)).toString
       }
     }
 

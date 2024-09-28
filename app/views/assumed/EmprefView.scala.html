@@ -27,7 +27,7 @@
 
 @(form: Form[_], mode: Mode, operatorId: String, assumingOperatorName: String)(implicit request: Request[_], messages: Messages)
 
-@layout(pageTitle = title(form, messages("empref.title"))) {
+@layout(pageTitle = title(form, messages("empref.title", assumingOperatorName))) {
 
     @formHelper(action = routes.EmprefController.onSubmit(mode, operatorId)) {
 
@@ -38,9 +38,10 @@
         @govukInput(
             InputViewModel(
                 field = form("value"),
-                label = LabelViewModel(messages("empref.heading")).asPageHeading()
+                label = LabelViewModel(messages("empref.heading", assumingOperatorName)).asPageHeading()
             )
-            .withWidth(Full)
+            .withWidth(Fixed10)
+            .withHint(HintViewModel(messages("empref.hint", assumingOperatorName)))
         )
 
         @govukButton(

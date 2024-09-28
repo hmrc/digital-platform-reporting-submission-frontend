@@ -23,9 +23,9 @@ import play.api.data.Form
 
 class AssumingOperatorNameFormProvider @Inject() extends Mappings {
 
-  def apply(): Form[String] =
+  def apply(businessName: String): Form[String] =
     Form(
-      "value" -> text("assumingOperatorName.error.required")
+      "value" -> text("assumingOperatorName.error.required", args = Seq(businessName))
         .verifying(maxLength(105, "assumingOperatorName.error.length"))
     )
 }

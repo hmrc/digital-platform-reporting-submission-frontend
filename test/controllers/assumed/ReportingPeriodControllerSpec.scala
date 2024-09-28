@@ -23,7 +23,7 @@ import models.NormalMode
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.when
 import org.scalatestplus.mockito.MockitoSugar
-import pages.assumed.{AssumingOperatorNamePage, ReportingPeriodPage}
+import pages.assumed.ReportingPeriodPage
 import play.api.inject.bind
 import play.api.test.FakeRequest
 import play.api.test.Helpers.*
@@ -39,9 +39,7 @@ class ReportingPeriodControllerSpec extends SpecBase with MockitoSugar {
   private val stubClock: Clock = Clock.fixed(instant, ZoneId.systemDefault)
 
   private val formProvider = new ReportingPeriodFormProvider(stubClock)
-  private val assumingOperatorName = "name"
-  private val form = formProvider(assumingOperatorName)
-  private val baseAnswers = emptyUserAnswers.set(AssumingOperatorNamePage, assumingOperatorName).success.value
+  private val form = formProvider()
 
   val validAnswer = 2024
 
@@ -51,7 +49,7 @@ class ReportingPeriodControllerSpec extends SpecBase with MockitoSugar {
 
     "must return OK and the correct view for a GET" in {
 
-      val application = applicationBuilder(userAnswers = Some(baseAnswers)).build()
+      val application = applicationBuilder(userAnswers = Some(emptyUserAnswers)).build()
 
       running(application) {
         val request = FakeRequest(GET, reportingPeriodRoute)
@@ -61,13 +59,13 @@ class ReportingPeriodControllerSpec extends SpecBase with MockitoSugar {
         val view = application.injector.instanceOf[ReportingPeriodView]
 
         status(result) mustEqual OK
-        contentAsString(result) mustEqual view(form, NormalMode, operatorId, assumingOperatorName)(request, messages(application)).toString
+        contentAsString(result) mustEqual view(form, NormalMode, operatorId)(request, messages(application)).toString
       }
     }
 
     "must populate the view correctly on a GET when the question has previously been answered" in {
 
-      val userAnswers = baseAnswers.set(ReportingPeriodPage, validAnswer).success.value
+      val userAnswers = emptyUserAnswers.set(ReportingPeriodPage, validAnswer).success.value
 
       val application = applicationBuilder(userAnswers = Some(userAnswers)).build()
 
@@ -79,7 +77,7 @@ class ReportingPeriodControllerSpec extends SpecBase with MockitoSugar {
         val result = route(application, request).value
 
         status(result) mustEqual OK
-        contentAsString(result) mustEqual view(form.fill(validAnswer), NormalMode, operatorId, assumingOperatorName)(request, messages(application)).toString
+        contentAsString(result) mustEqual view(form.fill(validAnswer), NormalMode, operatorId)(request, messages(application)).toString
       }
     }
 
@@ -90,7 +88,7 @@ class ReportingPeriodControllerSpec extends SpecBase with MockitoSugar {
       when(mockSessionRepository.set(any())).thenReturn(Future.successful(true))
 
       val application =
-        applicationBuilder(userAnswers = Some(baseAnswers))
+        applicationBuilder(userAnswers = Some(emptyUserAnswers))
           .overrides(
             bind[SessionRepository].toInstance(mockSessionRepository)
           )
@@ -102,7 +100,7 @@ class ReportingPeriodControllerSpec extends SpecBase with MockitoSugar {
             .withFormUrlEncodedBody(("value", validAnswer.toString))
 
         val result = route(application, request).value
-        val answers = baseAnswers.set(ReportingPeriodPage, validAnswer).success.value
+        val answers = emptyUserAnswers.set(ReportingPeriodPage, validAnswer).success.value
 
         status(result) mustEqual SEE_OTHER
         redirectLocation(result).value mustEqual ReportingPeriodPage.nextPage(NormalMode, answers).url
@@ -111,7 +109,7 @@ class ReportingPeriodControllerSpec extends SpecBase with MockitoSugar {
 
     "must return a Bad Request and errors when invalid data is submitted" in {
 
-      val application = applicationBuilder(userAnswers = Some(baseAnswers)).build()
+      val application = applicationBuilder(userAnswers = Some(emptyUserAnswers)).build()
 
       running(application) {
         val request =
@@ -125,7 +123,7 @@ class ReportingPeriodControllerSpec extends SpecBase with MockitoSugar {
         val result = route(application, request).value
 
         status(result) mustEqual BAD_REQUEST
-        contentAsString(result) mustEqual view(boundForm, NormalMode, operatorId, assumingOperatorName)(request, messages(application)).toString
+        contentAsString(result) mustEqual view(boundForm, NormalMode, operatorId)(request, messages(application)).toString
       }
     }
 

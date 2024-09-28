@@ -18,26 +18,28 @@ package viewmodels.checkAnswers
 
 import controllers.assumed.routes
 import models.{CheckMode, UserAnswers}
-import pages.assumed.ChrnPage
+import pages.assumed.{AssumingOperatorNamePage, ChrnPage}
 import play.api.i18n.Messages
 import play.twirl.api.HtmlFormat
 import uk.gov.hmrc.govukfrontend.views.viewmodels.summarylist.SummaryListRow
-import viewmodels.govuk.summarylist._
-import viewmodels.implicits._
+import viewmodels.govuk.summarylist.*
+import viewmodels.implicits.*
 
 object ChrnSummary  {
 
   def row(answers: UserAnswers)(implicit messages: Messages): Option[SummaryListRow] =
-    answers.get(ChrnPage).map {
-      answer =>
+    for {
+      answer               <- answers.get(ChrnPage)
+      assumingOperatorName <- answers.get(AssumingOperatorNamePage)
+    } yield {
 
-        SummaryListRowViewModel(
-          key     = "chrn.checkYourAnswersLabel",
-          value   = ValueViewModel(HtmlFormat.escape(answer).toString),
-          actions = Seq(
-            ActionItemViewModel("site.change", routes.ChrnController.onPageLoad(CheckMode, answers.operatorId).url)
-              .withVisuallyHiddenText(messages("chrn.change.hidden"))
-          )
+      SummaryListRowViewModel(
+        key     = "chrn.checkYourAnswersLabel",
+        value   = ValueViewModel(HtmlFormat.escape(answer).toString),
+        actions = Seq(
+          ActionItemViewModel("site.change", routes.ChrnController.onPageLoad(CheckMode, answers.operatorId).url)
+            .withVisuallyHiddenText(messages("chrn.change.hidden", assumingOperatorName))
         )
+      )
     }
 }

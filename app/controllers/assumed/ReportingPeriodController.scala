@@ -19,16 +19,15 @@ package controllers.assumed
 import controllers.AnswerExtractor
 import controllers.actions.*
 import forms.ReportingPeriodFormProvider
-
-import javax.inject.Inject
 import models.Mode
-import pages.assumed.{AssumingOperatorNamePage, ReportingPeriodPage}
+import pages.assumed.ReportingPeriodPage
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import repositories.SessionRepository
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import views.html.assumed.ReportingPeriodView
 
+import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
 class ReportingPeriodController @Inject()(
@@ -44,34 +43,30 @@ class ReportingPeriodController @Inject()(
   extends FrontendBaseController with I18nSupport with AnswerExtractor {
 
   def onPageLoad(mode: Mode, operatorId: String): Action[AnyContent] = (identify andThen getData(operatorId) andThen requireData) { implicit request =>
-    getAnswer(AssumingOperatorNamePage) { assumingOperatorName =>
 
-      val form = formProvider(assumingOperatorName)
+    val form = formProvider()
 
-      val preparedForm = request.userAnswers.get(ReportingPeriodPage) match {
-        case None => form
-        case Some(value) => form.fill(value)
-      }
-
-      Ok(view(preparedForm, mode, operatorId, assumingOperatorName))
+    val preparedForm = request.userAnswers.get(ReportingPeriodPage) match {
+      case None => form
+      case Some(value) => form.fill(value)
     }
+
+    Ok(view(preparedForm, mode, operatorId))
   }
 
   def onSubmit(mode: Mode, operatorId: String): Action[AnyContent] = (identify andThen getData(operatorId) andThen requireData).async { implicit request =>
-    getAnswerAsync(AssumingOperatorNamePage) { assumingOperatorName =>
+  
+    val form = formProvider()
 
-      val form = formProvider(assumingOperatorName)
+    form.bindFromRequest().fold(
+      formWithErrors =>
+        Future.successful(BadRequest(view(formWithErrors, mode, operatorId))),
 
-      form.bindFromRequest().fold(
-        formWithErrors =>
-          Future.successful(BadRequest(view(formWithErrors, mode, operatorId, assumingOperatorName))),
-
-        value =>
-          for {
-            updatedAnswers <- Future.fromTry(request.userAnswers.set(ReportingPeriodPage, value))
-            _              <- sessionRepository.set(updatedAnswers)
-          } yield Redirect(ReportingPeriodPage.nextPage(mode, updatedAnswers))
-      )
-    }
+      value =>
+        for {
+          updatedAnswers <- Future.fromTry(request.userAnswers.set(ReportingPeriodPage, value))
+          _              <- sessionRepository.set(updatedAnswers)
+        } yield Redirect(ReportingPeriodPage.nextPage(mode, updatedAnswers))
+    )
   }
 }

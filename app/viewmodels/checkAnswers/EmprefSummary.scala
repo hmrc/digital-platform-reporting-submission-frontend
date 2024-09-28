@@ -18,26 +18,28 @@ package viewmodels.checkAnswers
 
 import controllers.assumed.routes
 import models.{CheckMode, UserAnswers}
-import pages.assumed.EmprefPage
+import pages.assumed.{AssumingOperatorNamePage, EmprefPage}
 import play.api.i18n.Messages
 import play.twirl.api.HtmlFormat
 import uk.gov.hmrc.govukfrontend.views.viewmodels.summarylist.SummaryListRow
-import viewmodels.govuk.summarylist._
-import viewmodels.implicits._
+import viewmodels.govuk.summarylist.*
+import viewmodels.implicits.*
 
 object EmprefSummary  {
 
   def row(answers: UserAnswers)(implicit messages: Messages): Option[SummaryListRow] =
-    answers.get(EmprefPage).map {
-      answer =>
+    for {
+      answer               <- answers.get(EmprefPage)
+      assumingOperatorName <- answers.get(AssumingOperatorNamePage)
+    } yield {
 
-        SummaryListRowViewModel(
-          key     = "empref.checkYourAnswersLabel",
-          value   = ValueViewModel(HtmlFormat.escape(answer).toString),
-          actions = Seq(
-            ActionItemViewModel("site.change", routes.EmprefController.onPageLoad(CheckMode, answers.operatorId).url)
-              .withVisuallyHiddenText(messages("empref.change.hidden"))
-          )
+      SummaryListRowViewModel(
+        key     = "empref.checkYourAnswersLabel",
+        value   = ValueViewModel(HtmlFormat.escape(answer).toString),
+        actions = Seq(
+          ActionItemViewModel("site.change", routes.EmprefController.onPageLoad(CheckMode, answers.operatorId).url)
+            .withVisuallyHiddenText(messages("empref.change.hidden", assumingOperatorName))
         )
+      )
     }
 }
