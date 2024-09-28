@@ -20,44 +20,28 @@ import connectors.SubmissionConnector
 import controllers.actions.*
 import models.submission.Submission
 import models.submission.Submission.State.{Approved, Ready, Rejected, Submitted, UploadFailed, Uploading, Validated}
-
-import javax.inject.Inject
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents, Result}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
-import views.html.SendFileView
+import views.html.SubmissionConfirmationView
 
+import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
-class SendFileController @Inject()(
-                                    override val messagesApi: MessagesApi,
-                                    identify: IdentifierAction,
-                                    val controllerComponents: MessagesControllerComponents,
-                                    view: SendFileView,
-                                    submissionConnector: SubmissionConnector
+class SubmissionConfirmationController @Inject()(
+                                                  override val messagesApi: MessagesApi,
+                                                  identify: IdentifierAction,
+                                                  val controllerComponents: MessagesControllerComponents,
+                                                  view: SubmissionConfirmationView,
+                                                  submissionConnector: SubmissionConnector
                                   )(using ExecutionContext) extends FrontendBaseController with I18nSupport {
 
   def onPageLoad(submissionId: String): Action[AnyContent] = identify.async {
     implicit request =>
       submissionConnector.get(submissionId).flatMap {
         _.map { submission =>
-          handleSubmission(submission) { case _: Validated =>
+          handleSubmission(submission) { case Approved =>
             Future.successful(Ok(view()))
-          }
-        }.getOrElse {
-          Future.successful(Redirect(routes.JourneyRecoveryController.onPageLoad()))
-        }
-      }
-  }
-
-  def onSubmit(submissionId: String): Action[AnyContent] = identify.async {
-    implicit request =>
-      submissionConnector.get(submissionId).flatMap {
-        _.map { submission =>
-          handleSubmission(submission) { case _: Validated =>
-            submissionConnector.submit(submissionId).map { _ =>
-              Redirect(routes.CheckFileController.onPageLoad(submissionId))
-            }
           }
         }.getOrElse {
           Future.successful(Redirect(routes.JourneyRecoveryController.onPageLoad()))
