@@ -1,4 +1,4 @@
-@*
+/*
  * Copyright 2024 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -12,20 +12,22 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *@
+ */
 
-@this(
-        layout: templates.Layout,
-        govukSummaryList: GovukSummaryList
-)
+package models.operator
 
-@(list: SummaryList, operatorId: String)(implicit request: Request[_], messages: Messages)
+import enumeratum.*
 
-@layout(pageTitle = titleNoForm(messages("checkYourAnswers.title"))) {
+sealed abstract class TinType(override val entryName: String) extends EnumEntry
 
-    <h1 class="govuk-heading-xl">@messages("checkYourAnswers.heading")</h1>
+object TinType extends PlayEnum[TinType] {
 
-    @govukSummaryList(list)
+  override val values: IndexedSeq[TinType] = findValues
 
-    <p class="govuk-body">@messages("checkYourAnswers.p1")</p>
+  case object Crn extends TinType("CRN")
+  case object Utr extends TinType("UTR")
+  case object Vrn extends TinType("VRN")
+  case object Empref extends TinType("EMPREF")
+  case object Chrn extends TinType("CHRN")
+  case object Other extends TinType("OTHER")
 }

@@ -1,4 +1,4 @@
-@*
+/*
  * Copyright 2024 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -12,20 +12,20 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *@
+ */
 
-@this(
-        layout: templates.Layout,
-        govukSummaryList: GovukSummaryList
-)
+package models.operator
 
-@(list: SummaryList, operatorId: String)(implicit request: Request[_], messages: Messages)
+import play.api.libs.json.{Json, OFormat}
 
-@layout(pageTitle = titleNoForm(messages("checkYourAnswers.title"))) {
 
-    <h1 class="govuk-heading-xl">@messages("checkYourAnswers.heading")</h1>
+final case class ContactDetails(
+                                 phoneNumber: Option[String],
+                                 contactName: String,
+                                 emailAddress: String
+                               )
 
-    @govukSummaryList(list)
+object ContactDetails {
 
-    <p class="govuk-body">@messages("checkYourAnswers.p1")</p>
+  implicit lazy val format: OFormat[ContactDetails] = Json.format
 }
