@@ -1,3 +1,6 @@
+GET        /:operatorId/start                                   controllers.assumed.StartController.onPageLoad(operatorId: String)
+POST       /:operatorId/start                                   controllers.assumed.StartController.onSubmit(operatorId: String)
+
 GET        /:operatorId/chrn                                    controllers.assumed.ChrnController.onPageLoad(mode: Mode = NormalMode, operatorId: String)
 POST       /:operatorId/chrn                                    controllers.assumed.ChrnController.onSubmit(mode: Mode = NormalMode, operatorId: String)
 GET        /:operatorId/change-chrn                             controllers.assumed.ChrnController.onPageLoad(mode: Mode = CheckMode, operatorId: String)

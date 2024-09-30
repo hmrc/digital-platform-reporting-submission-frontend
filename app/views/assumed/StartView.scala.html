@@ -1,0 +1,55 @@
+@*
+ * Copyright 2024 HM Revenue & Customs
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *@
+
+@import controllers.assumed.routes
+
+@this(
+        layout: templates.Layout,
+        formHelper: FormWithCSRF,
+        govukButton: GovukButton
+)
+
+@(operatorId: String)(implicit request: Request[_], messages: Messages)
+
+@layout(pageTitle = titleNoForm(messages("assumed.start.title"))) {
+
+    <h1 class="govuk-heading-xl">@messages("assumed.start.heading")</h1>
+
+    <p class="govuk-body">@messages("assumed.start.p1")</p>
+
+    <p class="govuk-body">@messages("assumed.start.p2")</p>
+
+    <p class="govuk-body">@messages("assumed.start.p3")</p>
+
+    <p class="govuk-body">@messages("assumed.start.p4")</p>
+    
+    <h2 class="govuk-heading-m">@messages("assumed.start.beforeYouContinue")</h2>
+
+    <p class="govuk-body">@messages("assumed.start.beforeYouContinue.p1")</p>
+
+    <ul class="govuk-list govuk-list--bullet">
+        <li>@messages("assumed.start.beforeYouContinue.bullet1")</li>
+        <li>@messages("assumed.start.beforeYouContinue.bullet2")</li>
+        <li>@messages("assumed.start.beforeYouContinue.bullet3")</li>
+        <li>@messages("assumed.start.beforeYouContinue.bullet4")</li>
+    </ul>
+
+    <p class="govuk-body">@messages("assumed.start.beforeYouContinue.p2")</p>
+
+    @formHelper(action = routes.StartController.onSubmit(operatorId)) {
+        @govukButton(ButtonViewModel("assumed.start.startSubmission"))
+    }
+}
