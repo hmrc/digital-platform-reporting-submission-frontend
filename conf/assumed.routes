@@ -77,3 +77,6 @@ GET        /:operatorId/check-your-answers                      controllers.assu
 
 GET        /which-platform-operator                             controllers.assumed.SelectPlatformOperatorController.onPageLoad
 POST       /which-platform-operator                             controllers.assumed.SelectPlatformOperatorController.onSubmit
+
+GET        /:operatorId/check-platform-operator                 controllers.assumed.CheckPlatformOperatorController.onPageLoad(operatorId: String)
+POST       /:operatorId/check-platform-operator                 controllers.assumed.CheckPlatformOperatorController.onSubmit(operatorId: String)
