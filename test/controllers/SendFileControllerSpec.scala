@@ -82,7 +82,7 @@ class SendFileControllerSpec extends SpecBase with MockitoSugar with BeforeAndAf
             val view = application.injector.instanceOf[SendFileView]
 
             status(result) mustEqual OK
-            contentAsString(result) mustEqual view()(request, messages(application)).toString
+            contentAsString(result) mustEqual view("id")(request, messages(application)).toString
           }
 
           verify(mockSubmissionConnector).get(eqTo("id"))(using any())
