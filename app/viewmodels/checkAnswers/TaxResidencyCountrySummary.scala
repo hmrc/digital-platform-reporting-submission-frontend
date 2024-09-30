@@ -18,26 +18,28 @@ package viewmodels.checkAnswers
 
 import controllers.assumed.routes
 import models.{CheckMode, UserAnswers}
-import pages.assumed.TaxResidencyCountryPage
+import pages.assumed.{AssumingOperatorNamePage, TaxResidencyCountryPage}
 import play.api.i18n.Messages
 import play.twirl.api.HtmlFormat
 import uk.gov.hmrc.govukfrontend.views.viewmodels.summarylist.SummaryListRow
-import viewmodels.govuk.summarylist._
-import viewmodels.implicits._
+import viewmodels.govuk.summarylist.*
+import viewmodels.implicits.*
 
 object TaxResidencyCountrySummary  {
 
   def row(answers: UserAnswers)(implicit messages: Messages): Option[SummaryListRow] =
-    answers.get(TaxResidencyCountryPage).map {
-      answer =>
+    for {
+      answer               <- answers.get(TaxResidencyCountryPage)
+      assumingOperatorName <- answers.get(AssumingOperatorNamePage)
+    } yield {
 
-        SummaryListRowViewModel(
-          key     = "taxResidencyCountry.checkYourAnswersLabel",
-          value   = ValueViewModel(HtmlFormat.escape(answer.name).toString),
-          actions = Seq(
-            ActionItemViewModel("site.change", routes.TaxResidencyCountryController.onPageLoad(CheckMode, answers.operatorId).url)
-              .withVisuallyHiddenText(messages("taxResidencyCountry.change.hidden"))
-          )
+      SummaryListRowViewModel(
+        key     = messages("taxResidencyCountry.checkYourAnswersLabel", assumingOperatorName),
+        value   = ValueViewModel(HtmlFormat.escape(answer.name).toString),
+        actions = Seq(
+          ActionItemViewModel("site.change", routes.TaxResidencyCountryController.onPageLoad(CheckMode, answers.operatorId).url)
+            .withVisuallyHiddenText(messages("taxResidencyCountry.change.hidden", assumingOperatorName))
         )
+      )
     }
 }

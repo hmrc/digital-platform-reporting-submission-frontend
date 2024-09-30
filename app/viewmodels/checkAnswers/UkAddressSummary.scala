@@ -18,36 +18,38 @@ package viewmodels.checkAnswers
 
 import controllers.assumed.routes
 import models.{CheckMode, UserAnswers}
-import pages.assumed.UkAddressPage
+import pages.assumed.{AssumingOperatorNamePage, UkAddressPage}
 import play.api.i18n.Messages
 import play.twirl.api.HtmlFormat
 import uk.gov.hmrc.govukfrontend.views.viewmodels.content.HtmlContent
 import uk.gov.hmrc.govukfrontend.views.viewmodels.summarylist.SummaryListRow
-import viewmodels.govuk.summarylist._
-import viewmodels.implicits._
+import viewmodels.govuk.summarylist.*
+import viewmodels.implicits.*
 
 object UkAddressSummary  {
 
   def row(answers: UserAnswers)(implicit messages: Messages): Option[SummaryListRow] =
-    answers.get(UkAddressPage).map {
-      answer =>
+    for {
+      answer               <- answers.get(UkAddressPage)
+      assumingOperatorName <- answers.get(AssumingOperatorNamePage)
+    } yield {
 
-        val value = Seq(
-          Some(HtmlFormat.escape(answer.line1)),
-          answer.line2.map(HtmlFormat.escape),
-          Some(HtmlFormat.escape(answer.town)),
-          answer.county.map(HtmlFormat.escape),
-          Some(HtmlFormat.escape(answer.postCode)),
-          Some(HtmlFormat.escape(answer.country.name))
-        ).flatten.map(_.toString).mkString("<br/>")
+      val value = Seq(
+        Some(HtmlFormat.escape(answer.line1)),
+        answer.line2.map(HtmlFormat.escape),
+        Some(HtmlFormat.escape(answer.town)),
+        answer.county.map(HtmlFormat.escape),
+        Some(HtmlFormat.escape(answer.postCode)),
+        Some(HtmlFormat.escape(answer.country.name))
+      ).flatten.map(_.toString).mkString("<br/>")
 
-        SummaryListRowViewModel(
-          key     = "ukAddress.checkYourAnswersLabel",
-          value   = ValueViewModel(HtmlContent(value)),
-          actions = Seq(
-            ActionItemViewModel("site.change", routes.UkAddressController.onPageLoad(CheckMode, answers.operatorId).url)
-              .withVisuallyHiddenText(messages("ukAddress.change.hidden"))
-          )
+      SummaryListRowViewModel(
+        key     = messages("ukAddress.checkYourAnswersLabel", assumingOperatorName),
+        value   = ValueViewModel(HtmlContent(value)),
+        actions = Seq(
+          ActionItemViewModel("site.change", routes.UkAddressController.onPageLoad(CheckMode, answers.operatorId).url)
+            .withVisuallyHiddenText(messages("ukAddress.change.hidden", assumingOperatorName))
         )
+      )
     }
 }

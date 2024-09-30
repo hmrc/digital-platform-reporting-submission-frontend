@@ -38,9 +38,9 @@
         @govukInput(
             InputViewModel(
                 field = form("value"),
-                label = LabelViewModel(messages("internationalTaxIdentifier.heading")).asPageHeading()
+                label = LabelViewModel(messages("internationalTaxIdentifier.heading", country.name)).asPageHeading()
             )
-            .withWidth(Full)
+            .withWidth(Fixed10)
         )
 
         @govukButton(

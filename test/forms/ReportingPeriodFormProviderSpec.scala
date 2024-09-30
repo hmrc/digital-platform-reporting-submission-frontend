@@ -26,9 +26,8 @@ class ReportingPeriodFormProviderSpec extends IntFieldBehaviours {
 
   private val requiredKey = "reportingPeriod.error.required"
 
-  private val assumingOperatorName = "name"
   private val clock = Clock.fixed(Instant.parse("2100-12-31T00:00:00Z"), ZoneOffset.UTC)
-  private val form = new ReportingPeriodFormProvider(clock)(assumingOperatorName)
+  private val form = new ReportingPeriodFormProvider(clock)()
 
   ".value" - {
 
@@ -43,7 +42,7 @@ class ReportingPeriodFormProviderSpec extends IntFieldBehaviours {
     behave like mandatoryField(
       form,
       fieldName,
-      FormError(fieldName, requiredKey, Seq(assumingOperatorName))
+      FormError(fieldName, requiredKey)
     )
 
     behave like intFieldWithMinimum(

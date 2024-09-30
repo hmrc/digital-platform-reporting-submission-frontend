@@ -24,8 +24,9 @@ class AssumingOperatorNameFormProviderSpec extends StringFieldBehaviours {
   val requiredKey = "assumingOperatorName.error.required"
   val lengthKey = "assumingOperatorName.error.length"
   val maxLength = 105
+  val businessName = "name"
 
-  val form = new AssumingOperatorNameFormProvider()()
+  val form = new AssumingOperatorNameFormProvider()(businessName)
 
   ".value" - {
 
@@ -47,7 +48,7 @@ class AssumingOperatorNameFormProviderSpec extends StringFieldBehaviours {
     behave like mandatoryField(
       form,
       fieldName,
-      requiredError = FormError(fieldName, requiredKey)
+      requiredError = FormError(fieldName, requiredKey, Seq(businessName))
     )
   }
 }

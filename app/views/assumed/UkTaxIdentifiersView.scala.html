@@ -38,9 +38,9 @@
             CheckboxesViewModel(
                 form   = form,
                 name   = "value",
-                legend = LegendViewModel(messages("ukTaxIdentifiers.heading")).asPageHeading(),
+                legend = LegendViewModel(messages("ukTaxIdentifiers.heading", assumingOperatorName)).asPageHeading(),
                 items  = UkTaxIdentifiers.checkboxItems
-            )
+            ).withHint(HintViewModel(messages("ukTaxIdentifiers.hint")))
         )
 
         @govukButton(

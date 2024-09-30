@@ -15,13 +15,15 @@
  *@
 
 @import controllers.assumed.routes
-@import viewmodels.InputWidth._
+@import models.Country.*
+@import uk.gov.hmrc.govukfrontend.views.Implicits.RichSelect
+@import uk.gov.hmrc.hmrcfrontend.views.viewmodels.accessibleautocomplete.AccessibleAutocomplete
 
 @this(
     layout: templates.Layout,
     formHelper: FormWithCSRF,
     govukErrorSummary: GovukErrorSummary,
-    govukInput: GovukInput,
+    govukSelect: GovukSelect,
     govukButton: GovukButton
 )
 
@@ -35,12 +37,14 @@
             @govukErrorSummary(ErrorSummaryViewModel(form))
         }
 
-        @govukInput(
-            InputViewModel(
+        @govukSelect(
+            SelectViewModel(
                 field = form("value"),
-                label = LabelViewModel(messages("taxResidencyCountry.heading")).asPageHeading()
+                items = selectItems(internationalCountries),
+                label = LabelViewModel(messages("taxResidencyCountry.heading", assumingOperatorName)).asPageHeading()
             )
-            .withWidth(Full)
+            .withCssClass("govuk-input")
+            .asAccessibleAutocomplete(Some(AccessibleAutocomplete(showAllValues = true)))
         )
 
         @govukButton(

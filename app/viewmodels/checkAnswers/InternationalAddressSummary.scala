@@ -18,36 +18,38 @@ package viewmodels.checkAnswers
 
 import controllers.assumed.routes
 import models.{CheckMode, UserAnswers}
-import pages.assumed.InternationalAddressPage
+import pages.assumed.{AssumingOperatorNamePage, InternationalAddressPage}
 import play.api.i18n.Messages
 import play.twirl.api.HtmlFormat
 import uk.gov.hmrc.govukfrontend.views.viewmodels.content.HtmlContent
 import uk.gov.hmrc.govukfrontend.views.viewmodels.summarylist.SummaryListRow
-import viewmodels.govuk.summarylist._
-import viewmodels.implicits._
+import viewmodels.govuk.summarylist.*
+import viewmodels.implicits.*
 
 object InternationalAddressSummary  {
 
   def row(answers: UserAnswers)(implicit messages: Messages): Option[SummaryListRow] =
-    answers.get(InternationalAddressPage).map {
-      answer =>
+    for {
+      answer               <- answers.get(InternationalAddressPage)
+      assumingOperatorName <- answers.get(AssumingOperatorNamePage)
+    } yield {
         
-        val value: String = Seq(
-          Some(HtmlFormat.escape(answer.line1)),
-          answer.line2.map(HtmlFormat.escape),
-          Some(HtmlFormat.escape(answer.city)),
-          answer.region.map(HtmlFormat.escape),
-          Some(HtmlFormat.escape(answer.postal)),
-          Some(HtmlFormat.escape(answer.country.name))
-        ).flatten.map(_.toString).mkString("<br/>")
-        
-        SummaryListRowViewModel(
-          key     = "internationalAddress.checkYourAnswersLabel",
-          value   = ValueViewModel(HtmlContent(value)),
-          actions = Seq(
-            ActionItemViewModel("site.change", routes.InternationalAddressController.onPageLoad(CheckMode, answers.operatorId).url)
-              .withVisuallyHiddenText(messages("internationalAddress.change.hidden"))
-          )
+      val value: String = Seq(
+        Some(HtmlFormat.escape(answer.line1)),
+        answer.line2.map(HtmlFormat.escape),
+        Some(HtmlFormat.escape(answer.city)),
+        answer.region.map(HtmlFormat.escape),
+        Some(HtmlFormat.escape(answer.postal)),
+        Some(HtmlFormat.escape(answer.country.name))
+      ).flatten.map(_.toString).mkString("<br/>")
+      
+      SummaryListRowViewModel(
+        key     = messages("internationalAddress.checkYourAnswersLabel", assumingOperatorName),
+        value   = ValueViewModel(HtmlContent(value)),
+        actions = Seq(
+          ActionItemViewModel("site.change", routes.InternationalAddressController.onPageLoad(CheckMode, answers.operatorId).url)
+            .withVisuallyHiddenText(messages("internationalAddress.change.hidden", assumingOperatorName))
         )
+      )
     }
 }

@@ -16,13 +16,16 @@
 
 package controllers.assumed
 
-import controllers.actions._
+import controllers.AnswerExtractor
+import controllers.actions.*
 import forms.AssumingOperatorNameFormProvider
+
 import javax.inject.Inject
 import models.Mode
 import pages.assumed.AssumingOperatorNamePage
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
+import queries.BusinessNameQuery
 import repositories.SessionRepository
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import views.html.assumed.AssumingOperatorNameView
@@ -38,33 +41,39 @@ class AssumingOperatorNameController @Inject()(
                                                 formProvider: AssumingOperatorNameFormProvider,
                                                 val controllerComponents: MessagesControllerComponents,
                                                 view: AssumingOperatorNameView
-                                              )(implicit ec: ExecutionContext) extends FrontendBaseController with I18nSupport {
+                                              )(implicit ec: ExecutionContext)
+  extends FrontendBaseController with I18nSupport with AnswerExtractor {
 
-  val form = formProvider()
 
-  def onPageLoad(mode: Mode, operatorId: String): Action[AnyContent] = (identify andThen getData(operatorId) andThen requireData) {
-    implicit request =>
+  def onPageLoad(mode: Mode, operatorId: String): Action[AnyContent] = (identify andThen getData(operatorId) andThen requireData) { implicit request =>
+    getAnswer(BusinessNameQuery) { businessName =>
+
+      val form = formProvider(businessName)
 
       val preparedForm = request.userAnswers.get(AssumingOperatorNamePage) match {
         case None => form
         case Some(value) => form.fill(value)
       }
 
-      Ok(view(preparedForm, mode, operatorId))
+      Ok(view(preparedForm, mode, operatorId, businessName))
+    }
   }
 
-  def onSubmit(mode: Mode, operatorId: String): Action[AnyContent] = (identify andThen getData(operatorId) andThen requireData).async {
-    implicit request =>
+  def onSubmit(mode: Mode, operatorId: String): Action[AnyContent] = (identify andThen getData(operatorId) andThen requireData).async { implicit request =>
+    getAnswerAsync(BusinessNameQuery) { businessName =>
+
+      val form = formProvider(businessName)
 
       form.bindFromRequest().fold(
         formWithErrors =>
-          Future.successful(BadRequest(view(formWithErrors, mode, operatorId))),
+          Future.successful(BadRequest(view(formWithErrors, mode, operatorId, businessName))),
 
         value =>
           for {
             updatedAnswers <- Future.fromTry(request.userAnswers.set(AssumingOperatorNamePage, value))
-            _              <- sessionRepository.set(updatedAnswers)
+            _ <- sessionRepository.set(updatedAnswers)
           } yield Redirect(AssumingOperatorNamePage.nextPage(mode, updatedAnswers))
       )
+    }
   }
 }

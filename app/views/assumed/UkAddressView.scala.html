@@ -15,13 +15,17 @@
  *@
 
 @import controllers.assumed.routes
-@import viewmodels.InputWidth._
+@import models.Country.*
+@import viewmodels.InputWidth.*
+@import uk.gov.hmrc.govukfrontend.views.Implicits.RichSelect
+@import uk.gov.hmrc.hmrcfrontend.views.viewmodels.accessibleautocomplete.AccessibleAutocomplete
 
 @this(
     layout: templates.Layout,
     formHelper: FormWithCSRF,
     govukErrorSummary: GovukErrorSummary,
     govukInput: GovukInput,
+    govukSelect: GovukSelect,
     govukButton: GovukButton
 )
 
@@ -35,7 +39,7 @@
             @govukErrorSummary(ErrorSummaryViewModel(form))
         }
 
-        <h1 class="govuk-heading-xl">@messages("ukAddress.heading")</h1>
+        <h1 class="govuk-heading-xl">@messages("ukAddress.heading", assumingOperatorName)</h1>
 
         @govukInput(
             InputViewModel(
@@ -51,6 +55,40 @@
                 label = LabelViewModel(messages("ukAddress.line2"))
             )
             .withWidth(Full)
+        )
+
+        @govukInput(
+            InputViewModel(
+                field = form("town"),
+                label = LabelViewModel(messages("ukAddress.town"))
+            )
+            .withWidth(TwoThirds)
+        )
+
+        @govukInput(
+            InputViewModel(
+                field = form("county"),
+                label = LabelViewModel(messages("ukAddress.county"))
+            )
+            .withWidth(TwoThirds)
+        )
+
+        @govukInput(
+            InputViewModel(
+                field = form("postCode"),
+                label = LabelViewModel(messages("ukAddress.postCode"))
+            )
+            .withWidth(Fixed10)
+        )
+
+        @govukSelect(
+            SelectViewModel(
+                field = form("country"),
+                items = selectItems(ukCountries),
+                label = LabelViewModel(messages("ukAddress.country"))
+            )
+            .withCssClass("govuk-input")
+            .asAccessibleAutocomplete(Some(AccessibleAutocomplete(showAllValues = true)))
         )
 
         @govukButton(

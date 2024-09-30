@@ -15,8 +15,8 @@
  *@
 
 @this(
-    layout: templates.Layout,
-    govukSummaryList: GovukSummaryList
+        layout: templates.Layout,
+        govukSummaryList: GovukSummaryList
 )
 
 @(list: SummaryList, operatorId: String)(implicit request: Request[_], messages: Messages)
@@ -26,4 +26,6 @@
     <h1 class="govuk-heading-xl">@messages("checkYourAnswers.heading")</h1>
 
     @govukSummaryList(list)
+
+    <p class="govuk-body">@messages("checkYourAnswers.p1")</p>
 }

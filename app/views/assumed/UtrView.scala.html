@@ -38,9 +38,10 @@
         @govukInput(
             InputViewModel(
                 field = form("value"),
-                label = LabelViewModel(messages("utr.heading")).asPageHeading()
+                label = LabelViewModel(messages("utr.heading", assumingOperatorName)).asPageHeading()
             )
-            .withWidth(Full)
+            .withWidth(Fixed10)
+            .withHint(HintViewModel(messages("utr.hint")))
         )
 
         @govukButton(
