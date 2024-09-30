@@ -42,7 +42,7 @@ class SendFileController @Inject()(
       submissionConnector.get(submissionId).flatMap {
         _.map { submission =>
           handleSubmission(submission) { case _: Validated =>
-            Future.successful(Ok(view()))
+            Future.successful(Ok(view(submissionId)))
           }
         }.getOrElse {
           Future.successful(Redirect(routes.JourneyRecoveryController.onPageLoad()))

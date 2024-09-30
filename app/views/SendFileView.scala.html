@@ -16,12 +16,19 @@
 
 @this(
         layout: templates.Layout,
-        govukButton: GovukButton
+        govukButton: GovukButton,
+        formHelper: FormWithCSRF
 )
 
-@()(implicit request: Request[_], messages: Messages)
+@(submissionId: String)(implicit request: Request[_], messages: Messages)
 
 @layout(pageTitle = titleNoForm(messages("sendFile.title"))) {
 
-    <h1 class="govuk-heading-xl">@messages("sendFile.heading")</h1>
+  <h1 class="govuk-heading-xl">@messages("sendFile.heading")</h1>
+
+  @formHelper(action = routes.SendFileController.onSubmit(submissionId), Symbol("autoComplete") -> "off") {
+    @govukButton(
+      ButtonViewModel(messages("sendFile.confirmAndSend"))
+    )
+  }
 }

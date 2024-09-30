@@ -75,6 +75,7 @@ uploadFailed.button = Upload file
 
 sendFile.title = sendFile
 sendFile.heading = sendFile
+sendFile.confirmAndSend = Confirm and send
 
 checkFile.title = checkFile
 checkFile.heading = checkFile
