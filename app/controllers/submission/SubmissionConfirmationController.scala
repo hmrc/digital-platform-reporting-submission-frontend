@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package controllers
+package controllers.submission
 
 import connectors.SubmissionConnector
 import controllers.actions.*
@@ -23,28 +23,28 @@ import models.submission.Submission.State.{Approved, Ready, Rejected, Submitted,
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents, Result}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
-import views.html.FileErrorsView
+import views.html.submission.SubmissionConfirmationView
 
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
-class FileErrorsController @Inject()(
-                                      override val messagesApi: MessagesApi,
-                                      identify: IdentifierAction,
-                                      val controllerComponents: MessagesControllerComponents,
-                                      view: FileErrorsView,
-                                      submissionConnector: SubmissionConnector
-                                    )(using ExecutionContext) extends FrontendBaseController with I18nSupport {
+class SubmissionConfirmationController @Inject()(
+                                                  override val messagesApi: MessagesApi,
+                                                  identify: IdentifierAction,
+                                                  val controllerComponents: MessagesControllerComponents,
+                                                  view: SubmissionConfirmationView,
+                                                  submissionConnector: SubmissionConnector
+                                  )(using ExecutionContext) extends FrontendBaseController with I18nSupport {
 
   def onPageLoad(submissionId: String): Action[AnyContent] = identify.async {
     implicit request =>
       submissionConnector.get(submissionId).flatMap {
         _.map { submission =>
-          handleSubmission(submission) { case Rejected =>
+          handleSubmission(submission) { case Approved =>
             Future.successful(Ok(view()))
           }
         }.getOrElse {
-          Future.successful(Redirect(routes.JourneyRecoveryController.onPageLoad()))
+          Future.successful(Redirect(controllers.routes.JourneyRecoveryController.onPageLoad()))
         }
       }
   }
@@ -68,7 +68,7 @@ class FileErrorsController @Inject()(
         case Rejected =>
           routes.FileErrorsController.onPageLoad(submission._id)
         case _ =>
-          routes.JourneyRecoveryController.onPageLoad()
+          controllers.routes.JourneyRecoveryController.onPageLoad()
       }
 
       Future.successful(Redirect(redirectLocation))

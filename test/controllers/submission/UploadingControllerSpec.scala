@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package controllers
+package controllers.submission
 
 import base.SpecBase
 import connectors.SubmissionConnector
@@ -30,7 +30,7 @@ import play.api.inject.bind
 import play.api.test.FakeRequest
 import play.api.test.Helpers.*
 import uk.gov.hmrc.http.StringContextOps
-import views.html.UploadingView
+import views.html.submission.UploadingView
 
 import java.time.Instant
 import scala.concurrent.Future
@@ -104,7 +104,7 @@ class UploadingControllerSpec extends SpecBase with MockitoSugar with BeforeAndA
             val result = route(application, request).value
 
             status(result) mustEqual SEE_OTHER
-            redirectLocation(result).value mustEqual routes.JourneyRecoveryController.onPageLoad().url
+            redirectLocation(result).value mustEqual controllers.routes.JourneyRecoveryController.onPageLoad().url
           }
         }
       }
@@ -396,7 +396,7 @@ class UploadingControllerSpec extends SpecBase with MockitoSugar with BeforeAndA
             val result = route(application, request).value
 
             status(result) mustEqual SEE_OTHER
-            redirectLocation(result).value mustEqual routes.JourneyRecoveryController.onPageLoad().url
+            redirectLocation(result).value mustEqual controllers.routes.JourneyRecoveryController.onPageLoad().url
           }
 
           verify(mockSubmissionConnector).get(eqTo("id"))(using any())
