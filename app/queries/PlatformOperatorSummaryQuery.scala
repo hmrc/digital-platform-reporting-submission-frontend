@@ -14,22 +14,12 @@
  * limitations under the License.
  */
 
-package viewmodels
+package queries
 
-import models.operator.responses.PlatformOperator
+import play.api.libs.json.JsPath
+import viewmodels.PlatformOperatorSummary
 
-final case class PlatformOperatorViewModel(
-                                            operatorId: String,
-                                            operatorName: String,
-                                            hasReportingNotifications: Boolean
-                                          )
+case object PlatformOperatorSummaryQuery extends Gettable[PlatformOperatorSummary] with Settable[PlatformOperatorSummary] {
 
-object PlatformOperatorViewModel {
-
-  def apply(operator: PlatformOperator): PlatformOperatorViewModel =
-    PlatformOperatorViewModel(
-      operator.operatorId,
-      operator.operatorName,
-      operator.notifications.nonEmpty
-    )
+  override def path: JsPath = JsPath \ "platformOperatorSummary"
 }

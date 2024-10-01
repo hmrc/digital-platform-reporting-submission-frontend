@@ -16,7 +16,9 @@
 
 package controllers.assumed
 
-import controllers.actions.IdentifierAction
+import controllers.actions.{DataRequiredAction, DataRetrievalActionProvider, IdentifierAction}
+import models.NormalMode
+import pages.assumed.StartPage
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
@@ -27,15 +29,17 @@ import javax.inject.Inject
 class StartController @Inject()(
                                  override val messagesApi: MessagesApi,
                                  identify: IdentifierAction,
+                                 getData: DataRetrievalActionProvider,
+                                 requireData: DataRequiredAction,
                                  val controllerComponents: MessagesControllerComponents,
                                  view: StartView
                                ) extends FrontendBaseController with I18nSupport {
 
-  def onPageLoad(operatorId: String): Action[AnyContent] = identify { implicit request =>
+  def onPageLoad(operatorId: String): Action[AnyContent] = (identify andThen getData(operatorId) andThen requireData) { implicit request =>
     Ok(view(operatorId))
   }
 
-  def onSubmit(operatorId: String): Action[AnyContent] = identify { implicit request =>
-    Redirect(routes.CheckPlatformOperatorController.onPageLoad(operatorId))
+  def onSubmit(operatorId: String): Action[AnyContent] = (identify andThen getData(operatorId) andThen requireData) { implicit request =>
+    Redirect(StartPage.nextPage(NormalMode, request.userAnswers))
   }
 }

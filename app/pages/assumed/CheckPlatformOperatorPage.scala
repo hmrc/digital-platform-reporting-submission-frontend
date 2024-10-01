@@ -18,15 +18,20 @@ package pages.assumed
 
 import controllers.assumed.routes
 import controllers.routes as baseRoutes
-import models.UserAnswers
+import config.FrontendAppConfig
+import models.{NormalMode, UserAnswers}
+import play.api.libs.json.JsPath
 import play.api.mvc.Call
-import queries.PlatformOperatorSummaryQuery
 
-case object SelectPlatformOperatorPage extends AssumedReportingPage {
+import javax.inject.Inject
 
+class CheckPlatformOperatorPage @Inject()(appConfig: FrontendAppConfig) extends AssumedReportingQuestionPage[Boolean] {
+
+  override def path: JsPath = JsPath \ "checkPlatformOperator"
+  
   override protected def nextPageNormalMode(answers: UserAnswers): Call =
-    answers.get(PlatformOperatorSummaryQuery).map {
-      case operator if operator.hasReportingNotifications => routes.StartController.onPageLoad(operator.operatorId)
-      case operator                                       => routes.ReportingNotificationRequiredController.onPageLoad(operator.operatorId)
+    answers.get(this).map {
+      case true  => routes.ReportingPeriodController.onPageLoad(NormalMode, answers.operatorId)
+      case false => Call("GET", appConfig.updateOperatorUrl(answers.operatorId))
     }.getOrElse(baseRoutes.JourneyRecoveryController.onPageLoad())
 }

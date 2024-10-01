@@ -306,3 +306,6 @@ assumed.start.beforeYouContinue.bullet3 = country of tax residency
 assumed.start.beforeYouContinue.bullet4 = tax identification number
 assumed.start.beforeYouContinue.p2 = Adding an assumed reporting submission takes around 5 minutes.
 assumed.start.startSubmission = Start submission
+
+reportingNotificationRequired.title = You must add a reporting notification before making an assumed report
+reportingNotificationRequired.heading = You must add a reporting notification for {0} before making an assumed report

@@ -17,21 +17,24 @@
 package controllers.assumed
 
 import base.SpecBase
-import config.FrontendAppConfig
 import connectors.PlatformOperatorConnector
 import forms.CheckPlatformOperatorFormProvider
-import models.NormalMode
 import models.operator.responses.PlatformOperator
 import models.operator.{AddressDetails, ContactDetails}
+import models.{NormalMode, UserAnswers}
 import org.mockito.ArgumentMatchers.any
-import org.mockito.Mockito
-import org.mockito.Mockito.when
+import org.mockito.Mockito.{times, verify, when}
+import org.mockito.{ArgumentCaptor, Mockito}
 import org.scalatest.BeforeAndAfterEach
 import org.scalatestplus.mockito.MockitoSugar
+import pages.assumed.CheckPlatformOperatorPage
 import play.api.i18n.Messages
 import play.api.inject.bind
 import play.api.test.FakeRequest
 import play.api.test.Helpers.*
+import queries.PlatformOperatorSummaryQuery
+import repositories.SessionRepository
+import viewmodels.PlatformOperatorSummary
 import viewmodels.checkAnswers.operator.*
 import viewmodels.govuk.SummaryListFluency
 import views.html.assumed.CheckPlatformOperatorView
@@ -42,9 +45,12 @@ class CheckPlatformOperatorControllerSpec extends SpecBase with SummaryListFluen
 
   private val form = CheckPlatformOperatorFormProvider()()
   private val mockConnector = mock[PlatformOperatorConnector]
+  private val mockRepository = mock[SessionRepository]
+  private val operatorSummary = PlatformOperatorSummary("operatorId", "operatorName", true)
+  private val baseAnswers = emptyUserAnswers.set(PlatformOperatorSummaryQuery, operatorSummary).success.value
 
   override def beforeEach(): Unit = {
-    Mockito.reset(mockConnector)
+    Mockito.reset(mockConnector, mockRepository)
     super.beforeEach()
   }
 
@@ -67,7 +73,7 @@ class CheckPlatformOperatorControllerSpec extends SpecBase with SummaryListFluen
       when(mockConnector.viewPlatformOperator(any())(any())).thenReturn(Future.successful(operator))
 
       val application =
-        applicationBuilder(userAnswers = None)
+        applicationBuilder(userAnswers = Some(baseAnswers))
           .overrides(bind[PlatformOperatorConnector].toInstance(mockConnector))
           .build()
 
@@ -118,7 +124,7 @@ class CheckPlatformOperatorControllerSpec extends SpecBase with SummaryListFluen
       when(mockConnector.viewPlatformOperator(any())(any())).thenReturn(Future.successful(operator))
 
       val application =
-        applicationBuilder(userAnswers = None)
+        applicationBuilder(userAnswers = Some(baseAnswers))
           .overrides(bind[PlatformOperatorConnector].toInstance(mockConnector))
           .build()
 
@@ -156,38 +162,32 @@ class CheckPlatformOperatorControllerSpec extends SpecBase with SummaryListFluen
       }
     }
 
-    "must redirect to Reporting Period when `true` is submitted" in {
+    "must save the answer and redirect to the next page when valid data is submitted" in {
 
-      val application = applicationBuilder(userAnswers = None).build()
+      when(mockRepository.set(any())).thenReturn(Future.successful(true))
+
+      val application =
+        applicationBuilder(userAnswers = Some(baseAnswers))
+          .overrides(bind[SessionRepository].toInstance(mockRepository))
+          .build()
 
       running(application) {
         val request =
           FakeRequest(POST, routes.CheckPlatformOperatorController.onPageLoad(operatorId).url)
             .withFormUrlEncodedBody("value" -> "true")
 
-        val result = route(application, request).value
-
-        status(result) mustEqual SEE_OTHER
-        redirectLocation(result).value mustEqual routes.ReportingPeriodController.onPageLoad(NormalMode, "operatorId").url
-      }
-    }
-
-    "must redirect to update the platform operator when `false` is submitted" in {
-
-      val application = applicationBuilder(userAnswers = None).build()
-
-      running(application) {
-        val request =
-          FakeRequest(POST, routes.CheckPlatformOperatorController.onPageLoad(operatorId).url)
-            .withFormUrlEncodedBody("value" -> "false")
-
-        val appConfig = application.injector.instanceOf[FrontendAppConfig]
+        val page = application.injector.instanceOf[CheckPlatformOperatorPage]
+        val expectedAnswers = baseAnswers.set(page, true).success.value
+        val answersCaptor: ArgumentCaptor[UserAnswers] = ArgumentCaptor.forClass(classOf[UserAnswers])
 
         val result = route(application, request).value
 
-
         status(result) mustEqual SEE_OTHER
-        redirectLocation(result).value mustEqual appConfig.updateOperatorUrl("operatorId")
+        redirectLocation(result).value mustEqual page.nextPage(NormalMode, expectedAnswers).url
+        verify(mockRepository, times(1)).set(answersCaptor.capture())
+
+        val answers = answersCaptor.getValue
+        answers.get(page).value mustEqual true
       }
     }
   }

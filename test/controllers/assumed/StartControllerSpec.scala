@@ -18,17 +18,23 @@ package controllers.assumed
 
 import base.SpecBase
 import models.NormalMode
+import pages.assumed.StartPage
 import play.api.test.FakeRequest
-import play.api.test.Helpers._
+import play.api.test.Helpers.*
+import queries.PlatformOperatorSummaryQuery
+import viewmodels.PlatformOperatorSummary
 import views.html.assumed.StartView
 
 class StartControllerSpec extends SpecBase {
 
+  private val platformOperatorSummary = PlatformOperatorSummary("operatorId", "operatorName", true)
+  private val baseAnswers = emptyUserAnswers.set(PlatformOperatorSummaryQuery, platformOperatorSummary).success.value
+  
   "Start Controller" - {
 
     "must return OK and the correct view for a GET" in {
 
-      val application = applicationBuilder(userAnswers = None).build()
+      val application = applicationBuilder(userAnswers = Some(baseAnswers)).build()
 
       running(application) {
         val request = FakeRequest(GET, routes.StartController.onPageLoad(operatorId).url)
@@ -42,9 +48,9 @@ class StartControllerSpec extends SpecBase {
       }
     }
 
-    "must redirect to Check Platform Operator for a POST" in {
+    "must redirect to the next page for a POST" in {
 
-      val application = applicationBuilder(userAnswers = None).build()
+      val application = applicationBuilder(userAnswers = Some(baseAnswers)).build()
 
       running(application) {
         val request = FakeRequest(POST, routes.StartController.onSubmit(operatorId).url)
@@ -52,7 +58,7 @@ class StartControllerSpec extends SpecBase {
         val result = route(application, request).value
 
         status(result) mustEqual SEE_OTHER
-        redirectLocation(result).value mustEqual routes.CheckPlatformOperatorController.onPageLoad(operatorId).url
+        redirectLocation(result).value mustEqual StartPage.nextPage(NormalMode, baseAnswers).url
       }
     }
   }

@@ -27,9 +27,8 @@ trait AssumedReportingPage {
       case CheckMode => nextPageCheckMode(answers)
     }
     
-  protected def nextPageNormalMode(answers: UserAnswers): Call =
-    controllers.routes.IndexController.onPageLoad() // TODO: Remove implementation when navigation is done
-
+  protected def nextPageNormalMode(answers: UserAnswers): Call
+  
   protected def nextPageCheckMode(answers: UserAnswers): Call =
     controllers.assumed.routes.CheckYourAnswersController.onPageLoad(answers.operatorId)
 }

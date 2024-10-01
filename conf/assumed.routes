@@ -83,3 +83,5 @@ POST       /which-platform-operator                             controllers.assu
 
 GET        /:operatorId/check-platform-operator                 controllers.assumed.CheckPlatformOperatorController.onPageLoad(operatorId: String)
 POST       /:operatorId/check-platform-operator                 controllers.assumed.CheckPlatformOperatorController.onSubmit(operatorId: String)
+
+GET        /:operatorId/no-reporting-notification               controllers.assumed.ReportingNotificationRequiredController.onPageLoad(operatorId: String)

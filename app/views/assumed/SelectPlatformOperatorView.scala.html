@@ -18,7 +18,7 @@
 @import controllers.assumed.routes
 @import uk.gov.hmrc.govukfrontend.views.Implicits.RichSelect
 @import uk.gov.hmrc.hmrcfrontend.views.viewmodels.accessibleautocomplete.AccessibleAutocomplete
-@import viewmodels.PlatformOperatorViewModel
+@import viewmodels.PlatformOperatorSummary
 
 @this(
         layout: templates.Layout,
@@ -29,7 +29,7 @@
         appConfig: FrontendAppConfig
 )
 
-@(form: Form[_], operators: Seq[PlatformOperatorViewModel])(implicit request: Request[_], messages: Messages)
+@(form: Form[_], operators: Seq[PlatformOperatorSummary])(implicit request: Request[_], messages: Messages)
 
 @layout(
     pageTitle = titleNoForm(messages("selectPlatformOperator.title")),

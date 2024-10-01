@@ -56,4 +56,5 @@ class FrontendAppConfig @Inject() (configuration: Configuration) {
   private val operatorFrontendUrl: String = configuration.get[String]("microservice.services.digital-platform-reporting-operator-frontend.baseUrl")
   val addOperatorUrl: String = s"$operatorFrontendUrl/platform-operator/add-platform-operator/start"
   def updateOperatorUrl(operatorId: String) = s"$operatorFrontendUrl/platform-operator/$operatorId/check-your-answers"
+  def addReportingNotificationUrl(operatorId: String) = s"$operatorFrontendUrl/reporting-notification/$operatorId/start"
 }

@@ -17,14 +17,15 @@
 package controllers.assumed
 
 import com.google.inject.Inject
-import config.FrontendAppConfig
 import connectors.PlatformOperatorConnector
-import controllers.actions.IdentifierAction
+import controllers.actions.{DataRequiredAction, DataRetrievalActionProvider, IdentifierAction}
 import forms.CheckPlatformOperatorFormProvider
 import models.NormalMode
 import models.operator.responses.PlatformOperator
+import pages.assumed.CheckPlatformOperatorPage
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
+import repositories.SessionRepository
 import uk.gov.hmrc.govukfrontend.views.Aliases.SummaryList
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import viewmodels.checkAnswers.operator.*
@@ -36,14 +37,17 @@ import scala.concurrent.{ExecutionContext, Future}
 class CheckPlatformOperatorController @Inject()(
                                                  override val messagesApi: MessagesApi,
                                                  identify: IdentifierAction,
+                                                 getData: DataRetrievalActionProvider,
+                                                 requireData: DataRequiredAction,
                                                  val controllerComponents: MessagesControllerComponents,
                                                  connector: PlatformOperatorConnector,
                                                  formProvider: CheckPlatformOperatorFormProvider,
-                                                 appConfig: FrontendAppConfig,
+                                                 sessionRepository: SessionRepository,
+                                                 checkPlatformOperatorPage: CheckPlatformOperatorPage,
                                                  view: CheckPlatformOperatorView
                                                )(implicit ec: ExecutionContext) extends FrontendBaseController with I18nSupport {
 
-  def onPageLoad(operatorId: String): Action[AnyContent] = identify.async {
+  def onPageLoad(operatorId: String): Action[AnyContent] = (identify andThen getData(operatorId) andThen requireData).async {
     implicit request =>
       connector.viewPlatformOperator(operatorId).map { operator =>
 
@@ -60,7 +64,7 @@ class CheckPlatformOperatorController @Inject()(
       }
   }
   
-  def onSubmit(operatorId: String): Action[AnyContent] = identify.async {
+  def onSubmit(operatorId: String): Action[AnyContent] = (identify andThen getData(operatorId) andThen requireData).async {
     implicit request =>
 
       val form = formProvider()
@@ -78,11 +82,11 @@ class CheckPlatformOperatorController @Inject()(
             ))
           }
         },
-        answer => if(answer) {
-            Future.successful(Redirect(routes.ReportingPeriodController.onPageLoad(NormalMode, operatorId))) // TODO: Update when other pages exist
-          } else {
-            Future.successful(Redirect(appConfig.updateOperatorUrl(operatorId)))
-        }
+        answer =>
+          for {
+            updatedAnswers <- Future.fromTry(request.userAnswers.set(checkPlatformOperatorPage, answer))
+            _              <- sessionRepository.set(updatedAnswers)
+          } yield Redirect(checkPlatformOperatorPage.nextPage(NormalMode, updatedAnswers))
       )
   }
   

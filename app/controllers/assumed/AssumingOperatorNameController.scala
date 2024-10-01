@@ -25,7 +25,7 @@ import models.Mode
 import pages.assumed.AssumingOperatorNamePage
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
-import queries.BusinessNameQuery
+import queries.PlatformOperatorSummaryQuery
 import repositories.SessionRepository
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import views.html.assumed.AssumingOperatorNameView
@@ -46,27 +46,27 @@ class AssumingOperatorNameController @Inject()(
 
 
   def onPageLoad(mode: Mode, operatorId: String): Action[AnyContent] = (identify andThen getData(operatorId) andThen requireData) { implicit request =>
-    getAnswer(BusinessNameQuery) { businessName =>
+    getAnswer(PlatformOperatorSummaryQuery) { operator =>
 
-      val form = formProvider(businessName)
+      val form = formProvider(operator.operatorName)
 
       val preparedForm = request.userAnswers.get(AssumingOperatorNamePage) match {
         case None => form
         case Some(value) => form.fill(value)
       }
 
-      Ok(view(preparedForm, mode, operatorId, businessName))
+      Ok(view(preparedForm, mode, operator))
     }
   }
 
   def onSubmit(mode: Mode, operatorId: String): Action[AnyContent] = (identify andThen getData(operatorId) andThen requireData).async { implicit request =>
-    getAnswerAsync(BusinessNameQuery) { businessName =>
+    getAnswerAsync(PlatformOperatorSummaryQuery) { operator =>
 
-      val form = formProvider(businessName)
+      val form = formProvider(operator.operatorName)
 
       form.bindFromRequest().fold(
         formWithErrors =>
-          Future.successful(BadRequest(view(formWithErrors, mode, operatorId, businessName))),
+          Future.successful(BadRequest(view(formWithErrors, mode, operator))),
 
         value =>
           for {

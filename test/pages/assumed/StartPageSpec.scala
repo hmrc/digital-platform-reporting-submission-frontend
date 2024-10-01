@@ -17,16 +17,19 @@
 package pages.assumed
 
 import controllers.assumed.routes
-import controllers.routes as baseRoutes
-import models.UserAnswers
-import play.api.mvc.Call
-import queries.PlatformOperatorSummaryQuery
+import models.{NormalMode, UserAnswers}
+import org.scalatest.freespec.AnyFreeSpec
+import org.scalatest.matchers.must.Matchers
 
-case object SelectPlatformOperatorPage extends AssumedReportingPage {
+class StartPageSpec extends AnyFreeSpec with Matchers {
 
-  override protected def nextPageNormalMode(answers: UserAnswers): Call =
-    answers.get(PlatformOperatorSummaryQuery).map {
-      case operator if operator.hasReportingNotifications => routes.StartController.onPageLoad(operator.operatorId)
-      case operator                                       => routes.ReportingNotificationRequiredController.onPageLoad(operator.operatorId)
-    }.getOrElse(baseRoutes.JourneyRecoveryController.onPageLoad())
+  ".nextPage" - {
+
+    val emptyAnswers = UserAnswers("userId", "operatorId")
+    
+    "must go to Check Platform Operator" in {
+
+      StartPage.nextPage(NormalMode, emptyAnswers) mustEqual routes.CheckPlatformOperatorController.onPageLoad("operatorId")
+    }
+  }
 }
