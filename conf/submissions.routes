@@ -1,5 +1,5 @@
-GET         /start-page                                  controllers.submission.StartController.onPageLoad()
-POST        /start-page                                  controllers.submission.StartController.onSubmit()
+GET         /:operatorId/start-page                                  controllers.submission.StartController.onPageLoad(operatorId: String)
+POST        /:operatorId/start-page                                  controllers.submission.StartController.onSubmit(operatorId: String)
 
 GET         /upload/:submissionId                        controllers.submission.UploadController.onPageLoad(submissionId: String)
 GET         /uploading-redirect/:submissionId            controllers.submission.UploadingController.onRedirect(submissionId: String)

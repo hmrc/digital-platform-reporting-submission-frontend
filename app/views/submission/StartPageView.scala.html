@@ -20,7 +20,7 @@
         formHelper: FormWithCSRF
 )
 
-@()(implicit request: Request[_], messages: Messages)
+@(operatorId: String)(implicit request: Request[_], messages: Messages)
 
 @layout(pageTitle = titleNoForm(messages("startPage.title"))) {
 
@@ -38,7 +38,7 @@
 
   <p class="govuk-body">@messages("startPage.p4")</p>
 
-  @formHelper(action = controllers.submission.routes.StartController.onSubmit(), Symbol("autoComplete") -> "off") {
+  @formHelper(action = controllers.submission.routes.StartController.onSubmit(operatorId), Symbol("autoComplete") -> "off") {
     @govukButton(
       ButtonViewModel(messages("startPage.startSubmission"))
     )

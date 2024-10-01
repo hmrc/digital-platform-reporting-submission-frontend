@@ -16,29 +16,50 @@
 
 package controllers.submission
 
-import connectors.SubmissionConnector
+import connectors.PlatformOperatorConnector.PlatformOperatorNotFoundFailure
+import connectors.{PlatformOperatorConnector, SubmissionConnector}
 import controllers.actions.*
+import models.UserAnswers
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
+import queries.PlatformOperatorSummaryQuery
+import repositories.SessionRepository
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
+import viewmodels.PlatformOperatorSummary
 import views.html.submission.StartPageView
 
 import javax.inject.Inject
-import scala.concurrent.ExecutionContext
+import scala.concurrent.{ExecutionContext, Future}
 
 class StartController @Inject()(
                                  override val messagesApi: MessagesApi,
                                  identify: IdentifierAction,
                                  val controllerComponents: MessagesControllerComponents,
                                  view: StartPageView,
-                                 submissionConnector: SubmissionConnector
+                                 submissionConnector: SubmissionConnector,
+                                 platformOperatorConnector: PlatformOperatorConnector,
+                                 sessionRepository: SessionRepository,
+                                 getData: DataRetrievalActionProvider,
+                                 requireData: DataRequiredAction,
                                )(using ExecutionContext) extends FrontendBaseController with I18nSupport {
 
-  def onPageLoad: Action[AnyContent] = identify { implicit request =>
-    Ok(view())
+  def onPageLoad(operatorId: String): Action[AnyContent] = (identify andThen getData(operatorId)).async { implicit request =>
+    request.userAnswers
+      .map(_ => Future.successful(Ok(view(operatorId))))
+      .getOrElse {
+        platformOperatorConnector.viewPlatformOperator(operatorId).flatMap { operator =>
+          val summary = PlatformOperatorSummary(operator)
+          for {
+            answers  <- Future.fromTry(UserAnswers(request.userId, operatorId).set(PlatformOperatorSummaryQuery, summary))
+            _        <- sessionRepository.set(answers)
+          } yield Ok(view(operatorId))
+        }.recover {
+          case PlatformOperatorNotFoundFailure => Redirect(controllers.routes.JourneyRecoveryController.onPageLoad()) // TODO change this when the choose PO pages exist
+        }
+      }
   }
 
-  def onSubmit: Action[AnyContent] = identify.async { implicit request =>
+  def onSubmit(operatorId: String): Action[AnyContent] = (identify andThen getData(operatorId) andThen requireData).async { implicit request =>
     submissionConnector.start(None).map { submission =>
       Redirect(routes.UploadController.onPageLoad(submission._id))
     }
