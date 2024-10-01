@@ -16,10 +16,10 @@
 
 package connectors
 
-import com.github.tomakehurst.wiremock.client.WireMock._
-import connectors.PlatformOperatorConnector._
+import com.github.tomakehurst.wiremock.client.WireMock.*
+import connectors.PlatformOperatorConnector.*
 import models.operator.{AddressDetails, ContactDetails}
-import models.operator.responses._
+import models.operator.responses.*
 import org.scalatest.{BeforeAndAfterEach, EitherValues}
 import org.scalatest.concurrent.{IntegrationPatience, ScalaFutures}
 import org.scalatest.freespec.AnyFreeSpec
@@ -134,6 +134,20 @@ class PlatformOperatorConnectorSpec extends AnyFreeSpec
 
       val result = connector.viewPlatformOperator("operatorId").futureValue
       result mustEqual serverResponse
+    }
+
+    "must return a PO Not Found failure when the server returns Not Found" in {
+
+      wireMockServer.stubFor(
+        get(urlPathEqualTo("/digital-platform-reporting/platform-operator/operatorId"))
+          .withHeader("Authorization", equalTo("authToken"))
+          .willReturn(
+            notFound()
+          )
+      )
+
+      val result = connector.viewPlatformOperator("operatorId").failed.futureValue
+      result mustBe a[PlatformOperatorNotFoundFailure.type]
     }
 
     "must return a failed future when the server returns an error" in {

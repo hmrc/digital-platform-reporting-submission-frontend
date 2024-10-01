@@ -16,27 +16,48 @@
 
 package controllers.assumed
 
+import connectors.PlatformOperatorConnector
+import connectors.PlatformOperatorConnector.PlatformOperatorNotFoundFailure
 import controllers.actions.{DataRequiredAction, DataRetrievalActionProvider, IdentifierAction}
-import models.NormalMode
+import models.{NormalMode, UserAnswers}
 import pages.assumed.StartPage
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
+import queries.PlatformOperatorSummaryQuery
+import repositories.SessionRepository
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
+import viewmodels.PlatformOperatorSummary
 import views.html.assumed.StartView
 
 import javax.inject.Inject
+import scala.concurrent.{ExecutionContext, Future}
 
 class StartController @Inject()(
                                  override val messagesApi: MessagesApi,
                                  identify: IdentifierAction,
                                  getData: DataRetrievalActionProvider,
                                  requireData: DataRequiredAction,
+                                 sessionRepository: SessionRepository,
+                                 connector: PlatformOperatorConnector,
                                  val controllerComponents: MessagesControllerComponents,
                                  view: StartView
-                               ) extends FrontendBaseController with I18nSupport {
+                               )(implicit ec: ExecutionContext) extends FrontendBaseController with I18nSupport {
 
-  def onPageLoad(operatorId: String): Action[AnyContent] = (identify andThen getData(operatorId) andThen requireData) { implicit request =>
-    Ok(view(operatorId))
+  def onPageLoad(operatorId: String): Action[AnyContent] = (identify andThen getData(operatorId)).async { implicit request =>
+    request.userAnswers
+      .map(_ => Future.successful(Ok(view(operatorId))))
+      .getOrElse {
+        connector.viewPlatformOperator(operatorId).flatMap { operator =>
+          val summary = PlatformOperatorSummary(operator)
+
+          for {
+            answers  <- Future.fromTry(UserAnswers(request.userId, operatorId).set(PlatformOperatorSummaryQuery, summary))
+            _        <- sessionRepository.set(answers)
+          } yield Ok(view(operatorId))
+        }.recover {
+          case PlatformOperatorNotFoundFailure => Redirect(routes.SelectPlatformOperatorController.onPageLoad)
+        }
+      }
   }
 
   def onSubmit(operatorId: String): Action[AnyContent] = (identify andThen getData(operatorId) andThen requireData) { implicit request =>

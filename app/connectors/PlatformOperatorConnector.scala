@@ -17,7 +17,7 @@
 package connectors
 
 import config.Service
-import connectors.PlatformOperatorConnector.ViewPlatformOperatorFailure
+import connectors.PlatformOperatorConnector.{PlatformOperatorNotFoundFailure, ViewPlatformOperatorFailure}
 import models.operator.responses.{PlatformOperator, ViewPlatformOperatorsResponse}
 import play.api.Configuration
 import play.api.http.Status.{NOT_FOUND, OK}
@@ -51,8 +51,9 @@ class PlatformOperatorConnector @Inject() (
       .execute[HttpResponse]
       .flatMap { response =>
         response.status match {
-          case OK     => Future.successful(response.json.as[PlatformOperator])
-          case status => Future.failed(ViewPlatformOperatorFailure(status))
+          case OK        => Future.successful(response.json.as[PlatformOperator])
+          case NOT_FOUND => Future.failed(PlatformOperatorNotFoundFailure)
+          case status    => Future.failed(ViewPlatformOperatorFailure(status))
         }
       }
 }
@@ -61,5 +62,9 @@ object PlatformOperatorConnector {
 
   final case class ViewPlatformOperatorFailure(status: Int) extends Throwable {
     override def getMessage: String = s"View platform operator failed with status: $status"
+  }
+
+  case object PlatformOperatorNotFoundFailure extends Throwable {
+    override def getMessage: String = s"View platform operator returned Not Found"
   }
 }
