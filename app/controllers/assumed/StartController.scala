@@ -17,6 +17,7 @@
 package controllers.assumed
 
 import connectors.PlatformOperatorConnector
+import connectors.PlatformOperatorConnector.PlatformOperatorNotFoundFailure
 import controllers.actions.{DataRequiredAction, DataRetrievalActionProvider, IdentifierAction}
 import models.{NormalMode, UserAnswers}
 import pages.assumed.StartPage
@@ -46,12 +47,16 @@ class StartController @Inject()(
     request.userAnswers
       .map(_ => Future.successful(Ok(view(operatorId))))
       .getOrElse {
-        for {
-          operator <- connector.viewPlatformOperator(operatorId)
-          summary  = PlatformOperatorSummary(operator)
-          answers  <- Future.fromTry(UserAnswers(request.userId, operatorId).set(PlatformOperatorSummaryQuery, summary))
-          _        <- sessionRepository.set(answers)
-        } yield Ok(view(operatorId))
+        connector.viewPlatformOperator(operatorId).flatMap { operator =>
+          val summary = PlatformOperatorSummary(operator)
+
+          for {
+            answers  <- Future.fromTry(UserAnswers(request.userId, operatorId).set(PlatformOperatorSummaryQuery, summary))
+            _        <- sessionRepository.set(answers)
+          } yield Ok(view(operatorId))
+        }.recover {
+          case PlatformOperatorNotFoundFailure => Redirect(routes.SelectPlatformOperatorController.onPageLoad)
+        }
       }
   }
 

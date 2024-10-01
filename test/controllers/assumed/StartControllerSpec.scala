@@ -18,6 +18,7 @@ package controllers.assumed
 
 import base.SpecBase
 import connectors.PlatformOperatorConnector
+import connectors.PlatformOperatorConnector.PlatformOperatorNotFoundFailure
 import models.operator.responses.PlatformOperator
 import models.operator.{AddressDetails, ContactDetails}
 import models.{NormalMode, UserAnswers}
@@ -116,6 +117,24 @@ class StartControllerSpec extends SpecBase with MockitoSugar with BeforeAndAfter
 
         val answers = answersCaptor.getValue
         answers.get(PlatformOperatorSummaryQuery).value mustEqual expectedSummary
+      }
+    }
+
+    "must redirect to Select Platform Operator when user answers do not exist and the platform operator cannot be found" in {
+
+      when(mockConnector.viewPlatformOperator(any())(any())).thenReturn(Future.failed(PlatformOperatorNotFoundFailure))
+
+      val application =
+        applicationBuilder(userAnswers = None)
+          .overrides(bind[PlatformOperatorConnector].toInstance(mockConnector))
+          .build()
+
+      running(application) {
+        val request = FakeRequest(GET, routes.StartController.onPageLoad(operatorId).url)
+
+        val result = route(application, request).value
+        status(result) mustEqual SEE_OTHER
+        redirectLocation(result).value mustEqual routes.SelectPlatformOperatorController.onPageLoad.url
       }
     }
 
