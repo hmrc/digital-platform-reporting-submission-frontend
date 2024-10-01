@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package controllers
+package controllers.submission
 
 import base.SpecBase
 import connectors.SubmissionConnector
@@ -26,11 +26,11 @@ import org.mockito.Mockito
 import org.mockito.Mockito.{never, verify, when}
 import org.scalatest.BeforeAndAfterEach
 import org.scalatestplus.mockito.MockitoSugar
+import play.api.inject.bind
 import play.api.test.FakeRequest
 import play.api.test.Helpers.*
-import play.api.inject.bind
 import uk.gov.hmrc.http.StringContextOps
-import views.html.SendFileView
+import views.html.submission.SendFileView
 
 import java.time.Instant
 import scala.concurrent.Future
@@ -106,7 +106,7 @@ class SendFileControllerSpec extends SpecBase with MockitoSugar with BeforeAndAf
             val result = route(application, request).value
 
             status(result) mustEqual SEE_OTHER
-            redirectLocation(result).value mustEqual routes.JourneyRecoveryController.onPageLoad().url
+            redirectLocation(result).value mustEqual controllers.routes.JourneyRecoveryController.onPageLoad().url
           }
         }
 
@@ -363,7 +363,7 @@ class SendFileControllerSpec extends SpecBase with MockitoSugar with BeforeAndAf
             val result = route(application, request).value
 
             status(result) mustEqual SEE_OTHER
-            redirectLocation(result).value mustEqual routes.JourneyRecoveryController.onPageLoad().url
+            redirectLocation(result).value mustEqual controllers.routes.JourneyRecoveryController.onPageLoad().url
           }
 
           verify(mockSubmissionConnector, never()).submit(eqTo("id"))(using any())

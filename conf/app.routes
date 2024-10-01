@@ -1,13 +1,10 @@
 # microservice specific routes
 
-->          /assumed-reporting                           assumed.Routes
-->          /submission/hmrc-frontend                               hmrcfrontend.Routes
-
 GET         /submission/                                            controllers.IndexController.onPageLoad()
 
 GET         /submission/assets/*file                                controllers.Assets.versioned(path="/public", file: Asset)
 
-GET         /language/:lang                              controllers.LanguageSwitchController.switchToLanguage(lang: String)
+GET         /language/:lang                                         controllers.LanguageSwitchController.switchToLanguage(lang: String)
 
 GET         /submission/refresh-session                             controllers.KeepAliveController.keepAlive()
 
@@ -19,16 +16,7 @@ GET         /submission/account/signed-out                          controllers.
 
 GET         /submission/unauthorised                                controllers.UnauthorisedController.onPageLoad()
 
-GET         /submission/start-page                                  controllers.StartController.onPageLoad()
-POST        /submission/start-page                                  controllers.StartController.onSubmit()
 
-GET         /submission/upload/:submissionId                        controllers.UploadController.onPageLoad(submissionId: String)
-GET         /submission/uploading-redirect/:submissionId            controllers.UploadingController.onRedirect(submissionId: String)
-GET         /submission/uploading/:submissionId                     controllers.UploadingController.onPageLoad(submissionId: String)
-GET         /submission/upload-failed/:submissionId                 controllers.UploadFailedController.onPageLoad(submissionId: String)
-GET         /submission/upload-failed-redirect/:submissionId        controllers.UploadFailedController.onRedirect(submissionId: String, errorCode: Option[String] ?= None)
-GET         /submission/send-file/:submissionId                     controllers.SendFileController.onPageLoad(submissionId: String)
-POST        /submission/send-file/:submissionId                     controllers.SendFileController.onSubmit(submissionId: String)
-GET         /submission/check-file/:submissionId                    controllers.CheckFileController.onPageLoad(submissionId: String)
-GET         /submission/confirmation/:submissionId                  controllers.SubmissionConfirmationController.onPageLoad(submissionId: String)
-GET         /submission/file-errors/:submissionId                   controllers.FileErrorsController.onPageLoad(submissionId: String)
+->          /submission/hmrc-frontend                               hmrcfrontend.Routes
+->          /submission                                             submissions.Routes
+->          /assumed-reporting                                      assumed.Routes

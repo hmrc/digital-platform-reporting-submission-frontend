@@ -14,21 +14,21 @@
  * limitations under the License.
  */
 
-package controllers
+package controllers.submission
 
 import base.SpecBase
 import connectors.SubmissionConnector
 import models.submission.Submission
 import models.submission.Submission.State.Ready
-import org.mockito.ArgumentMatchers.{any, eq => eqTo}
+import org.mockito.ArgumentMatchers.{any, eq as eqTo}
 import org.mockito.Mockito
 import org.mockito.Mockito.{verify, when}
 import org.scalatest.BeforeAndAfterEach
 import org.scalatestplus.mockito.MockitoSugar
+import play.api.inject.bind
 import play.api.test.FakeRequest
 import play.api.test.Helpers.*
-import play.api.inject.bind
-import views.html.StartPageView
+import views.html.submission.StartPageView
 
 import java.time.Instant
 import scala.concurrent.Future

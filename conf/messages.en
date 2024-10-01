@@ -83,8 +83,8 @@ checkFile.heading = checkFile
 submissionConfirmation.title = submissionConfirmation
 submissionConfirmation.heading = submissionConfirmation
 
-fileErrors.title = submissionConfirmation
-fileErrors.heading = submissionConfirmation
+fileErrors.title = fileErrors
+fileErrors.heading = fileErrors
 
 chrn.title = What is the platform operator’s HMRC Charity Reference (CHRN)?
 chrn.heading = What is {0}’s HMRC Charity Reference (CHRN)?

@@ -14,28 +14,27 @@
  * limitations under the License.
  */
 
-package controllers
+package controllers.submission
 
 import base.SpecBase
 import connectors.SubmissionConnector
 import models.submission.Submission
 import models.submission.Submission.State.{Approved, Ready, Rejected, Submitted, UploadFailed, Uploading, Validated}
-import org.apache.pekko.Done
 import org.mockito.ArgumentMatchers.{any, eq as eqTo}
 import org.mockito.Mockito
-import org.mockito.Mockito.{never, verify, when}
+import org.mockito.Mockito.{verify, when}
 import org.scalatest.BeforeAndAfterEach
 import org.scalatestplus.mockito.MockitoSugar
 import play.api.inject.bind
 import play.api.test.FakeRequest
 import play.api.test.Helpers.*
 import uk.gov.hmrc.http.StringContextOps
-import views.html.{CheckFileView, SendFileView}
+import views.html.submission.FileErrorsView
 
 import java.time.Instant
 import scala.concurrent.Future
 
-class CheckFileControllerSpec extends SpecBase with MockitoSugar with BeforeAndAfterEach {
+class FileErrorsControllerSpec extends SpecBase with MockitoSugar with BeforeAndAfterEach {
 
   private val mockSubmissionConnector: SubmissionConnector = mock[SubmissionConnector]
 
@@ -46,11 +45,11 @@ class CheckFileControllerSpec extends SpecBase with MockitoSugar with BeforeAndA
     Mockito.reset(mockSubmissionConnector)
   }
 
-  "CheckFile Controller" - {
+  "FileErrors Controller" - {
 
     "onPageLoad" - {
 
-      "when there is a submission in a submitted state for the given id" - {
+      "when there is a submission in a rejected state for the given id" - {
 
         "must return OK and the correct view for a GET" in {
 
@@ -63,7 +62,7 @@ class CheckFileControllerSpec extends SpecBase with MockitoSugar with BeforeAndA
           val submission = Submission(
             _id = "id",
             dprsId = "dprsId",
-            state = Submitted,
+            state = Rejected,
             created = now,
             updated = now
           )
@@ -71,9 +70,9 @@ class CheckFileControllerSpec extends SpecBase with MockitoSugar with BeforeAndA
           when(mockSubmissionConnector.get(any())(using any())).thenReturn(Future.successful(Some(submission)))
 
           running(application) {
-            val request = FakeRequest(routes.CheckFileController.onPageLoad("id"))
+            val request = FakeRequest(routes.FileErrorsController.onPageLoad("id"))
             val result = route(application, request).value
-            val view = application.injector.instanceOf[CheckFileView]
+            val view = application.injector.instanceOf[FileErrorsView]
 
             status(result) mustEqual OK
             contentAsString(result) mustEqual view()(request, messages(application)).toString
@@ -96,11 +95,11 @@ class CheckFileControllerSpec extends SpecBase with MockitoSugar with BeforeAndA
           when(mockSubmissionConnector.get(any())(using any())).thenReturn(Future.successful(None))
 
           running(application) {
-            val request = FakeRequest(routes.CheckFileController.onPageLoad("id"))
+            val request = FakeRequest(routes.FileErrorsController.onPageLoad("id"))
             val result = route(application, request).value
 
             status(result) mustEqual SEE_OTHER
-            redirectLocation(result).value mustEqual routes.JourneyRecoveryController.onPageLoad().url
+            redirectLocation(result).value mustEqual controllers.routes.JourneyRecoveryController.onPageLoad().url
           }
         }
 
@@ -125,7 +124,7 @@ class CheckFileControllerSpec extends SpecBase with MockitoSugar with BeforeAndA
             when(mockSubmissionConnector.get(any())(using any())).thenReturn(Future.successful(Some(submission)))
 
             running(application) {
-              val request = FakeRequest(routes.CheckFileController.onPageLoad("id"))
+              val request = FakeRequest(routes.FileErrorsController.onPageLoad("id"))
               val result = route(application, request).value
 
               status(result) mustEqual SEE_OTHER
@@ -157,7 +156,7 @@ class CheckFileControllerSpec extends SpecBase with MockitoSugar with BeforeAndA
             when(mockSubmissionConnector.get(any())(using any())).thenReturn(Future.successful(Some(submission)))
 
             running(application) {
-              val request = FakeRequest(routes.CheckFileController.onPageLoad("id"))
+              val request = FakeRequest(routes.FileErrorsController.onPageLoad("id"))
               val result = route(application, request).value
 
               status(result) mustEqual SEE_OTHER
@@ -189,7 +188,7 @@ class CheckFileControllerSpec extends SpecBase with MockitoSugar with BeforeAndA
             when(mockSubmissionConnector.get(any())(using any())).thenReturn(Future.successful(Some(submission)))
 
             running(application) {
-              val request = FakeRequest(routes.CheckFileController.onPageLoad("id"))
+              val request = FakeRequest(routes.FileErrorsController.onPageLoad("id"))
               val result = route(application, request).value
 
               status(result) mustEqual SEE_OTHER
@@ -227,7 +226,7 @@ class CheckFileControllerSpec extends SpecBase with MockitoSugar with BeforeAndA
             when(mockSubmissionConnector.get(any())(using any())).thenReturn(Future.successful(Some(submission)))
 
             running(application) {
-              val request = FakeRequest(routes.CheckFileController.onPageLoad("id"))
+              val request = FakeRequest(routes.FileErrorsController.onPageLoad("id"))
               val result = route(application, request).value
 
               status(result) mustEqual SEE_OTHER
@@ -238,9 +237,41 @@ class CheckFileControllerSpec extends SpecBase with MockitoSugar with BeforeAndA
           }
         }
 
-        "when the submission is in an approved state" - {
+        "when the submission is in an submitted state" - {
 
-          "must redirect to the file passed page" in {
+          "must redirect to the check file page" in {
+
+            val application = applicationBuilder(userAnswers = Some(emptyUserAnswers))
+              .overrides(
+                bind[SubmissionConnector].toInstance(mockSubmissionConnector)
+              )
+              .build()
+
+            val submission = Submission(
+              _id = "id",
+              dprsId = "dprsId",
+              state = Submitted,
+              created = now,
+              updated = now
+            )
+
+            when(mockSubmissionConnector.get(any())(using any())).thenReturn(Future.successful(Some(submission)))
+
+            running(application) {
+              val request = FakeRequest(routes.FileErrorsController.onPageLoad("id"))
+              val result = route(application, request).value
+
+              status(result) mustEqual SEE_OTHER
+              redirectLocation(result).value mustEqual routes.CheckFileController.onPageLoad("id").url
+            }
+
+            verify(mockSubmissionConnector).get(eqTo("id"))(using any())
+          }
+        }
+
+        "when the submission is in a approved state" - {
+
+          "must redirect to the file success page" in {
 
             val application = applicationBuilder(userAnswers = Some(emptyUserAnswers))
               .overrides(
@@ -259,43 +290,11 @@ class CheckFileControllerSpec extends SpecBase with MockitoSugar with BeforeAndA
             when(mockSubmissionConnector.get(any())(using any())).thenReturn(Future.successful(Some(submission)))
 
             running(application) {
-              val request = FakeRequest(routes.CheckFileController.onPageLoad("id"))
+              val request = FakeRequest(routes.FileErrorsController.onPageLoad("id"))
               val result = route(application, request).value
 
               status(result) mustEqual SEE_OTHER
               redirectLocation(result).value mustEqual routes.SubmissionConfirmationController.onPageLoad("id").url
-            }
-
-            verify(mockSubmissionConnector).get(eqTo("id"))(using any())
-          }
-        }
-
-        "when the submission is in a rejected state" - {
-
-          "must redirect to the file failed page" in {
-
-            val application = applicationBuilder(userAnswers = Some(emptyUserAnswers))
-              .overrides(
-                bind[SubmissionConnector].toInstance(mockSubmissionConnector)
-              )
-              .build()
-
-            val submission = Submission(
-              _id = "id",
-              dprsId = "dprsId",
-              state = Rejected,
-              created = now,
-              updated = now
-            )
-
-            when(mockSubmissionConnector.get(any())(using any())).thenReturn(Future.successful(Some(submission)))
-
-            running(application) {
-              val request = FakeRequest(routes.CheckFileController.onPageLoad("id"))
-              val result = route(application, request).value
-
-              status(result) mustEqual SEE_OTHER
-              redirectLocation(result).value mustEqual routes.FileErrorsController.onPageLoad("id").url
             }
 
             verify(mockSubmissionConnector).get(eqTo("id"))(using any())

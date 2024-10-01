@@ -14,58 +14,57 @@
  * limitations under the License.
  */
 
-package controllers
+package controllers.submission
 
 import connectors.SubmissionConnector
 import controllers.actions.*
 import models.submission.Submission
-import models.submission.Submission.State.*
-import play.api.Configuration
-
-import javax.inject.Inject
+import models.submission.Submission.State.{Approved, Ready, Rejected, Submitted, UploadFailed, Uploading, Validated}
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents, Result}
+import services.UpscanService
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
-import views.html.UploadingView
+import views.html.submission.UploadFailedView
 
+import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
-class UploadingController @Inject()(
-                                     override val messagesApi: MessagesApi,
-                                     identify: IdentifierAction,
-                                     val controllerComponents: MessagesControllerComponents,
-                                     view: UploadingView,
-                                     submissionConnector: SubmissionConnector,
-                                     configuration: Configuration
-                                   )(using ExecutionContext) extends FrontendBaseController with I18nSupport {
-
-  private val refreshRate: String = configuration.get[Int]("uploading-refresh").toString
+class UploadFailedController @Inject()(
+                                       override val messagesApi: MessagesApi,
+                                       identify: IdentifierAction,
+                                       val controllerComponents: MessagesControllerComponents,
+                                       view: UploadFailedView,
+                                       submissionConnector: SubmissionConnector,
+                                       upscanService: UpscanService
+                                     )(using ExecutionContext) extends FrontendBaseController with I18nSupport {
 
   def onPageLoad(submissionId: String): Action[AnyContent] = identify.async {
     implicit request =>
       submissionConnector.get(submissionId).flatMap {
         _.map { submission =>
           handleSubmission(submission) {
-            case Uploading =>
-              Future.successful(Ok(view()).withHeaders("Refresh" -> refreshRate))
+            case UploadFailed(error) =>
+              upscanService.initiate(request.dprsId, submissionId).map { uploadRequest =>
+                Ok(view(uploadRequest, error))
+              }
           }
         }.getOrElse {
-          Future.successful(Redirect(routes.JourneyRecoveryController.onPageLoad()))
+          Future.successful(Redirect(controllers.routes.JourneyRecoveryController.onPageLoad()))
         }
       }
   }
 
-  def onRedirect(submissionId: String): Action[AnyContent] = identify.async { implicit request =>
+  def onRedirect(submissionId: String, errorCode: Option[String]): Action[AnyContent] = identify.async { implicit request =>
     submissionConnector.get(submissionId).flatMap {
       _.map { submission =>
         handleSubmission(submission) {
-          case Ready | _: UploadFailed =>
-            submissionConnector.startUpload(submissionId).map { _ =>
-              Redirect(routes.UploadingController.onPageLoad(submissionId))
+          case Ready | Uploading | _: UploadFailed =>
+            submissionConnector.uploadFailed(request.dprsId, submissionId, errorCode.getOrElse("Unknown")).map { _ =>
+              Redirect(routes.UploadFailedController.onPageLoad(submissionId))
             }
         }
       }.getOrElse {
-        Future.successful(Redirect(routes.JourneyRecoveryController.onPageLoad()))
+        Future.successful(Redirect(controllers.routes.JourneyRecoveryController.onPageLoad()))
       }
     }
   }
@@ -89,7 +88,7 @@ class UploadingController @Inject()(
         case Rejected =>
           routes.FileErrorsController.onPageLoad(submission._id)
         case _ =>
-          routes.JourneyRecoveryController.onPageLoad()
+          controllers.routes.JourneyRecoveryController.onPageLoad()
       }
 
       Future.successful(Redirect(redirectLocation))

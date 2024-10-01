@@ -20,27 +20,15 @@
         formHelper: FormWithCSRF
 )
 
-@()(implicit request: Request[_], messages: Messages)
+@(submissionId: String)(implicit request: Request[_], messages: Messages)
 
-@layout(pageTitle = titleNoForm(messages("startPage.title"))) {
+@layout(pageTitle = titleNoForm(messages("sendFile.title"))) {
 
-  <h1 class="govuk-heading-xl">@messages("startPage.heading")</h1>
+  <h1 class="govuk-heading-xl">@messages("sendFile.heading")</h1>
 
-  <p class="govuk-body">@messages("startPage.p1")</p>
-
-  <p class="govuk-body">
-    @messages("startPage.p2.1")
-    <a href="#" class="govuk-link" target="_blank" rel="noreferrer noopener">@messages("startPage.p2.link")</a>
-    @messages("startPage.p2.2")
-  </p>
-
-  <p class="govuk-body">@messages("startPage.p3")</p>
-
-  <p class="govuk-body">@messages("startPage.p4")</p>
-
-  @formHelper(action = routes.StartController.onSubmit(), Symbol("autoComplete") -> "off") {
+  @formHelper(action = controllers.submission.routes.SendFileController.onSubmit(submissionId), Symbol("autoComplete") -> "off") {
     @govukButton(
-      ButtonViewModel(messages("startPage.startSubmission"))
+      ButtonViewModel(messages("sendFile.confirmAndSend"))
     )
   }
 }

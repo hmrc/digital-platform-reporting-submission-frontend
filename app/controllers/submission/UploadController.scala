@@ -14,60 +14,44 @@
  * limitations under the License.
  */
 
-package controllers
+package controllers.submission
 
 import connectors.SubmissionConnector
 import controllers.actions.*
 import models.submission.Submission
 import models.submission.Submission.State.{Approved, Ready, Rejected, Submitted, UploadFailed, Uploading, Validated}
-
-import javax.inject.Inject
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents, Result}
 import services.UpscanService
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
-import views.html.UploadFailedView
+import views.html.submission.UploadView
 
+import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
-class UploadFailedController @Inject()(
-                                       override val messagesApi: MessagesApi,
-                                       identify: IdentifierAction,
-                                       val controllerComponents: MessagesControllerComponents,
-                                       view: UploadFailedView,
-                                       submissionConnector: SubmissionConnector,
-                                       upscanService: UpscanService
-                                     )(using ExecutionContext) extends FrontendBaseController with I18nSupport {
+class UploadController @Inject()(
+                                  override val messagesApi: MessagesApi,
+                                  identify: IdentifierAction,
+                                  val controllerComponents: MessagesControllerComponents,
+                                  view: UploadView,
+                                  submissionConnector: SubmissionConnector,
+                                  upscanService: UpscanService
+                                )(using ExecutionContext) extends FrontendBaseController with I18nSupport {
 
   def onPageLoad(submissionId: String): Action[AnyContent] = identify.async {
     implicit request =>
       submissionConnector.get(submissionId).flatMap {
         _.map { submission =>
           handleSubmission(submission) {
-            case UploadFailed(error) =>
+            case Ready =>
               upscanService.initiate(request.dprsId, submissionId).map { uploadRequest =>
-                Ok(view(uploadRequest, error))
+                Ok(view(uploadRequest))
               }
           }
         }.getOrElse {
-          Future.successful(Redirect(routes.JourneyRecoveryController.onPageLoad()))
+          Future.successful(Redirect(controllers.routes.JourneyRecoveryController.onPageLoad()))
         }
       }
-  }
-
-  def onRedirect(submissionId: String, errorCode: Option[String]): Action[AnyContent] = identify.async { implicit request =>
-    submissionConnector.get(submissionId).flatMap {
-      _.map { submission =>
-        handleSubmission(submission) {
-          case Ready | Uploading | _: UploadFailed =>
-            submissionConnector.uploadFailed(request.dprsId, submissionId, errorCode.getOrElse("Unknown")).map { _ =>
-              Redirect(routes.UploadFailedController.onPageLoad(submissionId))
-            }
-        }
-      }.getOrElse {
-        Future.successful(Redirect(routes.JourneyRecoveryController.onPageLoad()))
-      }
-    }
   }
 
   private def handleSubmission(submission: Submission)(f: PartialFunction[Submission.State, Future[Result]]): Future[Result] =
@@ -89,7 +73,7 @@ class UploadFailedController @Inject()(
         case Rejected =>
           routes.FileErrorsController.onPageLoad(submission._id)
         case _ =>
-          routes.JourneyRecoveryController.onPageLoad()
+          controllers.routes.JourneyRecoveryController.onPageLoad()
       }
 
       Future.successful(Redirect(redirectLocation))
