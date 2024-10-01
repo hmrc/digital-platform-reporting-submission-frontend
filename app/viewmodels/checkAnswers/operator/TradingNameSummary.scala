@@ -14,21 +14,22 @@
  * limitations under the License.
  */
 
-package pages.assumed
+package viewmodels.checkAnswers.operator
 
-import models.{CheckMode, Mode, NormalMode, UserAnswers}
-import play.api.mvc.Call
+import models.operator.responses.PlatformOperator
+import play.api.i18n.Messages
+import uk.gov.hmrc.govukfrontend.views.viewmodels.summarylist.SummaryListRow
+import viewmodels.govuk.summarylist.*
+import viewmodels.implicits.*
 
-trait AssumedReportingPage {
+object TradingNameSummary {
 
-  final def nextPage(mode: Mode, answers: UserAnswers): Call =
-    mode match {
-      case NormalMode => nextPageNormalMode(answers)
-      case CheckMode => nextPageCheckMode(answers)
+  def row(operator: PlatformOperator)(implicit messages: Messages): Option[SummaryListRow] =
+    operator.tradingName.map { tradingName =>
+      SummaryListRowViewModel(
+        key = "tradingName.checkYourAnswersLabel",
+        value = ValueViewModel(tradingName),
+        actions = Nil
+      )
     }
-    
-  protected def nextPageNormalMode(answers: UserAnswers): Call
-  
-  protected def nextPageCheckMode(answers: UserAnswers): Call =
-    controllers.assumed.routes.CheckYourAnswersController.onPageLoad(answers.operatorId)
 }

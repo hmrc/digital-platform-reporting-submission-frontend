@@ -18,18 +18,28 @@ package pages.assumed
 
 import controllers.assumed.routes
 import models.{NormalMode, UserAnswers}
+import org.scalatest.{OptionValues, TryValues}
 import org.scalatest.freespec.AnyFreeSpec
 import org.scalatest.matchers.must.Matchers
+import queries.PlatformOperatorSummaryQuery
+import viewmodels.PlatformOperatorSummary
 
-class SelectPlatformOperatorPageSpec extends AnyFreeSpec with Matchers {
+class SelectPlatformOperatorPageSpec extends AnyFreeSpec with Matchers with TryValues with OptionValues {
 
   ".nextPage" - {
     
     val emptyAnswers = UserAnswers("userId", "operatorId")
-    
-    "must go to Reporting Period" in {
-      
-      SelectPlatformOperatorPage.nextPage(NormalMode, emptyAnswers) mustEqual routes.ReportingPeriodController.onPageLoad(NormalMode, "operatorId")
+
+    "must go to Start when there are notifications for this operator" in {
+
+      val answers = emptyAnswers.set(PlatformOperatorSummaryQuery, PlatformOperatorSummary("operatorId", "operatorName", true)).success.value
+      SelectPlatformOperatorPage.nextPage(NormalMode, answers) mustEqual routes.StartController.onPageLoad("operatorId")
+    }
+
+    "must go to Reporting Notification required when there are no notifications for this operator" in {
+
+      val answers = emptyAnswers.set(PlatformOperatorSummaryQuery, PlatformOperatorSummary("operatorId", "operatorName", false)).success.value
+      SelectPlatformOperatorPage.nextPage(NormalMode, answers) mustEqual routes.ReportingNotificationRequiredController.onPageLoad("operatorId")
     }
   }
 }

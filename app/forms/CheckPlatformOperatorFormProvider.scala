@@ -14,21 +14,17 @@
  * limitations under the License.
  */
 
-package pages.assumed
+package forms
 
-import models.{CheckMode, Mode, NormalMode, UserAnswers}
-import play.api.mvc.Call
+import forms.mappings.Mappings
+import play.api.data.Form
 
-trait AssumedReportingPage {
+import javax.inject.Inject
 
-  final def nextPage(mode: Mode, answers: UserAnswers): Call =
-    mode match {
-      case NormalMode => nextPageNormalMode(answers)
-      case CheckMode => nextPageCheckMode(answers)
-    }
-    
-  protected def nextPageNormalMode(answers: UserAnswers): Call
-  
-  protected def nextPageCheckMode(answers: UserAnswers): Call =
-    controllers.assumed.routes.CheckYourAnswersController.onPageLoad(answers.operatorId)
+class CheckPlatformOperatorFormProvider @Inject() extends Mappings {
+
+  def apply(): Form[Boolean] =
+    Form(
+      "value" -> boolean("checkPlatformOperator.error.required")
+    )
 }

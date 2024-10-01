@@ -23,11 +23,11 @@ import forms.SelectPlatformOperatorFormProvider
 import models.{NormalMode, UserAnswers}
 import pages.assumed.SelectPlatformOperatorPage
 import play.api.i18n.{I18nSupport, MessagesApi}
-import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
-import queries.BusinessNameQuery
+import play.api.mvc.*
+import queries.PlatformOperatorSummaryQuery
 import repositories.SessionRepository
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
-import viewmodels.PlatformOperatorViewModel
+import viewmodels.PlatformOperatorSummary
 import views.html.assumed.{SelectPlatformOperatorSingleChoiceView, SelectPlatformOperatorView}
 
 import javax.inject.Inject
@@ -46,7 +46,7 @@ class SelectPlatformOperatorController @Inject()(
 
   def onPageLoad: Action[AnyContent] = identify.async { implicit request =>
     connector.viewPlatformOperators.map { operatorInfo =>
-      val operators = operatorInfo.platformOperators.map(PlatformOperatorViewModel(_))
+      val operators = operatorInfo.platformOperators.map(PlatformOperatorSummary(_))
       val form = formProvider(operators.map(_.operatorId).toSet)
 
       operators.size match {
@@ -59,7 +59,7 @@ class SelectPlatformOperatorController @Inject()(
 
   def onSubmit: Action[AnyContent] = identify.async { implicit request =>
     connector.viewPlatformOperators.flatMap { operatorInfo =>
-      val operators = operatorInfo.platformOperators.map(PlatformOperatorViewModel(_))
+      val operators = operatorInfo.platformOperators.map(PlatformOperatorSummary(_))
       val form = formProvider(operators.map(_.operatorId).toSet)
 
       form.bindFromRequest().fold(
@@ -71,9 +71,9 @@ class SelectPlatformOperatorController @Inject()(
           }
         },
         operatorId =>
-          operatorInfo.platformOperators.find(_.operatorId == operatorId).map { operator =>
+          operators.find(_.operatorId == operatorId).map { operator =>
             for {
-              answers <- Future.fromTry(UserAnswers(request.userId, operator.operatorId).set(BusinessNameQuery, operator.operatorName))
+              answers <- Future.fromTry(UserAnswers(request.userId, operator.operatorId).set(PlatformOperatorSummaryQuery, operator))
               _       <- sessionRepository.set(answers)
             } yield Redirect(SelectPlatformOperatorPage.nextPage(NormalMode, answers))
           }.getOrElse {

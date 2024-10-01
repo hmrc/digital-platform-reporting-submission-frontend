@@ -14,21 +14,12 @@
  * limitations under the License.
  */
 
-package pages.assumed
+package queries
 
-import models.{CheckMode, Mode, NormalMode, UserAnswers}
-import play.api.mvc.Call
+import play.api.libs.json.JsPath
+import viewmodels.PlatformOperatorSummary
 
-trait AssumedReportingPage {
+case object PlatformOperatorSummaryQuery extends Gettable[PlatformOperatorSummary] with Settable[PlatformOperatorSummary] {
 
-  final def nextPage(mode: Mode, answers: UserAnswers): Call =
-    mode match {
-      case NormalMode => nextPageNormalMode(answers)
-      case CheckMode => nextPageCheckMode(answers)
-    }
-    
-  protected def nextPageNormalMode(answers: UserAnswers): Call
-  
-  protected def nextPageCheckMode(answers: UserAnswers): Call =
-    controllers.assumed.routes.CheckYourAnswersController.onPageLoad(answers.operatorId)
+  override def path: JsPath = JsPath \ "platformOperatorSummary"
 }

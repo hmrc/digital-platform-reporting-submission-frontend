@@ -106,4 +106,51 @@ class PlatformOperatorConnectorSpec extends AnyFreeSpec
       failure.status mustEqual INTERNAL_SERVER_ERROR
     }
   }
+
+  ".viewPlatformOperator" - {
+
+    "must return a platform operator's details when the server returns OK" in {
+
+      val serverResponse =
+        PlatformOperator(
+          operatorId = "operatorId",
+          operatorName = "operatorName",
+          tinDetails = Seq.empty,
+          businessName = None,
+          tradingName = None,
+          primaryContactDetails = ContactDetails(None, "primaryContactName", "primaryEmail"),
+          secondaryContactDetails = None,
+          addressDetails = AddressDetails("line1", None, None, None, Some("postCode"), None),
+          notifications = Seq.empty
+        )
+
+      wireMockServer.stubFor(
+        get(urlPathEqualTo("/digital-platform-reporting/platform-operator/operatorId"))
+          .withHeader("Authorization", equalTo("authToken"))
+          .willReturn(
+            ok(Json.toJson(serverResponse).toString)
+          )
+      )
+
+      val result = connector.viewPlatformOperator("operatorId").futureValue
+      result mustEqual serverResponse
+    }
+
+    "must return a failed future when the server returns an error" in {
+
+      wireMockServer.stubFor(
+        get(urlPathEqualTo("/digital-platform-reporting/platform-operator/operatorId"))
+          .withHeader("Authorization", equalTo("authToken"))
+          .willReturn(
+            serverError()
+          )
+      )
+
+      val result = connector.viewPlatformOperator("operatorId").failed.futureValue
+      result mustBe a[ViewPlatformOperatorFailure]
+
+      val failure = result.asInstanceOf[ViewPlatformOperatorFailure]
+      failure.status mustEqual 500
+    }
+  }
 }

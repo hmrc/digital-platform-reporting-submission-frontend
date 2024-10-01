@@ -19,8 +19,8 @@ package controllers.assumed
 import base.SpecBase
 import connectors.PlatformOperatorConnector
 import forms.SelectPlatformOperatorFormProvider
-import models.operator.responses.{PlatformOperator, ViewPlatformOperatorsResponse}
-import models.operator.{AddressDetails, ContactDetails}
+import models.operator.responses.{NotificationDetails, PlatformOperator, ViewPlatformOperatorsResponse}
+import models.operator.{AddressDetails, ContactDetails, NotificationType}
 import models.{NormalMode, UserAnswers}
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.{times, verify, when}
@@ -31,11 +31,12 @@ import pages.assumed.SelectPlatformOperatorPage
 import play.api.inject.bind
 import play.api.test.FakeRequest
 import play.api.test.Helpers.*
-import queries.BusinessNameQuery
+import queries.PlatformOperatorSummaryQuery
 import repositories.SessionRepository
-import viewmodels.PlatformOperatorViewModel
+import viewmodels.PlatformOperatorSummary
 import views.html.assumed.{SelectPlatformOperatorSingleChoiceView, SelectPlatformOperatorView}
 
+import java.time.Instant
 import scala.concurrent.Future
 
 class SelectPlatformOperatorControllerSpec extends SpecBase with MockitoSugar with BeforeAndAfterEach {
@@ -72,6 +73,7 @@ class SelectPlatformOperatorControllerSpec extends SpecBase with MockitoSugar wi
     addressDetails = AddressDetails("line 1", None, None, None, None, None),
     notifications = Nil
   )
+
   private val formProvider = new SelectPlatformOperatorFormProvider()
 
   "Select Platform Operator Controller" - {
@@ -122,8 +124,8 @@ class SelectPlatformOperatorControllerSpec extends SpecBase with MockitoSugar wi
 
           val view = application.injector.instanceOf[SelectPlatformOperatorView]
           val expectedViewModels = Seq(
-            PlatformOperatorViewModel("operatorId", "operatorName1", false),
-            PlatformOperatorViewModel("operatorId2", "operatorName2", false)
+            PlatformOperatorSummary("operatorId", "operatorName1", false),
+            PlatformOperatorSummary("operatorId2", "operatorName2", false)
           )
 
           status(result) mustEqual OK
@@ -134,7 +136,7 @@ class SelectPlatformOperatorControllerSpec extends SpecBase with MockitoSugar wi
       }
     }
 
-    "must save the platform operator name and redirect to the next page when valid data is submitted" in {
+    "must save the platform operator summary and redirect to the next page when valid data is submitted" in {
 
       val viewOperatorInfo = ViewPlatformOperatorsResponse(Seq(operator1))
       val mockSessionRepository = mock[SessionRepository]
@@ -156,15 +158,17 @@ class SelectPlatformOperatorControllerSpec extends SpecBase with MockitoSugar wi
             .withFormUrlEncodedBody(("value", "operatorId"))
 
         val result = route(application, request).value
+        val expectedOperatorSummary = PlatformOperatorSummary(operator1)
+        val expectedAnswers = emptyUserAnswers.set(PlatformOperatorSummaryQuery, expectedOperatorSummary).success.value
         val answersCaptor: ArgumentCaptor[UserAnswers] = ArgumentCaptor.forClass(classOf[UserAnswers])
 
         status(result) mustEqual SEE_OTHER
-        redirectLocation(result).value mustEqual SelectPlatformOperatorPage.nextPage(NormalMode, emptyUserAnswers).url
+        redirectLocation(result).value mustEqual SelectPlatformOperatorPage.nextPage(NormalMode, expectedAnswers).url
         verify(mockSessionRepository, times(1)).set(answersCaptor.capture())
 
         val answers = answersCaptor.getValue
         answers.operatorId mustEqual "operatorId"
-        answers.get(BusinessNameQuery).value mustEqual "operatorName1"
+        answers.get(PlatformOperatorSummaryQuery).value mustEqual expectedOperatorSummary
       }
     }
 
@@ -188,8 +192,8 @@ class SelectPlatformOperatorControllerSpec extends SpecBase with MockitoSugar wi
 
         val view = application.injector.instanceOf[SelectPlatformOperatorView]
         val viewModels = Seq(
-          PlatformOperatorViewModel("operatorId", "operatorName1", false),
-          PlatformOperatorViewModel("operatorId2", "operatorName2", false)
+          PlatformOperatorSummary("operatorId", "operatorName1", false),
+          PlatformOperatorSummary("operatorId2", "operatorName2", false)
         )
 
         val result = route(application, request).value

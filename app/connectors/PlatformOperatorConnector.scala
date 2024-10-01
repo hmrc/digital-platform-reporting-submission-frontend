@@ -18,7 +18,7 @@ package connectors
 
 import config.Service
 import connectors.PlatformOperatorConnector.ViewPlatformOperatorFailure
-import models.operator.responses.ViewPlatformOperatorsResponse
+import models.operator.responses.{PlatformOperator, ViewPlatformOperatorsResponse}
 import play.api.Configuration
 import play.api.http.Status.{NOT_FOUND, OK}
 import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse, StringContextOps}
@@ -43,6 +43,16 @@ class PlatformOperatorConnector @Inject() (
           case OK        => Future.successful(response.json.as[ViewPlatformOperatorsResponse])
           case NOT_FOUND => Future.successful(ViewPlatformOperatorsResponse(Seq.empty))
           case status    => Future.failed(ViewPlatformOperatorFailure(status))
+        }
+      }
+
+  def viewPlatformOperator(operatorId: String)(implicit hc: HeaderCarrier): Future[PlatformOperator] =
+    httpClient.get(url"$digitalPlatformReporting/digital-platform-reporting/platform-operator/$operatorId")
+      .execute[HttpResponse]
+      .flatMap { response =>
+        response.status match {
+          case OK     => Future.successful(response.json.as[PlatformOperator])
+          case status => Future.failed(ViewPlatformOperatorFailure(status))
         }
       }
 }

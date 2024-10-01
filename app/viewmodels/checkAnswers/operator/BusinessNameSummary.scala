@@ -14,11 +14,20 @@
  * limitations under the License.
  */
 
-package queries
+package viewmodels.checkAnswers.operator
 
-import play.api.libs.json.JsPath
+import models.operator.responses.PlatformOperator
+import play.api.i18n.Messages
+import uk.gov.hmrc.govukfrontend.views.viewmodels.summarylist.SummaryListRow
+import viewmodels.govuk.summarylist.*
+import viewmodels.implicits.*
 
-case object BusinessNameQuery extends Gettable[String] with Settable[String] {
-
-  override def path: JsPath = JsPath \ "businessName"
+object BusinessNameSummary {
+  
+  def row(operator: PlatformOperator)(implicit messages: Messages): Option[SummaryListRow] =
+    Some(SummaryListRowViewModel(
+      key     = "businessName.checkYourAnswersLabel",
+      value   = ValueViewModel(operator.operatorName),
+      actions = Nil
+    ))
 }

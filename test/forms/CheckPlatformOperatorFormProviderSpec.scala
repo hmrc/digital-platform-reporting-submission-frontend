@@ -14,22 +14,32 @@
  * limitations under the License.
  */
 
-package viewmodels
+package forms
 
-import models.operator.responses.PlatformOperator
+import forms.behaviours.BooleanFieldBehaviours
+import play.api.data.FormError
 
-final case class PlatformOperatorViewModel(
-                                            operatorId: String,
-                                            operatorName: String,
-                                            hasReportingNotifications: Boolean
-                                          )
+class CheckPlatformOperatorFormProviderSpec extends BooleanFieldBehaviours {
 
-object PlatformOperatorViewModel {
+  val requiredKey = "checkPlatformOperator.error.required"
+  val invalidKey = "error.boolean"
 
-  def apply(operator: PlatformOperator): PlatformOperatorViewModel =
-    PlatformOperatorViewModel(
-      operator.operatorId,
-      operator.operatorName,
-      operator.notifications.nonEmpty
+  val form = new CheckPlatformOperatorFormProvider()()
+
+  ".value" - {
+
+    val fieldName = "value"
+
+    behave like booleanField(
+      form,
+      fieldName,
+      invalidError = FormError(fieldName, invalidKey)
     )
+
+    behave like mandatoryField(
+      form,
+      fieldName,
+      requiredError = FormError(fieldName, requiredKey)
+    )
+  }
 }
