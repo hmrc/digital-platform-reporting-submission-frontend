@@ -310,3 +310,20 @@ assumed.start.startSubmission = Start submission
 
 reportingNotificationRequired.title = You must add a reporting notification before making an assumed report
 reportingNotificationRequired.heading = You must add a reporting notification for {0} before making an assumed report
+
+checkReportingNotifications.title.single = Check the reporting notification for this platform operator
+checkReportingNotifications.title.plural = Check the reporting notifications for this platform operator
+checkReportingNotifications.heading.single = Check the reporting notification for {0}
+checkReportingNotifications.heading.plural = Check the reporting notifications for {0}
+checkReportingNotifications.legend = Is this information correct?
+checkReportingNotifications.error.required = Select yes if this information is correct
+viewNotifications.dateAdded = Date added
+viewNotifications.notificationType = Reporting notification
+viewNotifications.reportingPeriod = Reporting period
+viewNotifications.dueDiligence = Due diligence
+viewNotifications.notificationType.RPO = RPO
+viewNotifications.notificationType.EPO = EPO
+viewNotifications.dueDiligence.extendedDueDiligence = Extended
+viewNotifications.dueDiligence.activeSellerDueDiligence = Active seller
+viewNotifications.dueDiligence.noDueDiligence = No
+viewNotifications.dueDiligence.notApplicable = N/A
