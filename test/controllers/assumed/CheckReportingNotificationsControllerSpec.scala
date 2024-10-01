@@ -57,7 +57,7 @@ class CheckReportingNotificationsControllerSpec extends SpecBase with SummaryLis
 
   "Check Reporting Notifications Controller" - {
 
-    "must return OK and the correct view for a GET" in {
+    "must return OK and the correct view for a GET when there is at least one notification for this PO" in {
 
       val notification = NotificationDetails(NotificationType.Epo, None, None, 2024, Instant.now)
       val operator = PlatformOperator(
@@ -88,6 +88,37 @@ class CheckReportingNotificationsControllerSpec extends SpecBase with SummaryLis
 
         status(result) mustEqual OK
         contentAsString(result) mustEqual view(form, Seq(notification), "operatorId", "operatorName")(request, messages(application)).toString
+      }
+    }
+
+    "must redirect to Reporting Notification Required for a GET when there are no notifications for this PO" in {
+
+      val operator = PlatformOperator(
+        operatorId = "operatorId",
+        operatorName = "operatorName",
+        tinDetails = Nil,
+        businessName = None,
+        tradingName = None,
+        primaryContactDetails = ContactDetails(None, "name", "email"),
+        secondaryContactDetails = None,
+        addressDetails = AddressDetails("line 1", None, None, None, None, Some("GB")),
+        notifications = Nil
+      )
+
+      when(mockConnector.viewPlatformOperator(any())(any())).thenReturn(Future.successful(operator))
+
+      val application =
+        applicationBuilder(userAnswers = Some(baseAnswers))
+          .overrides(bind[PlatformOperatorConnector].toInstance(mockConnector))
+          .build()
+
+      running(application) {
+        val request = FakeRequest(GET, routes.CheckReportingNotificationsController.onPageLoad(operatorId).url)
+
+        val result = route(application, request).value
+
+        status(result) mustEqual SEE_OTHER
+        redirectLocation(result).value mustEqual routes.ReportingNotificationRequiredController.onPageLoad(operatorId).url
       }
     }
 

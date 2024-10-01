@@ -47,9 +47,13 @@ class CheckReportingNotificationsController @Inject()(
     implicit request =>
       connector.viewPlatformOperator(operatorId).map { operator =>
 
-        val form = formProvider()
+        if (operator.notifications.isEmpty) {
+          Redirect(routes.ReportingNotificationRequiredController.onPageLoad(operatorId))
+        } else {
+          val form = formProvider()
 
-        Ok(view(form, operator.notifications, operatorId, operator.operatorName))
+          Ok(view(form, operator.notifications, operatorId, operator.operatorName))
+        }
       }
   }
 
