@@ -31,16 +31,18 @@ import scala.concurrent.{ExecutionContext, Future}
 class FileErrorsController @Inject()(
                                       override val messagesApi: MessagesApi,
                                       identify: IdentifierAction,
+                                      getData: DataRetrievalActionProvider,
+                                      requireData: DataRequiredAction,
                                       val controllerComponents: MessagesControllerComponents,
                                       view: FileErrorsView,
                                       submissionConnector: SubmissionConnector
                                     )(using ExecutionContext) extends FrontendBaseController with I18nSupport {
 
-  def onPageLoad(submissionId: String): Action[AnyContent] = identify.async {
+  def onPageLoad(operatorId: String, submissionId: String): Action[AnyContent] = (identify andThen getData(operatorId) andThen requireData).async {
     implicit request =>
       submissionConnector.get(submissionId).flatMap {
         _.map { submission =>
-          handleSubmission(submission) { case Rejected =>
+          handleSubmission(operatorId, submission) { case Rejected =>
             Future.successful(Ok(view()))
           }
         }.getOrElse {
@@ -49,24 +51,24 @@ class FileErrorsController @Inject()(
       }
   }
 
-  private def handleSubmission(submission: Submission)(f: PartialFunction[Submission.State, Future[Result]]): Future[Result] =
+  private def handleSubmission(operatorId: String, submission: Submission)(f: PartialFunction[Submission.State, Future[Result]]): Future[Result] =
     f.lift(submission.state).getOrElse {
 
       val redirectLocation = submission.state match {
         case Ready =>
-          routes.UploadController.onPageLoad(submission._id)
+          routes.UploadController.onPageLoad(operatorId, submission._id)
         case Uploading =>
-          routes.UploadingController.onPageLoad(submission._id)
+          routes.UploadingController.onPageLoad(operatorId, submission._id)
         case _: UploadFailed =>
-          routes.UploadFailedController.onPageLoad(submission._id)
+          routes.UploadFailedController.onPageLoad(operatorId, submission._id)
         case _: Validated =>
-          routes.SendFileController.onPageLoad(submission._id)
+          routes.SendFileController.onPageLoad(operatorId, submission._id)
         case Submitted =>
-          routes.CheckFileController.onPageLoad(submission._id)
+          routes.CheckFileController.onPageLoad(operatorId, submission._id)
         case Approved =>
-          routes.SubmissionConfirmationController.onPageLoad(submission._id)
+          routes.SubmissionConfirmationController.onPageLoad(operatorId, submission._id)
         case Rejected =>
-          routes.FileErrorsController.onPageLoad(submission._id)
+          routes.FileErrorsController.onPageLoad(operatorId, submission._id)
         case _ =>
           controllers.routes.JourneyRecoveryController.onPageLoad()
       }

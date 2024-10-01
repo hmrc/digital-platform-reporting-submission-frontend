@@ -180,7 +180,7 @@ class StartControllerSpec extends SpecBase with MockitoSugar with BeforeAndAfter
           val result = route(application, request).value
 
           status(result) mustEqual SEE_OTHER
-          redirectLocation(result).value mustEqual routes.UploadController.onPageLoad(submissionId).url
+          redirectLocation(result).value mustEqual routes.UploadController.onPageLoad(operatorId, submissionId).url
         }
 
         verify(mockSubmissionConnector).start(eqTo(None))(using any())

@@ -64,6 +64,7 @@ class UpscanServiceSpec extends AnyFreeSpec with Matchers with ScalaFutures with
 
   private val service = app.injector.instanceOf[UpscanService]
   private val hc: HeaderCarrier = HeaderCarrier()
+  private val operatorId: String = "operatorId"
 
   "initiate" - {
 
@@ -75,8 +76,8 @@ class UpscanServiceSpec extends AnyFreeSpec with Matchers with ScalaFutures with
 
       val expectedRequest = UpscanInitiateRequest(
         callbackUrl = "http://localhost:20007/internal/upscan/callback",
-        successRedirect = "http://example.com/digital-platform-reporting/submission/uploading-redirect/submissionId",
-        errorRedirect = "http://example.com/digital-platform-reporting/submission/upload-failed-redirect/submissionId",
+        successRedirect = "http://example.com/digital-platform-reporting/submission/operatorId/submissionId/uploading-redirect",
+        errorRedirect = "http://example.com/digital-platform-reporting/submission/operatorId/submissionId/upload-failed-redirect",
         minimumFileSize = 1,
         maximumFileSize = 1000000L
       )
@@ -94,7 +95,7 @@ class UpscanServiceSpec extends AnyFreeSpec with Matchers with ScalaFutures with
       when(mockUpscanInitiateConnector.initiate(any())(using any())).thenReturn(Future.successful(response))
       when(mockUpscanJourneyRepository.initiate(any(), any(), any())).thenReturn(Future.successful(Done))
 
-      val result = service.initiate(dprsId, submissionId)(using hc).futureValue
+      val result = service.initiate(operatorId, dprsId, submissionId)(using hc).futureValue
       result mustEqual expectedUploadRequest
 
       verify(mockUpscanInitiateConnector).initiate(eqTo(expectedRequest))(using any())
@@ -108,7 +109,7 @@ class UpscanServiceSpec extends AnyFreeSpec with Matchers with ScalaFutures with
 
       when(mockUpscanInitiateConnector.initiate(any())(using any())).thenReturn(Future.failed(new RuntimeException()))
 
-      service.initiate(dprsId, submissionId)(using hc).failed.futureValue
+      service.initiate(operatorId, dprsId, submissionId)(using hc).failed.futureValue
 
       verify(mockUpscanJourneyRepository, never()).initiate(any(), any(), any())
     }
@@ -132,7 +133,7 @@ class UpscanServiceSpec extends AnyFreeSpec with Matchers with ScalaFutures with
       when(mockUpscanInitiateConnector.initiate(any())(using any())).thenReturn(Future.successful(response))
       when(mockUpscanJourneyRepository.initiate(any(), any(), any())).thenReturn(Future.failed(new RuntimeException()))
 
-      service.initiate(dprsId, submissionId)(using hc).failed.futureValue
+      service.initiate(operatorId, dprsId, submissionId)(using hc).failed.futureValue
     }
   }
 }

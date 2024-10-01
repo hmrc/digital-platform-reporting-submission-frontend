@@ -77,12 +77,12 @@ class SendFileControllerSpec extends SpecBase with MockitoSugar with BeforeAndAf
           when(mockSubmissionConnector.get(any())(using any())).thenReturn(Future.successful(Some(submission)))
 
           running(application) {
-            val request = FakeRequest(GET, routes.SendFileController.onPageLoad("id").url)
+            val request = FakeRequest(GET, routes.SendFileController.onPageLoad(operatorId, "id").url)
             val result = route(application, request).value
             val view = application.injector.instanceOf[SendFileView]
 
             status(result) mustEqual OK
-            contentAsString(result) mustEqual view("id")(request, messages(application)).toString
+            contentAsString(result) mustEqual view(operatorId, "id")(request, messages(application)).toString
           }
 
           verify(mockSubmissionConnector).get(eqTo("id"))(using any())
@@ -102,7 +102,7 @@ class SendFileControllerSpec extends SpecBase with MockitoSugar with BeforeAndAf
           when(mockSubmissionConnector.get(any())(using any())).thenReturn(Future.successful(None))
 
           running(application) {
-            val request = FakeRequest(GET, routes.SendFileController.onPageLoad("id").url)
+            val request = FakeRequest(GET, routes.SendFileController.onPageLoad(operatorId, "id").url)
             val result = route(application, request).value
 
             status(result) mustEqual SEE_OTHER
@@ -131,11 +131,11 @@ class SendFileControllerSpec extends SpecBase with MockitoSugar with BeforeAndAf
             when(mockSubmissionConnector.get(any())(using any())).thenReturn(Future.successful(Some(submission)))
 
             running(application) {
-              val request = FakeRequest(GET, routes.SendFileController.onPageLoad("id").url)
+              val request = FakeRequest(GET, routes.SendFileController.onPageLoad(operatorId, "id").url)
               val result = route(application, request).value
 
               status(result) mustEqual SEE_OTHER
-              redirectLocation(result).value mustEqual routes.UploadController.onPageLoad("id").url
+              redirectLocation(result).value mustEqual routes.UploadController.onPageLoad(operatorId, "id").url
             }
 
             verify(mockSubmissionConnector).get(eqTo("id"))(using any())
@@ -163,11 +163,11 @@ class SendFileControllerSpec extends SpecBase with MockitoSugar with BeforeAndAf
             when(mockSubmissionConnector.get(any())(using any())).thenReturn(Future.successful(Some(submission)))
 
             running(application) {
-              val request = FakeRequest(GET, routes.SendFileController.onPageLoad("id").url)
+              val request = FakeRequest(GET, routes.SendFileController.onPageLoad(operatorId, "id").url)
               val result = route(application, request).value
 
               status(result) mustEqual SEE_OTHER
-              redirectLocation(result).value mustEqual routes.UploadingController.onPageLoad("id").url
+              redirectLocation(result).value mustEqual routes.UploadingController.onPageLoad(operatorId, "id").url
             }
 
             verify(mockSubmissionConnector).get(eqTo("id"))(using any())
@@ -195,11 +195,11 @@ class SendFileControllerSpec extends SpecBase with MockitoSugar with BeforeAndAf
             when(mockSubmissionConnector.get(any())(using any())).thenReturn(Future.successful(Some(submission)))
 
             running(application) {
-              val request = FakeRequest(GET, routes.SendFileController.onPageLoad("id").url)
+              val request = FakeRequest(GET, routes.SendFileController.onPageLoad(operatorId, "id").url)
               val result = route(application, request).value
 
               status(result) mustEqual SEE_OTHER
-              redirectLocation(result).value mustEqual routes.UploadFailedController.onPageLoad("id").url
+              redirectLocation(result).value mustEqual routes.UploadFailedController.onPageLoad(operatorId, "id").url
             }
 
             verify(mockSubmissionConnector).get(eqTo("id"))(using any())
@@ -227,11 +227,11 @@ class SendFileControllerSpec extends SpecBase with MockitoSugar with BeforeAndAf
             when(mockSubmissionConnector.get(any())(using any())).thenReturn(Future.successful(Some(submission)))
 
             running(application) {
-              val request = FakeRequest(GET, routes.SendFileController.onPageLoad("id").url)
+              val request = FakeRequest(GET, routes.SendFileController.onPageLoad(operatorId, "id").url)
               val result = route(application, request).value
 
               status(result) mustEqual SEE_OTHER
-              redirectLocation(result).value mustEqual routes.CheckFileController.onPageLoad("id").url
+              redirectLocation(result).value mustEqual routes.CheckFileController.onPageLoad(operatorId, "id").url
             }
 
             verify(mockSubmissionConnector).get(eqTo("id"))(using any())
@@ -259,11 +259,11 @@ class SendFileControllerSpec extends SpecBase with MockitoSugar with BeforeAndAf
             when(mockSubmissionConnector.get(any())(using any())).thenReturn(Future.successful(Some(submission)))
 
             running(application) {
-              val request = FakeRequest(GET, routes.SendFileController.onPageLoad("id").url)
+              val request = FakeRequest(GET, routes.SendFileController.onPageLoad(operatorId, "id").url)
               val result = route(application, request).value
 
               status(result) mustEqual SEE_OTHER
-              redirectLocation(result).value mustEqual routes.SubmissionConfirmationController.onPageLoad("id").url
+              redirectLocation(result).value mustEqual routes.SubmissionConfirmationController.onPageLoad(operatorId, "id").url
             }
 
             verify(mockSubmissionConnector).get(eqTo("id"))(using any())
@@ -291,15 +291,37 @@ class SendFileControllerSpec extends SpecBase with MockitoSugar with BeforeAndAf
             when(mockSubmissionConnector.get(any())(using any())).thenReturn(Future.successful(Some(submission)))
 
             running(application) {
-              val request = FakeRequest(GET, routes.SendFileController.onPageLoad("id").url)
+              val request = FakeRequest(GET, routes.SendFileController.onPageLoad(operatorId, "id").url)
               val result = route(application, request).value
 
               status(result) mustEqual SEE_OTHER
-              redirectLocation(result).value mustEqual routes.FileErrorsController.onPageLoad("id").url
+              redirectLocation(result).value mustEqual routes.FileErrorsController.onPageLoad(operatorId, "id").url
             }
 
             verify(mockSubmissionConnector).get(eqTo("id"))(using any())
           }
+        }
+      }
+
+      "when there are no user answers" - {
+
+        "must redirect to Journey Recovery" in {
+
+          val application = applicationBuilder(userAnswers = None)
+            .overrides(
+              bind[SubmissionConnector].toInstance(mockSubmissionConnector)
+            )
+            .build()
+
+          running(application) {
+            val request = FakeRequest(routes.SendFileController.onPageLoad(operatorId, "id"))
+            val result = route(application, request).value
+
+            status(result) mustEqual SEE_OTHER
+            redirectLocation(result).value mustEqual controllers.routes.JourneyRecoveryController.onPageLoad().url
+          }
+
+          verify(mockSubmissionConnector, never()).get(any())(using any())
         }
       }
     }
@@ -334,11 +356,11 @@ class SendFileControllerSpec extends SpecBase with MockitoSugar with BeforeAndAf
           when(mockSubmissionConnector.get(any())(using any())).thenReturn(Future.successful(Some(submission)))
 
           running(application) {
-            val request = FakeRequest(routes.SendFileController.onSubmit(submission._id))
+            val request = FakeRequest(routes.SendFileController.onSubmit(operatorId, submission._id))
             val result = route(application, request).value
 
             status(result) mustEqual SEE_OTHER
-            redirectLocation(result).value mustEqual routes.CheckFileController.onPageLoad(submission._id).url
+            redirectLocation(result).value mustEqual routes.CheckFileController.onPageLoad(operatorId, submission._id).url
           }
 
           verify(mockSubmissionConnector).get(eqTo("id"))(using any())
@@ -359,7 +381,7 @@ class SendFileControllerSpec extends SpecBase with MockitoSugar with BeforeAndAf
           when(mockSubmissionConnector.get(any())(using any())).thenReturn(Future.successful(None))
 
           running(application) {
-            val request = FakeRequest(GET, routes.SendFileController.onPageLoad("id").url)
+            val request = FakeRequest(GET, routes.SendFileController.onPageLoad(operatorId, "id").url)
             val result = route(application, request).value
 
             status(result) mustEqual SEE_OTHER
@@ -391,11 +413,11 @@ class SendFileControllerSpec extends SpecBase with MockitoSugar with BeforeAndAf
             when(mockSubmissionConnector.get(any())(using any())).thenReturn(Future.successful(Some(submission)))
 
             running(application) {
-              val request = FakeRequest(routes.SendFileController.onSubmit(submission._id))
+              val request = FakeRequest(routes.SendFileController.onSubmit(operatorId, submission._id))
               val result = route(application, request).value
 
               status(result) mustEqual SEE_OTHER
-              redirectLocation(result).value mustEqual routes.UploadController.onPageLoad(submission._id).url
+              redirectLocation(result).value mustEqual routes.UploadController.onPageLoad(operatorId, submission._id).url
             }
 
             verify(mockSubmissionConnector).get(eqTo("id"))(using any())
@@ -425,11 +447,11 @@ class SendFileControllerSpec extends SpecBase with MockitoSugar with BeforeAndAf
             when(mockSubmissionConnector.get(any())(using any())).thenReturn(Future.successful(Some(submission)))
 
             running(application) {
-              val request = FakeRequest(routes.SendFileController.onSubmit(submission._id))
+              val request = FakeRequest(routes.SendFileController.onSubmit(operatorId, submission._id))
               val result = route(application, request).value
 
               status(result) mustEqual SEE_OTHER
-              redirectLocation(result).value mustEqual routes.UploadingController.onPageLoad(submission._id).url
+              redirectLocation(result).value mustEqual routes.UploadingController.onPageLoad(operatorId, submission._id).url
             }
 
             verify(mockSubmissionConnector).get(eqTo("id"))(using any())
@@ -459,11 +481,11 @@ class SendFileControllerSpec extends SpecBase with MockitoSugar with BeforeAndAf
             when(mockSubmissionConnector.get(any())(using any())).thenReturn(Future.successful(Some(submission)))
 
             running(application) {
-              val request = FakeRequest(routes.SendFileController.onSubmit(submission._id))
+              val request = FakeRequest(routes.SendFileController.onSubmit(operatorId, submission._id))
               val result = route(application, request).value
 
               status(result) mustEqual SEE_OTHER
-              redirectLocation(result).value mustEqual routes.UploadFailedController.onPageLoad(submission._id).url
+              redirectLocation(result).value mustEqual routes.UploadFailedController.onPageLoad(operatorId, submission._id).url
             }
 
             verify(mockSubmissionConnector).get(eqTo("id"))(using any())
@@ -493,11 +515,11 @@ class SendFileControllerSpec extends SpecBase with MockitoSugar with BeforeAndAf
             when(mockSubmissionConnector.get(any())(using any())).thenReturn(Future.successful(Some(submission)))
 
             running(application) {
-              val request = FakeRequest(routes.SendFileController.onSubmit(submission._id))
+              val request = FakeRequest(routes.SendFileController.onSubmit(operatorId, submission._id))
               val result = route(application, request).value
 
               status(result) mustEqual SEE_OTHER
-              redirectLocation(result).value mustEqual routes.CheckFileController.onPageLoad(submission._id).url
+              redirectLocation(result).value mustEqual routes.CheckFileController.onPageLoad(operatorId, submission._id).url
             }
 
             verify(mockSubmissionConnector).get(eqTo("id"))(using any())
@@ -527,11 +549,11 @@ class SendFileControllerSpec extends SpecBase with MockitoSugar with BeforeAndAf
             when(mockSubmissionConnector.get(any())(using any())).thenReturn(Future.successful(Some(submission)))
 
             running(application) {
-              val request = FakeRequest(routes.SendFileController.onSubmit(submission._id))
+              val request = FakeRequest(routes.SendFileController.onSubmit(operatorId, submission._id))
               val result = route(application, request).value
 
               status(result) mustEqual SEE_OTHER
-              redirectLocation(result).value mustEqual routes.SubmissionConfirmationController.onPageLoad(submission._id).url
+              redirectLocation(result).value mustEqual routes.SubmissionConfirmationController.onPageLoad(operatorId, submission._id).url
             }
 
             verify(mockSubmissionConnector).get(eqTo("id"))(using any())
@@ -561,16 +583,38 @@ class SendFileControllerSpec extends SpecBase with MockitoSugar with BeforeAndAf
             when(mockSubmissionConnector.get(any())(using any())).thenReturn(Future.successful(Some(submission)))
 
             running(application) {
-              val request = FakeRequest(routes.SendFileController.onSubmit(submission._id))
+              val request = FakeRequest(routes.SendFileController.onSubmit(operatorId, submission._id))
               val result = route(application, request).value
 
               status(result) mustEqual SEE_OTHER
-              redirectLocation(result).value mustEqual routes.FileErrorsController.onPageLoad(submission._id).url
+              redirectLocation(result).value mustEqual routes.FileErrorsController.onPageLoad(operatorId, submission._id).url
             }
 
             verify(mockSubmissionConnector).get(eqTo("id"))(using any())
             verify(mockSubmissionConnector, never()).submit(any())(using any())
           }
+        }
+      }
+
+      "when there are no user answers" - {
+
+        "must redirect to Journey Recovery" in {
+
+          val application = applicationBuilder(userAnswers = None)
+            .overrides(
+              bind[SubmissionConnector].toInstance(mockSubmissionConnector)
+            )
+            .build()
+
+          running(application) {
+            val request = FakeRequest(routes.SendFileController.onSubmit(operatorId, "id"))
+            val result = route(application, request).value
+
+            status(result) mustEqual SEE_OTHER
+            redirectLocation(result).value mustEqual controllers.routes.JourneyRecoveryController.onPageLoad().url
+          }
+
+          verify(mockSubmissionConnector, never()).get(any())(using any())
         }
       }
     }

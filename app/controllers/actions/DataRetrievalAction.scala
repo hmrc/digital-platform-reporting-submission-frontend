@@ -29,7 +29,7 @@ class DataRetrievalAction @Inject()(operatorId: String, repository: SessionRepos
   override protected def transform[A](request: IdentifierRequest[A]): Future[OptionalDataRequest[A]] = {
 
     repository.get(request.userId, operatorId).map {
-      OptionalDataRequest(request.request, request.userId, _)
+      OptionalDataRequest(request.request, request.userId, _, request.dprsId)
     }
   }
 }
