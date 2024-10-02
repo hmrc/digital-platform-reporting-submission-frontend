@@ -251,7 +251,7 @@ class SubmissionConfirmationControllerSpec extends SpecBase with MockitoSugar wi
             val submission = Submission(
               _id = "id",
               dprsId = "dprsId",
-              state = Submitted,
+              state = Submitted("test.xml"),
               created = now,
               updated = now
             )

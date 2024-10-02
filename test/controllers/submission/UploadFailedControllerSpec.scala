@@ -241,7 +241,7 @@ class UploadFailedControllerSpec extends SpecBase with MockitoSugar with BeforeA
           val submission = Submission(
             _id = "id",
             dprsId = "dprsId",
-            state = Submitted,
+            state = Submitted("test.xml"),
             created = now,
             updated = now
           )
@@ -500,7 +500,7 @@ class UploadFailedControllerSpec extends SpecBase with MockitoSugar with BeforeA
           val submission = Submission(
             _id = "id",
             dprsId = "dprsId",
-            state = Submitted,
+            state = Submitted("test.xml"),
             created = now,
             updated = now
           )

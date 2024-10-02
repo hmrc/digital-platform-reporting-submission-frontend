@@ -14,14 +14,39 @@
  * limitations under the License.
  *@
 
+@import uk.gov.hmrc.govukfrontend.views.Aliases.SummaryList
+@import uk.gov.hmrc.govukfrontend.views.html.components.GovukSummaryList
+@import config.FrontendAppConfig
+
 @this(
         layout: templates.Layout,
-        govukButton: GovukButton
+        govukButton: GovukButton,
+        govukSummaryList: GovukSummaryList,
+        appConfig: FrontendAppConfig
 )
 
-@()(implicit request: Request[_], messages: Messages)
+@(operatorId: String, submissionId: String, summaryList: SummaryList, operatorName: String)(implicit request: Request[_], messages: Messages)
 
 @layout(pageTitle = titleNoForm(messages("checkFile.title"))) {
 
-    <h1 class="govuk-heading-xl">@messages("checkFile.heading")</h1>
+  <h1 class="govuk-heading-l">@messages("checkFile.heading")</h1>
+
+  @govukSummaryList(summaryList)
+
+  <p class="govuk-body">@messages("checkFile.p1")</p>
+  <p class="govuk-body">@messages("checkFile.p2")</p>
+
+  <div class="govuk-form-group">
+    <p class="govuk-body">
+      <a href="@controllers.submission.routes.SendFileController.onPageLoad(operatorId, submissionId).url" role="button" draggable="false" class="govuk-button" data-module="govuk-button">
+        @messages("checkFile.button")
+      </a>
+    </p>
+    <p class="govuk-body">
+      <a class="govuk-link" href="@controllers.submission.routes.StartController.onPageLoad(operatorId)">@messages("checkFile.anotherSubmission", operatorName)</a>
+    </p>
+    <p class="govuk-body">
+      <a class="govuk-link" href="@appConfig.manageHomepageUrl">@messages("checkFile.return")</a>
+    </p>
+  </div>
 }

@@ -21,7 +21,6 @@ import connectors.SubmissionConnector
 import models.submission.Submission
 import models.submission.Submission.State.{Approved, Ready, Rejected, Submitted, UploadFailed, Uploading, Validated}
 import models.upscan.UpscanInitiateResponse.UploadRequest
-import org.apache.pekko.Done
 import org.mockito.ArgumentMatchers.{any, eq as eqTo}
 import org.mockito.Mockito
 import org.mockito.Mockito.{never, verify, when}
@@ -241,7 +240,7 @@ class UploadControllerSpec extends SpecBase with MockitoSugar with BeforeAndAfte
           val submission = Submission(
             _id = "id",
             dprsId = "dprsId",
-            state = Submitted,
+            state = Submitted("test.xml"),
             created = now,
             updated = now
           )
@@ -536,7 +535,7 @@ class UploadControllerSpec extends SpecBase with MockitoSugar with BeforeAndAfte
           val submission = Submission(
             _id = "id",
             dprsId = "dprsId",
-            state = Submitted,
+            state = Submitted("test.xml"),
             created = now,
             updated = now
           )

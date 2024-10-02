@@ -84,8 +84,14 @@ sendFile.operatorName = Platform Operator name
 sendFile.operatorId = Platform Operator ID
 sendFile.reportingPeriod = Reportable period
 
-checkFile.title = checkFile
-checkFile.heading = checkFile
+checkFile.title = Your file has been successfully sent, but we need more time to check it
+checkFile.heading = Your file has been successfully sent, but we need more time to check it
+checkFile.fileName = File name
+checkFile.p1 = Select "Refresh for updates" to see if the automatic checks have been completed.
+checkFile.p2 = You can leave this page. Once the checks have been completed, the results will be visible on the submission list page.
+checkFile.button = Refresh for updates
+checkFile.anotherSubmission = Make another submission for {0}
+checkFile.return = Return to "Manage your Digital Platform Reporting"
 
 submissionConfirmation.title = submissionConfirmation
 submissionConfirmation.heading = submissionConfirmation

@@ -60,5 +60,6 @@ class FrontendAppConfig @Inject() (configuration: Configuration) {
 
   private val manageFrontendUrl: String = configuration.get[String]("microservice.services.digital-platform-reporting-manage-frontend.baseUrl")
   val updateContactDetailsUrl: String = s"$manageFrontendUrl/contact-details/view-contact-details"
+  val manageHomepageUrl: String = s"$manageFrontendUrl/manage-reporting"
 
 }
