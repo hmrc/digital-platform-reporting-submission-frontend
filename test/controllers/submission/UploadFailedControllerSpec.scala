@@ -35,7 +35,7 @@ import services.UpscanService
 import uk.gov.hmrc.http.StringContextOps
 import views.html.submission.UploadFailedView
 
-import java.time.Instant
+import java.time.{Instant, Year}
 import scala.concurrent.Future
 
 class UploadFailedControllerSpec extends SpecBase with MockitoSugar with BeforeAndAfterEach {
@@ -204,6 +204,7 @@ class UploadFailedControllerSpec extends SpecBase with MockitoSugar with BeforeA
             state = Validated(
               downloadUrl = url"http://example.com/test.xml",
               platformOperatorId = "poid",
+              reportingPeriod = Year.of(2024),
               fileName = "test.xml",
               checksum = "checksum",
               size = 1337L
@@ -240,7 +241,7 @@ class UploadFailedControllerSpec extends SpecBase with MockitoSugar with BeforeA
           val submission = Submission(
             _id = "id",
             dprsId = "dprsId",
-            state = Submitted,
+            state = Submitted("test.xml"),
             created = now,
             updated = now
           )
@@ -461,6 +462,7 @@ class UploadFailedControllerSpec extends SpecBase with MockitoSugar with BeforeA
             state = Validated(
               downloadUrl = url"http://example.com/test.xml",
               platformOperatorId = "poid",
+              reportingPeriod = Year.of(2024),
               fileName = "test.xml",
               checksum = "checksum",
               size = 1337L
@@ -498,7 +500,7 @@ class UploadFailedControllerSpec extends SpecBase with MockitoSugar with BeforeA
           val submission = Submission(
             _id = "id",
             dprsId = "dprsId",
-            state = Submitted,
+            state = Submitted("test.xml"),
             created = now,
             updated = now
           )

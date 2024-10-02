@@ -26,13 +26,18 @@ import org.mockito.Mockito
 import org.mockito.Mockito.{never, verify, when}
 import org.scalatest.BeforeAndAfterEach
 import org.scalatestplus.mockito.MockitoSugar
+import play.api.i18n.Messages
 import play.api.inject.bind
 import play.api.test.FakeRequest
 import play.api.test.Helpers.*
+import queries.PlatformOperatorSummaryQuery
+import uk.gov.hmrc.govukfrontend.views.Aliases.{Key, SummaryList, Text, Value}
+import uk.gov.hmrc.govukfrontend.views.viewmodels.summarylist.{ActionItem, Actions, SummaryListRow}
 import uk.gov.hmrc.http.StringContextOps
+import viewmodels.PlatformOperatorSummary
 import views.html.submission.SendFileView
 
-import java.time.Instant
+import java.time.{Instant, Year}
 import scala.concurrent.Future
 
 class SendFileControllerSpec extends SpecBase with MockitoSugar with BeforeAndAfterEach {
@@ -54,7 +59,12 @@ class SendFileControllerSpec extends SpecBase with MockitoSugar with BeforeAndAf
 
         "must return OK and the correct view for a GET" in {
 
-          val application = applicationBuilder(userAnswers = Some(emptyUserAnswers))
+          val operatorName = "operator"
+
+          val platformOperatorSummary = PlatformOperatorSummary(operatorId, operatorName, true)
+          val answers = emptyUserAnswers.set(PlatformOperatorSummaryQuery, platformOperatorSummary).success.value
+
+          val application = applicationBuilder(userAnswers = Some(answers))
             .overrides(
               bind[SubmissionConnector].toInstance(mockSubmissionConnector)
             )
@@ -66,6 +76,7 @@ class SendFileControllerSpec extends SpecBase with MockitoSugar with BeforeAndAf
             state = Validated(
               downloadUrl = url"http://example.com/test.xml",
               platformOperatorId = "poid",
+              reportingPeriod = Year.of(2024),
               fileName = "test.xml",
               checksum = "checksum",
               size = 1337L
@@ -74,15 +85,44 @@ class SendFileControllerSpec extends SpecBase with MockitoSugar with BeforeAndAf
             updated = now
           )
 
+
           when(mockSubmissionConnector.get(any())(using any())).thenReturn(Future.successful(Some(submission)))
 
           running(application) {
+
+            given Messages = messages(application)
+
+            val expectedSummaryList = SummaryList(
+              rows = Seq(
+                SummaryListRow(
+                  key = Key(content = Text(Messages("sendFile.uploadedFile"))),
+                  value = Value(content = Text("test.xml")),
+                  actions = Some(Actions(items = Seq(
+                    ActionItem(href = routes.UploadController.onRedirect(operatorId, "id").url, content = Text(Messages("site.change")), visuallyHiddenText = Some(Messages("sendFile.uploadedFile.change")))
+                  )))
+                ),
+                SummaryListRow(
+                  key = Key(content = Text(Messages("sendFile.operatorName"))),
+                  value = Value(content = Text(operatorName))
+                ),
+                SummaryListRow(
+                  key = Key(content = Text(Messages("sendFile.operatorId"))),
+                  value = Value(content = Text(operatorId))
+                ),
+                SummaryListRow(
+                  key = Key(content = Text(Messages("sendFile.reportingPeriod"))),
+                  value = Value(content = Text("2024"))
+                )
+              ),
+              classes = "govuk-!-margin-bottom-8"
+            )
+
             val request = FakeRequest(GET, routes.SendFileController.onPageLoad(operatorId, "id").url)
             val result = route(application, request).value
             val view = application.injector.instanceOf[SendFileView]
 
             status(result) mustEqual OK
-            contentAsString(result) mustEqual view(operatorId, "id")(request, messages(application)).toString
+            contentAsString(result) mustEqual view(operatorId, "id", expectedSummaryList)(request, messages(application)).toString
           }
 
           verify(mockSubmissionConnector).get(eqTo("id"))(using any())
@@ -219,7 +259,7 @@ class SendFileControllerSpec extends SpecBase with MockitoSugar with BeforeAndAf
             val submission = Submission(
               _id = "id",
               dprsId = "dprsId",
-              state = Submitted,
+              state = Submitted("test.xml"),
               created = now,
               updated = now
             )
@@ -344,6 +384,7 @@ class SendFileControllerSpec extends SpecBase with MockitoSugar with BeforeAndAf
             state = Validated(
               downloadUrl = url"http://example.com/test.xml",
               platformOperatorId = "poid",
+              reportingPeriod = Year.of(2024),
               fileName = "test.xml",
               checksum = "checksum",
               size = 1337L
@@ -506,7 +547,7 @@ class SendFileControllerSpec extends SpecBase with MockitoSugar with BeforeAndAf
             val submission = Submission(
               _id = "id",
               dprsId = "dprsId",
-              state = Submitted,
+              state = Submitted("test.xml"),
               created = now,
               updated = now
             )

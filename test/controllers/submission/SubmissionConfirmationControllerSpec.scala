@@ -31,7 +31,7 @@ import play.api.test.Helpers.*
 import uk.gov.hmrc.http.StringContextOps
 import views.html.submission.SubmissionConfirmationView
 
-import java.time.Instant
+import java.time.{Instant, Year}
 import scala.concurrent.Future
 
 class SubmissionConfirmationControllerSpec extends SpecBase with MockitoSugar with BeforeAndAfterEach {
@@ -215,6 +215,7 @@ class SubmissionConfirmationControllerSpec extends SpecBase with MockitoSugar wi
               state = Validated(
                 downloadUrl = url"http://example.com/test.xml",
                 platformOperatorId = "poid",
+                reportingPeriod = Year.of(2024),
                 fileName = "test.xml",
                 checksum = "checksum",
                 size = 1337
@@ -250,7 +251,7 @@ class SubmissionConfirmationControllerSpec extends SpecBase with MockitoSugar wi
             val submission = Submission(
               _id = "id",
               dprsId = "dprsId",
-              state = Submitted,
+              state = Submitted("test.xml"),
               created = now,
               updated = now
             )

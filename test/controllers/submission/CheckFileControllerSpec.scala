@@ -25,13 +25,18 @@ import org.mockito.Mockito
 import org.mockito.Mockito.{never, verify, when}
 import org.scalatest.BeforeAndAfterEach
 import org.scalatestplus.mockito.MockitoSugar
+import play.api.i18n.Messages
 import play.api.inject.bind
 import play.api.test.FakeRequest
 import play.api.test.Helpers.*
+import queries.PlatformOperatorSummaryQuery
+import uk.gov.hmrc.govukfrontend.views.Aliases.{Key, SummaryList, SummaryListRow, Value}
+import uk.gov.hmrc.govukfrontend.views.viewmodels.content.Text
 import uk.gov.hmrc.http.StringContextOps
+import viewmodels.PlatformOperatorSummary
 import views.html.submission.CheckFileView
 
-import java.time.Instant
+import java.time.{Instant, Year}
 import scala.concurrent.Future
 
 class CheckFileControllerSpec extends SpecBase with MockitoSugar with BeforeAndAfterEach {
@@ -53,7 +58,12 @@ class CheckFileControllerSpec extends SpecBase with MockitoSugar with BeforeAndA
 
         "must return OK and the correct view for a GET" in {
 
-          val application = applicationBuilder(userAnswers = Some(emptyUserAnswers))
+          val operatorName = "operator"
+
+          val platformOperatorSummary = PlatformOperatorSummary(operatorId, operatorName, true)
+          val answers = emptyUserAnswers.set(PlatformOperatorSummaryQuery, platformOperatorSummary).success.value
+
+          val application = applicationBuilder(userAnswers = Some(answers))
             .overrides(
               bind[SubmissionConnector].toInstance(mockSubmissionConnector)
             )
@@ -62,7 +72,7 @@ class CheckFileControllerSpec extends SpecBase with MockitoSugar with BeforeAndA
           val submission = Submission(
             _id = "id",
             dprsId = "dprsId",
-            state = Submitted,
+            state = Submitted("test.xml"),
             created = now,
             updated = now
           )
@@ -70,12 +80,24 @@ class CheckFileControllerSpec extends SpecBase with MockitoSugar with BeforeAndA
           when(mockSubmissionConnector.get(any())(using any())).thenReturn(Future.successful(Some(submission)))
 
           running(application) {
+
+            given Messages = messages(application)
+
+            val expectedSummaryList = SummaryList(
+              rows = Seq(
+                SummaryListRow(
+                  key = Key(content = Text(Messages("checkFile.fileName"))),
+                  value = Value(content = Text("test.xml")),
+                )
+              )
+            )
+
             val request = FakeRequest(routes.CheckFileController.onPageLoad(operatorId, "id"))
             val result = route(application, request).value
             val view = application.injector.instanceOf[CheckFileView]
 
             status(result) mustEqual OK
-            contentAsString(result) mustEqual view()(request, messages(application)).toString
+            contentAsString(result) mustEqual view(operatorId, "id", expectedSummaryList, operatorName)(request, messages(application)).toString
           }
 
           verify(mockSubmissionConnector).get(eqTo("id"))(using any())
@@ -215,6 +237,7 @@ class CheckFileControllerSpec extends SpecBase with MockitoSugar with BeforeAndA
               state = Validated(
                 downloadUrl = url"http://example.com/test.xml",
                 platformOperatorId = "poid",
+                reportingPeriod = Year.of(2024),
                 fileName = "test.xml",
                 checksum = "checksum",
                 size = 1337L

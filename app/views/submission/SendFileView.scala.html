@@ -14,17 +14,26 @@
  * limitations under the License.
  *@
 
+@import uk.gov.hmrc.govukfrontend.views.html.components.GovukSummaryList
+@import uk.gov.hmrc.govukfrontend.views.Aliases.SummaryList
+
 @this(
         layout: templates.Layout,
         govukButton: GovukButton,
-        formHelper: FormWithCSRF
+        formHelper: FormWithCSRF,
+        govukSummaryList: GovukSummaryList
 )
 
-@(operatorId: String, submissionId: String)(implicit request: Request[_], messages: Messages)
+@(operatorId: String, submissionId: String, summaryList: SummaryList)(implicit request: Request[_], messages: Messages)
 
 @layout(pageTitle = titleNoForm(messages("sendFile.title"))) {
 
   <h1 class="govuk-heading-xl">@messages("sendFile.heading")</h1>
+
+  @govukSummaryList(summaryList)
+
+  <p class="govuk-body">@messages("sendFile.p1")</p>
+  <p class="govuk-body govuk-!-margin-bottom-8">@messages("sendFile.p2")</p>
 
   @formHelper(action = controllers.submission.routes.SendFileController.onSubmit(operatorId, submissionId), Symbol("autoComplete") -> "off") {
     @govukButton(

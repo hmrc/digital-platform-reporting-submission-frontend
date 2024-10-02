@@ -32,7 +32,7 @@ import play.api.test.Helpers.*
 import uk.gov.hmrc.http.StringContextOps
 import views.html.submission.UploadingView
 
-import java.time.Instant
+import java.time.{Instant, Year}
 import scala.concurrent.Future
 
 class UploadingControllerSpec extends SpecBase with MockitoSugar with BeforeAndAfterEach {
@@ -189,6 +189,7 @@ class UploadingControllerSpec extends SpecBase with MockitoSugar with BeforeAndA
             state = Validated(
               downloadUrl = url"http://example.com/test.xml",
               platformOperatorId = "poid",
+              reportingPeriod = Year.of(2024),
               fileName = "test.xml",
               checksum = "checksum",
               size = 1337L
@@ -224,7 +225,7 @@ class UploadingControllerSpec extends SpecBase with MockitoSugar with BeforeAndA
           val submission = Submission(
             _id = "id",
             dprsId = "dprsId",
-            state = Submitted,
+            state = Submitted("test.xml"),
             created = now,
             updated = now
           )
@@ -475,6 +476,7 @@ class UploadingControllerSpec extends SpecBase with MockitoSugar with BeforeAndA
             state = Validated(
               downloadUrl = url"http://example.com/test.xml",
               platformOperatorId = "poid",
+              reportingPeriod = Year.of(2024),
               fileName = "test.xml",
               checksum = "checksum",
               size = 1337L
@@ -512,7 +514,7 @@ class UploadingControllerSpec extends SpecBase with MockitoSugar with BeforeAndA
           val submission = Submission(
             _id = "id",
             dprsId = "dprsId",
-            state = Submitted,
+            state = Submitted("test.xml"),
             created = now,
             updated = now
           )

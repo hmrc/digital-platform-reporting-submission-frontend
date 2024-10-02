@@ -17,11 +17,15 @@
 package controllers.submission
 
 import connectors.SubmissionConnector
+import controllers.AnswerExtractor
 import controllers.actions.*
 import models.submission.Submission
 import models.submission.Submission.State.{Approved, Ready, Rejected, Submitted, UploadFailed, Uploading, Validated}
-import play.api.i18n.{I18nSupport, MessagesApi}
+import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents, Result}
+import queries.PlatformOperatorSummaryQuery
+import uk.gov.hmrc.govukfrontend.views.Aliases.{Key, SummaryList, Text, Value}
+import uk.gov.hmrc.govukfrontend.views.viewmodels.summarylist.SummaryListRow
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import views.html.submission.CheckFileView
 
@@ -36,20 +40,32 @@ class CheckFileController @Inject()(
                                     val controllerComponents: MessagesControllerComponents,
                                     view: CheckFileView,
                                     submissionConnector: SubmissionConnector
-                                  )(using ExecutionContext) extends FrontendBaseController with I18nSupport {
+                                  )(using ExecutionContext) extends FrontendBaseController with I18nSupport with AnswerExtractor {
 
   def onPageLoad(operatorId: String, submissionId: String): Action[AnyContent] = (identify andThen getData(operatorId) andThen requireData).async {
     implicit request =>
       submissionConnector.get(submissionId).flatMap {
         _.map { submission =>
-          handleSubmission(operatorId, submission) { case Submitted =>
-            Future.successful(Ok(view()))
+          handleSubmission(operatorId, submission) { case state: Submitted =>
+            getAnswerAsync(PlatformOperatorSummaryQuery) { summary =>
+              Future.successful(Ok(view(operatorId, submissionId, getSummaryList(state.fileName), summary.operatorName)))
+            }
           }
         }.getOrElse {
           Future.successful(Redirect(controllers.routes.JourneyRecoveryController.onPageLoad()))
         }
       }
   }
+
+  private def getSummaryList(fileName: String)(using Messages): SummaryList =
+    SummaryList(
+      rows = Seq(
+        SummaryListRow(
+          key = Key(content = Text(Messages("checkFile.fileName"))),
+          value = Value(content = Text(fileName)),
+        )
+      )
+    )
 
   private def handleSubmission(operatorId: String, submission: Submission)(f: PartialFunction[Submission.State, Future[Result]]): Future[Result] =
     f.lift(submission.state).getOrElse {
@@ -63,7 +79,7 @@ class CheckFileController @Inject()(
           routes.UploadFailedController.onPageLoad(operatorId, submission._id)
         case _: Validated =>
           routes.SendFileController.onPageLoad(operatorId, submission._id)
-        case Submitted =>
+        case _: Submitted =>
           routes.CheckFileController.onPageLoad(operatorId, submission._id)
         case Approved =>
           routes.SubmissionConfirmationController.onPageLoad(operatorId, submission._id)
