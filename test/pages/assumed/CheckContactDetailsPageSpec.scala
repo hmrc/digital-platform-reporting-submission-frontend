@@ -28,7 +28,7 @@ import org.scalatest.{BeforeAndAfterEach, OptionValues, TryValues}
 import org.scalatestplus.mockito.MockitoSugar
 import play.api.mvc.Call
 
-class CheckReportingNotificationsPageSpec
+class CheckContactDetailsPageSpec
   extends AnyFreeSpec
     with Matchers
     with MockitoSugar
@@ -37,7 +37,7 @@ class CheckReportingNotificationsPageSpec
     with BeforeAndAfterEach {
 
   private val mockAppConfig = mock[FrontendAppConfig]
-  private val page = new CheckReportingNotificationsPage(mockAppConfig)
+  private val page = new CheckContactDetailsPage(mockAppConfig)
 
   override protected def beforeEach(): Unit = {
     Mockito.reset(mockAppConfig)
@@ -48,15 +48,15 @@ class CheckReportingNotificationsPageSpec
 
     val emptyAnswers = UserAnswers("userId", "operatorId")
 
-    "must go to Check Contact Details when the answer is yes" in {
+    "must go to Reporting Period when the answer is yes" in {
 
       val answers = emptyAnswers.set(page, true).success.value
-      page.nextPage(NormalMode, answers) mustEqual routes.CheckContactDetailsController.onPageLoad("operatorId")
+      page.nextPage(NormalMode, answers) mustEqual routes.ReportingPeriodController.onPageLoad(NormalMode, "operatorId")
     }
 
-    "must go to add a reporting notification when the answer is no" in {
+    "must go to update contact details when the answer is no" in {
 
-      when(mockAppConfig.addReportingNotificationUrl(eqTo("operatorId"))).thenReturn("/foo")
+      when(mockAppConfig.updateContactDetailsUrl).thenReturn("/foo")
       val answers = emptyAnswers.set(page, false).success.value
       page.nextPage(NormalMode, answers) mustEqual Call("GET", "/foo")
     }

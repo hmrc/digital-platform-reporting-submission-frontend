@@ -87,4 +87,7 @@ POST       /:operatorId/check-platform-operator                 controllers.assu
 GET        /:operatorId/check-reporting-notifications           controllers.assumed.CheckReportingNotificationsController.onPageLoad(operatorId: String)
 POST       /:operatorId/check-reporting-notifications           controllers.assumed.CheckReportingNotificationsController.onSubmit(operatorId: String)
 
+GET        /:operatorId/check-contact-details                   controllers.assumed.CheckContactDetailsController.onPageLoad(operatorId: String)
+POST       /:operatorId/check-contact-details                   controllers.assumed.CheckContactDetailsController.onSubmit(operatorId: String)
+
 GET        /:operatorId/no-reporting-notification               controllers.assumed.ReportingNotificationRequiredController.onPageLoad(operatorId: String)

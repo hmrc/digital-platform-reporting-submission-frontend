@@ -45,10 +45,10 @@
         <table class="govuk-table">
             <thead class="govuk-table__head">
                 <tr class="govuk-table__row">
-                    <th class="govuk-table__header" scope="col">@messages("viewNotifications.dateAdded")</th>
-                    <th class="govuk-table__header" scope="col">@messages("viewNotifications.notificationType")</th>
-                    <th class="govuk-table__header" scope="col">@messages("viewNotifications.reportingPeriod")</th>
-                    <th class="govuk-table__header" scope="col">@messages("viewNotifications.dueDiligence")</th>
+                    <th class="govuk-table__header" scope="col">@messages("checkReportingNotifications.dateAdded")</th>
+                    <th class="govuk-table__header" scope="col">@messages("checkReportingNotifications.notificationType")</th>
+                    <th class="govuk-table__header" scope="col">@messages("checkReportingNotifications.reportingPeriod")</th>
+                    <th class="govuk-table__header" scope="col">@messages("checkReportingNotifications.dueDiligence")</th>
                 </tr>
             </thead>
             <tbody class="govuk-table__body">
@@ -59,9 +59,9 @@
                     <td class="govuk-table__cell">@notification.firstPeriod</td>
                     <td class="govuk-table__cell">
                     @if(notification.dueDiligence.isEmpty) {
-                        @messages("viewNotifications.dueDiligence.notApplicable")
+                        @messages("checkReportingNotifications.dueDiligence.notApplicable")
                     } else {
-                        @notification.dueDiligence.map(x => messages(s"viewNotifications.dueDiligence.${x.toString}")).mkString(", ")
+                        @notification.dueDiligence.map(x => messages(s"checkReportingNotifications.dueDiligence.${x.toString}")).mkString(", ")
                     }
                     </td>
                 </tr>
