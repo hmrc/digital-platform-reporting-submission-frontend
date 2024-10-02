@@ -73,9 +73,16 @@ uploadFailed.heading = Upload an XML file
 uploadFailed.body = We will automatically check the formatting of the file and send you to another page once completed.
 uploadFailed.button = Upload file
 
-sendFile.title = sendFile
-sendFile.heading = sendFile
+sendFile.title = Check your file details are correct
+sendFile.heading = Check your file details are correct
+sendFile.p1 = We will now automatically check your file for business rule errors and send you to another page once completed. These checks could take a few minutes.
+sendFile.p2 = By sending this file, you are confirming that the information is correct and complete to the best of your knowledge.
 sendFile.confirmAndSend = Confirm and send
+sendFile.uploadedFile = Uploaded file
+sendFile.uploadedFile.change = the uploaded file
+sendFile.operatorName = Platform Operator name
+sendFile.operatorId = Platform Operator ID
+sendFile.reportingPeriod = Reportable period
 
 checkFile.title = checkFile
 checkFile.heading = checkFile

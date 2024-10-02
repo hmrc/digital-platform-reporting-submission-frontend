@@ -31,7 +31,7 @@ import play.api.test.Helpers.*
 import uk.gov.hmrc.http.StringContextOps
 import views.html.submission.CheckFileView
 
-import java.time.Instant
+import java.time.{Instant, Year}
 import scala.concurrent.Future
 
 class CheckFileControllerSpec extends SpecBase with MockitoSugar with BeforeAndAfterEach {
@@ -215,6 +215,7 @@ class CheckFileControllerSpec extends SpecBase with MockitoSugar with BeforeAndA
               state = Validated(
                 downloadUrl = url"http://example.com/test.xml",
                 platformOperatorId = "poid",
+                reportingPeriod = Year.of(2024),
                 fileName = "test.xml",
                 checksum = "checksum",
                 size = 1337L

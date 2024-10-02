@@ -56,6 +56,22 @@ class UploadController @Inject()(
       }
   }
 
+  def onRedirect(operatorId: String, submissionId: String): Action[AnyContent] = (identify andThen getData(operatorId) andThen requireData).async {
+    implicit request =>
+      submissionConnector.get(submissionId).flatMap {
+        _.map { submission =>
+          handleSubmission(operatorId, submission) {
+            case _: Validated =>
+              submissionConnector.start(Some(submissionId)).map { _ =>
+                Redirect(routes.UploadController.onPageLoad(operatorId, submissionId))
+              }
+          }
+        }.getOrElse {
+          Future.successful(Redirect(controllers.routes.JourneyRecoveryController.onPageLoad()))
+        }
+      }
+  }
+
   private def handleSubmission(operatorId: String, submission: Submission)(f: PartialFunction[Submission.State, Future[Result]]): Future[Result] =
     f.lift(submission.state).getOrElse {
 

@@ -19,8 +19,8 @@ package models.submission
 import play.api.libs.json.*
 
 import java.net.URL
-import java.time.Instant
-import models.urlFormat
+import java.time.{Instant, Year}
+import models.{urlFormat, yearFormat}
 
 final case class Submission(
                              _id: String,
@@ -39,7 +39,7 @@ object Submission {
     case object Ready extends State
     case object Uploading extends State
     final case class UploadFailed(reason: String) extends State
-    final case class Validated(downloadUrl: URL, platformOperatorId: String, fileName: String, checksum: String, size: Long) extends State
+    final case class Validated(downloadUrl: URL, platformOperatorId: String, reportingPeriod: Year, fileName: String, checksum: String, size: Long) extends State
     case object Submitted extends State
     case object Approved extends State
     case object Rejected extends State
