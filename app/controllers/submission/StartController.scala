@@ -61,7 +61,7 @@ class StartController @Inject()(
 
   def onSubmit(operatorId: String): Action[AnyContent] = (identify andThen getData(operatorId) andThen requireData).async { implicit request =>
     submissionConnector.start(None).map { submission =>
-      Redirect(routes.UploadController.onPageLoad(submission._id))
+      Redirect(routes.UploadController.onPageLoad(operatorId, submission._id))
     }
   }
 }

@@ -32,6 +32,8 @@ import scala.concurrent.{ExecutionContext, Future}
 class UploadingController @Inject()(
                                      override val messagesApi: MessagesApi,
                                      identify: IdentifierAction,
+                                     getData: DataRetrievalActionProvider,
+                                     requireData: DataRequiredAction,
                                      val controllerComponents: MessagesControllerComponents,
                                      view: UploadingView,
                                      submissionConnector: SubmissionConnector,
@@ -40,11 +42,11 @@ class UploadingController @Inject()(
 
   private val refreshRate: String = configuration.get[Int]("uploading-refresh").toString
 
-  def onPageLoad(submissionId: String): Action[AnyContent] = identify.async {
+  def onPageLoad(operatorId: String, submissionId: String): Action[AnyContent] = (identify andThen getData(operatorId) andThen requireData).async {
     implicit request =>
       submissionConnector.get(submissionId).flatMap {
         _.map { submission =>
-          handleSubmission(submission) {
+          handleSubmission(operatorId, submission) {
             case Uploading =>
               Future.successful(Ok(view()).withHeaders("Refresh" -> refreshRate))
           }
@@ -54,13 +56,13 @@ class UploadingController @Inject()(
       }
   }
 
-  def onRedirect(submissionId: String): Action[AnyContent] = identify.async { implicit request =>
+  def onRedirect(operatorId: String, submissionId: String): Action[AnyContent] = (identify andThen getData(operatorId) andThen requireData).async { implicit request =>
     submissionConnector.get(submissionId).flatMap {
       _.map { submission =>
-        handleSubmission(submission) {
+        handleSubmission(operatorId, submission) {
           case Ready | _: UploadFailed =>
             submissionConnector.startUpload(submissionId).map { _ =>
-              Redirect(routes.UploadingController.onPageLoad(submissionId))
+              Redirect(routes.UploadingController.onPageLoad(operatorId, submissionId))
             }
         }
       }.getOrElse {
@@ -69,24 +71,24 @@ class UploadingController @Inject()(
     }
   }
 
-  private def handleSubmission(submission: Submission)(f: PartialFunction[Submission.State, Future[Result]]): Future[Result] =
+  private def handleSubmission(operatorId: String, submission: Submission)(f: PartialFunction[Submission.State, Future[Result]]): Future[Result] =
     f.lift(submission.state).getOrElse {
 
       val redirectLocation = submission.state match {
         case Ready =>
-          routes.UploadController.onPageLoad(submission._id)
+          routes.UploadController.onPageLoad(operatorId, submission._id)
         case Uploading =>
-          routes.UploadingController.onPageLoad(submission._id)
+          routes.UploadingController.onPageLoad(operatorId, submission._id)
         case _: UploadFailed =>
-          routes.UploadFailedController.onPageLoad(submission._id)
+          routes.UploadFailedController.onPageLoad(operatorId, submission._id)
         case _: Validated =>
-          routes.SendFileController.onPageLoad(submission._id)
+          routes.SendFileController.onPageLoad(operatorId, submission._id)
         case Submitted =>
-          routes.CheckFileController.onPageLoad(submission._id)
+          routes.CheckFileController.onPageLoad(operatorId, submission._id)
         case Approved =>
-          routes.SubmissionConfirmationController.onPageLoad(submission._id)
+          routes.SubmissionConfirmationController.onPageLoad(operatorId, submission._id)
         case Rejected =>
-          routes.FileErrorsController.onPageLoad(submission._id)
+          routes.FileErrorsController.onPageLoad(operatorId, submission._id)
         case _ =>
           controllers.routes.JourneyRecoveryController.onPageLoad()
       }

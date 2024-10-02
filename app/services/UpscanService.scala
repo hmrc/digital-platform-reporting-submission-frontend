@@ -42,18 +42,18 @@ class UpscanService @Inject() (
     s"$dprsSubmissionFrontend${controllers.internal.routes.UpscanCallbackController.callback().path()}"
 
   private val redirectBase: String = configuration.get[String]("microservice.services.upscan-initiate.redirect-base")
-  private def successRedirectRoute(submissionId: String): String =
-    s"$redirectBase${controllers.submission.routes.UploadingController.onRedirect(submissionId).path()}"
-  private def failureRedirectRoute(submissionId: String): String =
-    s"$redirectBase${controllers.submission.routes.UploadFailedController.onRedirect(submissionId).path()}"
+  private def successRedirectRoute(operatorId: String, submissionId: String): String =
+    s"$redirectBase${controllers.submission.routes.UploadingController.onRedirect(operatorId, submissionId).path()}"
+  private def failureRedirectRoute(operatorId: String, submissionId: String): String =
+    s"$redirectBase${controllers.submission.routes.UploadFailedController.onRedirect(operatorId, submissionId).path()}"
 
 
-  def initiate(dprsId: String, submissionId: String)(using HeaderCarrier): Future[UploadRequest] = {
+  def initiate(operatorId: String, dprsId: String, submissionId: String)(using HeaderCarrier): Future[UploadRequest] = {
 
     val upscanRequest = UpscanInitiateRequest(
       callbackUrl = callbackRoute,
-      successRedirect = successRedirectRoute(submissionId),
-      errorRedirect = failureRedirectRoute(submissionId),
+      successRedirect = successRedirectRoute(operatorId, submissionId),
+      errorRedirect = failureRedirectRoute(operatorId, submissionId),
       minimumFileSize = minFileSize,
       maximumFileSize = maxFileSize
     )

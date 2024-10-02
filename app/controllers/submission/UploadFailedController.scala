@@ -32,19 +32,21 @@ import scala.concurrent.{ExecutionContext, Future}
 class UploadFailedController @Inject()(
                                        override val messagesApi: MessagesApi,
                                        identify: IdentifierAction,
+                                       getData: DataRetrievalActionProvider,
+                                       requireData: DataRequiredAction,
                                        val controllerComponents: MessagesControllerComponents,
                                        view: UploadFailedView,
                                        submissionConnector: SubmissionConnector,
                                        upscanService: UpscanService
                                      )(using ExecutionContext) extends FrontendBaseController with I18nSupport {
 
-  def onPageLoad(submissionId: String): Action[AnyContent] = identify.async {
+  def onPageLoad(operatorId: String, submissionId: String): Action[AnyContent] = (identify andThen getData(operatorId) andThen requireData).async {
     implicit request =>
       submissionConnector.get(submissionId).flatMap {
         _.map { submission =>
-          handleSubmission(submission) {
+          handleSubmission(operatorId, submission) {
             case UploadFailed(error) =>
-              upscanService.initiate(request.dprsId, submissionId).map { uploadRequest =>
+              upscanService.initiate(operatorId, request.dprsId, submissionId).map { uploadRequest =>
                 Ok(view(uploadRequest, error))
               }
           }
@@ -54,13 +56,13 @@ class UploadFailedController @Inject()(
       }
   }
 
-  def onRedirect(submissionId: String, errorCode: Option[String]): Action[AnyContent] = identify.async { implicit request =>
+  def onRedirect(operatorId: String, submissionId: String, errorCode: Option[String]): Action[AnyContent] = (identify andThen getData(operatorId) andThen requireData).async { implicit request =>
     submissionConnector.get(submissionId).flatMap {
       _.map { submission =>
-        handleSubmission(submission) {
+        handleSubmission(operatorId, submission) {
           case Ready | Uploading | _: UploadFailed =>
             submissionConnector.uploadFailed(request.dprsId, submissionId, errorCode.getOrElse("Unknown")).map { _ =>
-              Redirect(routes.UploadFailedController.onPageLoad(submissionId))
+              Redirect(routes.UploadFailedController.onPageLoad(operatorId, submissionId))
             }
         }
       }.getOrElse {
@@ -69,24 +71,24 @@ class UploadFailedController @Inject()(
     }
   }
 
-  private def handleSubmission(submission: Submission)(f: PartialFunction[Submission.State, Future[Result]]): Future[Result] =
+  private def handleSubmission(operatorId: String, submission: Submission)(f: PartialFunction[Submission.State, Future[Result]]): Future[Result] =
     f.lift(submission.state).getOrElse {
 
       val redirectLocation = submission.state match {
         case Ready =>
-          routes.UploadController.onPageLoad(submission._id)
+          routes.UploadController.onPageLoad(operatorId, submission._id)
         case Uploading =>
-          routes.UploadingController.onPageLoad(submission._id)
+          routes.UploadingController.onPageLoad(operatorId, submission._id)
         case _: UploadFailed =>
-          routes.UploadFailedController.onPageLoad(submission._id)
+          routes.UploadFailedController.onPageLoad(operatorId, submission._id)
         case _: Validated =>
-          routes.SendFileController.onPageLoad(submission._id)
+          routes.SendFileController.onPageLoad(operatorId, submission._id)
         case Submitted =>
-          routes.CheckFileController.onPageLoad(submission._id)
+          routes.CheckFileController.onPageLoad(operatorId, submission._id)
         case Approved =>
-          routes.SubmissionConfirmationController.onPageLoad(submission._id)
+          routes.SubmissionConfirmationController.onPageLoad(operatorId, submission._id)
         case Rejected =>
-          routes.FileErrorsController.onPageLoad(submission._id)
+          routes.FileErrorsController.onPageLoad(operatorId, submission._id)
         case _ =>
           controllers.routes.JourneyRecoveryController.onPageLoad()
       }
