@@ -159,7 +159,7 @@ class StartControllerSpec extends SpecBase with MockitoSugar with BeforeAndAfter
       "must create a new submission and redirect to the upload page for that submission" in {
 
         val submissionId = "id"
-        val application = applicationBuilder(userAnswers = Some(emptyUserAnswers))
+        val application = applicationBuilder(userAnswers = Some(baseAnswers))
           .overrides(
             bind[SubmissionConnector].toInstance(mockSubmissionConnector)
           )
@@ -173,7 +173,7 @@ class StartControllerSpec extends SpecBase with MockitoSugar with BeforeAndAfter
           updated = now
         )
 
-        when(mockSubmissionConnector.start(any())(using any())).thenReturn(Future.successful(submission))
+        when(mockSubmissionConnector.start(any(), any(), any())(using any())).thenReturn(Future.successful(submission))
 
         running(application) {
           val request = FakeRequest(routes.StartController.onSubmit(operatorId))
@@ -183,18 +183,18 @@ class StartControllerSpec extends SpecBase with MockitoSugar with BeforeAndAfter
           redirectLocation(result).value mustEqual routes.UploadController.onPageLoad(operatorId, submissionId).url
         }
 
-        verify(mockSubmissionConnector).start(eqTo(None))(using any())
+        verify(mockSubmissionConnector).start(eqTo("operatorId"), eqTo("operatorName"), eqTo(None))(using any())
       }
 
       "must fail when the call to create a new submission fails" in {
 
-        val application = applicationBuilder(userAnswers = Some(emptyUserAnswers))
+        val application = applicationBuilder(userAnswers = Some(baseAnswers))
           .overrides(
             bind[SubmissionConnector].toInstance(mockSubmissionConnector)
           )
           .build()
 
-        when(mockSubmissionConnector.start(any())(using any())).thenReturn(Future.failed(new RuntimeException()))
+        when(mockSubmissionConnector.start(any(), any(), any())(using any())).thenReturn(Future.failed(new RuntimeException()))
 
         running(application) {
           val request = FakeRequest(routes.StartController.onSubmit(operatorId))

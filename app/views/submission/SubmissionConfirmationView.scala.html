@@ -14,14 +14,54 @@
  * limitations under the License.
  *@
 
+@import uk.gov.hmrc.govukfrontend.views.Aliases.SummaryList
+@import uk.gov.hmrc.govukfrontend.views.html.components.GovukSummaryList
+@import viewmodels.LegendSize
+@import config.FrontendAppConfig
+
 @this(
+        appConfig: FrontendAppConfig,
         layout: templates.Layout,
-        govukButton: GovukButton
+        govukButton: GovukButton,
+        govukErrorSummary: GovukErrorSummary,
+        govukRadios: GovukRadios,
+        govukSummaryList: GovukSummaryList,
+        formHelper: FormWithCSRF
 )
 
-@()(implicit request: Request[_], messages: Messages)
+@(form: Form[_], operatorId: String, operatorName: String, submissionId: String, summaryList: SummaryList)(implicit request: Request[_], messages: Messages)
 
 @layout(pageTitle = titleNoForm(messages("submissionConfirmation.title"))) {
 
-    <h1 class="govuk-heading-xl">@messages("submissionConfirmation.heading")</h1>
+  @formHelper(action = controllers.submission.routes.SubmissionConfirmationController.onSubmit(operatorId, submissionId), Symbol("autoComplete") -> "off") {
+
+    @if(form.errors.nonEmpty) {
+      @govukErrorSummary(ErrorSummaryViewModel(form))
+    }
+
+    <div class="govuk-panel govuk-panel--confirmation govuk-!-margin-bottom-8">
+      <h1 class="govuk-panel__title">
+        @messages("submissionConfirmation.heading")
+      </h1>
+    </div>
+
+    @govukSummaryList(summaryList)
+
+    <p class="govuk-body govuk-!-margin-bottom-8">@messages("submissionConfirmation.p1")</p>
+
+    @govukRadios(
+      RadiosViewModel.yesNo(
+        field = form("value"),
+        legend = LegendViewModel(messages("submissionConfirmation.question", operatorName)).withSize(LegendSize.Medium)
+      )
+    )
+
+    @govukButton(
+      ButtonViewModel(messages("site.continue"))
+    )
+
+    <p class="govuk-body">
+      <a class="govuk-link" href="@appConfig.manageHomepageUrl">@messages("submissionConfirmation.return")</a>
+    </p>
+  }
 }

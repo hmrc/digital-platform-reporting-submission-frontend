@@ -29,8 +29,10 @@ import org.scalatestplus.mockito.MockitoSugar
 import play.api.inject.bind
 import play.api.test.FakeRequest
 import play.api.test.Helpers.*
+import queries.PlatformOperatorSummaryQuery
 import services.UpscanService
 import uk.gov.hmrc.http.StringContextOps
+import viewmodels.PlatformOperatorSummary
 import views.html.submission.UploadView
 
 import java.time.{Instant, Year}
@@ -40,6 +42,8 @@ class UploadControllerSpec extends SpecBase with MockitoSugar with BeforeAndAfte
 
   private val mockSubmissionConnector: SubmissionConnector = mock[SubmissionConnector]
   private val mockUpscanService: UpscanService = mock[UpscanService]
+  private val platformOperatorSummary = PlatformOperatorSummary("operatorId", "operatorName", true)
+  private val baseAnswers = emptyUserAnswers.set(PlatformOperatorSummaryQuery, platformOperatorSummary).success.value
 
   private val now: Instant = Instant.now()
 
@@ -56,7 +60,7 @@ class UploadControllerSpec extends SpecBase with MockitoSugar with BeforeAndAfte
 
         "must initiate an upscan journey and return OK and the correct view for a GET" in {
 
-          val application = applicationBuilder(userAnswers = Some(emptyUserAnswers))
+          val application = applicationBuilder(userAnswers = Some(baseAnswers))
             .overrides(
               bind[SubmissionConnector].toInstance(mockSubmissionConnector),
               bind[UpscanService].toInstance(mockUpscanService)
@@ -240,7 +244,7 @@ class UploadControllerSpec extends SpecBase with MockitoSugar with BeforeAndAfte
           val submission = Submission(
             _id = "id",
             dprsId = "dprsId",
-            state = Submitted("test.xml"),
+            state = Submitted("test.xml", Year.of(2024)),
             created = now,
             updated = now
           )
@@ -274,7 +278,7 @@ class UploadControllerSpec extends SpecBase with MockitoSugar with BeforeAndAfte
           val submission = Submission(
             _id = "id",
             dprsId = "dprsId",
-            state = Approved,
+            state = Approved("test.xml", Year.of(2024)),
             created = now,
             updated = now
           )
@@ -357,7 +361,7 @@ class UploadControllerSpec extends SpecBase with MockitoSugar with BeforeAndAfte
 
         "must set the state to ready and redirect to the upload page" in {
 
-          val application = applicationBuilder(userAnswers = Some(emptyUserAnswers))
+          val application = applicationBuilder(userAnswers = Some(baseAnswers))
             .overrides(
               bind[SubmissionConnector].toInstance(mockSubmissionConnector),
               bind[UpscanService].toInstance(mockUpscanService)
@@ -380,7 +384,7 @@ class UploadControllerSpec extends SpecBase with MockitoSugar with BeforeAndAfte
           )
 
           when(mockSubmissionConnector.get(any())(using any())).thenReturn(Future.successful(Some(submission)))
-          when(mockSubmissionConnector.start(any())(using any())).thenReturn(Future.successful(submission))
+          when(mockSubmissionConnector.start(any(), any(), any())(using any())).thenReturn(Future.successful(submission))
 
           running(application) {
             val request = FakeRequest(GET, routes.UploadController.onRedirect(operatorId, "id").url)
@@ -391,7 +395,7 @@ class UploadControllerSpec extends SpecBase with MockitoSugar with BeforeAndAfte
           }
 
           verify(mockSubmissionConnector).get(eqTo("id"))(using any())
-          verify(mockSubmissionConnector).start(eqTo(Some("id")))(using any())
+          verify(mockSubmissionConnector).start(eqTo("operatorId"), eqTo("operatorName"), eqTo(Some("id")))(using any())
         }
       }
 
@@ -535,7 +539,7 @@ class UploadControllerSpec extends SpecBase with MockitoSugar with BeforeAndAfte
           val submission = Submission(
             _id = "id",
             dprsId = "dprsId",
-            state = Submitted("test.xml"),
+            state = Submitted("test.xml", Year.of(2024)),
             created = now,
             updated = now
           )
@@ -569,7 +573,7 @@ class UploadControllerSpec extends SpecBase with MockitoSugar with BeforeAndAfte
           val submission = Submission(
             _id = "id",
             dprsId = "dprsId",
-            state = Approved,
+            state = Approved("test.xml", Year.of(2024)),
             created = now,
             updated = now
           )

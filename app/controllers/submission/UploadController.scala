@@ -17,11 +17,13 @@
 package controllers.submission
 
 import connectors.SubmissionConnector
+import controllers.AnswerExtractor
 import controllers.actions.*
 import models.submission.Submission
 import models.submission.Submission.State.{Approved, Ready, Rejected, Submitted, UploadFailed, Uploading, Validated}
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents, Result}
+import queries.PlatformOperatorSummaryQuery
 import services.UpscanService
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import views.html.submission.UploadView
@@ -38,7 +40,7 @@ class UploadController @Inject()(
                                   view: UploadView,
                                   submissionConnector: SubmissionConnector,
                                   upscanService: UpscanService
-                                )(using ExecutionContext) extends FrontendBaseController with I18nSupport {
+                                )(using ExecutionContext) extends FrontendBaseController with I18nSupport with AnswerExtractor {
 
   def onPageLoad(operatorId: String, submissionId: String): Action[AnyContent] = (identify andThen getData(operatorId) andThen requireData).async {
     implicit request =>
@@ -62,8 +64,10 @@ class UploadController @Inject()(
         _.map { submission =>
           handleSubmission(operatorId, submission) {
             case _: Validated =>
-              submissionConnector.start(Some(submissionId)).map { _ =>
-                Redirect(routes.UploadController.onPageLoad(operatorId, submissionId))
+              getAnswerAsync(PlatformOperatorSummaryQuery) { summary =>
+                submissionConnector.start(operatorId, summary.operatorName, Some(submissionId)).map { _ =>
+                  Redirect(routes.UploadController.onPageLoad(operatorId, submissionId))
+                }
               }
           }
         }.getOrElse {
@@ -86,7 +90,7 @@ class UploadController @Inject()(
           routes.SendFileController.onPageLoad(operatorId, submission._id)
         case _: Submitted =>
           routes.CheckFileController.onPageLoad(operatorId, submission._id)
-        case Approved =>
+        case _: Approved =>
           routes.SubmissionConfirmationController.onPageLoad(operatorId, submission._id)
         case Rejected =>
           routes.FileErrorsController.onPageLoad(operatorId, submission._id)

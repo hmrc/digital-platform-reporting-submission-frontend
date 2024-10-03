@@ -16,40 +16,107 @@
 
 package controllers.submission
 
+import config.FrontendAppConfig
 import connectors.SubmissionConnector
+import controllers.AnswerExtractor
 import controllers.actions.*
+import forms.SubmissionConfirmationFormProvider
 import models.submission.Submission
 import models.submission.Submission.State.{Approved, Ready, Rejected, Submitted, UploadFailed, Uploading, Validated}
-import play.api.i18n.{I18nSupport, MessagesApi}
+import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents, Result}
+import queries.PlatformOperatorSummaryQuery
+import uk.gov.hmrc.govukfrontend.views.Aliases.{Key, SummaryList, Text, Value}
+import uk.gov.hmrc.govukfrontend.views.viewmodels.summarylist.SummaryListRow
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
+import utils.DateTimeFormats
+import viewmodels.PlatformOperatorSummary
 import views.html.submission.SubmissionConfirmationView
 
+import java.time.Instant
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
 class SubmissionConfirmationController @Inject()(
+                                                  appConfig: FrontendAppConfig,
                                                   override val messagesApi: MessagesApi,
                                                   identify: IdentifierAction,
                                                   getData: DataRetrievalActionProvider,
                                                   requireData: DataRequiredAction,
                                                   val controllerComponents: MessagesControllerComponents,
                                                   view: SubmissionConfirmationView,
-                                                  submissionConnector: SubmissionConnector
-                                  )(using ExecutionContext) extends FrontendBaseController with I18nSupport {
+                                                  submissionConnector: SubmissionConnector,
+                                                  formProvider: SubmissionConfirmationFormProvider
+                                                )(using ExecutionContext) extends FrontendBaseController with I18nSupport with AnswerExtractor {
 
   def onPageLoad(operatorId: String, submissionId: String): Action[AnyContent] = (identify andThen getData(operatorId) andThen requireData).async {
     implicit request =>
       submissionConnector.get(submissionId).flatMap {
         _.map { submission =>
-          handleSubmission(operatorId, submission) { case Approved =>
-            Future.successful(Ok(view()))
+          handleSubmission(operatorId, submission) { case state: Approved =>
+            getAnswerAsync(PlatformOperatorSummaryQuery) { summary =>
+              Future.successful(Ok(view(formProvider(summary.operatorName), operatorId, summary.operatorName, submissionId, getSummaryList(state.fileName, summary, state, submission.updated, request.dprsId))))
+            }
           }
         }.getOrElse {
           Future.successful(Redirect(controllers.routes.JourneyRecoveryController.onPageLoad()))
         }
       }
   }
+
+  def onSubmit(operatorId: String, submissionId: String): Action[AnyContent] = (identify andThen getData(operatorId) andThen requireData).async {
+    implicit request =>
+      submissionConnector.get(submissionId).flatMap {
+        _.map { submission =>
+          handleSubmission(operatorId, submission) { case state: Approved =>
+            getAnswerAsync(PlatformOperatorSummaryQuery) { summary =>
+              formProvider(summary.operatorName).bindFromRequest().fold(
+                errors =>
+                  Future.successful(BadRequest(view(errors, operatorId, summary.operatorName, submissionId, getSummaryList(state.fileName, summary, state, submission.updated, request.dprsId)))),
+                addAnother =>
+                  if (addAnother) {
+                    Future.successful(Redirect(routes.StartController.onPageLoad(operatorId)))
+                  } else {
+                    Future.successful(Redirect(appConfig.manageHomepageUrl))
+                  }
+              )
+            }
+          }
+        }.getOrElse {
+          Future.successful(Redirect(controllers.routes.JourneyRecoveryController.onPageLoad()))
+        }
+      }
+  }
+
+  private def getSummaryList(fileName: String, summary: PlatformOperatorSummary, state: Approved, checksCompleted: Instant, dprsId: String)(using Messages): SummaryList =
+    SummaryList(
+      rows = Seq(
+        SummaryListRow(
+          key = Key(content = Text(Messages("submissionConfirmation.fileName"))),
+          value = Value(content = Text(fileName)),
+        ),
+        SummaryListRow(
+          key = Key(content = Text(Messages("submissionConfirmation.operatorName"))),
+          value = Value(content = Text(summary.operatorName)),
+        ),
+        SummaryListRow(
+          key = Key(content = Text(Messages("submissionConfirmation.operatorId"))),
+          value = Value(content = Text(summary.operatorId)),
+        ),
+        SummaryListRow(
+          key = Key(content = Text(Messages("submissionConfirmation.reportingPeriod"))),
+          value = Value(content = Text(state.reportingPeriod.toString)),
+        ),
+        SummaryListRow(
+          key = Key(content = Text(Messages("submissionConfirmation.checksCompleted"))),
+          value = Value(content = Text(DateTimeFormats.formatInstant(checksCompleted, DateTimeFormats.fullDateTimeFormatter))),
+        ),
+        SummaryListRow(
+          key = Key(content = Text(Messages("submissionConfirmation.dprsId"))),
+          value = Value(content = Text(dprsId))
+        ),
+      )
+    )
 
   private def handleSubmission(operatorId: String, submission: Submission)(f: PartialFunction[Submission.State, Future[Result]]): Future[Result] =
     f.lift(submission.state).getOrElse {
@@ -65,7 +132,7 @@ class SubmissionConfirmationController @Inject()(
           routes.SendFileController.onPageLoad(operatorId, submission._id)
         case _: Submitted =>
           routes.CheckFileController.onPageLoad(operatorId, submission._id)
-        case Approved =>
+        case _: Approved =>
           routes.SubmissionConfirmationController.onPageLoad(operatorId, submission._id)
         case Rejected =>
           routes.FileErrorsController.onPageLoad(operatorId, submission._id)

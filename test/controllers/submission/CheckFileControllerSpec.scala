@@ -72,7 +72,7 @@ class CheckFileControllerSpec extends SpecBase with MockitoSugar with BeforeAndA
           val submission = Submission(
             _id = "id",
             dprsId = "dprsId",
-            state = Submitted("test.xml"),
+            state = Submitted("test.xml", Year.of(2024)),
             created = now,
             updated = now
           )
@@ -273,7 +273,7 @@ class CheckFileControllerSpec extends SpecBase with MockitoSugar with BeforeAndA
             val submission = Submission(
               _id = "id",
               dprsId = "dprsId",
-              state = Approved,
+              state = Approved("test.xml", Year.of(2024)),
               created = now,
               updated = now
             )

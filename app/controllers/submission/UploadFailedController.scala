@@ -85,7 +85,7 @@ class UploadFailedController @Inject()(
           routes.SendFileController.onPageLoad(operatorId, submission._id)
         case _: Submitted =>
           routes.CheckFileController.onPageLoad(operatorId, submission._id)
-        case Approved =>
+        case _: Approved =>
           routes.SubmissionConfirmationController.onPageLoad(operatorId, submission._id)
         case Rejected =>
           routes.FileErrorsController.onPageLoad(operatorId, submission._id)

@@ -18,6 +18,7 @@ package controllers.submission
 
 import connectors.PlatformOperatorConnector.PlatformOperatorNotFoundFailure
 import connectors.{PlatformOperatorConnector, SubmissionConnector}
+import controllers.AnswerExtractor
 import controllers.actions.*
 import models.UserAnswers
 import play.api.i18n.{I18nSupport, MessagesApi}
@@ -41,7 +42,7 @@ class StartController @Inject()(
                                  sessionRepository: SessionRepository,
                                  getData: DataRetrievalActionProvider,
                                  requireData: DataRequiredAction,
-                               )(using ExecutionContext) extends FrontendBaseController with I18nSupport {
+                               )(using ExecutionContext) extends FrontendBaseController with I18nSupport with AnswerExtractor {
 
   def onPageLoad(operatorId: String): Action[AnyContent] = (identify andThen getData(operatorId)).async { implicit request =>
     request.userAnswers
@@ -60,8 +61,10 @@ class StartController @Inject()(
   }
 
   def onSubmit(operatorId: String): Action[AnyContent] = (identify andThen getData(operatorId) andThen requireData).async { implicit request =>
-    submissionConnector.start(None).map { submission =>
-      Redirect(routes.UploadController.onPageLoad(operatorId, submission._id))
+    getAnswerAsync(PlatformOperatorSummaryQuery) { summary =>
+      submissionConnector.start(operatorId, summary.operatorName, None).map { submission =>
+        Redirect(routes.UploadController.onPageLoad(operatorId, submission._id))
+      }
     }
   }
 }

@@ -21,7 +21,7 @@ import org.scalatest.matchers.must.Matchers
 import play.api.i18n.Lang
 import utils.DateTimeFormats.dateTimeFormat
 
-import java.time.LocalDate
+import java.time.*
 
 class DateTimeFormatsSpec extends AnyFreeSpec with Matchers {
 
@@ -43,6 +43,32 @@ class DateTimeFormatsSpec extends AnyFreeSpec with Matchers {
       val formatter = dateTimeFormat()(Lang("de"))
       val result = LocalDate.of(2023, 1, 1).format(formatter)
       result mustEqual "1 January 2023"
+    }
+  }
+
+  "fullDateTimeFormatter" - {
+
+    "must format a BST date correctly" in {
+      val dateTime = ZonedDateTime.of(2024, 6, 1, 13, 1, 0, 0, ZoneId.of("Europe/London"))
+      DateTimeFormats.fullDateTimeFormatter.format(dateTime) mustEqual "1:01pm BST on 1 June 2024"
+    }
+
+    "must format a GMT date correctly" in {
+      val dateTime = ZonedDateTime.of(2024, 1, 1, 13, 1, 0, 0, ZoneId.of("Europe/London"))
+      DateTimeFormats.fullDateTimeFormatter.format(dateTime) mustEqual "1:01pm GMT on 1 January 2024"
+    }
+  }
+
+  "formatInstant" - {
+
+    "must correctly format an instant outside of BST" in {
+      val dateTime = LocalDateTime.of(2024, 1, 1, 13, 1, 0, 0)
+      DateTimeFormats.formatInstant(dateTime.toInstant(ZoneOffset.UTC), DateTimeFormats.fullDateTimeFormatter) mustEqual "1:01pm GMT on 1 January 2024"
+    }
+
+    "must correctly format an instant during BST" in {
+      val dateTime = LocalDateTime.of(2024, 6, 1, 13, 1, 0, 0)
+      DateTimeFormats.formatInstant(dateTime.toInstant(ZoneOffset.UTC), DateTimeFormats.fullDateTimeFormatter) mustEqual "2:01pm BST on 1 June 2024"
     }
   }
 }

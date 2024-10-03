@@ -18,6 +18,7 @@ package utils
 
 import play.api.i18n.Lang
 
+import java.time.{Instant, ZoneId, ZoneOffset}
 import java.time.format.DateTimeFormatter
 import java.util.Locale
 
@@ -36,4 +37,9 @@ object DateTimeFormats {
 
   val dateTimeHintFormat: DateTimeFormatter =
     DateTimeFormatter.ofPattern("d M yyyy")
+
+  val fullDateTimeFormatter = DateTimeFormatter.ofPattern("h:mma z 'on' d MMMM yyyy")
+
+  def formatInstant(instant: Instant, formatter: DateTimeFormatter): String =
+    formatter.format(instant.atZone(ZoneOffset.UTC).withZoneSameInstant(ZoneId.of("Europe/London")))
 }
