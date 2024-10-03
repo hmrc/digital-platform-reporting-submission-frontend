@@ -14,22 +14,17 @@
  * limitations under the License.
  */
 
-package models.submission
+package forms
 
-import play.api.libs.json.{Json, OFormat}
-import models.urlFormat
+import forms.mappings.Mappings
+import play.api.data.Form
 
-import java.net.URL
+import javax.inject.Inject
 
-final case class UploadSuccessRequest(
-                                       dprsId: String,
-                                       downloadUrl: URL,
-                                       fileName: String,
-                                       checksum: String,
-                                       size: Long
-                                     )
+class SubmissionConfirmationFormProvider @Inject() extends Mappings {
 
-object UploadSuccessRequest {
-
-  given OFormat[UploadSuccessRequest] = Json.format
+  def apply(operatorName: String): Form[Boolean] =
+    Form(
+      "value" -> boolean("submissionConfirmation.error.required", args = Seq(operatorName))
+    )
 }

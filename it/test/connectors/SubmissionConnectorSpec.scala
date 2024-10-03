@@ -19,7 +19,7 @@ package connectors
 import com.github.tomakehurst.wiremock.client.WireMock.*
 import connectors.SubmissionConnector.{GetFailure, StartUploadFailure, SubmitFailure, UploadFailedFailure, UploadSuccessFailure}
 import models.submission.Submission.State.Ready
-import models.submission.{Submission, UploadFailedRequest, UploadSuccessRequest}
+import models.submission.{StartSubmissionRequest, Submission, UploadFailedRequest, UploadSuccessRequest}
 import org.scalatest.OptionValues
 import org.scalatest.concurrent.{IntegrationPatience, ScalaFutures}
 import org.scalatest.freespec.AnyFreeSpec
@@ -60,6 +60,8 @@ class SubmissionConnectorSpec
     val expectedSubmission = Submission(
       _id = "id",
       dprsId = "dprsId",
+      operatorId = "operatorId",
+      operatorName = "operatorName",
       state = Ready,
       created = now,
       updated = now
@@ -69,6 +71,7 @@ class SubmissionConnectorSpec
 
       wireMockServer.stubFor(
         put(urlPathEqualTo("/digital-platform-reporting/submission/start"))
+          .withRequestBody(equalToJson(Json.toJson(StartSubmissionRequest("operatorId", "operatorName")).toString))
           .withHeader("User-Agent", equalTo("app"))
           .withHeader("Authorization", equalTo("auth"))
           .willReturn(
@@ -78,7 +81,7 @@ class SubmissionConnectorSpec
           )
       )
 
-      val result = connector.start(None)(using hc).futureValue
+      val result = connector.start("operatorId", "operatorName", None)(using hc).futureValue
       result mustEqual expectedSubmission
     }
 
@@ -86,6 +89,7 @@ class SubmissionConnectorSpec
 
       wireMockServer.stubFor(
         put(urlPathEqualTo("/digital-platform-reporting/submission/start"))
+          .withRequestBody(equalToJson(Json.toJson(StartSubmissionRequest("operatorId", "operatorName")).toString))
           .withQueryParam("id", equalTo("id"))
           .withHeader("User-Agent", equalTo("app"))
           .withHeader("Authorization", equalTo("auth"))
@@ -96,7 +100,7 @@ class SubmissionConnectorSpec
           )
       )
 
-      val result = connector.start(Some("id"))(using hc).futureValue
+      val result = connector.start("operatorId", "operatorName", Some("id"))(using hc).futureValue
       result mustEqual expectedSubmission
     }
 
@@ -112,7 +116,7 @@ class SubmissionConnectorSpec
           )
       )
 
-      val result = connector.start(Some("id"))(using hc).failed.futureValue
+      val result = connector.start("operatorId", "operatorName", Some("id"))(using hc).failed.futureValue
       result mustBe a[SubmissionConnector.StartFailure]
     }
   }
@@ -121,6 +125,8 @@ class SubmissionConnectorSpec
 
     val expectedSubmission = Submission(
       _id = "id",
+      operatorId = "operatorId",
+      operatorName = "operatorName",
       dprsId = "dprsId",
       state = Ready,
       created = now,
@@ -216,7 +222,6 @@ class SubmissionConnectorSpec
     val request = UploadSuccessRequest(
       dprsId = "dprsId",
       downloadUrl = url"http://example.com/test.xml",
-      platformOperatorId = "platformOperatorId",
       fileName = "test.xml",
       checksum = "checksum",
       size = 1337L

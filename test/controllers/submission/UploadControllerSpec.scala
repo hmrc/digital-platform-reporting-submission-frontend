@@ -29,8 +29,10 @@ import org.scalatestplus.mockito.MockitoSugar
 import play.api.inject.bind
 import play.api.test.FakeRequest
 import play.api.test.Helpers.*
+import queries.PlatformOperatorSummaryQuery
 import services.UpscanService
 import uk.gov.hmrc.http.StringContextOps
+import viewmodels.PlatformOperatorSummary
 import views.html.submission.UploadView
 
 import java.time.{Instant, Year}
@@ -66,6 +68,8 @@ class UploadControllerSpec extends SpecBase with MockitoSugar with BeforeAndAfte
           val submission = Submission(
             _id = "id",
             dprsId = "dprsId",
+            operatorId = "operatorId",
+            operatorName = "operatorName",
             state = Ready,
             created = now,
             updated = now
@@ -131,6 +135,8 @@ class UploadControllerSpec extends SpecBase with MockitoSugar with BeforeAndAfte
           val submission = Submission(
             _id = "id",
             dprsId = "dprsId",
+            operatorId = "operatorId",
+            operatorName = "operatorName",
             state = Uploading,
             created = now,
             updated = now
@@ -165,6 +171,8 @@ class UploadControllerSpec extends SpecBase with MockitoSugar with BeforeAndAfte
           val submission = Submission(
             _id = "id",
             dprsId = "dprsId",
+            operatorId = "operatorId",
+            operatorName = "operatorName",
             state = UploadFailed("reason"),
             created = now,
             updated = now
@@ -199,9 +207,10 @@ class UploadControllerSpec extends SpecBase with MockitoSugar with BeforeAndAfte
           val submission = Submission(
             _id = "id",
             dprsId = "dprsId",
+            operatorId = "operatorId",
+            operatorName = "operatorName",
             state = Validated(
               downloadUrl = url"http://example.com/test.xml",
-              platformOperatorId = "poid",
               reportingPeriod = Year.of(2024),
               fileName = "test.xml",
               checksum = "checksum",
@@ -240,7 +249,9 @@ class UploadControllerSpec extends SpecBase with MockitoSugar with BeforeAndAfte
           val submission = Submission(
             _id = "id",
             dprsId = "dprsId",
-            state = Submitted("test.xml"),
+            operatorId = "operatorId",
+            operatorName = "operatorName",
+            state = Submitted("test.xml", Year.of(2024)),
             created = now,
             updated = now
           )
@@ -274,7 +285,9 @@ class UploadControllerSpec extends SpecBase with MockitoSugar with BeforeAndAfte
           val submission = Submission(
             _id = "id",
             dprsId = "dprsId",
-            state = Approved,
+            operatorId = "operatorId",
+            operatorName = "operatorName",
+            state = Approved("test.xml", Year.of(2024)),
             created = now,
             updated = now
           )
@@ -308,7 +321,9 @@ class UploadControllerSpec extends SpecBase with MockitoSugar with BeforeAndAfte
           val submission = Submission(
             _id = "id",
             dprsId = "dprsId",
-            state = Rejected,
+            operatorId = "operatorId",
+            operatorName = "operatorName",
+            state = Rejected("test.xml", Year.of(2024)),
             created = now,
             updated = now
           )
@@ -367,9 +382,10 @@ class UploadControllerSpec extends SpecBase with MockitoSugar with BeforeAndAfte
           val submission = Submission(
             _id = "id",
             dprsId = "dprsId",
+            operatorId = "operatorId",
+            operatorName = "operatorName",
             state = Validated(
               downloadUrl = url"http://example.com/test.xml",
-              platformOperatorId = "poid",
               reportingPeriod = Year.of(2024),
               fileName = "test.xml",
               checksum = "checksum",
@@ -380,7 +396,7 @@ class UploadControllerSpec extends SpecBase with MockitoSugar with BeforeAndAfte
           )
 
           when(mockSubmissionConnector.get(any())(using any())).thenReturn(Future.successful(Some(submission)))
-          when(mockSubmissionConnector.start(any())(using any())).thenReturn(Future.successful(submission))
+          when(mockSubmissionConnector.start(any(), any(), any())(using any())).thenReturn(Future.successful(submission))
 
           running(application) {
             val request = FakeRequest(GET, routes.UploadController.onRedirect(operatorId, "id").url)
@@ -391,7 +407,7 @@ class UploadControllerSpec extends SpecBase with MockitoSugar with BeforeAndAfte
           }
 
           verify(mockSubmissionConnector).get(eqTo("id"))(using any())
-          verify(mockSubmissionConnector).start(eqTo(Some("id")))(using any())
+          verify(mockSubmissionConnector).start(eqTo("operatorId"), eqTo("operatorName"), eqTo(Some("id")))(using any())
         }
       }
 
@@ -433,6 +449,8 @@ class UploadControllerSpec extends SpecBase with MockitoSugar with BeforeAndAfte
           val submission = Submission(
             _id = "id",
             dprsId = "dprsId",
+            operatorId = "operatorId",
+            operatorName = "operatorName",
             state = Uploading,
             created = now,
             updated = now
@@ -467,6 +485,8 @@ class UploadControllerSpec extends SpecBase with MockitoSugar with BeforeAndAfte
           val submission = Submission(
             _id = "id",
             dprsId = "dprsId",
+            operatorId = "operatorId",
+            operatorName = "operatorName",
             state = UploadFailed("reason"),
             created = now,
             updated = now
@@ -501,6 +521,8 @@ class UploadControllerSpec extends SpecBase with MockitoSugar with BeforeAndAfte
           val submission = Submission(
             _id = "id",
             dprsId = "dprsId",
+            operatorId = "operatorId",
+            operatorName = "operatorName",
             state = Ready,
             created = now,
             updated = now
@@ -535,7 +557,9 @@ class UploadControllerSpec extends SpecBase with MockitoSugar with BeforeAndAfte
           val submission = Submission(
             _id = "id",
             dprsId = "dprsId",
-            state = Submitted("test.xml"),
+            operatorId = "operatorId",
+            operatorName = "operatorName",
+            state = Submitted("test.xml", Year.of(2024)),
             created = now,
             updated = now
           )
@@ -569,7 +593,9 @@ class UploadControllerSpec extends SpecBase with MockitoSugar with BeforeAndAfte
           val submission = Submission(
             _id = "id",
             dprsId = "dprsId",
-            state = Approved,
+            operatorId = "operatorId",
+            operatorName = "operatorName",
+            state = Approved("test.xml", Year.of(2024)),
             created = now,
             updated = now
           )
@@ -603,7 +629,9 @@ class UploadControllerSpec extends SpecBase with MockitoSugar with BeforeAndAfte
           val submission = Submission(
             _id = "id",
             dprsId = "dprsId",
-            state = Rejected,
+            operatorId = "operatorId",
+            operatorName = "operatorName",
+            state = Rejected("test.xml", Year.of(2024)),
             created = now,
             updated = now
           )

@@ -17,19 +17,10 @@
 package models.submission
 
 import play.api.libs.json.{Json, OFormat}
-import models.urlFormat
 
-import java.net.URL
+final case class StartSubmissionRequest(operatorId: String, operatorName: String)
 
-final case class UploadSuccessRequest(
-                                       dprsId: String,
-                                       downloadUrl: URL,
-                                       fileName: String,
-                                       checksum: String,
-                                       size: Long
-                                     )
+object StartSubmissionRequest {
 
-object UploadSuccessRequest {
-
-  given OFormat[UploadSuccessRequest] = Json.format
+  given OFormat[StartSubmissionRequest] = Json.format
 }

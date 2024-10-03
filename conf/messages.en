@@ -93,8 +93,18 @@ checkFile.button = Refresh for updates
 checkFile.anotherSubmission = Make another submission for {0}
 checkFile.return = Return to "Manage your Digital Platform Reporting"
 
-submissionConfirmation.title = submissionConfirmation
-submissionConfirmation.heading = submissionConfirmation
+submissionConfirmation.title = File successfully sent
+submissionConfirmation.heading = File successfully sent
+submissionConfirmation.p1 = We will contact you if we have any questions about your reports.
+submissionConfirmation.return = Return to "Manage your Digital Platform Reporting"
+submissionConfirmation.fileName = File name
+submissionConfirmation.operatorName = Platform operator name
+submissionConfirmation.operatorId = Platform operator ID
+submissionConfirmation.reportingPeriod = Reportable period
+submissionConfirmation.checksCompleted = Checks completed
+submissionConfirmation.dprsId = DPRS User ID
+submissionConfirmation.error.required = Select yes if you want to submit another file for {0}
+submissionConfirmation.question = Do you want to submit another file for {0}?
 
 fileErrors.title = fileErrors
 fileErrors.heading = fileErrors

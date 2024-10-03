@@ -18,11 +18,11 @@ package connectors
 
 import config.Service
 import connectors.SubmissionConnector.*
-import models.submission.{Submission, UploadFailedRequest, UploadSuccessRequest}
+import models.submission.{StartSubmissionRequest, Submission, UploadFailedRequest, UploadSuccessRequest}
 import org.apache.pekko.Done
 import play.api.Configuration
 import play.api.http.Status.{CREATED, NOT_FOUND, OK}
-import play.api.libs.json.{JsValue, Json}
+import play.api.libs.json.Json
 import play.api.libs.ws.JsonBodyWritables.writeableOf_JsValue
 import uk.gov.hmrc.http.HttpReads.Implicits.*
 import uk.gov.hmrc.http.client.HttpClientV2
@@ -40,9 +40,10 @@ class SubmissionConnector @Inject() (
   private val digitalPlatformReportingService: Service =
     configuration.get[Service]("microservice.services.digital-platform-reporting")
 
-  def start(id: Option[String])(using HeaderCarrier): Future[Submission] =
+  def start(operatorId: String, operatorName: String, id: Option[String])(using HeaderCarrier): Future[Submission] =
     httpClient.put(url"$digitalPlatformReportingService/digital-platform-reporting/submission/start")
       .transform(_.withQueryStringParameters(Seq(id.map(id => "id" -> id)).flatten*))
+      .withBody(Json.toJson(StartSubmissionRequest(operatorId, operatorName)))
       .execute[HttpResponse]
       .flatMap { response =>
         response.status match {

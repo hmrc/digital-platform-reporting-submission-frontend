@@ -29,11 +29,9 @@ import play.api.i18n.Messages
 import play.api.inject.bind
 import play.api.test.FakeRequest
 import play.api.test.Helpers.*
-import queries.PlatformOperatorSummaryQuery
 import uk.gov.hmrc.govukfrontend.views.Aliases.{Key, SummaryList, SummaryListRow, Value}
 import uk.gov.hmrc.govukfrontend.views.viewmodels.content.Text
 import uk.gov.hmrc.http.StringContextOps
-import viewmodels.PlatformOperatorSummary
 import views.html.submission.CheckFileView
 
 import java.time.{Instant, Year}
@@ -58,12 +56,7 @@ class CheckFileControllerSpec extends SpecBase with MockitoSugar with BeforeAndA
 
         "must return OK and the correct view for a GET" in {
 
-          val operatorName = "operator"
-
-          val platformOperatorSummary = PlatformOperatorSummary(operatorId, operatorName, true)
-          val answers = emptyUserAnswers.set(PlatformOperatorSummaryQuery, platformOperatorSummary).success.value
-
-          val application = applicationBuilder(userAnswers = Some(answers))
+          val application = applicationBuilder(userAnswers = Some(emptyUserAnswers))
             .overrides(
               bind[SubmissionConnector].toInstance(mockSubmissionConnector)
             )
@@ -72,7 +65,9 @@ class CheckFileControllerSpec extends SpecBase with MockitoSugar with BeforeAndA
           val submission = Submission(
             _id = "id",
             dprsId = "dprsId",
-            state = Submitted("test.xml"),
+            operatorId = "operatorId",
+            operatorName = operatorName,
+            state = Submitted("test.xml", Year.of(2024)),
             created = now,
             updated = now
           )
@@ -138,6 +133,8 @@ class CheckFileControllerSpec extends SpecBase with MockitoSugar with BeforeAndA
             val submission = Submission(
               _id = "id",
               dprsId = "dprsId",
+              operatorId = "operatorId",
+              operatorName = "operatorName",
               state = Ready,
               created = now,
               updated = now
@@ -170,6 +167,8 @@ class CheckFileControllerSpec extends SpecBase with MockitoSugar with BeforeAndA
             val submission = Submission(
               _id = "id",
               dprsId = "dprsId",
+              operatorId = "operatorId",
+              operatorName = "operatorName",
               state = Uploading,
               created = now,
               updated = now
@@ -202,6 +201,8 @@ class CheckFileControllerSpec extends SpecBase with MockitoSugar with BeforeAndA
             val submission = Submission(
               _id = "id",
               dprsId = "dprsId",
+              operatorId = "operatorId",
+              operatorName = "operatorName",
               state = UploadFailed("reason"),
               created = now,
               updated = now
@@ -234,9 +235,10 @@ class CheckFileControllerSpec extends SpecBase with MockitoSugar with BeforeAndA
             val submission = Submission(
               _id = "id",
               dprsId = "dprsId",
+              operatorId = "operatorId",
+              operatorName = "operatorName",
               state = Validated(
                 downloadUrl = url"http://example.com/test.xml",
-                platformOperatorId = "poid",
                 reportingPeriod = Year.of(2024),
                 fileName = "test.xml",
                 checksum = "checksum",
@@ -273,7 +275,9 @@ class CheckFileControllerSpec extends SpecBase with MockitoSugar with BeforeAndA
             val submission = Submission(
               _id = "id",
               dprsId = "dprsId",
-              state = Approved,
+              operatorId = "operatorId",
+              operatorName = "operatorName",
+              state = Approved("test.xml", Year.of(2024)),
               created = now,
               updated = now
             )
@@ -305,7 +309,9 @@ class CheckFileControllerSpec extends SpecBase with MockitoSugar with BeforeAndA
             val submission = Submission(
               _id = "id",
               dprsId = "dprsId",
-              state = Rejected,
+              operatorId = "operatorId",
+              operatorName = "operatorName",
+              state = Rejected("test.xml", Year.of(2024)),
               created = now,
               updated = now
             )

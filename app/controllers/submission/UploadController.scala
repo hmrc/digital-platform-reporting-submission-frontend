@@ -17,11 +17,13 @@
 package controllers.submission
 
 import connectors.SubmissionConnector
+import controllers.AnswerExtractor
 import controllers.actions.*
 import models.submission.Submission
 import models.submission.Submission.State.{Approved, Ready, Rejected, Submitted, UploadFailed, Uploading, Validated}
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents, Result}
+import queries.PlatformOperatorSummaryQuery
 import services.UpscanService
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import views.html.submission.UploadView
@@ -62,7 +64,7 @@ class UploadController @Inject()(
         _.map { submission =>
           handleSubmission(operatorId, submission) {
             case _: Validated =>
-              submissionConnector.start(Some(submissionId)).map { _ =>
+              submissionConnector.start(operatorId, submission.operatorName, Some(submissionId)).map { _ =>
                 Redirect(routes.UploadController.onPageLoad(operatorId, submissionId))
               }
           }
@@ -86,9 +88,9 @@ class UploadController @Inject()(
           routes.SendFileController.onPageLoad(operatorId, submission._id)
         case _: Submitted =>
           routes.CheckFileController.onPageLoad(operatorId, submission._id)
-        case Approved =>
+        case _: Approved =>
           routes.SubmissionConfirmationController.onPageLoad(operatorId, submission._id)
-        case Rejected =>
+        case _: Rejected =>
           routes.FileErrorsController.onPageLoad(operatorId, submission._id)
         case _ =>
           controllers.routes.JourneyRecoveryController.onPageLoad()

@@ -18,7 +18,9 @@ package utils
 
 import play.api.i18n.Lang
 
-import java.time.format.DateTimeFormatter
+import java.time.format.{DateTimeFormatter, DateTimeFormatterBuilder}
+import java.time.temporal.ChronoField
+import java.time.{Instant, ZoneId, ZoneOffset}
 import java.util.Locale
 
 object DateTimeFormats {
@@ -36,4 +38,20 @@ object DateTimeFormats {
 
   val dateTimeHintFormat: DateTimeFormatter =
     DateTimeFormatter.ofPattern("d M yyyy")
+
+  val fullDateTimeFormatter: DateTimeFormatter = {
+
+    val lookup = new java.util.HashMap[java.lang.Long, String]()
+    lookup.put(0L, "am")
+    lookup.put(1L, "pm")
+
+    new DateTimeFormatterBuilder()
+      .appendPattern("h:mm")
+      .appendText(ChronoField.AMPM_OF_DAY, lookup)
+      .appendPattern(" z 'on' d MMMM yyyy")
+      .toFormatter()
+  }
+
+  def formatInstant(instant: Instant, formatter: DateTimeFormatter): String =
+    formatter.format(instant.atZone(ZoneOffset.UTC).withZoneSameInstant(ZoneId.of("Europe/London")))
 }

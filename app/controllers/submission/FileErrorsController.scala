@@ -42,7 +42,7 @@ class FileErrorsController @Inject()(
     implicit request =>
       submissionConnector.get(submissionId).flatMap {
         _.map { submission =>
-          handleSubmission(operatorId, submission) { case Rejected =>
+          handleSubmission(operatorId, submission) { case _: Rejected =>
             Future.successful(Ok(view()))
           }
         }.getOrElse {
@@ -65,9 +65,9 @@ class FileErrorsController @Inject()(
           routes.SendFileController.onPageLoad(operatorId, submission._id)
         case _: Submitted =>
           routes.CheckFileController.onPageLoad(operatorId, submission._id)
-        case Approved =>
+        case _: Approved =>
           routes.SubmissionConfirmationController.onPageLoad(operatorId, submission._id)
-        case Rejected =>
+        case _: Rejected =>
           routes.FileErrorsController.onPageLoad(operatorId, submission._id)
         case _ =>
           controllers.routes.JourneyRecoveryController.onPageLoad()
