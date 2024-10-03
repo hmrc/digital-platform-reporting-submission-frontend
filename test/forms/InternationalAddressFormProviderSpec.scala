@@ -158,7 +158,7 @@ class InternationalAddressFormProviderSpec extends StringFieldBehaviours {
     val requiredKey = "internationalAddress.error.postal.required"
     val lengthKey = "internationalAddress.error.postal.length"
     val formatKey = "internationalAddress.error.postal.format"
-    val maxLength = 25
+    val maxLength = 10
 
     behave like fieldThatBindsValidData(
       form,
