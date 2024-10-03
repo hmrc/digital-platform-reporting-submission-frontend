@@ -29,11 +29,9 @@ import play.api.i18n.Messages
 import play.api.inject.bind
 import play.api.test.FakeRequest
 import play.api.test.Helpers.*
-import queries.PlatformOperatorSummaryQuery
 import uk.gov.hmrc.govukfrontend.views.Aliases.{Key, SummaryList, SummaryListRow, Value}
 import uk.gov.hmrc.govukfrontend.views.viewmodels.content.Text
 import uk.gov.hmrc.http.StringContextOps
-import viewmodels.PlatformOperatorSummary
 import views.html.submission.CheckFileView
 
 import java.time.{Instant, Year}
@@ -58,12 +56,7 @@ class CheckFileControllerSpec extends SpecBase with MockitoSugar with BeforeAndA
 
         "must return OK and the correct view for a GET" in {
 
-          val operatorName = "operator"
-
-          val platformOperatorSummary = PlatformOperatorSummary(operatorId, operatorName, true)
-          val answers = emptyUserAnswers.set(PlatformOperatorSummaryQuery, platformOperatorSummary).success.value
-
-          val application = applicationBuilder(userAnswers = Some(answers))
+          val application = applicationBuilder(userAnswers = Some(emptyUserAnswers))
             .overrides(
               bind[SubmissionConnector].toInstance(mockSubmissionConnector)
             )

@@ -30,11 +30,9 @@ import play.api.i18n.Messages
 import play.api.inject.bind
 import play.api.test.FakeRequest
 import play.api.test.Helpers.*
-import queries.PlatformOperatorSummaryQuery
 import uk.gov.hmrc.govukfrontend.views.Aliases.{Key, SummaryList, Text, Value}
 import uk.gov.hmrc.govukfrontend.views.viewmodels.summarylist.{ActionItem, Actions, SummaryListRow}
 import uk.gov.hmrc.http.StringContextOps
-import viewmodels.PlatformOperatorSummary
 import views.html.submission.SendFileView
 
 import java.time.{Instant, Year}
@@ -59,12 +57,7 @@ class SendFileControllerSpec extends SpecBase with MockitoSugar with BeforeAndAf
 
         "must return OK and the correct view for a GET" in {
 
-          val operatorName = "operator"
-
-          val platformOperatorSummary = PlatformOperatorSummary(operatorId, operatorName, true)
-          val answers = emptyUserAnswers.set(PlatformOperatorSummaryQuery, platformOperatorSummary).success.value
-
-          val application = applicationBuilder(userAnswers = Some(answers))
+          val application = applicationBuilder(userAnswers = Some(emptyUserAnswers))
             .overrides(
               bind[SubmissionConnector].toInstance(mockSubmissionConnector)
             )
@@ -104,7 +97,7 @@ class SendFileControllerSpec extends SpecBase with MockitoSugar with BeforeAndAf
                 ),
                 SummaryListRow(
                   key = Key(content = Text(Messages("sendFile.operatorName"))),
-                  value = Value(content = Text(operatorName))
+                  value = Value(content = Text("operatorName"))
                 ),
                 SummaryListRow(
                   key = Key(content = Text(Messages("sendFile.operatorId"))),

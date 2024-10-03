@@ -42,8 +42,6 @@ class UploadControllerSpec extends SpecBase with MockitoSugar with BeforeAndAfte
 
   private val mockSubmissionConnector: SubmissionConnector = mock[SubmissionConnector]
   private val mockUpscanService: UpscanService = mock[UpscanService]
-  private val platformOperatorSummary = PlatformOperatorSummary("operatorId", "operatorName", true)
-  private val baseAnswers = emptyUserAnswers.set(PlatformOperatorSummaryQuery, platformOperatorSummary).success.value
 
   private val now: Instant = Instant.now()
 
@@ -60,7 +58,7 @@ class UploadControllerSpec extends SpecBase with MockitoSugar with BeforeAndAfte
 
         "must initiate an upscan journey and return OK and the correct view for a GET" in {
 
-          val application = applicationBuilder(userAnswers = Some(baseAnswers))
+          val application = applicationBuilder(userAnswers = Some(emptyUserAnswers))
             .overrides(
               bind[SubmissionConnector].toInstance(mockSubmissionConnector),
               bind[UpscanService].toInstance(mockUpscanService)
@@ -374,7 +372,7 @@ class UploadControllerSpec extends SpecBase with MockitoSugar with BeforeAndAfte
 
         "must set the state to ready and redirect to the upload page" in {
 
-          val application = applicationBuilder(userAnswers = Some(baseAnswers))
+          val application = applicationBuilder(userAnswers = Some(emptyUserAnswers))
             .overrides(
               bind[SubmissionConnector].toInstance(mockSubmissionConnector),
               bind[UpscanService].toInstance(mockUpscanService)

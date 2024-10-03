@@ -17,18 +17,15 @@
 package controllers.submission
 
 import connectors.SubmissionConnector
-import controllers.AnswerExtractor
 import controllers.actions.*
 import models.submission.Submission
 import models.submission.Submission.State.{Approved, Ready, Rejected, Submitted, UploadFailed, Uploading, Validated}
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents, Result}
-import queries.PlatformOperatorSummaryQuery
 import uk.gov.hmrc.govukfrontend.views.Aliases.{ActionItem, Actions, SummaryListRow, Value}
 import uk.gov.hmrc.govukfrontend.views.viewmodels.content.Text
 import uk.gov.hmrc.govukfrontend.views.viewmodels.summarylist.{Key, SummaryList}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
-import viewmodels.PlatformOperatorSummary
 import views.html.submission.SendFileView
 
 import java.time.Year
@@ -43,16 +40,14 @@ class SendFileController @Inject()(
                                     val controllerComponents: MessagesControllerComponents,
                                     view: SendFileView,
                                     submissionConnector: SubmissionConnector
-                                  )(using ExecutionContext) extends FrontendBaseController with I18nSupport with AnswerExtractor {
+                                  )(using ExecutionContext) extends FrontendBaseController with I18nSupport {
 
   def onPageLoad(operatorId: String, submissionId: String): Action[AnyContent] = (identify andThen getData(operatorId) andThen requireData).async {
     implicit request =>
       submissionConnector.get(submissionId).flatMap {
         _.map { submission =>
           handleSubmission(operatorId, submission) { case state: Validated =>
-            getAnswerAsync(PlatformOperatorSummaryQuery) { summary =>
-              Future.successful(Ok(view(operatorId, submissionId, getSummaryList(submissionId, state.fileName, state.reportingPeriod, summary))))
-            }
+            Future.successful(Ok(view(operatorId, submissionId, getSummaryList(submissionId, state.fileName, state.reportingPeriod, submission))))
           }
         }.getOrElse {
           Future.successful(Redirect(controllers.routes.JourneyRecoveryController.onPageLoad()))
@@ -60,23 +55,23 @@ class SendFileController @Inject()(
       }
   }
 
-  private def getSummaryList(submissionId: String, fileName: String, reportingPeriod: Year, summary: PlatformOperatorSummary)(using Messages): SummaryList =
+  private def getSummaryList(submissionId: String, fileName: String, reportingPeriod: Year, submission: Submission)(using Messages): SummaryList =
     SummaryList(
       rows = Seq(
         SummaryListRow(
           key = Key(content = Text(Messages("sendFile.uploadedFile"))),
           value = Value(content = Text(fileName)),
           actions = Some(Actions(items = Seq(
-            ActionItem(href = routes.UploadController.onRedirect(summary.operatorId, submissionId).url, content = Text(Messages("site.change")), visuallyHiddenText = Some(Messages("sendFile.uploadedFile.change")))
+            ActionItem(href = routes.UploadController.onRedirect(submission.operatorId, submissionId).url, content = Text(Messages("site.change")), visuallyHiddenText = Some(Messages("sendFile.uploadedFile.change")))
           )))
         ),
         SummaryListRow(
           key = Key(content = Text(Messages("sendFile.operatorName"))),
-          value = Value(content = Text(summary.operatorName))
+          value = Value(content = Text(submission.operatorName))
         ),
         SummaryListRow(
           key = Key(content = Text(Messages("sendFile.operatorId"))),
-          value = Value(content = Text(summary.operatorId))
+          value = Value(content = Text(submission.operatorId))
         ),
         SummaryListRow(
           key = Key(content = Text(Messages("sendFile.reportingPeriod"))),

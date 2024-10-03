@@ -40,7 +40,7 @@ class UploadController @Inject()(
                                   view: UploadView,
                                   submissionConnector: SubmissionConnector,
                                   upscanService: UpscanService
-                                )(using ExecutionContext) extends FrontendBaseController with I18nSupport with AnswerExtractor {
+                                )(using ExecutionContext) extends FrontendBaseController with I18nSupport {
 
   def onPageLoad(operatorId: String, submissionId: String): Action[AnyContent] = (identify andThen getData(operatorId) andThen requireData).async {
     implicit request =>
@@ -64,10 +64,8 @@ class UploadController @Inject()(
         _.map { submission =>
           handleSubmission(operatorId, submission) {
             case _: Validated =>
-              getAnswerAsync(PlatformOperatorSummaryQuery) { summary =>
-                submissionConnector.start(operatorId, summary.operatorName, Some(submissionId)).map { _ =>
-                  Redirect(routes.UploadController.onPageLoad(operatorId, submissionId))
-                }
+              submissionConnector.start(operatorId, submission.operatorName, Some(submissionId)).map { _ =>
+                Redirect(routes.UploadController.onPageLoad(operatorId, submissionId))
               }
           }
         }.getOrElse {

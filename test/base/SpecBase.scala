@@ -38,6 +38,7 @@ trait SpecBase
 
   val userId: String = "userId"
   val operatorId: String = "operatorId"
+  val operatorName: String = "operatorName"
 
   def emptyUserAnswers : UserAnswers = UserAnswers(userId, operatorId)
 

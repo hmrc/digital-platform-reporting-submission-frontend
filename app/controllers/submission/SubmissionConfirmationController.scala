@@ -47,16 +47,14 @@ class SubmissionConfirmationController @Inject()(
                                                   view: SubmissionConfirmationView,
                                                   submissionConnector: SubmissionConnector,
                                                   formProvider: SubmissionConfirmationFormProvider
-                                                )(using ExecutionContext) extends FrontendBaseController with I18nSupport with AnswerExtractor {
+                                                )(using ExecutionContext) extends FrontendBaseController with I18nSupport {
 
   def onPageLoad(operatorId: String, submissionId: String): Action[AnyContent] = (identify andThen getData(operatorId) andThen requireData).async {
     implicit request =>
       submissionConnector.get(submissionId).flatMap {
         _.map { submission =>
           handleSubmission(operatorId, submission) { case state: Approved =>
-            getAnswerAsync(PlatformOperatorSummaryQuery) { summary =>
-              Future.successful(Ok(view(formProvider(summary.operatorName), operatorId, summary.operatorName, submissionId, getSummaryList(state.fileName, summary, state, submission.updated, request.dprsId))))
-            }
+            Future.successful(Ok(view(formProvider(submission.operatorName), operatorId, submission.operatorName, submissionId, getSummaryList(state.fileName, submission, state, submission.updated, request.dprsId))))
           }
         }.getOrElse {
           Future.successful(Redirect(controllers.routes.JourneyRecoveryController.onPageLoad()))
@@ -69,18 +67,16 @@ class SubmissionConfirmationController @Inject()(
       submissionConnector.get(submissionId).flatMap {
         _.map { submission =>
           handleSubmission(operatorId, submission) { case state: Approved =>
-            getAnswerAsync(PlatformOperatorSummaryQuery) { summary =>
-              formProvider(summary.operatorName).bindFromRequest().fold(
-                errors =>
-                  Future.successful(BadRequest(view(errors, operatorId, summary.operatorName, submissionId, getSummaryList(state.fileName, summary, state, submission.updated, request.dprsId)))),
-                addAnother =>
-                  if (addAnother) {
-                    Future.successful(Redirect(routes.StartController.onPageLoad(operatorId)))
-                  } else {
-                    Future.successful(Redirect(appConfig.manageHomepageUrl))
-                  }
-              )
-            }
+            formProvider(submission.operatorName).bindFromRequest().fold(
+              errors =>
+                Future.successful(BadRequest(view(errors, operatorId, submission.operatorName, submissionId, getSummaryList(state.fileName, submission, state, submission.updated, request.dprsId)))),
+              addAnother =>
+                if (addAnother) {
+                  Future.successful(Redirect(routes.StartController.onPageLoad(operatorId)))
+                } else {
+                  Future.successful(Redirect(appConfig.manageHomepageUrl))
+                }
+            )
           }
         }.getOrElse {
           Future.successful(Redirect(controllers.routes.JourneyRecoveryController.onPageLoad()))
@@ -88,7 +84,7 @@ class SubmissionConfirmationController @Inject()(
       }
   }
 
-  private def getSummaryList(fileName: String, summary: PlatformOperatorSummary, state: Approved, checksCompleted: Instant, dprsId: String)(using Messages): SummaryList =
+  private def getSummaryList(fileName: String, submission: Submission, state: Approved, checksCompleted: Instant, dprsId: String)(using Messages): SummaryList =
     SummaryList(
       rows = Seq(
         SummaryListRow(
@@ -97,11 +93,11 @@ class SubmissionConfirmationController @Inject()(
         ),
         SummaryListRow(
           key = Key(content = Text(Messages("submissionConfirmation.operatorName"))),
-          value = Value(content = Text(summary.operatorName)),
+          value = Value(content = Text(submission.operatorName)),
         ),
         SummaryListRow(
           key = Key(content = Text(Messages("submissionConfirmation.operatorId"))),
-          value = Value(content = Text(summary.operatorId)),
+          value = Value(content = Text(submission.operatorId)),
         ),
         SummaryListRow(
           key = Key(content = Text(Messages("submissionConfirmation.reportingPeriod"))),

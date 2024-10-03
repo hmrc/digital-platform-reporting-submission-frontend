@@ -59,12 +59,7 @@ class SubmissionConfirmationControllerSpec extends SpecBase with MockitoSugar wi
 
         "must return OK and the correct view for a GET" in {
 
-          val operatorName = "operator"
-
-          val platformOperatorSummary = PlatformOperatorSummary(operatorId, operatorName, true)
-          val answers = emptyUserAnswers.set(PlatformOperatorSummaryQuery, platformOperatorSummary).success.value
-
-          val application = applicationBuilder(userAnswers = Some(answers))
+          val application = applicationBuilder(userAnswers = Some(emptyUserAnswers))
             .overrides(
               bind[SubmissionConnector].toInstance(mockSubmissionConnector)
             )
@@ -76,7 +71,7 @@ class SubmissionConfirmationControllerSpec extends SpecBase with MockitoSugar wi
             _id = "id",
             dprsId = "dprsId",
             operatorId = "operatorId",
-            operatorName = "operatorName",
+            operatorName = operatorName,
             state = Approved("test.xml", Year.of(2024)),
             created = now,
             updated = updatedInstant
@@ -165,7 +160,7 @@ class SubmissionConfirmationControllerSpec extends SpecBase with MockitoSugar wi
               _id = "id",
               dprsId = "dprsId",
               operatorId = "operatorId",
-              operatorName = "operatorName",
+              operatorName = operatorName,
               state = Ready,
               created = now,
               updated = now
@@ -199,7 +194,7 @@ class SubmissionConfirmationControllerSpec extends SpecBase with MockitoSugar wi
               _id = "id",
               dprsId = "dprsId",
               operatorId = "operatorId",
-              operatorName = "operatorName",
+              operatorName = operatorName,
               state = Uploading,
               created = now,
               updated = now
@@ -233,7 +228,7 @@ class SubmissionConfirmationControllerSpec extends SpecBase with MockitoSugar wi
               _id = "id",
               dprsId = "dprsId",
               operatorId = "operatorId",
-              operatorName = "operatorName",
+              operatorName = operatorName,
               state = UploadFailed("reason"),
               created = now,
               updated = now
@@ -267,7 +262,7 @@ class SubmissionConfirmationControllerSpec extends SpecBase with MockitoSugar wi
               _id = "id",
               dprsId = "dprsId",
               operatorId = "operatorId",
-              operatorName = "operatorName",
+              operatorName = operatorName,
               state = Validated(
                 downloadUrl = url"http://example.com/test.xml",
                 reportingPeriod = Year.of(2024),
@@ -307,7 +302,7 @@ class SubmissionConfirmationControllerSpec extends SpecBase with MockitoSugar wi
               _id = "id",
               dprsId = "dprsId",
               operatorId = "operatorId",
-              operatorName = "operatorName",
+              operatorName = operatorName,
               state = Submitted("test.xml", Year.of(2024)),
               created = now,
               updated = now
@@ -341,7 +336,7 @@ class SubmissionConfirmationControllerSpec extends SpecBase with MockitoSugar wi
               _id = "id",
               dprsId = "dprsId",
               operatorId = "operatorId",
-              operatorName = "operatorName",
+              operatorName = operatorName,
               state = Rejected("test.xml", Year.of(2024)),
               created = now,
               updated = now
@@ -391,12 +386,7 @@ class SubmissionConfirmationControllerSpec extends SpecBase with MockitoSugar wi
 
         "must redirect to the start page for the operator when the user submits true" in {
 
-          val operatorName = "operator"
-
-          val platformOperatorSummary = PlatformOperatorSummary(operatorId, operatorName, true)
-          val answers = emptyUserAnswers.set(PlatformOperatorSummaryQuery, platformOperatorSummary).success.value
-
-          val application = applicationBuilder(userAnswers = Some(answers))
+          val application = applicationBuilder(userAnswers = Some(emptyUserAnswers))
             .overrides(
               bind[SubmissionConnector].toInstance(mockSubmissionConnector)
             )
@@ -406,7 +396,7 @@ class SubmissionConfirmationControllerSpec extends SpecBase with MockitoSugar wi
             _id = "id",
             dprsId = "dprsId",
             operatorId = "operatorId",
-            operatorName = "operatorName",
+            operatorName = operatorName,
             state = Approved("test.xml", Year.of(2024)),
             created = now,
             updated = now
@@ -428,12 +418,7 @@ class SubmissionConfirmationControllerSpec extends SpecBase with MockitoSugar wi
 
         "must redirect to the manage frontend when the user submits false" in {
 
-          val operatorName = "operator"
-
-          val platformOperatorSummary = PlatformOperatorSummary(operatorId, operatorName, true)
-          val answers = emptyUserAnswers.set(PlatformOperatorSummaryQuery, platformOperatorSummary).success.value
-
-          val application = applicationBuilder(userAnswers = Some(answers))
+          val application = applicationBuilder(userAnswers = Some(emptyUserAnswers))
             .overrides(
               bind[SubmissionConnector].toInstance(mockSubmissionConnector)
             )
@@ -443,7 +428,7 @@ class SubmissionConfirmationControllerSpec extends SpecBase with MockitoSugar wi
             _id = "id",
             dprsId = "dprsId",
             operatorId = "operatorId",
-            operatorName = "operatorName",
+            operatorName = operatorName,
             state = Approved("test.xml", Year.of(2024)),
             created = now,
             updated = now
@@ -465,12 +450,7 @@ class SubmissionConfirmationControllerSpec extends SpecBase with MockitoSugar wi
 
         "must return a Bad Request and errors when invalid data is submitted" in {
 
-          val operatorName = "operator"
-
-          val platformOperatorSummary = PlatformOperatorSummary(operatorId, operatorName, true)
-          val answers = emptyUserAnswers.set(PlatformOperatorSummaryQuery, platformOperatorSummary).success.value
-
-          val application = applicationBuilder(userAnswers = Some(answers))
+          val application = applicationBuilder(userAnswers = Some(emptyUserAnswers))
             .overrides(
               bind[SubmissionConnector].toInstance(mockSubmissionConnector)
             )
@@ -482,7 +462,7 @@ class SubmissionConfirmationControllerSpec extends SpecBase with MockitoSugar wi
             _id = "id",
             dprsId = "dprsId",
             operatorId = "operatorId",
-            operatorName = "operatorName",
+            operatorName = operatorName,
             state = Approved("test.xml", Year.of(2024)),
             created = now,
             updated = updatedInstant
@@ -573,7 +553,7 @@ class SubmissionConfirmationControllerSpec extends SpecBase with MockitoSugar wi
               _id = "id",
               dprsId = "dprsId",
               operatorId = "operatorId",
-              operatorName = "operatorName",
+              operatorName = operatorName,
               state = Ready,
               created = now,
               updated = now
@@ -607,7 +587,7 @@ class SubmissionConfirmationControllerSpec extends SpecBase with MockitoSugar wi
               _id = "id",
               dprsId = "dprsId",
               operatorId = "operatorId",
-              operatorName = "operatorName",
+              operatorName = operatorName,
               state = Uploading,
               created = now,
               updated = now
@@ -641,7 +621,7 @@ class SubmissionConfirmationControllerSpec extends SpecBase with MockitoSugar wi
               _id = "id",
               dprsId = "dprsId",
               operatorId = "operatorId",
-              operatorName = "operatorName",
+              operatorName = operatorName,
               state = UploadFailed("reason"),
               created = now,
               updated = now
@@ -675,7 +655,7 @@ class SubmissionConfirmationControllerSpec extends SpecBase with MockitoSugar wi
               _id = "id",
               dprsId = "dprsId",
               operatorId = "operatorId",
-              operatorName = "operatorName",
+              operatorName = operatorName,
               state = Validated(
                 downloadUrl = url"http://example.com/test.xml",
                 reportingPeriod = Year.of(2024),
@@ -715,7 +695,7 @@ class SubmissionConfirmationControllerSpec extends SpecBase with MockitoSugar wi
               _id = "id",
               dprsId = "dprsId",
               operatorId = "operatorId",
-              operatorName = "operatorName",
+              operatorName = operatorName,
               state = Submitted("test.xml", Year.of(2024)),
               created = now,
               updated = now
@@ -749,7 +729,7 @@ class SubmissionConfirmationControllerSpec extends SpecBase with MockitoSugar wi
               _id = "id",
               dprsId = "dprsId",
               operatorId = "operatorId",
-              operatorName = "operatorName",
+              operatorName = operatorName,
               state = Rejected("test.xml", Year.of(2024)),
               created = now,
               updated = now
