@@ -48,7 +48,7 @@ class InternationalAddressFormProvider @Inject() extends Mappings {
          ))),
        "postal" -> text("internationalAddress.error.postal.required")
          .verifying(firstError(
-           maxLength(25, "internationalAddress.error.postal.length"),
+           maxLength(10, "internationalAddress.error.postal.length"),
            regexp(Validation.textInputPattern.toString, "internationalAddress.error.postal.format")
          )),
        "country" -> text("internationalAddress.error.country.required")
