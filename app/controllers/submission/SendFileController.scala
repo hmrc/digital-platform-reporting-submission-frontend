@@ -117,7 +117,7 @@ class SendFileController @Inject()(
           routes.CheckFileController.onPageLoad(operatorId, submission._id)
         case _: Approved =>
           routes.SubmissionConfirmationController.onPageLoad(operatorId, submission._id)
-        case Rejected =>
+        case _: Rejected =>
           routes.FileErrorsController.onPageLoad(operatorId, submission._id)
         case _ =>
           controllers.routes.JourneyRecoveryController.onPageLoad()

@@ -168,6 +168,8 @@ class StartControllerSpec extends SpecBase with MockitoSugar with BeforeAndAfter
         val submission = Submission(
           _id = "id",
           dprsId = "dprsId",
+          operatorId = "operatorId",
+          operatorName = "operatorName",
           state = Ready,
           created = now,
           updated = now

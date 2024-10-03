@@ -43,7 +43,6 @@ class UpscanCallbackController @Inject() (
             val uploadSuccessRequest = UploadSuccessRequest(
               dprsId = journey.dprsId,
               downloadUrl = callback.downloadUrl,
-              platformOperatorId = "platformOperatorId", // TODO get platform operator id from user's answers
               fileName = callback.uploadDetails.fileName,
               checksum = callback.uploadDetails.checksum,
               size = callback.uploadDetails.size

@@ -73,9 +73,10 @@ class SendFileControllerSpec extends SpecBase with MockitoSugar with BeforeAndAf
           val submission = Submission(
             _id = "id",
             dprsId = "dprsId",
+            operatorId = "operatorId",
+            operatorName = "operatorName",
             state = Validated(
               downloadUrl = url"http://example.com/test.xml",
-              platformOperatorId = "poid",
               reportingPeriod = Year.of(2024),
               fileName = "test.xml",
               checksum = "checksum",
@@ -163,6 +164,8 @@ class SendFileControllerSpec extends SpecBase with MockitoSugar with BeforeAndAf
             val submission = Submission(
               _id = "id",
               dprsId = "dprsId",
+              operatorId = "operatorId",
+              operatorName = "operatorName",
               state = Ready,
               created = now,
               updated = now
@@ -195,6 +198,8 @@ class SendFileControllerSpec extends SpecBase with MockitoSugar with BeforeAndAf
             val submission = Submission(
               _id = "id",
               dprsId = "dprsId",
+              operatorId = "operatorId",
+              operatorName = "operatorName",
               state = Uploading,
               created = now,
               updated = now
@@ -227,6 +232,8 @@ class SendFileControllerSpec extends SpecBase with MockitoSugar with BeforeAndAf
             val submission = Submission(
               _id = "id",
               dprsId = "dprsId",
+              operatorId = "operatorId",
+              operatorName = "operatorName",
               state = UploadFailed("reason"),
               created = now,
               updated = now
@@ -259,6 +266,8 @@ class SendFileControllerSpec extends SpecBase with MockitoSugar with BeforeAndAf
             val submission = Submission(
               _id = "id",
               dprsId = "dprsId",
+              operatorId = "operatorId",
+              operatorName = "operatorName",
               state = Submitted("test.xml", Year.of(2024)),
               created = now,
               updated = now
@@ -291,6 +300,8 @@ class SendFileControllerSpec extends SpecBase with MockitoSugar with BeforeAndAf
             val submission = Submission(
               _id = "id",
               dprsId = "dprsId",
+              operatorId = "operatorId",
+              operatorName = "operatorName",
               state = Approved("test.xml", Year.of(2024)),
               created = now,
               updated = now
@@ -323,7 +334,9 @@ class SendFileControllerSpec extends SpecBase with MockitoSugar with BeforeAndAf
             val submission = Submission(
               _id = "id",
               dprsId = "dprsId",
-              state = Rejected,
+              operatorId = "operatorId",
+              operatorName = "operatorName",
+              state = Rejected("test.xml", Year.of(2024)),
               created = now,
               updated = now
             )
@@ -381,9 +394,10 @@ class SendFileControllerSpec extends SpecBase with MockitoSugar with BeforeAndAf
           val submission = Submission(
             _id = "id",
             dprsId = "dprsId",
+            operatorId = "operatorId",
+            operatorName = "operatorName",
             state = Validated(
               downloadUrl = url"http://example.com/test.xml",
-              platformOperatorId = "poid",
               reportingPeriod = Year.of(2024),
               fileName = "test.xml",
               checksum = "checksum",
@@ -445,6 +459,8 @@ class SendFileControllerSpec extends SpecBase with MockitoSugar with BeforeAndAf
             val submission = Submission(
               _id = "id",
               dprsId = "dprsId",
+              operatorId = "operatorId",
+              operatorName = "operatorName",
               state = Ready,
               created = now,
               updated = now
@@ -479,6 +495,8 @@ class SendFileControllerSpec extends SpecBase with MockitoSugar with BeforeAndAf
             val submission = Submission(
               _id = "id",
               dprsId = "dprsId",
+              operatorId = "operatorId",
+              operatorName = "operatorName",
               state = Uploading,
               created = now,
               updated = now
@@ -513,6 +531,8 @@ class SendFileControllerSpec extends SpecBase with MockitoSugar with BeforeAndAf
             val submission = Submission(
               _id = "id",
               dprsId = "dprsId",
+              operatorId = "operatorId",
+              operatorName = "operatorName",
               state = UploadFailed("reason"),
               created = now,
               updated = now
@@ -547,6 +567,8 @@ class SendFileControllerSpec extends SpecBase with MockitoSugar with BeforeAndAf
             val submission = Submission(
               _id = "id",
               dprsId = "dprsId",
+              operatorId = "operatorId",
+              operatorName = "operatorName",
               state = Submitted("test.xml", Year.of(2024)),
               created = now,
               updated = now
@@ -581,6 +603,8 @@ class SendFileControllerSpec extends SpecBase with MockitoSugar with BeforeAndAf
             val submission = Submission(
               _id = "id",
               dprsId = "dprsId",
+              operatorId = "operatorId",
+              operatorName = "operatorName",
               state = Approved("test.xml", Year.of(2024)),
               created = now,
               updated = now
@@ -615,7 +639,9 @@ class SendFileControllerSpec extends SpecBase with MockitoSugar with BeforeAndAf
             val submission = Submission(
               _id = "id",
               dprsId = "dprsId",
-              state = Rejected,
+              operatorId = "operatorId",
+              operatorName = "operatorName",
+              state = Rejected("test.xml", Year.of(2024)),
               created = now,
               updated = now
             )

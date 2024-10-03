@@ -87,7 +87,6 @@ class UpscanCallbackControllerSpec extends SpecBase with BeforeAndAfterEach {
           val expectedUploadSuccessRequest = UploadSuccessRequest(
             dprsId = "dprsId",
             downloadUrl = url"http://example.com/test.xml",
-            platformOperatorId = "platformOperatorId",
             fileName = "filename",
             checksum = "checksum",
             size = 1337

@@ -60,6 +60,8 @@ class SubmissionConnectorSpec
     val expectedSubmission = Submission(
       _id = "id",
       dprsId = "dprsId",
+      operatorId = "operatorId",
+      operatorName = "operatorName",
       state = Ready,
       created = now,
       updated = now
@@ -123,6 +125,8 @@ class SubmissionConnectorSpec
 
     val expectedSubmission = Submission(
       _id = "id",
+      operatorId = "operatorId",
+      operatorName = "operatorName",
       dprsId = "dprsId",
       state = Ready,
       created = now,
@@ -218,7 +222,6 @@ class SubmissionConnectorSpec
     val request = UploadSuccessRequest(
       dprsId = "dprsId",
       downloadUrl = url"http://example.com/test.xml",
-      platformOperatorId = "platformOperatorId",
       fileName = "test.xml",
       checksum = "checksum",
       size = 1337L
