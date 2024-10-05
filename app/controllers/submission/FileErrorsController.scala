@@ -42,8 +42,8 @@ class FileErrorsController @Inject()(
     implicit request =>
       submissionConnector.get(submissionId).flatMap {
         _.map { submission =>
-          handleSubmission(operatorId, submission) { case _: Rejected =>
-            Future.successful(Ok(view()))
+          handleSubmission(operatorId, submission) { case state: Rejected =>
+            Future.successful(Ok(view(submission.operatorId, submission._id, state.fileName)))
           }
         }.getOrElse {
           Future.successful(Redirect(controllers.routes.JourneyRecoveryController.onPageLoad()))

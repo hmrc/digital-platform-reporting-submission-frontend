@@ -77,7 +77,7 @@ class FileErrorsControllerSpec extends SpecBase with MockitoSugar with BeforeAnd
             val view = application.injector.instanceOf[FileErrorsView]
 
             status(result) mustEqual OK
-            contentAsString(result) mustEqual view()(request, messages(application)).toString
+            contentAsString(result) mustEqual view(submission.operatorId, submission._id, "test.xml")(request, messages(application)).toString
           }
 
           verify(mockSubmissionConnector).get(eqTo("id"))(using any())
