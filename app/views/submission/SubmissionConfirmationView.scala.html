@@ -31,7 +31,7 @@
 
 @(form: Form[_], operatorId: String, operatorName: String, submissionId: String, summaryList: SummaryList)(implicit request: Request[_], messages: Messages)
 
-@layout(pageTitle = titleNoForm(messages("submissionConfirmation.title"))) {
+@layout(pageTitle = titleNoForm(messages("submissionConfirmation.title")), showBackLink = false) {
 
   @formHelper(action = controllers.submission.routes.SubmissionConfirmationController.onSubmit(operatorId, submissionId), Symbol("autoComplete") -> "off") {
 
