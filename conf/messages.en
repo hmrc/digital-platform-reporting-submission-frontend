@@ -117,6 +117,10 @@ fileErrors.point4 = Submit the updated file.
 fileErrors.button = Download error report
 fileErrors.return = Return to "Manage your Digital Platform Reporting"
 
+fileErrors.tsv.code = Code
+fileErrors.tsv.detail = Detail
+fileErrors.tsv.docRef = DocRef
+
 chrn.title = What is the platform operator’s HMRC Charity Reference (CHRN)?
 chrn.heading = What is {0}’s HMRC Charity Reference (CHRN)?
 chrn.hint = This is up to 5 numbers, and will start with two letters or an ‘X’. It will be on the letter issued by HMRC confirming recognition as a charity, or approving registration as a CASC. The number may also be on other correspondence from HMRC Charities.
