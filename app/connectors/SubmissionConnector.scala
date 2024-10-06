@@ -22,6 +22,7 @@ import models.submission.*
 import org.apache.pekko.stream.Materializer
 import org.apache.pekko.stream.scaladsl.{JsonFraming, Source}
 import org.apache.pekko.{Done, NotUsed}
+import org.apache.pekko.Done
 import play.api.Configuration
 import play.api.http.Status.{CREATED, NOT_FOUND, OK}
 import play.api.libs.json.Json
@@ -135,6 +136,18 @@ class SubmissionConnector @Inject() (
             Future.failed(GetErrorsFailure(id, response.status))
         }
       }
+      
+  def list(request: ViewSubmissionsRequest)(using HeaderCarrier): Future[Option[SubmissionsSummary]] =
+    httpClient.post(url"$digitalPlatformReportingService/digital-platform-reporting/submission/list")
+      .withBody(Json.toJson(request))
+      .execute[HttpResponse]
+      .flatMap { response =>
+        response.status match {
+          case OK        => Future.successful(Some(response.json.as[SubmissionsSummary]))
+          case NOT_FOUND => Future.successful(None)
+          case _         => Future.failed(ViewFailure)
+        }
+      }
 }
 
 object SubmissionConnector {
@@ -146,4 +159,5 @@ object SubmissionConnector {
   final case class UploadFailedFailure(id: String) extends Throwable
   final case class SubmitFailure(id: String) extends Throwable
   final case class GetErrorsFailure(id: String, status: Int) extends Throwable
+  case object ViewFailure extends Throwable
 }

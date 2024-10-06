@@ -377,3 +377,8 @@ primaryContactPhone.checkYourAnswersLabel = Telephone number
 secondaryContactEmail.checkYourAnswersLabel = Email address
 secondaryContactName.checkYourAnswersLabel = Name
 secondaryContactPhone.checkYourAnswersLabel = Telephone number
+
+viewAssumedReports.title = Assumed reporting submissions
+viewAssumedReports.heading = Assumed reporting submissions
+viewAssumedReports.noReports = You have not made any assumed reporting submissions.
+viewAssumedReports.newReport.text = Make a new assumed reporting submission

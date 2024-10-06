@@ -19,11 +19,9 @@ package connectors
 import com.github.tomakehurst.wiremock.client.WireMock.*
 import connectors.SubmissionConnector.{GetFailure, StartUploadFailure, SubmitFailure, UploadFailedFailure, UploadSuccessFailure}
 import models.submission.Submission.State.Ready
-import models.submission.{CadxValidationError, StartSubmissionRequest, Submission, UploadFailedRequest, UploadSuccessRequest}
+import models.submission.*
 import org.apache.pekko.stream.Materializer
-import org.apache.pekko.stream.scaladsl.{Sink, Source}
-import org.apache.pekko.util.ByteString
-import org.mockito.Mockito.when
+import org.apache.pekko.stream.scaladsl.Sink
 import org.scalatest.OptionValues
 import org.scalatest.concurrent.{IntegrationPatience, ScalaFutures}
 import org.scalatest.freespec.AnyFreeSpec
@@ -356,7 +354,7 @@ class SubmissionConnectorSpec
       val source = connector.getErrors(submissionId)(using hc).futureValue
       val result = source.runWith(Sink.fold(Seq.empty[CadxValidationError])(_ :+ _)).futureValue
 
-      result must contain only (error1, error2)
+      result must contain only(error1, error2)
     }
 
     "must fail when the server responds with NOT_FOUND" in {
@@ -369,6 +367,43 @@ class SubmissionConnectorSpec
       )
 
       connector.getErrors(submissionId)(using hc).failed.futureValue
+    }
+  }
+  
+  "list" - {
+    
+    val request = ViewSubmissionsRequest(assumedReporting = true)
+
+    "must return a submission summary when the server returns OK" in {
+
+      val submissionsSummary = SubmissionsSummary(Nil, Nil)
+      val responsePayload = Json.obj(
+        "deliveredSubmissions" -> Json.arr(),
+        "localSubmissions" -> Json.arr()
+      )
+
+      wireMockServer.stubFor(
+        post(urlPathEqualTo("/digital-platform-reporting/submission/list"))
+          .withRequestBody(equalToJson(Json.toJson(request).toString))
+          .withHeader("User-Agent", equalTo("app"))
+          .willReturn(ok(responsePayload.toString))
+      )
+
+      val result = connector.list(request)(using hc).futureValue
+      result.value mustEqual submissionsSummary
+    }
+
+    "must return None when the server returns NOT_FOUND" in {
+
+      wireMockServer.stubFor(
+        post(urlPathEqualTo("/digital-platform-reporting/submission/list"))
+          .withRequestBody(equalToJson(Json.toJson(request).toString))
+          .withHeader("User-Agent", equalTo("app"))
+          .willReturn(notFound())
+      )
+
+      val result = connector.list(request)(using hc).futureValue
+      result must not be defined
     }
   }
 }
