@@ -17,6 +17,7 @@
 package models.submission
 
 import play.api.libs.json.{Json, Reads}
+import viewmodels.Link
 
 import java.time.Instant
 
@@ -27,7 +28,10 @@ final case class SubmissionSummary(submissionId: String,
                                    reportingPeriod: String,
                                    submissionDateTime: Instant,
                                    submissionStatus: SubmissionStatus,
-                                   assumingReporterName: Option[String])
+                                   assumingReporterName: Option[String]) {
+  
+  lazy val link: Option[Link] = None // TODO: Include correct link based on status when relevant pages exist
+}
 
 object SubmissionSummary {
   

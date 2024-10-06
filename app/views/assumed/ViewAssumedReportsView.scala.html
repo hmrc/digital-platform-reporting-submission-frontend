@@ -15,13 +15,21 @@
  *@
 
 @import controllers.assumed.routes
-@import models.submission.SubmissionSummary
+@import models.submission.SubmissionsSummary
 
 @this(
         layout: templates.Layout
 )
 
-@(maybeSummary: Option[SubmissionSummary])(implicit request: Request[_], messages: Messages)
+@(maybeSummary: Option[SubmissionsSummary])(implicit request: Request[_], messages: Messages)
+
+@noReportsHtml = @{
+        <p class="govuk-body">@messages("viewAssumedReports.noReports")</p>
+
+        <p class="govuk-body">
+            <a href="@routes.SelectPlatformOperatorController.onPageLoad" class="govuk-link">@messages("viewAssumedReports.newReport.text")</a>
+        </p>
+}
 
 @layout(
     pageTitle = titleNoForm(messages("viewAssumedReports.title")),
@@ -32,15 +40,43 @@
 
     @maybeSummary.map { summary =>
 
-        <p class="govuk-body">
-            <a href="@routes.SelectPlatformOperatorController.onPageLoad" class="govuk-link">@messages("viewAssumedReports.newReport.text")</a>
-        </p>
+        @if(summary.isEmpty) {
+            @noReportsHtml
+        } else {
+            <p class="govuk-body">
+                <a href="@routes.SelectPlatformOperatorController.onPageLoad" class="govuk-link">@messages("viewAssumedReports.newReport.text")</a>
+            </p>
 
-    }.getOrElse {
-        <p class="govuk-body">@messages("viewAssumedReports.noReports")</p>
+            <!-- TODO: Decide how to show local submissions -->
 
-        <p class="govuk-body">
-            <a href="@routes.SelectPlatformOperatorController.onPageLoad" class="govuk-link">@messages("viewAssumedReports.newReport.text")</a>
-        </p>
-    }
+            @if(summary.deliveredSubmissions.nonEmpty) {
+
+                <table class="govuk-table">
+                    <thead class="govuk-table__head">
+                        <tr class="govuk-table__row">
+                            <th class="govuk-table__header" scope="col">@messages("viewAssumedReports.submissionDate")</th>
+                            <th class="govuk-table__header" scope="col">@messages("viewAssumedReports.platformOperator")</th>
+                            <th class="govuk-table__header" scope="col">@messages("viewAssumedReports.reportingPeriod")</th>
+                            <th class="govuk-table__header" scope="col">@messages("viewAssumedReports.assumingReporter")</th>
+                            <th class="govuk-table__header" scope="col">@messages("viewAssumedReports.action")</th>
+                        </tr>
+                    </thead>
+                    @summary.deliveredSubmissions.map { submission =>
+                        <tr class="govuk-table__row">
+                            <td class="govuk-table__cell">@shortDate(submission.submissionDateTime)</td>
+                            <td class="govuk-table__cell">@submission.operatorName<br/>@submission.operatorId</td>
+                            <td class="govuk-table__cell">@submission.reportingPeriod</td>
+                            <td class="govuk-table__cell">@submission.assumingReporterName</td>
+                            <td class="govuk-table__cell">
+                                @submission.link.map { link =>
+                                    <a href="@link.href" class="govuk-link">@link.text</a>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </table>
+
+            }
+        }
+    }.getOrElse(noReportsHtml)
 }

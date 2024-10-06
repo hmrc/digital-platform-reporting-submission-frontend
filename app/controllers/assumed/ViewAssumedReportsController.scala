@@ -18,6 +18,7 @@ package controllers.assumed
 
 import connectors.SubmissionConnector
 import controllers.actions.IdentifierAction
+import models.submission.ViewSubmissionsRequest
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
@@ -35,7 +36,8 @@ class ViewAssumedReportsController @Inject()(override val messagesApi: MessagesA
 
   def onPageLoad(): Action[AnyContent] = identify.async {
     implicit request =>
-      
-      ???
+      connector.list(ViewSubmissionsRequest(assumedReporting = true)).map { response =>
+        Ok(view(response))
+      }
   }
 }
