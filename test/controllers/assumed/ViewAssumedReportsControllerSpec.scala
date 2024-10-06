@@ -46,9 +46,9 @@ class ViewAssumedReportsControllerSpec extends SpecBase with MockitoSugar with B
   private val now = Instant.now
   
   "ViewAssumedReports Controller" - {
-    
+
     "must return OK and the correct view for a GET when assumed reports exist" in {
-      
+
       val submissionSummary = SubmissionSummary(
         submissionId = "submissionId",
         fileName = "filename",
@@ -60,7 +60,7 @@ class ViewAssumedReportsControllerSpec extends SpecBase with MockitoSugar with B
         assumingReporterName = Some("name")
       )
       val summary = SubmissionsSummary(Seq(submissionSummary), Nil)
-      
+
       when(mockConnector.list(any())(using any())).thenReturn(Future.successful(Some(summary)))
 
       val application = applicationBuilder(userAnswers = None)
@@ -68,17 +68,40 @@ class ViewAssumedReportsControllerSpec extends SpecBase with MockitoSugar with B
           bind[SubmissionConnector].toInstance(mockConnector)
         )
         .build()
-      
+
       running(application) {
         val request = FakeRequest(routes.ViewAssumedReportsController.onPageLoad())
-        
+
         val result = route(application, request).value
-        
+
         val view = application.injector.instanceOf[ViewAssumedReportsView]
         implicit val msgs: Messages = messages(application)
-        
+
         status(result) mustEqual OK
         contentAsString(result) mustEqual view(Some(summary))(request, implicitly).toString
+      }
+    }
+
+    "must return OK and the correct view for a GET when no assumed reports exist" in {
+
+      when(mockConnector.list(any())(using any())).thenReturn(Future.successful(None))
+
+      val application = applicationBuilder(userAnswers = None)
+        .overrides(
+          bind[SubmissionConnector].toInstance(mockConnector)
+        )
+        .build()
+
+      running(application) {
+        val request = FakeRequest(routes.ViewAssumedReportsController.onPageLoad())
+
+        val result = route(application, request).value
+
+        val view = application.injector.instanceOf[ViewAssumedReportsView]
+        implicit val msgs: Messages = messages(application)
+
+        status(result) mustEqual OK
+        contentAsString(result) mustEqual view(None)(request, implicitly).toString
       }
     }
   }

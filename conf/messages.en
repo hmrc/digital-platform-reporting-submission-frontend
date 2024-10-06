@@ -1,4 +1,4 @@
-service.name = digital-platform-reporting-submission-frontend
+service.name = Digital Platform Reporting Service
 
 site.back = Back
 site.remove = Remove

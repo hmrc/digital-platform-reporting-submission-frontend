@@ -23,14 +23,6 @@
 
 @(maybeSummary: Option[SubmissionsSummary])(implicit request: Request[_], messages: Messages)
 
-@noReportsHtml = @{
-        <p class="govuk-body">@messages("viewAssumedReports.noReports")</p>
-
-        <p class="govuk-body">
-            <a href="@routes.SelectPlatformOperatorController.onPageLoad" class="govuk-link">@messages("viewAssumedReports.newReport.text")</a>
-        </p>
-}
-
 @layout(
     pageTitle = titleNoForm(messages("viewAssumedReports.title")),
     showBackLink = false
@@ -41,9 +33,13 @@
     @maybeSummary.map { summary =>
 
         @if(summary.isEmpty) {
-            @noReportsHtml
-        } else {
+            <p class="govuk-body">@messages("viewAssumedReports.noReports")</p>
+
             <p class="govuk-body">
+                <a href="@routes.SelectPlatformOperatorController.onPageLoad" class="govuk-link">@messages("viewAssumedReports.newReport.text")</a>
+            </p>
+        } else {
+            <p class="govuk-body govuk-!-margin-bottom-8">
                 <a href="@routes.SelectPlatformOperatorController.onPageLoad" class="govuk-link">@messages("viewAssumedReports.newReport.text")</a>
             </p>
 
@@ -78,5 +74,11 @@
 
             }
         }
-    }.getOrElse(noReportsHtml)
+    }.getOrElse {
+        <p class="govuk-body">@messages("viewAssumedReports.noReports")</p>
+
+        <p class="govuk-body govuk-!-margin-bottom-8">
+            <a href="@routes.SelectPlatformOperatorController.onPageLoad" class="govuk-link">@messages("viewAssumedReports.newReport.text")</a>
+        </p>
+    }
 }
