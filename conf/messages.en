@@ -106,8 +106,20 @@ submissionConfirmation.dprsId = DPRS User ID
 submissionConfirmation.error.required = Select yes if you want to submit another file for {0}
 submissionConfirmation.question = Do you want to submit another file for {0}?
 
-fileErrors.title = fileErrors
-fileErrors.heading = fileErrors
+fileErrors.title = There is a problem with your file
+fileErrors.heading = There is a problem with your file
+fileErrors.p1 = We cannot accept the file {0} because it does not meet the DPR business rules.
+fileErrors.h2 = What you can do next
+fileErrors.point1 = Download the error report below.
+fileErrors.point2 = View the errors in the report.
+fileErrors.point3 = Refer to the DPRS technical guidance for XML files and update your file.
+fileErrors.point4 = Submit the updated file.
+fileErrors.button = Download error report
+fileErrors.return = Return to "Manage your Digital Platform Reporting"
+
+fileErrors.tsv.code = Code
+fileErrors.tsv.detail = Detail
+fileErrors.tsv.docRef = DocRef
 
 chrn.title = What is the platform operator’s HMRC Charity Reference (CHRN)?
 chrn.heading = What is {0}’s HMRC Charity Reference (CHRN)?

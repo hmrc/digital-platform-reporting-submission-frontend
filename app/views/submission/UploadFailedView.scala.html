@@ -29,7 +29,7 @@
 
 @(uploadRequest: UploadRequest, error: String)(implicit request: Request[_], messages: Messages)
 
-@layout(pageTitle = titleNoForm(messages("uploadFailed.title"))) {
+@layout(pageTitle = titleNoForm(messages("uploadFailed.title")), showBackLink = false) {
 
   <h1 class="govuk-heading-xl">@messages("uploadFailed.heading")</h1>
 

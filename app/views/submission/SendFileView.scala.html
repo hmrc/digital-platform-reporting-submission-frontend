@@ -26,7 +26,7 @@
 
 @(operatorId: String, submissionId: String, summaryList: SummaryList)(implicit request: Request[_], messages: Messages)
 
-@layout(pageTitle = titleNoForm(messages("sendFile.title"))) {
+@layout(pageTitle = titleNoForm(messages("sendFile.title")), showBackLink = false) {
 
   <h1 class="govuk-heading-xl">@messages("sendFile.heading")</h1>
 

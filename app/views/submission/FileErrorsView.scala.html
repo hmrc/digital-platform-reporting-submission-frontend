@@ -14,14 +14,41 @@
  * limitations under the License.
  *@
 
+@import config.FrontendAppConfig
+
 @this(
         layout: templates.Layout,
-        govukButton: GovukButton
+        govukButton: GovukButton,
+        appConfig: FrontendAppConfig
 )
 
-@()(implicit request: Request[_], messages: Messages)
+@(operatorId: String, submissionId: String, fileName: String)(implicit request: Request[_], messages: Messages)
 
-@layout(pageTitle = titleNoForm(messages("fileErrors.title"))) {
+@layout(pageTitle = titleNoForm(messages("fileErrors.title")), showBackLink = false) {
 
-    <h1 class="govuk-heading-xl">@messages("fileErrors.heading")</h1>
+  <h1 class="govuk-heading-l">@messages("fileErrors.heading")</h1>
+
+  <p class="govuk-body">@messages("fileErrors.p1", fileName)</p>
+
+  <h2 class="govuk-heading-m">@messages("fileErrors.h2")</h2>
+
+  <ol class="govuk-list govuk-list--number govuk-!-margin-bottom-8">
+    <li>@messages("fileErrors.point1")</li>
+    <li>@messages("fileErrors.point2")</li>
+    <li>@messages("fileErrors.point3")</li>
+    <li>
+      <a class="govuk-link" href="@controllers.submission.routes.StartController.onPageLoad(operatorId)">@messages("fileErrors.point4")</a>
+    </li>
+  </ol>
+
+  <div class="govuk-form-group">
+    <p class="govuk-body">
+      <a href="@controllers.submission.routes.FileErrorsController.listErrors(operatorId, submissionId)" role="button" draggable="false" class="govuk-button" data-module="govuk-button">
+        @messages("fileErrors.button")
+      </a>
+    </p>
+    <p class="govuk-body">
+      <a class="govuk-link" href="@appConfig.manageHomepageUrl">@messages("fileErrors.return")</a>
+    </p>
+  </div>
 }

@@ -18,9 +18,12 @@ package controllers.submission
 
 import connectors.SubmissionConnector
 import controllers.actions.*
-import models.submission.Submission
+import models.submission.CadxValidationError.{FileError, RowError}
 import models.submission.Submission.State.{Approved, Ready, Rejected, Submitted, UploadFailed, Uploading, Validated}
-import play.api.i18n.{I18nSupport, MessagesApi}
+import models.submission.{CadxValidationError, Submission}
+import org.apache.pekko.stream.connectors.csv.scaladsl.CsvFormatting
+import org.apache.pekko.stream.scaladsl.Source
+import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents, Result}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import views.html.submission.FileErrorsView
@@ -42,14 +45,48 @@ class FileErrorsController @Inject()(
     implicit request =>
       submissionConnector.get(submissionId).flatMap {
         _.map { submission =>
-          handleSubmission(operatorId, submission) { case _: Rejected =>
-            Future.successful(Ok(view()))
+          handleSubmission(operatorId, submission) { case state: Rejected =>
+            Future.successful(Ok(view(submission.operatorId, submission._id, state.fileName)))
           }
         }.getOrElse {
           Future.successful(Redirect(controllers.routes.JourneyRecoveryController.onPageLoad()))
         }
       }
   }
+
+  def listErrors(operatorId: String, submissionId: String): Action[AnyContent] = (identify andThen getData(operatorId) andThen requireData).async {
+    implicit request =>
+      submissionConnector.get(submissionId).flatMap {
+        _.map { submission =>
+          handleSubmission(operatorId, submission) { case state: Rejected =>
+            submissionConnector.getErrors(submissionId).map { errors =>
+              val tsvSource = (Source.single(tsvHeaders) ++ errors.map(toRow))
+                .via(CsvFormatting.format(delimiter = CsvFormatting.Tab))
+              val fileName = state.fileName.replaceAll("\\.", "_")
+              Ok.chunked(tsvSource, contentType = Some("text/tsv"))
+                .withHeaders("Content-Disposition" -> s"""attachment; filename="$fileName-errors.tsv"""")
+            }
+          }
+        }.getOrElse {
+          Future.successful(Redirect(controllers.routes.JourneyRecoveryController.onPageLoad()))
+        }
+      }
+  }
+
+  private def toRow(error: CadxValidationError): Seq[String] =
+    error match {
+      case fileError: FileError =>
+        Seq(fileError.code, fileError.detail.getOrElse(""), "")
+      case rowError: RowError =>
+        Seq(rowError.code, rowError.detail.getOrElse(""), rowError.docRef)
+    }
+
+  private def tsvHeaders(using Messages): Seq[String] =
+    Seq(
+      Messages("fileErrors.tsv.code"),
+      Messages("fileErrors.tsv.detail"),
+      Messages("fileErrors.tsv.docRef")
+    )
 
   private def handleSubmission(operatorId: String, submission: Submission)(f: PartialFunction[Submission.State, Future[Result]]): Future[Result] =
     f.lift(submission.state).getOrElse {

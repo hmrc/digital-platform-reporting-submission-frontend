@@ -18,14 +18,15 @@ package connectors
 
 import config.Service
 import connectors.SubmissionConnector.*
-import models.submission.{StartSubmissionRequest, Submission, UploadFailedRequest, UploadSuccessRequest}
-import org.apache.pekko.Done
+import models.submission.*
+import org.apache.pekko.stream.Materializer
+import org.apache.pekko.stream.scaladsl.{JsonFraming, Source}
+import org.apache.pekko.{Done, NotUsed}
 import play.api.Configuration
 import play.api.http.Status.{CREATED, NOT_FOUND, OK}
 import play.api.libs.json.Json
 import play.api.libs.ws.JsonBodyWritables.writeableOf_JsValue
-import uk.gov.hmrc.http.HttpReads.Implicits.*
-import uk.gov.hmrc.http.client.HttpClientV2
+import uk.gov.hmrc.http.client.{HttpClientV2, given}
 import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse, StringContextOps}
 
 import javax.inject.{Inject, Singleton}
@@ -35,7 +36,7 @@ import scala.concurrent.{ExecutionContext, Future}
 class SubmissionConnector @Inject() (
                                       httpClient: HttpClientV2,
                                       configuration: Configuration
-                                    )(using ExecutionContext) {
+                                    )(using ExecutionContext, Materializer) {
 
   private val digitalPlatformReportingService: Service =
     configuration.get[Service]("microservice.services.digital-platform-reporting")
@@ -117,6 +118,23 @@ class SubmissionConnector @Inject() (
             Future.failed(SubmitFailure(id))
         }
       }
+
+  def getErrors(id: String)(using HeaderCarrier): Future[Source[CadxValidationError, NotUsed]] =
+    httpClient.get(url"$digitalPlatformReportingService/digital-platform-reporting/submission/$id/errors")
+      .stream[HttpResponse]
+      .flatMap { response =>
+        response.status match {
+          case OK =>
+            Future.successful {
+              response.bodyAsSource
+                .via(JsonFraming.objectScanner(10000))
+                .map(bytes => Json.parse(bytes.utf8String).as[CadxValidationError])
+                .mapMaterializedValue(_ => NotUsed)
+            }
+          case _ =>
+            Future.failed(GetErrorsFailure(id, response.status))
+        }
+      }
 }
 
 object SubmissionConnector {
@@ -127,4 +145,5 @@ object SubmissionConnector {
   final case class UploadSuccessFailure(id: String) extends Throwable
   final case class UploadFailedFailure(id: String) extends Throwable
   final case class SubmitFailure(id: String) extends Throwable
+  final case class GetErrorsFailure(id: String, status: Int) extends Throwable
 }

@@ -19,7 +19,11 @@ package connectors
 import com.github.tomakehurst.wiremock.client.WireMock.*
 import connectors.SubmissionConnector.{GetFailure, StartUploadFailure, SubmitFailure, UploadFailedFailure, UploadSuccessFailure}
 import models.submission.Submission.State.Ready
-import models.submission.{StartSubmissionRequest, Submission, UploadFailedRequest, UploadSuccessRequest}
+import models.submission.{CadxValidationError, StartSubmissionRequest, Submission, UploadFailedRequest, UploadSuccessRequest}
+import org.apache.pekko.stream.Materializer
+import org.apache.pekko.stream.scaladsl.{Sink, Source}
+import org.apache.pekko.util.ByteString
+import org.mockito.Mockito.when
 import org.scalatest.OptionValues
 import org.scalatest.concurrent.{IntegrationPatience, ScalaFutures}
 import org.scalatest.freespec.AnyFreeSpec
@@ -324,6 +328,47 @@ class SubmissionConnectorSpec
 
       val result = connector.submit("id")(using hc).failed.futureValue
       result mustBe a[SubmitFailure]
+    }
+  }
+
+  "getErrors" - {
+
+    given Materializer = app.materializer
+
+    val dprsId = "dprsId"
+    val submissionId = "submissionId"
+    val now = Instant.now()
+
+    "must return CADX errors when the server response with OK" in {
+
+      val error1 = CadxValidationError.FileError(submissionId = submissionId, dprsId = dprsId, code = "001", detail = Some("some detail\n"), created = now)
+      val error2 = CadxValidationError.RowError(submissionId = submissionId, dprsId = dprsId, code = "001", docRef = "docRef", detail = Some("some detail"), created = now)
+
+      val body = Seq(error1, error2).map(Json.toJson).mkString("\n")
+
+      wireMockServer.stubFor(
+        get(urlPathEqualTo("/digital-platform-reporting/submission/submissionId/errors"))
+          .withHeader("User-Agent", equalTo("app"))
+          .withHeader("Authorization", equalTo("auth"))
+          .willReturn(ok(body))
+      )
+
+      val source = connector.getErrors(submissionId)(using hc).futureValue
+      val result = source.runWith(Sink.fold(Seq.empty[CadxValidationError])(_ :+ _)).futureValue
+
+      result must contain only (error1, error2)
+    }
+
+    "must fail when the server responds with NOT_FOUND" in {
+
+      wireMockServer.stubFor(
+        get(urlPathEqualTo("/digital-platform-reporting/submission/submissionId/errors"))
+          .withHeader("User-Agent", equalTo("app"))
+          .withHeader("Authorization", equalTo("auth"))
+          .willReturn(notFound())
+      )
+
+      connector.getErrors(submissionId)(using hc).failed.futureValue
     }
   }
 }
