@@ -30,7 +30,7 @@
 
 @layout(pageTitle = titleNoForm(messages("checkContactDetails.title"))) {
 
-    @formHelper(action = routes.CheckPlatformOperatorController.onSubmit(operatorId), Symbol("autoComplete") -> "off") {
+    @formHelper(action = routes.CheckContactDetailsController.onSubmit(operatorId), Symbol("autoComplete") -> "off") {
 
         @if(form.errors.nonEmpty) {
             @govukErrorSummary(ErrorSummaryViewModel(form))
