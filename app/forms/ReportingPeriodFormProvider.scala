@@ -31,7 +31,7 @@ class ReportingPeriodFormProvider @Inject()(clock: Clock) extends Mappings {
     val minYear = Constants.firstLegislativeYear
 
     Form(
-      "value" -> int("reportingPeriod.error.required")
+      "value" -> int("reportingPeriod.error.required", "reportingPeriod.error.wholeNumber", "reportingPeriod.error.nonNumeric")
         .verifying(minimumValue(minYear, "reportingPeriod.error.belowMinimum", args = minYear.toString))
         .verifying(maximumValue(maxYear, "reportingPeriod.error.aboveMaximum", args = maxYear.toString))
     )
