@@ -38,8 +38,8 @@
 
 @headingText = @{
     notifications.size match {
-        case 1 => messages("checkReportingNotifications.heading.single")
-        case _ => messages("checkReportingNotifications.heading.plural")
+        case 1 => messages("checkReportingNotifications.heading.single", businessName)
+        case _ => messages("checkReportingNotifications.heading.plural", businessName)
     }
 }
 

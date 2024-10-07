@@ -30,7 +30,7 @@ object UkTaxIdentifiersSummary {
     val value = if (operator.tinDetails.isEmpty) {
       None
     } else {
-      Some(operator.tinDetails.map(_.tinType).map(tinType => messages(s"ukTaxIdentifiers.$tinType")).mkString(",<br>"))
+      Some(operator.tinDetails.map(_.tinType).map(tinType => messages(s"ukTaxIdentifiers.${tinType.entryName.toLowerCase}")).mkString(",<br>"))
     }
 
     value.map { identifiers =>
