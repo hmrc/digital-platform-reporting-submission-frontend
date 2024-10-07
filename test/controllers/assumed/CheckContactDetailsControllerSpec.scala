@@ -17,10 +17,8 @@
 package controllers.assumed
 
 import base.SpecBase
-import connectors.{PlatformOperatorConnector, SubscriptionConnector}
+import connectors.SubscriptionConnector
 import forms.CheckContactDetailsFormProvider
-import models.operator.responses.PlatformOperator
-import models.operator.{AddressDetails, ContactDetails}
 import models.subscription.*
 import models.{NormalMode, UserAnswers}
 import org.mockito.ArgumentMatchers.any
@@ -33,9 +31,7 @@ import play.api.i18n.Messages
 import play.api.inject.bind
 import play.api.test.FakeRequest
 import play.api.test.Helpers.*
-import queries.PlatformOperatorSummaryQuery
 import repositories.SessionRepository
-import viewmodels.PlatformOperatorSummary
 import viewmodels.checkAnswers.subscription.*
 import viewmodels.govuk.SummaryListFluency
 import views.html.assumed.CheckContactDetailsView

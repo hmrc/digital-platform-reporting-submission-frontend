@@ -29,8 +29,22 @@
 
 @(form: Form[?], notifications: Seq[NotificationDetails], operatorId: String, businessName: String)(implicit request: Request[_], messages: Messages)
 
+@titleText = @{
+    notifications.size match {
+        case 1 => messages("checkReportingNotifications.title.single")
+        case _ => messages("checkReportingNotifications.title.plural")
+    }
+}
+
+@headingText = @{
+    notifications.size match {
+        case 1 => messages("checkReportingNotifications.heading.single")
+        case _ => messages("checkReportingNotifications.heading.plural")
+    }
+}
+
 @layout(
-    pageTitle = titleNoForm(messages("checkReportingNotifications.title")),
+    pageTitle = title(form, titleText),
     showBackLink = false
 ) {
 
@@ -40,7 +54,7 @@
             @govukErrorSummary(ErrorSummaryViewModel(form))
         }
 
-        <h1 class="govuk-heading-xl">@messages("checkReportingNotifications.heading", businessName)</h1>
+        <h1 class="govuk-heading-xl">@headingText</h1>
 
         <table class="govuk-table">
             <thead class="govuk-table__head">

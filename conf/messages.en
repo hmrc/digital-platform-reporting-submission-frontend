@@ -1,4 +1,4 @@
-service.name = digital-platform-reporting-submission-frontend
+service.name = Digital Platform Reporting Service
 
 site.back = Back
 site.remove = Remove
@@ -290,7 +290,7 @@ selectPlatformOperator.p1.link.text = add a new platform operator
 selectPlatformOperator.item.text = {0}
 selectPlatformOperator.item.hint = {0}
 selectPlatformOperator.single.title = You are about to make an assumed reporting submission
-selectPlatformOperator.single.heading = You are about to make aa assumed reporting submission for {0}
+selectPlatformOperator.single.heading = You are about to make an assumed reporting submission for {0}
 selectPlatformOperator.single.p1 = If this is not correct, you can
 selectPlatformOperator.single.link.text = add a new platform operator
 
@@ -377,3 +377,8 @@ primaryContactPhone.checkYourAnswersLabel = Telephone number
 secondaryContactEmail.checkYourAnswersLabel = Email address
 secondaryContactName.checkYourAnswersLabel = Name
 secondaryContactPhone.checkYourAnswersLabel = Telephone number
+
+viewAssumedReports.title = Assumed reporting submissions
+viewAssumedReports.heading = Assumed reporting submissions
+viewAssumedReports.noReports = You have not made any assumed reporting submissions.
+viewAssumedReports.newReport.text = Make a new assumed reporting submission

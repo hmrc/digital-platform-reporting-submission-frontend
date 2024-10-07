@@ -1,0 +1,85 @@
+@*
+ * Copyright 2024 HM Revenue & Customs
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *@
+
+@import controllers.assumed.routes
+@import models.submission.SubmissionsSummary
+
+@this(
+        layout: templates.Layout
+)
+
+@(maybeSummary: Option[SubmissionsSummary])(implicit request: Request[_], messages: Messages)
+
+@layout(
+    pageTitle = titleNoForm(messages("viewAssumedReports.title")),
+    showBackLink = false,
+    fullWidth = true
+) {
+
+    <h1 class="govuk-heading-xl">@messages("viewAssumedReports.heading")</h1>
+
+    @maybeSummary.map { summary =>
+
+        @if(summary.isEmpty) {
+            <p class="govuk-body">@messages("viewAssumedReports.noReports")</p>
+
+            <p class="govuk-body">
+                <a href="@routes.SelectPlatformOperatorController.onPageLoad" class="govuk-link">@messages("viewAssumedReports.newReport.text")</a>
+            </p>
+        } else {
+            <p class="govuk-body govuk-!-margin-bottom-8">
+                <a href="@routes.SelectPlatformOperatorController.onPageLoad" class="govuk-link">@messages("viewAssumedReports.newReport.text")</a>
+            </p>
+
+            <!-- TODO: Decide how to show local submissions -->
+
+            @if(summary.deliveredSubmissions.nonEmpty) {
+
+                <table class="govuk-table">
+                    <thead class="govuk-table__head">
+                        <tr class="govuk-table__row">
+                            <th class="govuk-table__header" scope="col">@messages("viewAssumedReports.submissionDate")</th>
+                            <th class="govuk-table__header" scope="col">@messages("viewAssumedReports.platformOperator")</th>
+                            <th class="govuk-table__header" scope="col">@messages("viewAssumedReports.reportingPeriod")</th>
+                            <th class="govuk-table__header" scope="col">@messages("viewAssumedReports.assumingReporter")</th>
+                            <th class="govuk-table__header" scope="col">@messages("viewAssumedReports.action")</th>
+                        </tr>
+                    </thead>
+                    @summary.deliveredSubmissions.map { submission =>
+                        <tr class="govuk-table__row">
+                            <td class="govuk-table__cell">@shortDate(submission.submissionDateTime)</td>
+                            <td class="govuk-table__cell">@submission.operatorName<br/>@submission.operatorId</td>
+                            <td class="govuk-table__cell">@submission.reportingPeriod</td>
+                            <td class="govuk-table__cell">@submission.assumingReporterName</td>
+                            <td class="govuk-table__cell">
+                                @submission.link.map { link =>
+                                    <a href="@link.href" class="govuk-link">@link.text</a>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </table>
+
+            }
+        }
+    }.getOrElse {
+        <p class="govuk-body">@messages("viewAssumedReports.noReports")</p>
+
+        <p class="govuk-body govuk-!-margin-bottom-8">
+            <a href="@routes.SelectPlatformOperatorController.onPageLoad" class="govuk-link">@messages("viewAssumedReports.newReport.text")</a>
+        </p>
+    }
+}

@@ -91,3 +91,5 @@ GET        /:operatorId/check-contact-details                   controllers.assu
 POST       /:operatorId/check-contact-details                   controllers.assumed.CheckContactDetailsController.onSubmit(operatorId: String)
 
 GET        /:operatorId/no-reporting-notification               controllers.assumed.ReportingNotificationRequiredController.onPageLoad(operatorId: String)
+
+GET        /view                                                controllers.assumed.ViewAssumedReportsController.onPageLoad()
