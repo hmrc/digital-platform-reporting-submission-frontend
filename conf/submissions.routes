@@ -14,3 +14,5 @@ GET         /:operatorId/:submissionId/confirmation                  controllers
 POST        /:operatorId/:submissionId/confirmation                  controllers.submission.SubmissionConfirmationController.onSubmit(operatorId: String, submissionId: String)
 GET         /:operatorId/:submissionId/file-errors                   controllers.submission.FileErrorsController.onPageLoad(operatorId: String, submissionId: String)
 GET         /:operatorId/:submissionId/file-errors/download          controllers.submission.FileErrorsController.listErrors(operatorId: String, submissionId: String)
+
+GET         /view                                                    controllers.submission.ViewSubmissionsController.onPageLoad()
