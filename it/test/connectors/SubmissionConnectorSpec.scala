@@ -31,6 +31,7 @@ import play.api.Application
 import play.api.http.Status.{CREATED, INTERNAL_SERVER_ERROR, NOT_FOUND, OK}
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.json.Json
+import play.api.test.Helpers.contentAsString
 import uk.gov.hmrc.http.{Authorization, HeaderCarrier, StringContextOps}
 import uk.gov.hmrc.http.test.WireMockSupport
 
@@ -64,6 +65,7 @@ class SubmissionConnectorSpec
       dprsId = "dprsId",
       operatorId = "operatorId",
       operatorName = "operatorName",
+      assumingOperatorName = None,
       state = Ready,
       created = now,
       updated = now
@@ -129,6 +131,7 @@ class SubmissionConnectorSpec
       _id = "id",
       operatorId = "operatorId",
       operatorName = "operatorName",
+      assumingOperatorName = None,
       dprsId = "dprsId",
       state = Ready,
       created = now,

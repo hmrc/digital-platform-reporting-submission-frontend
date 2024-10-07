@@ -72,6 +72,7 @@ class SubmissionConfirmationControllerSpec extends SpecBase with MockitoSugar wi
             dprsId = "dprsId",
             operatorId = "operatorId",
             operatorName = operatorName,
+            assumingOperatorName = None,
             state = Approved("test.xml", Year.of(2024)),
             created = now,
             updated = updatedInstant
@@ -161,6 +162,7 @@ class SubmissionConfirmationControllerSpec extends SpecBase with MockitoSugar wi
               dprsId = "dprsId",
               operatorId = "operatorId",
               operatorName = operatorName,
+              assumingOperatorName = None,
               state = Ready,
               created = now,
               updated = now
@@ -195,6 +197,7 @@ class SubmissionConfirmationControllerSpec extends SpecBase with MockitoSugar wi
               dprsId = "dprsId",
               operatorId = "operatorId",
               operatorName = operatorName,
+              assumingOperatorName = None,
               state = Uploading,
               created = now,
               updated = now
@@ -229,6 +232,7 @@ class SubmissionConfirmationControllerSpec extends SpecBase with MockitoSugar wi
               dprsId = "dprsId",
               operatorId = "operatorId",
               operatorName = operatorName,
+              assumingOperatorName = None,
               state = UploadFailed("reason"),
               created = now,
               updated = now
@@ -263,6 +267,7 @@ class SubmissionConfirmationControllerSpec extends SpecBase with MockitoSugar wi
               dprsId = "dprsId",
               operatorId = "operatorId",
               operatorName = operatorName,
+              assumingOperatorName = None,
               state = Validated(
                 downloadUrl = url"http://example.com/test.xml",
                 reportingPeriod = Year.of(2024),
@@ -303,6 +308,7 @@ class SubmissionConfirmationControllerSpec extends SpecBase with MockitoSugar wi
               dprsId = "dprsId",
               operatorId = "operatorId",
               operatorName = operatorName,
+              assumingOperatorName = None,
               state = Submitted("test.xml", Year.of(2024)),
               created = now,
               updated = now
@@ -337,6 +343,7 @@ class SubmissionConfirmationControllerSpec extends SpecBase with MockitoSugar wi
               dprsId = "dprsId",
               operatorId = "operatorId",
               operatorName = operatorName,
+              assumingOperatorName = None,
               state = Rejected("test.xml", Year.of(2024)),
               created = now,
               updated = now
@@ -397,6 +404,7 @@ class SubmissionConfirmationControllerSpec extends SpecBase with MockitoSugar wi
             dprsId = "dprsId",
             operatorId = "operatorId",
             operatorName = operatorName,
+            assumingOperatorName = None,
             state = Approved("test.xml", Year.of(2024)),
             created = now,
             updated = now
@@ -429,6 +437,7 @@ class SubmissionConfirmationControllerSpec extends SpecBase with MockitoSugar wi
             dprsId = "dprsId",
             operatorId = "operatorId",
             operatorName = operatorName,
+            assumingOperatorName = None,
             state = Approved("test.xml", Year.of(2024)),
             created = now,
             updated = now
@@ -463,6 +472,7 @@ class SubmissionConfirmationControllerSpec extends SpecBase with MockitoSugar wi
             dprsId = "dprsId",
             operatorId = "operatorId",
             operatorName = operatorName,
+            assumingOperatorName = None,
             state = Approved("test.xml", Year.of(2024)),
             created = now,
             updated = updatedInstant
@@ -554,6 +564,7 @@ class SubmissionConfirmationControllerSpec extends SpecBase with MockitoSugar wi
               dprsId = "dprsId",
               operatorId = "operatorId",
               operatorName = operatorName,
+              assumingOperatorName = None,
               state = Ready,
               created = now,
               updated = now
@@ -588,6 +599,7 @@ class SubmissionConfirmationControllerSpec extends SpecBase with MockitoSugar wi
               dprsId = "dprsId",
               operatorId = "operatorId",
               operatorName = operatorName,
+              assumingOperatorName = None,
               state = Uploading,
               created = now,
               updated = now
@@ -622,6 +634,7 @@ class SubmissionConfirmationControllerSpec extends SpecBase with MockitoSugar wi
               dprsId = "dprsId",
               operatorId = "operatorId",
               operatorName = operatorName,
+              assumingOperatorName = None,
               state = UploadFailed("reason"),
               created = now,
               updated = now
@@ -656,6 +669,7 @@ class SubmissionConfirmationControllerSpec extends SpecBase with MockitoSugar wi
               dprsId = "dprsId",
               operatorId = "operatorId",
               operatorName = operatorName,
+              assumingOperatorName = None,
               state = Validated(
                 downloadUrl = url"http://example.com/test.xml",
                 reportingPeriod = Year.of(2024),
@@ -696,6 +710,7 @@ class SubmissionConfirmationControllerSpec extends SpecBase with MockitoSugar wi
               dprsId = "dprsId",
               operatorId = "operatorId",
               operatorName = operatorName,
+              assumingOperatorName = None,
               state = Submitted("test.xml", Year.of(2024)),
               created = now,
               updated = now
@@ -730,6 +745,7 @@ class SubmissionConfirmationControllerSpec extends SpecBase with MockitoSugar wi
               dprsId = "dprsId",
               operatorId = "operatorId",
               operatorName = operatorName,
+              assumingOperatorName = None,
               state = Rejected("test.xml", Year.of(2024)),
               created = now,
               updated = now

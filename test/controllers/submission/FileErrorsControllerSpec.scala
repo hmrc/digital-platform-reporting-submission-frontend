@@ -67,6 +67,7 @@ class FileErrorsControllerSpec extends SpecBase with MockitoSugar with BeforeAnd
             dprsId = "dprsId",
             operatorId = "operatorId",
             operatorName = "operatorName",
+            assumingOperatorName = None,
             state = Rejected("test.xml", Year.of(2024)),
             created = now,
             updated = now
@@ -123,6 +124,7 @@ class FileErrorsControllerSpec extends SpecBase with MockitoSugar with BeforeAnd
               dprsId = "dprsId",
               operatorId = "operatorId",
               operatorName = "operatorName",
+              assumingOperatorName = None,
               state = Ready,
               created = now,
               updated = now
@@ -157,6 +159,7 @@ class FileErrorsControllerSpec extends SpecBase with MockitoSugar with BeforeAnd
               dprsId = "dprsId",
               operatorId = "operatorId",
               operatorName = "operatorName",
+              assumingOperatorName = None,
               state = Uploading,
               created = now,
               updated = now
@@ -191,6 +194,7 @@ class FileErrorsControllerSpec extends SpecBase with MockitoSugar with BeforeAnd
               dprsId = "dprsId",
               operatorId = "operatorId",
               operatorName = "operatorName",
+              assumingOperatorName = None,
               state = UploadFailed("reason"),
               created = now,
               updated = now
@@ -225,6 +229,7 @@ class FileErrorsControllerSpec extends SpecBase with MockitoSugar with BeforeAnd
               dprsId = "dprsId",
               operatorId = "operatorId",
               operatorName = "operatorName",
+              assumingOperatorName = None,
               state = Validated(
                 downloadUrl = url"http://example.com/test.xml",
                 reportingPeriod = Year.of(2024),
@@ -265,6 +270,7 @@ class FileErrorsControllerSpec extends SpecBase with MockitoSugar with BeforeAnd
               dprsId = "dprsId",
               operatorId = "operatorId",
               operatorName = "operatorName",
+              assumingOperatorName = None,
               state = Submitted("test.xml", Year.of(2024)),
               created = now,
               updated = now
@@ -299,6 +305,7 @@ class FileErrorsControllerSpec extends SpecBase with MockitoSugar with BeforeAnd
               dprsId = "dprsId",
               operatorId = "operatorId",
               operatorName = "operatorName",
+              assumingOperatorName = None,
               state = Approved("test.xml", Year.of(2024)),
               created = now,
               updated = now
@@ -359,6 +366,7 @@ class FileErrorsControllerSpec extends SpecBase with MockitoSugar with BeforeAnd
             dprsId = "dprsId",
             operatorId = "operatorId",
             operatorName = "operatorName",
+            assumingOperatorName = None,
             state = Rejected("test.xml", Year.of(2024)),
             created = now,
             updated = now
@@ -382,7 +390,6 @@ class FileErrorsControllerSpec extends SpecBase with MockitoSugar with BeforeAnd
             status(result) mustEqual OK
             contentType(result).value mustEqual "text/tsv"
             header("Content-Disposition", result).value mustEqual """attachment; filename="test_xml-errors.tsv""""
-            println(contentAsString(result))
             contentAsString(result) mustEqual expectedBody
           }
 
@@ -426,6 +433,7 @@ class FileErrorsControllerSpec extends SpecBase with MockitoSugar with BeforeAnd
               dprsId = "dprsId",
               operatorId = "operatorId",
               operatorName = "operatorName",
+              assumingOperatorName = None,
               state = Ready,
               created = now,
               updated = now
@@ -460,6 +468,7 @@ class FileErrorsControllerSpec extends SpecBase with MockitoSugar with BeforeAnd
               dprsId = "dprsId",
               operatorId = "operatorId",
               operatorName = "operatorName",
+              assumingOperatorName = None,
               state = Uploading,
               created = now,
               updated = now
@@ -494,6 +503,7 @@ class FileErrorsControllerSpec extends SpecBase with MockitoSugar with BeforeAnd
               dprsId = "dprsId",
               operatorId = "operatorId",
               operatorName = "operatorName",
+              assumingOperatorName = None,
               state = UploadFailed("reason"),
               created = now,
               updated = now
@@ -528,6 +538,7 @@ class FileErrorsControllerSpec extends SpecBase with MockitoSugar with BeforeAnd
               dprsId = "dprsId",
               operatorId = "operatorId",
               operatorName = "operatorName",
+              assumingOperatorName = None,
               state = Validated(
                 downloadUrl = url"http://example.com/test.xml",
                 reportingPeriod = Year.of(2024),
@@ -568,6 +579,7 @@ class FileErrorsControllerSpec extends SpecBase with MockitoSugar with BeforeAnd
               dprsId = "dprsId",
               operatorId = "operatorId",
               operatorName = "operatorName",
+              assumingOperatorName = None,
               state = Submitted("test.xml", Year.of(2024)),
               created = now,
               updated = now
@@ -602,6 +614,7 @@ class FileErrorsControllerSpec extends SpecBase with MockitoSugar with BeforeAnd
               dprsId = "dprsId",
               operatorId = "operatorId",
               operatorName = "operatorName",
+              assumingOperatorName = None,
               state = Approved("test.xml", Year.of(2024)),
               created = now,
               updated = now
