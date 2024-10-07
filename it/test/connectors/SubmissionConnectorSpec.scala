@@ -17,9 +17,11 @@
 package connectors
 
 import com.github.tomakehurst.wiremock.client.WireMock.*
-import connectors.SubmissionConnector.{GetFailure, StartUploadFailure, SubmitFailure, UploadFailedFailure, UploadSuccessFailure}
-import models.submission.Submission.State.Ready
+import connectors.SubmissionConnector.*
+import models.operator.TinDetails
+import models.operator.TinType.{Utr, Vrn}
 import models.submission.*
+import models.submission.Submission.State.Ready
 import org.apache.pekko.stream.Materializer
 import org.apache.pekko.stream.scaladsl.Sink
 import org.scalatest.OptionValues
@@ -31,11 +33,10 @@ import play.api.Application
 import play.api.http.Status.{CREATED, INTERNAL_SERVER_ERROR, NOT_FOUND, OK}
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.json.Json
-import play.api.test.Helpers.contentAsString
-import uk.gov.hmrc.http.{Authorization, HeaderCarrier, StringContextOps}
 import uk.gov.hmrc.http.test.WireMockSupport
+import uk.gov.hmrc.http.{Authorization, HeaderCarrier, StringContextOps}
 
-import java.time.Instant
+import java.time.{Instant, Year}
 
 class SubmissionConnectorSpec
   extends AnyFreeSpec
@@ -407,6 +408,65 @@ class SubmissionConnectorSpec
 
       val result = connector.list(request)(using hc).futureValue
       result must not be defined
+    }
+  }
+
+  "submitAssumedReporting" - {
+
+    val assumingOperator = AssumingPlatformOperator(
+      name = "assumingOperator",
+      residentCountry = "US",
+      tinDetails = Seq(
+        TinDetails(
+          tin = "tin3",
+          tinType = Utr,
+          issuedBy = "GB"
+        ),
+        TinDetails(
+          tin = "tin4",
+          tinType = Vrn,
+          issuedBy = "GB"
+        )
+      ),
+      address = AssumingOperatorAddress(
+        line1 = "assumed line1",
+        line2 = Some("assumed line2"),
+        city = "assumed city",
+        region = Some("assumed regionName"),
+        postCode = "assumed postcode",
+        country = "US"
+      )
+    )
+
+    val request = AssumedReportingSubmissionRequest(
+      operatorId = "operatorId",
+      assumingOperator = assumingOperator,
+      reportingPeriod = Year.of(2024)
+    )
+
+    "must submit the expected data and return Done" in {
+
+      wireMockServer.stubFor(
+        post(urlPathEqualTo("/digital-platform-reporting/submission/assumed/submit"))
+          .withRequestBody(equalToJson(Json.toJson(request).toString))
+          .withHeader("User-Agent", equalTo("app"))
+          .willReturn(noContent())
+      )
+
+      connector.submitAssumedReporting(request)(using hc).futureValue
+    }
+
+    "must return an error when the server response with another status" in {
+
+      wireMockServer.stubFor(
+        post(urlPathEqualTo("/digital-platform-reporting/submission/assumed/submit"))
+          .withRequestBody(equalToJson(Json.toJson(request).toString))
+          .withHeader("User-Agent", equalTo("app"))
+          .willReturn(aResponse().withStatus(INTERNAL_SERVER_ERROR))
+      )
+
+      val result = connector.submitAssumedReporting(request)(using hc).failed.futureValue
+      result mustBe SubmitAssumedReportingFailure
     }
   }
 }
