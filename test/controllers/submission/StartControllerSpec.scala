@@ -170,6 +170,7 @@ class StartControllerSpec extends SpecBase with MockitoSugar with BeforeAndAfter
           dprsId = "dprsId",
           operatorId = "operatorId",
           operatorName = "operatorName",
+          assumingOperatorName = None,
           state = Ready,
           created = now,
           updated = now

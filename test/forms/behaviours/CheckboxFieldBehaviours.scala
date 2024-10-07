@@ -44,7 +44,7 @@ trait CheckboxFieldBehaviours extends FormSpec {
     }
   }
 
-  def mandatoryCheckboxField(form: Form[_],
+  def mandatoryCheckboxField(form: Form[?],
                              fieldName: String,
                              requiredKey: String,
                              args: Seq[Any] = Seq.empty): Unit = {
