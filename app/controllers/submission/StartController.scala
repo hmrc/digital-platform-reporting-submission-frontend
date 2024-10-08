@@ -60,11 +60,7 @@ class StartController @Inject()(
       }
   }
 
-  def onSubmit(operatorId: String): Action[AnyContent] = (identify andThen getData(operatorId) andThen requireData).async { implicit request =>
-    getAnswerAsync(PlatformOperatorSummaryQuery) { summary =>
-      submissionConnector.start(operatorId, summary.operatorName, None).map { submission =>
-        Redirect(routes.UploadController.onPageLoad(operatorId, submission._id))
-      }
-    }
+  def onSubmit(operatorId: String): Action[AnyContent] = (identify andThen getData(operatorId) andThen requireData) { implicit request =>
+    Redirect(routes.CheckPlatformOperatorController.onPageLoad(operatorId))
   }
 }
