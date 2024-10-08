@@ -51,7 +51,7 @@ class UpscanCallbackController @Inject() (
             submissionConnector.uploadSuccess(journey.submissionId, uploadSuccessRequest)
               .map(_ => Ok)
           case failed: UpscanCallbackRequest.Failed =>
-            submissionConnector.uploadFailed(journey.dprsId, journey.submissionId, failed.failureDetails.message)
+            submissionConnector.uploadFailed(journey.dprsId, journey.submissionId, failed.failureDetails.failureReason.entryName)
               .map(_ => Ok)
         }
       }.getOrElse {

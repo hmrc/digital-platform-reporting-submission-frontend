@@ -145,7 +145,7 @@ class UpscanCallbackControllerSpec extends SpecBase with BeforeAndAfterEach {
             status(result) mustEqual OK
 
             verify(mockUpscanJourneyRepository).getByUploadId("uploadId")
-            verify(mockSubmissionConector).uploadFailed("dprsId", "submissionId", "some reason")
+            verify(mockSubmissionConector).uploadFailed("dprsId", "submissionId", "REJECTED")
           }
         }
       }
