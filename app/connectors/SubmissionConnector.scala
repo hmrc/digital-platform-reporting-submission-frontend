@@ -24,7 +24,7 @@ import org.apache.pekko.stream.scaladsl.{JsonFraming, Source}
 import org.apache.pekko.{Done, NotUsed}
 import org.apache.pekko.Done
 import play.api.Configuration
-import play.api.http.Status.{CREATED, NOT_FOUND, NO_CONTENT, OK}
+import play.api.http.Status.{CONFLICT, CREATED, NOT_FOUND, NO_CONTENT, OK}
 import play.api.libs.json.Json
 import play.api.libs.ws.JsonBodyWritables.writeableOf_JsValue
 import uk.gov.hmrc.http.client.{HttpClientV2, given}
@@ -75,7 +75,7 @@ class SubmissionConnector @Inject() (
       .execute[HttpResponse]
       .flatMap { response =>
         response.status match {
-          case OK =>
+          case OK | CONFLICT =>
             Future.successful(Done)
           case _ =>
             Future.failed(StartUploadFailure(id))

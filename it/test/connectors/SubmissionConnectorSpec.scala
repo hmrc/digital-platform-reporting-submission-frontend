@@ -30,7 +30,7 @@ import org.scalatest.freespec.AnyFreeSpec
 import org.scalatest.matchers.must.Matchers
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
 import play.api.Application
-import play.api.http.Status.{CREATED, INTERNAL_SERVER_ERROR, NOT_FOUND, OK}
+import play.api.http.Status.{CONFLICT, CREATED, INTERNAL_SERVER_ERROR, NOT_FOUND, OK}
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.json.Json
 import uk.gov.hmrc.http.test.WireMockSupport
@@ -200,6 +200,21 @@ class SubmissionConnectorSpec
           .willReturn(
             aResponse()
               .withStatus(OK)
+          )
+      )
+
+      connector.startUpload("id")(using hc).futureValue
+    }
+
+    "must return successfully when the service returns CONFLICT (occurs in some cases if the file has already returned a success/failure from upload)" in {
+
+      wireMockServer.stubFor(
+        post(urlPathEqualTo("/digital-platform-reporting/submission/id/start-upload"))
+          .withHeader("User-Agent", equalTo("app"))
+          .withHeader("Authorization", equalTo("auth"))
+          .willReturn(
+            aResponse()
+              .withStatus(CONFLICT)
           )
       )
 
