@@ -16,3 +16,17 @@ GET         /:operatorId/:submissionId/file-errors                   controllers
 GET         /:operatorId/:submissionId/file-errors/download          controllers.submission.FileErrorsController.listErrors(operatorId: String, submissionId: String)
 
 GET         /view                                                    controllers.submission.ViewSubmissionsController.onPageLoad()
+
+GET        /which-platform-operator                                  controllers.submission.SelectPlatformOperatorController.onPageLoad
+POST       /which-platform-operator                                  controllers.submission.SelectPlatformOperatorController.onSubmit
+
+GET        /:operatorId/check-platform-operator                      controllers.submission.CheckPlatformOperatorController.onPageLoad(operatorId: String)
+POST       /:operatorId/check-platform-operator                      controllers.submission.CheckPlatformOperatorController.onSubmit(operatorId: String)
+
+GET        /:operatorId/check-reporting-notifications                controllers.submission.CheckReportingNotificationsController.onPageLoad(operatorId: String)
+POST       /:operatorId/check-reporting-notifications                controllers.submission.CheckReportingNotificationsController.onSubmit(operatorId: String)
+
+GET        /:operatorId/check-contact-details                        controllers.submission.CheckContactDetailsController.onPageLoad(operatorId: String)
+POST       /:operatorId/check-contact-details                        controllers.submission.CheckContactDetailsController.onSubmit(operatorId: String)
+
+GET        /:operatorId/no-reporting-notification                    controllers.submission.ReportingNotificationRequiredController.onPageLoad(operatorId: String)

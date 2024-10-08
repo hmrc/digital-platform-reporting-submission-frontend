@@ -1,0 +1,73 @@
+@*
+ * Copyright 2024 HM Revenue & Customs
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *@
+
+@import controllers.submission.routes
+@import viewmodels.LegendSize
+
+@this(
+        layout: templates.Layout,
+        govukSummaryList: GovukSummaryList,
+        formHelper: FormWithCSRF,
+        govukErrorSummary: GovukErrorSummary,
+        govukRadios: GovukRadios,
+        govukButton: GovukButton
+)
+
+@(form: Form[?], platformOperatorList: SummaryList, primaryContactList: SummaryList, secondaryContactList: Option[SummaryList], operatorId: String, businessName: String)(implicit request: Request[_], messages: Messages)
+
+@layout(pageTitle = titleNoForm(messages("checkPlatformOperator.title"))) {
+
+    @formHelper(action = routes.CheckPlatformOperatorController.onSubmit(operatorId), Symbol("autoComplete") -> "off") {
+
+        @if(form.errors.nonEmpty) {
+            @govukErrorSummary(ErrorSummaryViewModel(form))
+        }
+
+        <h1 class="govuk-heading-xl">@messages("checkPlatformOperator.heading", businessName)</h1>
+
+        <h2 class="govuk-heading-m">@messages("checkPlatformOperator.platformOperator")</h2>
+
+        @govukSummaryList(platformOperatorList)
+
+        @secondaryContactList.map { secondaryContact =>
+
+            <h2 class="govuk-heading-m">@messages("checkPlatformOperator.contactDetails")</h2>
+
+            <h3 class="govuk-heading-s">@messages("checkPlatformOperator.primaryContact")</h3>
+
+            @govukSummaryList(primaryContactList)
+
+            <h3 class="govuk-heading-s">@messages("checkPlatformOperator.secondaryContact")</h3>
+
+            @govukSummaryList(secondaryContact)
+        }.getOrElse {
+            <h2 class="govuk-heading-m">@messages("checkPlatformOperator.contactDetails")</h2>
+
+            @govukSummaryList(primaryContactList)
+        }
+        
+        @govukRadios(
+            RadiosViewModel.yesNo(
+                field = form("value"),
+                legend = LegendViewModel(messages("checkPlatformOperator.legend")).withSize(LegendSize.Medium)
+            )
+        )
+
+        @govukButton(
+            ButtonViewModel(messages("site.continue"))
+        )
+    }
+}
