@@ -56,12 +56,14 @@ class UploadFailedController @Inject()(
       }
   }
 
+  private val knownErrors: Set[String] = Set("EntityTooLarge", "EntityTooSmall", "InvalidArgument")
+
   def onRedirect(operatorId: String, submissionId: String, errorCode: Option[String]): Action[AnyContent] = (identify andThen getData(operatorId) andThen requireData).async { implicit request =>
     submissionConnector.get(submissionId).flatMap {
       _.map { submission =>
         handleSubmission(operatorId, submission) {
           case Ready | Uploading | _: UploadFailed =>
-            submissionConnector.uploadFailed(request.dprsId, submissionId, errorCode.getOrElse("Unknown")).map { _ =>
+            submissionConnector.uploadFailed(request.dprsId, submissionId, errorCode.filter(knownErrors.contains).getOrElse("unknown")).map { _ =>
               Redirect(routes.UploadFailedController.onPageLoad(operatorId, submissionId))
             }
         }

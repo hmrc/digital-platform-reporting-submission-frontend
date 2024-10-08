@@ -35,7 +35,7 @@
 
   <form action="@uploadRequest.href" method="post" enctype="multipart/form-data">
 
-    @govukErrorSummary(ErrorSummaryViewModel.withoutForm(Map("file-input" -> messages(error))))
+    @govukErrorSummary(ErrorSummaryViewModel.withoutForm(Map("file-input" -> messages(s"uploadFailed.error.$error"))))
 
     @for(field <- uploadRequest.fields) {
       <input type="hidden" name="@field._1" value="@field._2"/>
@@ -51,7 +51,7 @@
         content = messages("uploadFailed.heading")
       ),
       errorMessage = Some(ErrorMessage(
-        content = messages(error),
+        content = messages(s"uploadFailed.error.$error"),
         visuallyHiddenText = Some(messages("error.message.prefix"))
       )),
       attributes = Map("accept" -> ".xml")
