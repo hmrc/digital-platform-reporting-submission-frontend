@@ -24,7 +24,7 @@ import org.apache.pekko.stream.scaladsl.{JsonFraming, Source}
 import org.apache.pekko.{Done, NotUsed}
 import org.apache.pekko.Done
 import play.api.Configuration
-import play.api.http.Status.{CREATED, NOT_FOUND, OK}
+import play.api.http.Status.{CONFLICT, CREATED, NOT_FOUND, NO_CONTENT, OK}
 import play.api.libs.json.Json
 import play.api.libs.ws.JsonBodyWritables.writeableOf_JsValue
 import uk.gov.hmrc.http.client.{HttpClientV2, given}
@@ -75,7 +75,7 @@ class SubmissionConnector @Inject() (
       .execute[HttpResponse]
       .flatMap { response =>
         response.status match {
-          case OK =>
+          case OK | CONFLICT =>
             Future.successful(Done)
           case _ =>
             Future.failed(StartUploadFailure(id))
@@ -148,6 +148,17 @@ class SubmissionConnector @Inject() (
           case _         => Future.failed(ViewFailure)
         }
       }
+
+  def submitAssumedReporting(request: AssumedReportingSubmissionRequest)(using HeaderCarrier): Future[Done] =
+    httpClient.post(url"$digitalPlatformReportingService/digital-platform-reporting/submission/assumed/submit")
+      .withBody(Json.toJson(request))
+      .execute[HttpResponse]
+      .flatMap { response =>
+        response.status match {
+          case NO_CONTENT => Future.successful(Done)
+          case _          => Future.failed(SubmitAssumedReportingFailure)
+        }
+      }
 }
 
 object SubmissionConnector {
@@ -160,4 +171,5 @@ object SubmissionConnector {
   final case class SubmitFailure(id: String) extends Throwable
   final case class GetErrorsFailure(id: String, status: Int) extends Throwable
   case object ViewFailure extends Throwable
+  case object SubmitAssumedReportingFailure extends Throwable
 }
