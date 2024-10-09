@@ -17,13 +17,18 @@
 package controllers.assumed
 
 import com.google.inject.Inject
+import connectors.SubmissionConnector
 import controllers.actions.*
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
+import services.UserAnswersService
+import services.UserAnswersService.BuildAssumedReportingSubmissionRequestFailure
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import viewmodels.checkAnswers.*
 import viewmodels.govuk.summarylist.*
 import views.html.assumed.CheckYourAnswersView
+
+import scala.concurrent.{ExecutionContext, Future}
 
 class CheckYourAnswersController @Inject()(
                                             override val messagesApi: MessagesApi,
@@ -31,8 +36,10 @@ class CheckYourAnswersController @Inject()(
                                             getData: DataRetrievalActionProvider,
                                             requireData: DataRequiredAction,
                                             val controllerComponents: MessagesControllerComponents,
-                                            view: CheckYourAnswersView
-                                          ) extends FrontendBaseController with I18nSupport {
+                                            view: CheckYourAnswersView,
+                                            userAnswersService: UserAnswersService,
+                                            submissionConnector: SubmissionConnector
+                                          )(using ExecutionContext) extends FrontendBaseController with I18nSupport {
 
   def onPageLoad(operatorId: String): Action[AnyContent] = (identify andThen getData(operatorId) andThen requireData) {
     implicit request =>
@@ -58,5 +65,19 @@ class CheckYourAnswersController @Inject()(
       )
 
       Ok(view(list, operatorId))
+  }
+
+  def onSubmit(operatorId: String): Action[AnyContent] = (identify andThen getData(operatorId) andThen requireData).async {
+    implicit request =>
+
+      userAnswersService.toAssumedReportingSubmissionRequest(request.userAnswers)
+        .map(Future.successful)
+        .left.map(errors => Future.failed(BuildAssumedReportingSubmissionRequestFailure(errors)))
+        .merge
+        .flatMap { submissionRequest =>
+          submissionConnector.submitAssumedReporting(submissionRequest).map { _ =>
+            Redirect(controllers.routes.JourneyRecoveryController.onPageLoad()) // TODO change this when the next page exists
+          }
+        }
   }
 }
