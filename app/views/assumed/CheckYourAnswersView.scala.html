@@ -16,16 +16,24 @@
 
 @this(
         layout: templates.Layout,
-        govukSummaryList: GovukSummaryList
+        govukSummaryList: GovukSummaryList,
+        formHelper: FormWithCSRF,
+        govukButton: GovukButton
 )
 
 @(list: SummaryList, operatorId: String)(implicit request: Request[_], messages: Messages)
 
 @layout(pageTitle = titleNoForm(messages("checkYourAnswers.title"))) {
 
-    <h1 class="govuk-heading-xl">@messages("checkYourAnswers.heading")</h1>
+  <h1 class="govuk-heading-xl">@messages("checkYourAnswers.heading")</h1>
 
-    @govukSummaryList(list)
+  @govukSummaryList(list)
 
-    <p class="govuk-body">@messages("checkYourAnswers.p1")</p>
+  <p class="govuk-body">@messages("checkYourAnswers.p1")</p>
+
+  @formHelper(action = controllers.assumed.routes.CheckYourAnswersController.onSubmit(operatorId)) {
+    @govukButton(
+      ButtonViewModel(messages("site.continue"))
+    )
+  }
 }

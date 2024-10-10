@@ -142,3 +142,10 @@ class UserAnswersService @Inject() () {
       )
     }
 }
+
+object UserAnswersService {
+
+  final case class BuildAssumedReportingSubmissionRequestFailure(errors: NonEmptyChain[Query]) extends Throwable {
+    override def getMessage: String = s"unable to build assumed reporting submission request, path(s) missing: ${errors.toChain.toList.map(_.path).mkString(", ")}"
+  }
+}

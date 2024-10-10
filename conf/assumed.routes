@@ -77,6 +77,7 @@ GET        /:operatorId/changevrn                               controllers.assu
 POST       /:operatorId/changevrn                               controllers.assumed.VrnController.onSubmit(mode: Mode = CheckMode, operatorId: String)
 
 GET        /:operatorId/check-your-answers                      controllers.assumed.CheckYourAnswersController.onPageLoad(operatorId: String)
+POST       /:operatorId/check-your-answers                      controllers.assumed.CheckYourAnswersController.onSubmit(operatorId: String)
 
 GET        /which-platform-operator                             controllers.assumed.SelectPlatformOperatorController.onPageLoad
 POST       /which-platform-operator                             controllers.assumed.SelectPlatformOperatorController.onSubmit
