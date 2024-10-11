@@ -149,14 +149,14 @@ class SubmissionConnector @Inject() (
         }
       }
 
-  def submitAssumedReporting(request: AssumedReportingSubmissionRequest)(using HeaderCarrier): Future[Done] =
+  def submitAssumedReporting(request: AssumedReportingSubmissionRequest)(using HeaderCarrier): Future[Submission] =
     httpClient.post(url"$digitalPlatformReportingService/digital-platform-reporting/submission/assumed/submit")
       .withBody(Json.toJson(request))
       .execute[HttpResponse]
       .flatMap { response =>
         response.status match {
-          case NO_CONTENT => Future.successful(Done)
-          case _          => Future.failed(SubmitAssumedReportingFailure)
+          case OK => Future.successful(response.json.as[Submission])
+          case _  => Future.failed(SubmitAssumedReportingFailure)
         }
       }
 }

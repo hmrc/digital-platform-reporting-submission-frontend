@@ -21,7 +21,7 @@ import connectors.SubmissionConnector.*
 import models.operator.TinDetails
 import models.operator.TinType.{Utr, Vrn}
 import models.submission.*
-import models.submission.Submission.State.Ready
+import models.submission.Submission.State.{Ready, Submitted}
 import org.apache.pekko.stream.Materializer
 import org.apache.pekko.stream.scaladsl.Sink
 import org.scalatest.OptionValues
@@ -459,16 +459,28 @@ class SubmissionConnectorSpec
       reportingPeriod = Year.of(2024)
     )
 
-    "must submit the expected data and return Done" in {
+    "must submit the expected data and return the created submission" in {
+
+      val expectedSubmission = Submission(
+        _id = "id",
+        operatorId = "operatorId",
+        operatorName = "operatorName",
+        assumingOperatorName = Some("assumedOperatorName"),
+        dprsId = "dprsId",
+        state = Submitted(fileName = "test.xml", Year.of(2024)),
+        created = now,
+        updated = now
+      )
 
       wireMockServer.stubFor(
         post(urlPathEqualTo("/digital-platform-reporting/submission/assumed/submit"))
           .withRequestBody(equalToJson(Json.toJson(request).toString))
           .withHeader("User-Agent", equalTo("app"))
-          .willReturn(noContent())
+          .willReturn(ok(Json.toJson(expectedSubmission).toString))
       )
 
-      connector.submitAssumedReporting(request)(using hc).futureValue
+      val result = connector.submitAssumedReporting(request)(using hc).futureValue
+      result mustEqual expectedSubmission
     }
 
     "must return an error when the server response with another status" in {

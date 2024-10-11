@@ -79,6 +79,8 @@ POST       /:operatorId/changevrn                               controllers.assu
 GET        /:operatorId/check-your-answers                      controllers.assumed.CheckYourAnswersController.onPageLoad(operatorId: String)
 POST       /:operatorId/check-your-answers                      controllers.assumed.CheckYourAnswersController.onSubmit(operatorId: String)
 
+GET        /:operatorId/:submissionId/confirmation-page         controllers.assumed.SubmissionConfirmationController.onPageLoad(operatorId: String, submissionId: String)
+
 GET        /which-platform-operator                             controllers.assumed.SelectPlatformOperatorController.onPageLoad
 POST       /which-platform-operator                             controllers.assumed.SelectPlatformOperatorController.onSubmit
 
