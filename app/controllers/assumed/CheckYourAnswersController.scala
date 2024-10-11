@@ -75,8 +75,8 @@ class CheckYourAnswersController @Inject()(
         .left.map(errors => Future.failed(BuildAssumedReportingSubmissionRequestFailure(errors)))
         .merge
         .flatMap { submissionRequest =>
-          submissionConnector.submitAssumedReporting(submissionRequest).map { _ =>
-            Redirect(controllers.routes.JourneyRecoveryController.onPageLoad()) // TODO change this when the next page exists
+          submissionConnector.submitAssumedReporting(submissionRequest).map { submission =>
+            Redirect(routes.SubmissionConfirmationController.onPageLoad(operatorId, submission._id))
           }
         }
   }

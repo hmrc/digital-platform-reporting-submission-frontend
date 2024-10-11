@@ -20,7 +20,8 @@ import base.SpecBase
 import cats.data.NonEmptyChain
 import connectors.SubmissionConnector
 import controllers.routes as baseRoutes
-import models.submission.{AssumedReportingSubmissionRequest, AssumingOperatorAddress, AssumingPlatformOperator}
+import models.submission.Submission.State.Submitted
+import models.submission.{AssumedReportingSubmissionRequest, AssumingOperatorAddress, AssumingPlatformOperator, Submission}
 import org.apache.pekko.Done
 import org.mockito.ArgumentMatchers.{any, eq as eqTo}
 import org.mockito.Mockito
@@ -35,13 +36,15 @@ import services.UserAnswersService
 import viewmodels.govuk.SummaryListFluency
 import views.html.assumed.CheckYourAnswersView
 
-import java.time.Year
+import java.time.{Instant, Year}
 import scala.concurrent.Future
 
 class CheckYourAnswersControllerSpec extends SpecBase with SummaryListFluency with BeforeAndAfterEach {
 
   private val mockSubmissionConnector: SubmissionConnector = mock[SubmissionConnector]
   private val mockUserAnswersService: UserAnswersService = mock[UserAnswersService]
+
+  private val now: Instant = Instant.now()
 
   override def beforeEach(): Unit = {
     super.beforeEach()
@@ -103,6 +106,17 @@ class CheckYourAnswersControllerSpec extends SpecBase with SummaryListFluency wi
           reportingPeriod = Year.of(2024)
         )
 
+        val submission = Submission(
+          _id = "submissionId",
+          dprsId = "dprsId",
+          operatorId = "operatorId",
+          operatorName = operatorName,
+          assumingOperatorName = Some("assumingOperatorName"),
+          state = Submitted(fileName = "test.xml", Year.of(2024)),
+          created = now,
+          updated = now
+        )
+
         val answers = emptyUserAnswers
 
         val application = applicationBuilder(userAnswers = Some(answers))
@@ -113,14 +127,14 @@ class CheckYourAnswersControllerSpec extends SpecBase with SummaryListFluency wi
           .build()
 
         when(mockUserAnswersService.toAssumedReportingSubmissionRequest(any())).thenReturn(Right(assumedReportingSubmissionRequest))
-        when(mockSubmissionConnector.submitAssumedReporting(any())(using any())).thenReturn(Future.successful(Done))
+        when(mockSubmissionConnector.submitAssumedReporting(any())(using any())).thenReturn(Future.successful(submission))
 
         running(application) {
           val request = FakeRequest(routes.CheckYourAnswersController.onSubmit(operatorId))
           val result = route(application, request).value
 
           status(result) mustEqual SEE_OTHER
-          redirectLocation(result).value mustEqual controllers.routes.JourneyRecoveryController.onPageLoad().url // TODO update when the next page exists
+          redirectLocation(result).value mustEqual routes.SubmissionConfirmationController.onPageLoad(operatorId, "submissionId").url
         }
 
         verify(mockUserAnswersService).toAssumedReportingSubmissionRequest(eqTo(answers))
