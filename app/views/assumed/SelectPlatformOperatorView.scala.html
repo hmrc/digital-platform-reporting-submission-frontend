@@ -32,7 +32,7 @@
 @(form: Form[_], operators: Seq[PlatformOperatorSummary])(implicit request: Request[_], messages: Messages)
 
 @layout(
-    pageTitle = titleNoForm(messages("selectPlatformOperator.title")),
+    pageTitle = titleNoForm(messages("assumed.selectPlatformOperator.title")),
     showBackLink = false
 ) {
 
@@ -48,15 +48,15 @@
                 items = SelectItem(value = None, text = "") +: operators.map { operator =>
                     SelectItemViewModel(value = operator.operatorId, text = operator.operatorName)
                 },
-                label = LabelViewModel(messages("selectPlatformOperator.heading")).asPageHeading()
+                label = LabelViewModel(messages("assumed.selectPlatformOperator.heading")).asPageHeading()
             )
             .withCssClass("govuk-input")
             .asAccessibleAutocomplete(Some(AccessibleAutocomplete(showAllValues = true)))
         )
 
         <p class="govuk-body">
-            @messages("selectPlatformOperator.p1")
-            <a href="@appConfig.addOperatorUrl" class="govuk-link">@messages("selectPlatformOperator.p1.link.text")</a>.
+            @messages("assumed.selectPlatformOperator.p1")
+            <a href="@appConfig.addOperatorUrl" class="govuk-link">@messages("assumed.selectPlatformOperator.p1.link.text")</a>.
         </p>
 
         @govukButton(

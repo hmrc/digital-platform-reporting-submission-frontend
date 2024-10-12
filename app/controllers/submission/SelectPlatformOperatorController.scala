@@ -19,8 +19,8 @@ package controllers.submission
 import connectors.PlatformOperatorConnector
 import controllers.actions.*
 import controllers.routes as baseRoutes
-import forms.SelectPlatformOperatorFormProvider
-import models.{NormalMode, UserAnswers}
+import forms.submission.SelectPlatformOperatorFormProvider
+import models.UserAnswers
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.*
 import queries.PlatformOperatorSummaryQuery

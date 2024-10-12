@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package forms
+package forms.assumed
 
 import forms.behaviours.OptionFieldBehaviours
 import org.scalacheck.Arbitrary.arbitrary
@@ -30,7 +30,7 @@ class SelectPlatformOperatorFormProviderSpec extends OptionFieldBehaviours {
   ".value" - {
 
     val fieldName = "value"
-    val requiredKey = "selectPlatformOperator.error.required"
+    val requiredKey = "assumed.selectPlatformOperator.error.required"
 
     behave like fieldThatBindsValidData(
       form,

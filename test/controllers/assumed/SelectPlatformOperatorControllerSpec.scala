@@ -18,9 +18,9 @@ package controllers.assumed
 
 import base.SpecBase
 import connectors.PlatformOperatorConnector
-import forms.SelectPlatformOperatorFormProvider
-import models.operator.responses.{NotificationDetails, PlatformOperator, ViewPlatformOperatorsResponse}
-import models.operator.{AddressDetails, ContactDetails, NotificationType}
+import forms.assumed.SelectPlatformOperatorFormProvider
+import models.operator.responses.{PlatformOperator, ViewPlatformOperatorsResponse}
+import models.operator.{AddressDetails, ContactDetails}
 import models.{NormalMode, UserAnswers}
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.{times, verify, when}
@@ -36,7 +36,6 @@ import repositories.SessionRepository
 import viewmodels.PlatformOperatorSummary
 import views.html.assumed.{SelectPlatformOperatorSingleChoiceView, SelectPlatformOperatorView}
 
-import java.time.Instant
 import scala.concurrent.Future
 
 class SelectPlatformOperatorControllerSpec extends SpecBase with MockitoSugar with BeforeAndAfterEach {

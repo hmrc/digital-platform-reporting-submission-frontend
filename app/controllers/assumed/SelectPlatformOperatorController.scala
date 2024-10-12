@@ -19,7 +19,7 @@ package controllers.assumed
 import connectors.PlatformOperatorConnector
 import controllers.actions.*
 import controllers.routes as baseRoutes
-import forms.SelectPlatformOperatorFormProvider
+import forms.assumed.SelectPlatformOperatorFormProvider
 import models.{NormalMode, UserAnswers}
 import pages.assumed.SelectPlatformOperatorPage
 import play.api.i18n.{I18nSupport, MessagesApi}
