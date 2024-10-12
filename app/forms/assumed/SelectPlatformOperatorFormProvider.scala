@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package forms
+package forms.assumed
 
 import forms.mappings.Mappings
 import play.api.data.Form
@@ -25,7 +25,7 @@ class SelectPlatformOperatorFormProvider @Inject() extends Mappings {
 
   def apply(operatorIds: Set[String]): Form[String] =
     Form(
-      "value" -> text("selectPlatformOperator.error.required")
-        .verifying("selectPlatformOperator.error.required", x => operatorIds.contains(x))
+      "value" -> text("assumed.selectPlatformOperator.error.required")
+        .verifying("assumed.selectPlatformOperator.error.required", x => operatorIds.contains(x))
     )
 }

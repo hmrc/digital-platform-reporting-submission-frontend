@@ -18,7 +18,7 @@ package controllers.submission
 
 import base.SpecBase
 import connectors.PlatformOperatorConnector
-import forms.SelectPlatformOperatorFormProvider
+import forms.submission.SelectPlatformOperatorFormProvider
 import models.operator.responses.{NotificationDetails, PlatformOperator, ViewPlatformOperatorsResponse}
 import models.operator.{AddressDetails, ContactDetails, NotificationType}
 import models.{NormalMode, UserAnswers}
