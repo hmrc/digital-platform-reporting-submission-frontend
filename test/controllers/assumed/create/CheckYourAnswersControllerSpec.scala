@@ -30,8 +30,10 @@ import org.scalatest.BeforeAndAfterEach
 import org.scalatestplus.mockito.MockitoSugar.mock
 import pages.assumed.create.AssumingOperatorNamePage
 import play.api.inject.bind
+import play.api.libs.json.Json
 import play.api.test.FakeRequest
 import play.api.test.Helpers.*
+import repositories.SessionRepository
 import services.UserAnswersService
 import viewmodels.govuk.SummaryListFluency
 import views.html.assumed.create.CheckYourAnswersView
@@ -43,12 +45,13 @@ class CheckYourAnswersControllerSpec extends SpecBase with SummaryListFluency wi
 
   private val mockSubmissionConnector: SubmissionConnector = mock[SubmissionConnector]
   private val mockUserAnswersService: UserAnswersService = mock[UserAnswersService]
+  private val mockSessionRepository: SessionRepository = mock[SessionRepository]
 
   private val now: Instant = Instant.now()
 
   override def beforeEach(): Unit = {
     super.beforeEach()
-    Mockito.reset(mockSubmissionConnector, mockUserAnswersService)
+    Mockito.reset(mockSubmissionConnector, mockUserAnswersService, mockSessionRepository)
   }
 
   "Check Your Answers Controller" - {
@@ -117,17 +120,19 @@ class CheckYourAnswersControllerSpec extends SpecBase with SummaryListFluency wi
           updated = now
         )
 
-        val answers = emptyUserAnswers
+        val answers = emptyUserAnswers.set(AssumingOperatorNamePage, "assumingOperatorName").success.value
 
         val application = applicationBuilder(userAnswers = Some(answers))
           .overrides(
             bind[SubmissionConnector].toInstance(mockSubmissionConnector),
-            bind[UserAnswersService].toInstance(mockUserAnswersService)
+            bind[UserAnswersService].toInstance(mockUserAnswersService),
+            bind[SessionRepository].toInstance(mockSessionRepository)
           )
           .build()
 
         when(mockUserAnswersService.toAssumedReportingSubmissionRequest(any())).thenReturn(Right(assumedReportingSubmissionRequest))
         when(mockSubmissionConnector.submitAssumedReporting(any())(using any())).thenReturn(Future.successful(submission))
+        when(mockSessionRepository.clear(any(), any())).thenReturn(Future.successful(true))
 
         running(application) {
           val request = FakeRequest(routes.CheckYourAnswersController.onSubmit(operatorId))
@@ -139,6 +144,7 @@ class CheckYourAnswersControllerSpec extends SpecBase with SummaryListFluency wi
 
         verify(mockUserAnswersService).toAssumedReportingSubmissionRequest(eqTo(answers))
         verify(mockSubmissionConnector).submitAssumedReporting(eqTo(assumedReportingSubmissionRequest))(using any())
+        verify(mockSessionRepository).clear(answers.userId, answers.operatorId)
       }
 
       "must fail if a request cannot be created from the user answers" in {
@@ -146,12 +152,14 @@ class CheckYourAnswersControllerSpec extends SpecBase with SummaryListFluency wi
         val application = applicationBuilder(userAnswers = Some(emptyUserAnswers))
           .overrides(
             bind[SubmissionConnector].toInstance(mockSubmissionConnector),
-            bind[UserAnswersService].toInstance(mockUserAnswersService)
+            bind[UserAnswersService].toInstance(mockUserAnswersService),
+            bind[SessionRepository].toInstance(mockSessionRepository)
           )
           .build()
 
         when(mockUserAnswersService.toAssumedReportingSubmissionRequest(any())).thenReturn(Left(NonEmptyChain.one(AssumingOperatorNamePage)))
         when(mockSubmissionConnector.submitAssumedReporting(any())(using any())).thenReturn(Future.successful(Done))
+        when(mockSessionRepository.clear(any(), any())).thenReturn(Future.successful(true))
 
         running(application) {
           val request = FakeRequest(routes.CheckYourAnswersController.onSubmit(operatorId))
@@ -159,6 +167,7 @@ class CheckYourAnswersControllerSpec extends SpecBase with SummaryListFluency wi
         }
 
         verify(mockSubmissionConnector, never()).submitAssumedReporting(any())(using any())
+        verify(mockSessionRepository, never()).clear(any())
       }
     }
   }
