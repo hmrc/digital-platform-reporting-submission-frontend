@@ -24,7 +24,7 @@ import org.scalatest.{EitherValues, TryValues}
 import org.scalatest.freespec.AnyFreeSpec
 import org.scalatest.matchers.must.Matchers
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
-import pages.assumed.*
+import pages.assumed.create.*
 
 import java.time.Year
 

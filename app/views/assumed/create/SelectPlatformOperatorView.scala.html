@@ -1,0 +1,66 @@
+@*
+ * Copyright 2024 HM Revenue & Customs
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *@
+
+@import config.FrontendAppConfig
+@import controllers.assumed.create.routes
+@import uk.gov.hmrc.govukfrontend.views.Implicits.RichSelect
+@import uk.gov.hmrc.hmrcfrontend.views.viewmodels.accessibleautocomplete.AccessibleAutocomplete
+@import viewmodels.PlatformOperatorSummary
+
+@this(
+        layout: templates.Layout,
+        formHelper: FormWithCSRF,
+        govukErrorSummary: GovukErrorSummary,
+        govukSelect: GovukSelect,
+        govukButton: GovukButton,
+        appConfig: FrontendAppConfig
+)
+
+@(form: Form[_], operators: Seq[PlatformOperatorSummary])(implicit request: Request[_], messages: Messages)
+
+@layout(
+    pageTitle = titleNoForm(messages("assumed.selectPlatformOperator.title")),
+    showBackLink = false
+) {
+
+    @formHelper(action = routes.SelectPlatformOperatorController.onSubmit) {
+
+        @if(form.errors.nonEmpty) {
+            @govukErrorSummary(ErrorSummaryViewModel(form))
+        }
+
+        @govukSelect(
+            SelectViewModel(
+                field = form("value"),
+                items = SelectItem(value = None, text = "") +: operators.map { operator =>
+                    SelectItemViewModel(value = operator.operatorId, text = operator.operatorName)
+                },
+                label = LabelViewModel(messages("assumed.selectPlatformOperator.heading")).asPageHeading()
+            )
+            .withCssClass("govuk-input")
+            .asAccessibleAutocomplete(Some(AccessibleAutocomplete(showAllValues = true)))
+        )
+
+        <p class="govuk-body">
+            @messages("assumed.selectPlatformOperator.p1")
+            <a href="@appConfig.addOperatorUrl" class="govuk-link">@messages("assumed.selectPlatformOperator.p1.link.text")</a>.
+        </p>
+
+        @govukButton(
+            ButtonViewModel(messages("site.continue"))
+        )
+    }
+}
