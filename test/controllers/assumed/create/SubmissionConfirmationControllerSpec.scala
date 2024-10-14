@@ -334,28 +334,6 @@ class SubmissionConfirmationControllerSpec extends SpecBase with MockitoSugar wi
           verify(mockSubmissionConnector).get(eqTo(submissionId))(using any())
         }
       }
-
-      "when there are no user answers" - {
-
-        "must redirect to the journey recovery page" in {
-
-          val application = applicationBuilder(userAnswers = None)
-            .overrides(
-              bind[SubmissionConnector].toInstance(mockSubmissionConnector)
-            )
-            .build()
-
-          running(application) {
-            val request = FakeRequest(routes.SubmissionConfirmationController.onPageLoad(operatorId, submissionId))
-            val result = route(application, request).value
-
-            status(result) mustEqual SEE_OTHER
-            redirectLocation(result).value mustEqual controllers.routes.JourneyRecoveryController.onPageLoad().url
-          }
-
-          verify(mockSubmissionConnector, never()).get(any())(using any())
-        }
-      }
     }
   }
 }

@@ -20,7 +20,9 @@ import com.google.inject.Inject
 import connectors.SubmissionConnector
 import controllers.actions.*
 import play.api.i18n.{I18nSupport, MessagesApi}
+import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
+import repositories.SessionRepository
 import services.UserAnswersService
 import services.UserAnswersService.BuildAssumedReportingSubmissionRequestFailure
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
@@ -38,7 +40,8 @@ class CheckYourAnswersController @Inject()(
                                             val controllerComponents: MessagesControllerComponents,
                                             view: CheckYourAnswersView,
                                             userAnswersService: UserAnswersService,
-                                            submissionConnector: SubmissionConnector
+                                            submissionConnector: SubmissionConnector,
+                                            sessionRepository: SessionRepository
                                           )(using ExecutionContext) extends FrontendBaseController with I18nSupport {
 
   def onPageLoad(operatorId: String): Action[AnyContent] = (identify andThen getData(operatorId) andThen requireData) {
@@ -75,9 +78,10 @@ class CheckYourAnswersController @Inject()(
         .left.map(errors => Future.failed(BuildAssumedReportingSubmissionRequestFailure(errors)))
         .merge
         .flatMap { submissionRequest =>
-          submissionConnector.submitAssumedReporting(submissionRequest).map { submission =>
-            Redirect(routes.SubmissionConfirmationController.onPageLoad(operatorId, submission._id))
-          }
+          for {
+            submission <- submissionConnector.submitAssumedReporting(submissionRequest)
+            _          <- sessionRepository.clear(request.userId, operatorId)
+          } yield Redirect(routes.SubmissionConfirmationController.onPageLoad(operatorId, submission._id))
         }
   }
 }
