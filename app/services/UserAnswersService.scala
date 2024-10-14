@@ -23,7 +23,7 @@ import models.UkTaxIdentifiers.{Chrn, Crn, Empref, Utr, Vrn}
 import models.UserAnswers
 import models.operator.{TinDetails, TinType}
 import models.submission.{AssumedReportingSubmissionRequest, AssumingOperatorAddress, AssumingPlatformOperator}
-import pages.assumed.*
+import pages.assumed.create.*
 import queries.{Gettable, Query}
 
 import java.time.Year
