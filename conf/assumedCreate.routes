@@ -1,0 +1,96 @@
+GET        /:operatorId/start                                   controllers.assumed.create.StartController.onPageLoad(operatorId: String)
+POST       /:operatorId/start                                   controllers.assumed.create.StartController.onSubmit(operatorId: String)
+
+GET        /:operatorId/chrn                                    controllers.assumed.create.ChrnController.onPageLoad(mode: Mode = NormalMode, operatorId: String)
+POST       /:operatorId/chrn                                    controllers.assumed.create.ChrnController.onSubmit(mode: Mode = NormalMode, operatorId: String)
+GET        /:operatorId/change-chrn                             controllers.assumed.create.ChrnController.onPageLoad(mode: Mode = CheckMode, operatorId: String)
+POST       /:operatorId/change-chrn                             controllers.assumed.create.ChrnController.onSubmit(mode: Mode = CheckMode, operatorId: String)
+
+GET        /:operatorId/crn                                     controllers.assumed.create.CrnController.onPageLoad(mode: Mode = NormalMode, operatorId: String)
+POST       /:operatorId/crn                                     controllers.assumed.create.CrnController.onSubmit(mode: Mode = NormalMode, operatorId: String)
+GET        /:operatorId/change-crn                              controllers.assumed.create.CrnController.onPageLoad(mode: Mode = CheckMode, operatorId: String)
+POST       /:operatorId/change-crn                              controllers.assumed.create.CrnController.onSubmit(mode: Mode = CheckMode, operatorId: String)
+
+GET        /:operatorId/empref                                  controllers.assumed.create.EmprefController.onPageLoad(mode: Mode = NormalMode, operatorId: String)
+POST       /:operatorId/empref                                  controllers.assumed.create.EmprefController.onSubmit(mode: Mode = NormalMode, operatorId: String)
+GET        /:operatorId/change-empref                           controllers.assumed.create.EmprefController.onPageLoad(mode: Mode = CheckMode, operatorId: String)
+POST       /:operatorId/change-empref                           controllers.assumed.create.EmprefController.onSubmit(mode: Mode = CheckMode, operatorId: String)
+
+GET        /:operatorId/have-tin                                controllers.assumed.create.HasTaxIdentifierController.onPageLoad(mode: Mode = NormalMode, operatorId: String)
+POST       /:operatorId/have-tin                                controllers.assumed.create.HasTaxIdentifierController.onSubmit(mode: Mode = NormalMode, operatorId: String)
+GET        /:operatorId/change-have-tin                         controllers.assumed.create.HasTaxIdentifierController.onPageLoad(mode: Mode = CheckMode, operatorId: String)
+POST       /:operatorId/change-have-tin                         controllers.assumed.create.HasTaxIdentifierController.onSubmit(mode: Mode = CheckMode, operatorId: String)
+
+GET        /:operatorId/international-address                   controllers.assumed.create.InternationalAddressController.onPageLoad(mode: Mode = NormalMode, operatorId: String)
+POST       /:operatorId/international-address                   controllers.assumed.create.InternationalAddressController.onSubmit(mode: Mode = NormalMode, operatorId: String)
+GET        /:operatorId/change-international-address            controllers.assumed.create.InternationalAddressController.onPageLoad(mode: Mode = CheckMode, operatorId: String)
+POST       /:operatorId/change-international-address            controllers.assumed.create.InternationalAddressController.onSubmit(mode: Mode = CheckMode, operatorId: String)
+
+GET        /:operatorId/enter-international-tin                 controllers.assumed.create.InternationalTaxIdentifierController.onPageLoad(mode: Mode = NormalMode, operatorId: String)
+POST       /:operatorId/enter-international-tin                 controllers.assumed.create.InternationalTaxIdentifierController.onSubmit(mode: Mode = NormalMode, operatorId: String)
+GET        /:operatorId/change-international-tin                controllers.assumed.create.InternationalTaxIdentifierController.onPageLoad(mode: Mode = CheckMode, operatorId: String)
+POST       /:operatorId/change-international-tin                controllers.assumed.create.InternationalTaxIdentifierController.onSubmit(mode: Mode = CheckMode, operatorId: String)
+
+GET        /:operatorId/assuming-operator-name                  controllers.assumed.create.AssumingOperatorNameController.onPageLoad(mode: Mode = NormalMode, operatorId: String)
+POST       /:operatorId/assuming-operator-name                  controllers.assumed.create.AssumingOperatorNameController.onSubmit(mode: Mode = NormalMode, operatorId: String)
+GET        /:operatorId/change-assuming-operator-name           controllers.assumed.create.AssumingOperatorNameController.onPageLoad(mode: Mode = CheckMode, operatorId: String)
+POST       /:operatorId/change-assuming-operator-name           controllers.assumed.create.AssumingOperatorNameController.onSubmit(mode: Mode = CheckMode, operatorId: String)
+
+GET        /:operatorId/registered-address-in-uk                controllers.assumed.create.RegisteredInUkController.onPageLoad(mode: Mode = NormalMode, operatorId: String)
+POST       /:operatorId/registered-address-in-uk                controllers.assumed.create.RegisteredInUkController.onSubmit(mode: Mode = NormalMode, operatorId: String)
+GET        /:operatorId/change-registered-address-in-uk         controllers.assumed.create.RegisteredInUkController.onPageLoad(mode: Mode = CheckMode, operatorId: String)
+POST       /:operatorId/change-registered-address-in-uk         controllers.assumed.create.RegisteredInUkController.onSubmit(mode: Mode = CheckMode, operatorId: String)
+
+GET        /:operatorId/reporting-period                        controllers.assumed.create.ReportingPeriodController.onPageLoad(mode: Mode = NormalMode, operatorId: String)
+POST       /:operatorId/reporting-period                        controllers.assumed.create.ReportingPeriodController.onSubmit(mode: Mode = NormalMode, operatorId: String)
+GET        /:operatorId/change-reporting-period                 controllers.assumed.create.ReportingPeriodController.onPageLoad(mode: Mode = CheckMode, operatorId: String)
+POST       /:operatorId/change-reporting-period                 controllers.assumed.create.ReportingPeriodController.onSubmit(mode: Mode = CheckMode, operatorId: String)
+
+GET        /:operatorId/tax-resident-country                    controllers.assumed.create.TaxResidencyCountryController.onPageLoad(mode: Mode = NormalMode, operatorId: String)
+POST       /:operatorId/tax-resident-country                    controllers.assumed.create.TaxResidencyCountryController.onSubmit(mode: Mode = NormalMode, operatorId: String)
+GET        /:operatorId/change-tax-resident-country             controllers.assumed.create.TaxResidencyCountryController.onPageLoad(mode: Mode = CheckMode, operatorId: String)
+POST       /:operatorId/change-tax-resident-country             controllers.assumed.create.TaxResidencyCountryController.onSubmit(mode: Mode = CheckMode, operatorId: String)
+
+GET        /:operatorId/tax-resident-in-uk                      controllers.assumed.create.TaxResidentInUkController.onPageLoad(mode: Mode = NormalMode, operatorId: String)
+POST       /:operatorId/tax-resident-in-uk                      controllers.assumed.create.TaxResidentInUkController.onSubmit(mode: Mode = NormalMode, operatorId: String)
+GET        /:operatorId/change-tax-resident-in-uk               controllers.assumed.create.TaxResidentInUkController.onPageLoad(mode: Mode = CheckMode, operatorId: String)
+POST       /:operatorId/change-tax-resident-in-uk               controllers.assumed.create.TaxResidentInUkController.onSubmit(mode: Mode = CheckMode, operatorId: String)
+
+GET        /:operatorId/uk-address                              controllers.assumed.create.UkAddressController.onPageLoad(mode: Mode = NormalMode, operatorId: String)
+POST       /:operatorId/uk-address                              controllers.assumed.create.UkAddressController.onSubmit(mode: Mode = NormalMode, operatorId: String)
+GET        /:operatorId/change-uk-address                       controllers.assumed.create.UkAddressController.onPageLoad(mode: Mode = CheckMode, operatorId: String)
+POST       /:operatorId/change-uk-address                       controllers.assumed.create.UkAddressController.onSubmit(mode: Mode = CheckMode, operatorId: String)
+
+GET        /:operatorId/uk-tin-type                             controllers.assumed.create.UkTaxIdentifiersController.onPageLoad(mode: Mode = NormalMode, operatorId: String)
+POST       /:operatorId/uk-tin-type                             controllers.assumed.create.UkTaxIdentifiersController.onSubmit(mode: Mode = NormalMode, operatorId: String)
+GET        /:operatorId/change-uk-tin-type                      controllers.assumed.create.UkTaxIdentifiersController.onPageLoad(mode: Mode = CheckMode, operatorId: String)
+POST       /:operatorId/change-uk-tin-type                      controllers.assumed.create.UkTaxIdentifiersController.onSubmit(mode: Mode = CheckMode, operatorId: String)
+
+GET        /:operatorId/utr                                     controllers.assumed.create.UtrController.onPageLoad(mode: Mode = NormalMode, operatorId: String)
+POST       /:operatorId/utr                                     controllers.assumed.create.UtrController.onSubmit(mode: Mode = NormalMode, operatorId: String)
+GET        /:operatorId/change-utr                              controllers.assumed.create.UtrController.onPageLoad(mode: Mode = CheckMode, operatorId: String)
+POST       /:operatorId/change-utr                              controllers.assumed.create.UtrController.onSubmit(mode: Mode = CheckMode, operatorId: String)
+
+GET        /:operatorId/vrn                                     controllers.assumed.create.VrnController.onPageLoad(mode: Mode = NormalMode, operatorId: String)
+POST       /:operatorId/vrn                                     controllers.assumed.create.VrnController.onSubmit(mode: Mode = NormalMode, operatorId: String)
+GET        /:operatorId/changevrn                               controllers.assumed.create.VrnController.onPageLoad(mode: Mode = CheckMode, operatorId: String)
+POST       /:operatorId/changevrn                               controllers.assumed.create.VrnController.onSubmit(mode: Mode = CheckMode, operatorId: String)
+
+GET        /:operatorId/check-your-answers                      controllers.assumed.create.CheckYourAnswersController.onPageLoad(operatorId: String)
+POST       /:operatorId/check-your-answers                      controllers.assumed.create.CheckYourAnswersController.onSubmit(operatorId: String)
+
+GET        /:operatorId/:submissionId/confirmation-page         controllers.assumed.create.SubmissionConfirmationController.onPageLoad(operatorId: String, submissionId: String)
+
+GET        /which-platform-operator                             controllers.assumed.create.SelectPlatformOperatorController.onPageLoad
+POST       /which-platform-operator                             controllers.assumed.create.SelectPlatformOperatorController.onSubmit
+
+GET        /:operatorId/check-platform-operator                 controllers.assumed.create.CheckPlatformOperatorController.onPageLoad(operatorId: String)
+POST       /:operatorId/check-platform-operator                 controllers.assumed.create.CheckPlatformOperatorController.onSubmit(operatorId: String)
+
+GET        /:operatorId/check-reporting-notifications           controllers.assumed.create.CheckReportingNotificationsController.onPageLoad(operatorId: String)
+POST       /:operatorId/check-reporting-notifications           controllers.assumed.create.CheckReportingNotificationsController.onSubmit(operatorId: String)
+
+GET        /:operatorId/check-contact-details                   controllers.assumed.create.CheckContactDetailsController.onPageLoad(operatorId: String)
+POST       /:operatorId/check-contact-details                   controllers.assumed.create.CheckContactDetailsController.onSubmit(operatorId: String)
+
+GET        /:operatorId/no-reporting-notification               controllers.assumed.create.ReportingNotificationRequiredController.onPageLoad(operatorId: String)

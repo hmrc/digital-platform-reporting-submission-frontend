@@ -14,22 +14,21 @@
  * limitations under the License.
  */
 
-package controllers.assumed.create
+package controllers.assumed
 
 import base.SpecBase
 import connectors.SubmissionConnector
 import models.submission.{SubmissionStatus, SubmissionSummary, SubmissionsSummary}
 import org.mockito.ArgumentMatchers.any
+import org.mockito.Mockito.when
 import org.mockito.Mockito
-import org.mockito.Mockito.{times, verify, when}
-import org.mockito.{ArgumentCaptor, Mockito}
 import org.scalatest.BeforeAndAfterEach
 import org.scalatestplus.mockito.MockitoSugar
 import play.api.i18n.Messages
 import play.api.inject.bind
 import play.api.test.FakeRequest
 import play.api.test.Helpers.*
-import views.html.assumed.create.ViewAssumedReportsView
+import views.html.assumed.ViewAssumedReportsView
 
 import java.time.Instant
 import scala.concurrent.Future

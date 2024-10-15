@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package controllers.assumed.create
+package controllers.assumed
 
 import connectors.SubmissionConnector
 import controllers.actions.IdentifierAction
@@ -22,7 +22,7 @@ import models.submission.ViewSubmissionsRequest
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
-import views.html.assumed.create.ViewAssumedReportsView
+import views.html.assumed.ViewAssumedReportsView
 
 import javax.inject.Inject
 import scala.concurrent.ExecutionContext
