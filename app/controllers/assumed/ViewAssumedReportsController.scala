@@ -14,30 +14,46 @@
  * limitations under the License.
  */
 
-package controllers.assumed.create
+package controllers.assumed
 
+import cats.implicits.*
 import connectors.SubmissionConnector
 import controllers.actions.IdentifierAction
+import models.UserAnswers
 import models.submission.ViewSubmissionsRequest
+import org.apache.pekko.Done
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
+import queries.AssumedReportSummariesQuery
+import repositories.SessionRepository
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
-import views.html.assumed.create.ViewAssumedReportsView
+import views.html.assumed.ViewAssumedReportsView
 
 import javax.inject.Inject
-import scala.concurrent.ExecutionContext
+import scala.concurrent.{ExecutionContext, Future}
 
 class ViewAssumedReportsController @Inject()(override val messagesApi: MessagesApi,
                                              identify: IdentifierAction,
                                              val controllerComponents: MessagesControllerComponents,
                                              connector: SubmissionConnector,
+                                             sessionRepository: SessionRepository,
                                              view: ViewAssumedReportsView)
                                             (implicit ec: ExecutionContext) extends FrontendBaseController with I18nSupport {
 
   def onPageLoad(): Action[AnyContent] = identify.async {
     implicit request =>
-      connector.list(ViewSubmissionsRequest(assumedReporting = true)).map { response =>
-        Ok(view(response))
+      connector.list(ViewSubmissionsRequest(assumedReporting = true)).flatMap { response =>
+
+        response.map(x => x.deliveredSubmissions ++ x.localSubmissions).getOrElse(Nil)
+          .groupBy(_.operatorId)
+          .map { (operatorId, submissions) =>
+            for {
+              answers <- Future.fromTry(UserAnswers(request.userId, operatorId).set(AssumedReportSummariesQuery, submissions))
+              _       <- sessionRepository.set(answers)
+            } yield Done
+          }
+          .toList.sequence
+          .map(_ => Ok(view(response)))
       }
   }
 }

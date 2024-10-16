@@ -1,0 +1,4 @@
+GET         /:operatorId/delete/:submissionId           controllers.assumed.remove.RemoveAssumedReportController.onPageLoad(operatorId: String, submissionId: String)
+POST        /:operatorId/delete/:submissionId           controllers.assumed.remove.RemoveAssumedReportController.onSubmit(operatorId: String, submissionId: String)
+
+GET         /:operatorId/deleted/:submissionId           controllers.assumed.remove.AssumedReportRemovedController.onPageLoad(operatorId: String, submissionId: String)

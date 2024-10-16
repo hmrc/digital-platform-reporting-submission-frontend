@@ -16,7 +16,9 @@
 
 package models.submission
 
-import play.api.libs.json.{Json, Reads}
+import controllers.assumed.remove.{routes as removeRoutes}
+import play.api.i18n.Messages
+import play.api.libs.json.{Json, OFormat}
 import viewmodels.Link
 
 import java.time.Instant
@@ -29,11 +31,15 @@ final case class SubmissionSummary(submissionId: String,
                                    submissionDateTime: Instant,
                                    submissionStatus: SubmissionStatus,
                                    assumingReporterName: Option[String]) {
-  
-  lazy val link: Option[Link] = None // TODO: Include correct link based on status when relevant pages exist
+
+  // TODO: Add update link when pages exist
+  // TODO: Consider status when deciding which links to show?
+  def links(implicit messages: Messages): Seq[Link] = Seq(
+    Link(messages("site.delete"), removeRoutes.RemoveAssumedReportController.onPageLoad(operatorId, submissionId).url)
+  )
 }
 
 object SubmissionSummary {
   
-  implicit lazy val reads: Reads[SubmissionSummary] = Json.reads
+  implicit lazy val format: OFormat[SubmissionSummary] = Json.format
 }

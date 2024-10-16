@@ -63,7 +63,7 @@
                             <td class="govuk-table__cell">@submission.reportingPeriod</td>
                             <td class="govuk-table__cell">@submission.fileName</td>
                             <td class="govuk-table__cell">
-                                @submission.link.map { link =>
+                                @submission.links.map { link =>
                                     <a href="@link.href" class="govuk-link">@link.text</a>
                                 }
                             </td>
