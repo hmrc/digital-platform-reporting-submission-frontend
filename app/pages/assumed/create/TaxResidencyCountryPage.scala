@@ -28,12 +28,12 @@ case object TaxResidencyCountryPage extends AssumedReportingQuestionPage[Country
   override def toString: String = "taxResidencyCountry"
 
   override protected def nextPageNormalMode(answers: UserAnswers): Call =
-    routes.InternationalTaxIdentifierController.onPageLoad(NormalMode, answers.operatorId)
+    routes.HasInternationalTaxIdentifierController.onPageLoad(NormalMode, answers.operatorId)
 
   override protected def nextPageCheckMode(answers: UserAnswers): Call =
-    if (answers.get(InternationalTaxIdentifierPage).isDefined) {
+    if (answers.get(HasInternationalTaxIdentifierPage).isDefined) {
       routes.CheckYourAnswersController.onPageLoad(answers.operatorId)
     } else {
-      routes.InternationalTaxIdentifierController.onPageLoad(CheckMode, answers.operatorId)
+      routes.HasInternationalTaxIdentifierController.onPageLoad(CheckMode, answers.operatorId)
     }
 }

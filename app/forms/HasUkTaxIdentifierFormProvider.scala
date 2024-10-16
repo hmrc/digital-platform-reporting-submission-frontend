@@ -21,10 +21,10 @@ import play.api.data.Form
 
 import javax.inject.Inject
 
-class HasTaxIdentifierFormProvider @Inject() extends Mappings {
+class HasUkTaxIdentifierFormProvider @Inject() extends Mappings {
 
   def apply(assumingOperatorName: String): Form[Boolean] =
     Form(
-      "value" -> boolean("hasTaxIdentifier.error.required", args = Seq(assumingOperatorName))
+      "value" -> boolean("hasUkTaxIdentifier.error.required", args = Seq(assumingOperatorName))
     )
 }

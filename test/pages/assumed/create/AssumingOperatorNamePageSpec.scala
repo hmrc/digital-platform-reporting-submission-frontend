@@ -31,7 +31,7 @@ class AssumingOperatorNamePageSpec extends AnyFreeSpec with Matchers {
 
       "must go to Has Tax Identifier" in {
 
-        AssumingOperatorNamePage.nextPage(NormalMode, emptyAnswers) mustEqual routes.HasTaxIdentifierController.onPageLoad(NormalMode, "operatorId")
+        AssumingOperatorNamePage.nextPage(NormalMode, emptyAnswers) mustEqual routes.TaxResidentInUkController.onPageLoad(NormalMode, "operatorId")
       }
     }
 

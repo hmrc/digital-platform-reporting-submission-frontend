@@ -18,62 +18,66 @@ package controllers.assumed.create
 
 import base.SpecBase
 import controllers.routes as baseRoutes
-import forms.HasTaxIdentifierFormProvider
-import models.{NormalMode, UserAnswers}
+import forms.HasInternationalTaxIdentifierFormProvider
+import models.{Country, NormalMode, UserAnswers}
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.when
 import org.scalatestplus.mockito.MockitoSugar
-import pages.assumed.create.{HasTaxIdentifierPage, AssumingOperatorNamePage}
+import pages.assumed.create.{AssumingOperatorNamePage, HasInternationalTaxIdentifierPage, TaxResidencyCountryPage}
 import play.api.inject.bind
 import play.api.test.FakeRequest
 import play.api.test.Helpers.*
 import repositories.SessionRepository
-import views.html.assumed.create.HasTaxIdentifierView
+import views.html.assumed.create.HasInternationalTaxIdentifierView
 
 import scala.concurrent.Future
 
-class HasTaxIdentifierControllerSpec extends SpecBase with MockitoSugar {
+class HasInternationalTaxIdentifierControllerSpec extends SpecBase with MockitoSugar {
 
-  val formProvider = new HasTaxIdentifierFormProvider()
+  val formProvider = new HasInternationalTaxIdentifierFormProvider()
   private val assumingOperatorName = "name"
-  private val form = formProvider(assumingOperatorName)
-  private val baseAnswers = emptyUserAnswers.set(AssumingOperatorNamePage, assumingOperatorName).success.value
+  private val country = Country.internationalCountries.head
+  private val form = formProvider(assumingOperatorName, country)
+  private val baseAnswers =
+    emptyUserAnswers
+      .set(AssumingOperatorNamePage, assumingOperatorName).success.value
+      .set(TaxResidencyCountryPage, country).success.value
 
-  lazy val hasTaxIdentifierRoute = routes.HasTaxIdentifierController.onPageLoad(NormalMode, operatorId).url
+  private lazy val hasInternationalTaxIdentifierRoute = routes.HasInternationalTaxIdentifierController.onPageLoad(NormalMode, operatorId).url
 
-  "HasTaxIdentifier Controller" - {
+  "HasInternationalTaxIdentifier Controller" - {
 
     "must return OK and the correct view for a GET" in {
 
       val application = applicationBuilder(userAnswers = Some(baseAnswers)).build()
 
       running(application) {
-        val request = FakeRequest(GET, hasTaxIdentifierRoute)
+        val request = FakeRequest(GET, hasInternationalTaxIdentifierRoute)
 
         val result = route(application, request).value
 
-        val view = application.injector.instanceOf[HasTaxIdentifierView]
+        val view = application.injector.instanceOf[HasInternationalTaxIdentifierView]
 
         status(result) mustEqual OK
-        contentAsString(result) mustEqual view(form, NormalMode, operatorId, assumingOperatorName)(request, messages(application)).toString
+        contentAsString(result) mustEqual view(form, NormalMode, operatorId, assumingOperatorName, country)(request, messages(application)).toString
       }
     }
 
     "must populate the view correctly on a GET when the question has previously been answered" in {
 
-      val userAnswers = baseAnswers.set(HasTaxIdentifierPage, true).success.value
+      val userAnswers = baseAnswers.set(HasInternationalTaxIdentifierPage, true).success.value
 
       val application = applicationBuilder(userAnswers = Some(userAnswers)).build()
 
       running(application) {
-        val request = FakeRequest(GET, hasTaxIdentifierRoute)
+        val request = FakeRequest(GET, hasInternationalTaxIdentifierRoute)
 
-        val view = application.injector.instanceOf[HasTaxIdentifierView]
+        val view = application.injector.instanceOf[HasInternationalTaxIdentifierView]
 
         val result = route(application, request).value
 
         status(result) mustEqual OK
-        contentAsString(result) mustEqual view(form.fill(true), NormalMode, operatorId, assumingOperatorName)(request, messages(application)).toString
+        contentAsString(result) mustEqual view(form.fill(true), NormalMode, operatorId, assumingOperatorName, country)(request, messages(application)).toString
       }
     }
 
@@ -92,14 +96,14 @@ class HasTaxIdentifierControllerSpec extends SpecBase with MockitoSugar {
 
       running(application) {
         val request =
-          FakeRequest(POST, hasTaxIdentifierRoute)
+          FakeRequest(POST, hasInternationalTaxIdentifierRoute)
             .withFormUrlEncodedBody(("value", "true"))
 
         val result = route(application, request).value
-        val answers = baseAnswers.set(HasTaxIdentifierPage, true).success.value
+        val answers = baseAnswers.set(HasInternationalTaxIdentifierPage, true).success.value
 
         status(result) mustEqual SEE_OTHER
-        redirectLocation(result).value mustEqual HasTaxIdentifierPage.nextPage(NormalMode, answers).url
+        redirectLocation(result).value mustEqual HasInternationalTaxIdentifierPage.nextPage(NormalMode, answers).url
       }
     }
 
@@ -109,17 +113,17 @@ class HasTaxIdentifierControllerSpec extends SpecBase with MockitoSugar {
 
       running(application) {
         val request =
-          FakeRequest(POST, hasTaxIdentifierRoute)
+          FakeRequest(POST, hasInternationalTaxIdentifierRoute)
             .withFormUrlEncodedBody(("value", ""))
 
         val boundForm = form.bind(Map("value" -> ""))
 
-        val view = application.injector.instanceOf[HasTaxIdentifierView]
+        val view = application.injector.instanceOf[HasInternationalTaxIdentifierView]
 
         val result = route(application, request).value
 
         status(result) mustEqual BAD_REQUEST
-        contentAsString(result) mustEqual view(boundForm, NormalMode, operatorId, assumingOperatorName)(request, messages(application)).toString
+        contentAsString(result) mustEqual view(boundForm, NormalMode, operatorId, assumingOperatorName, country)(request, messages(application)).toString
       }
     }
 
@@ -128,7 +132,7 @@ class HasTaxIdentifierControllerSpec extends SpecBase with MockitoSugar {
       val application = applicationBuilder(userAnswers = None).build()
 
       running(application) {
-        val request = FakeRequest(GET, hasTaxIdentifierRoute)
+        val request = FakeRequest(GET, hasInternationalTaxIdentifierRoute)
 
         val result = route(application, request).value
 
@@ -143,7 +147,7 @@ class HasTaxIdentifierControllerSpec extends SpecBase with MockitoSugar {
 
       running(application) {
         val request =
-          FakeRequest(POST, hasTaxIdentifierRoute)
+          FakeRequest(POST, hasInternationalTaxIdentifierRoute)
             .withFormUrlEncodedBody(("value", "true"))
 
         val result = route(application, request).value

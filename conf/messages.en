@@ -160,12 +160,18 @@ empref.error.required = Enter the Employer PAYE Reference (EMPREF) for {0}
 empref.error.format = Enter an Employer PAYE Reference (EMPREF) in the correct format
 empref.change.hidden = the Employer PAYE Reference (EMPREF) for {0}
 
-hasTaxIdentifier.title = Does the platform operator have a tax identification number?
-hasTaxIdentifier.heading = Does {0} have a tax identification number?
-hasTaxIdentifier.p1 = This could be a Unique Taxpayer Reference (UTR), Company Registration Number (CRN), VAT Registration Number (VRN), Employer PAYE Reference, HMRC Charity Reference (CHRN) or international equivalent.
-hasTaxIdentifier.checkYourAnswersLabel = Does {0} have a tax identification number?
-hasTaxIdentifier.error.required = Select yes if {0} has a tax identification number
-hasTaxIdentifier.change.hidden = if {0} has a tax identification number
+hasUkTaxIdentifier.title = Does the platform operator have a UK tax identification number?
+hasUkTaxIdentifier.heading = Does {0} have a UK tax identification number?
+hasUkTaxIdentifier.p1 = This could be a Unique Taxpayer Reference (UTR), Company Registration Number (CRN), VAT Registration Number (VRN), Employer PAYE Reference, HMRC Charity Reference (CHRN) or international equivalent.
+hasUkTaxIdentifier.checkYourAnswersLabel = Does {0} have a UK tax identification number?
+hasUkTaxIdentifier.error.required = Select yes if {0} has a UK tax identification number
+hasUkTaxIdentifier.change.hidden = if {0} has a UK tax identification number
+
+hasInternationalTaxIdentifier.title = Does the platform operator have a tax identification number issued by {0}?
+hasInternationalTaxIdentifier.heading = Does {0} have a tax identification number issued by {1}?
+hasInternationalTaxIdentifier.checkYourAnswersLabel = Does {0} have a tax identification number issued by {1}?
+hasInternationalTaxIdentifier.error.required = Select yes if {0} has a tax identification number issued by {1}
+hasInternationalTaxIdentifier.change.hidden = if {0} has a tax identification number issued by {1}
 
 internationalAddress.title = What is the platform operator’s address?
 internationalAddress.heading = What is the address for {0}?
@@ -337,7 +343,7 @@ chrn.checkYourAnswersLabel = HMRC Charity Reference Number (CHRN)
 crn.checkYourAnswersLabel = Company Reference Number (CRN)
 empref.checkYourAnswersLabel = Employee PAYE Reference Number (EMPREF)
 hasSecondaryContact.checkYourAnswersLabel = Is there someone we can contact if {0} is not available?
-hasTaxIdentifier.checkYourAnswersLabel = Does {0} have a tax identifier?
+hasUkTaxIdentifier.checkYourAnswersLabel = Does {0} have a tax identifier?
 hasTradingName.checkYourAnswersLabel = Does {0} trade under a different name?
 internationalTaxIdentifier.checkYourAnswersLabel = Tax identification number
 operatorId.checkYourAnswersLabel = Platform operator ID

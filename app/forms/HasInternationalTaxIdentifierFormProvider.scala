@@ -14,19 +14,18 @@
  * limitations under the License.
  */
 
-package pages.assumed.create
+package forms
 
-import controllers.assumed.create.routes
-import models.{NormalMode, UserAnswers}
-import play.api.libs.json.JsPath
-import play.api.mvc.Call
+import forms.mappings.Mappings
+import models.Country
+import play.api.data.Form
 
-case object AssumingOperatorNamePage extends AssumedReportingQuestionPage[String] {
+import javax.inject.Inject
 
-  override def path: JsPath = JsPath \ toString
+class HasInternationalTaxIdentifierFormProvider @Inject() extends Mappings {
 
-  override def toString: String = "assumingOperatorName"
-
-  override protected def nextPageNormalMode(answers: UserAnswers): Call =
-    routes.TaxResidentInUkController.onPageLoad(NormalMode, answers.operatorId)
+  def apply(assumingOperatorName: String, country: Country): Form[Boolean] =
+    Form(
+      "value" -> boolean("hasInternationalTaxIdentifier.error.required", args = Seq(assumingOperatorName, country.name))
+    )
 }
