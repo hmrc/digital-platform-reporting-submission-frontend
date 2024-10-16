@@ -167,6 +167,12 @@ hasUkTaxIdentifier.checkYourAnswersLabel = Does {0} have a UK tax identification
 hasUkTaxIdentifier.error.required = Select yes if {0} has a UK tax identification number
 hasUkTaxIdentifier.change.hidden = if {0} has a UK tax identification number
 
+hasInternationalTaxIdentifier.title = Does the platform operator have a tax identification number issued by {0}?
+hasInternationalTaxIdentifier.heading = Does {0} have a tax identification number issued by {1}?
+hasInternationalTaxIdentifier.checkYourAnswersLabel = Does {0} have a tax identification number issued by {1}?
+hasInternationalTaxIdentifier.error.required = Select yes if {0} has a tax identification number issued by {1}
+hasInternationalTaxIdentifier.change.hidden = if {0} has a tax identification number issued by {1}
+
 internationalAddress.title = What is the platform operator’s address?
 internationalAddress.heading = What is the address for {0}?
 internationalAddress.line1 = Address line 1
