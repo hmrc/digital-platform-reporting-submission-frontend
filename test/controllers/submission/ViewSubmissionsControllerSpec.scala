@@ -46,7 +46,7 @@ class ViewSubmissionsControllerSpec extends SpecBase with MockitoSugar with Befo
 
   "ViewSubmissions Controller" - {
 
-    "must return OK and the correct view for a GET when assumed reports exist" in {
+    "must return OK and the correct view for a GET when submissions exist" in {
 
       val submissionSummary = SubmissionSummary(
         submissionId = "submissionId",
@@ -56,7 +56,8 @@ class ViewSubmissionsControllerSpec extends SpecBase with MockitoSugar with Befo
         reportingPeriod = "2024",
         submissionDateTime = now,
         submissionStatus = SubmissionStatus.Success,
-        assumingReporterName = None
+        assumingReporterName = None,
+        submissionCaseId = Some("caseId")
       )
       val summary = SubmissionsSummary(Seq(submissionSummary), Nil)
 

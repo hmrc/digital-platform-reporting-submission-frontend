@@ -30,13 +30,19 @@ final case class SubmissionSummary(submissionId: String,
                                    reportingPeriod: String,
                                    submissionDateTime: Instant,
                                    submissionStatus: SubmissionStatus,
-                                   assumingReporterName: Option[String]) {
+                                   assumingReporterName: Option[String],
+                                   submissionCaseId: Option[String]) {
+
+  private def removeAssumedReportLink(implicit messages: Messages): Option[Link] =
+    submissionCaseId.map { caseId =>
+      Link(messages("site.delete"), removeRoutes.RemoveAssumedReportController.onPageLoad(operatorId, caseId).url)
+    }
 
   // TODO: Add update link when pages exist
   // TODO: Consider status when deciding which links to show?
   def links(implicit messages: Messages): Seq[Link] = Seq(
-    Link(messages("site.delete"), removeRoutes.RemoveAssumedReportController.onPageLoad(operatorId, submissionId).url)
-  )
+    removeAssumedReportLink
+  ).flatten
 }
 
 object SubmissionSummary {

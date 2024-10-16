@@ -37,14 +37,14 @@ class AssumedReportRemovedController @Inject()(override val messagesApi: Message
                                                clock: Clock)
   extends FrontendBaseController with I18nSupport with AnswerExtractor {
 
-  def onPageLoad(operatorId: String, submissionId: String): Action[AnyContent] = (identify andThen getData(operatorId) andThen requireData) {
+  def onPageLoad(operatorId: String, caseId: String): Action[AnyContent] = (identify andThen getData(operatorId) andThen requireData) {
     implicit request =>
       getAnswer(AssumedReportSummariesQuery) { summaries =>
 
-        summaries.find(_.submissionId == submissionId).map { summary =>
+        summaries.find(_.submissionCaseId.contains(caseId)).map { summary =>
           val summaryList = AssumedReportRemovedSummaryList.list(summary, clock.instant())
 
-          Ok(view(summaryList, operatorId, submissionId))
+          Ok(view(summaryList, operatorId, caseId))
         }.getOrElse(NotFound)
       }
   }

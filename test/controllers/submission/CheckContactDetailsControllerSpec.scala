@@ -272,7 +272,10 @@ class CheckContactDetailsControllerSpec extends SpecBase with SummaryListFluency
         when(mockSubmissionConnector.start(any(), any(), any())(using any())).thenReturn(Future.failed(new RuntimeException()))
 
         running(application) {
-          val request = FakeRequest(routes.CheckContactDetailsController.onPageLoad(operatorId))
+          val request =
+            FakeRequest(routes.CheckContactDetailsController.onSubmit(operatorId))
+              .withFormUrlEncodedBody("value" -> "true")
+
           route(application, request).value.failed.futureValue
         }
       }

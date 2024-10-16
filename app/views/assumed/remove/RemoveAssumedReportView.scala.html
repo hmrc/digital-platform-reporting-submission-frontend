@@ -27,11 +27,11 @@
         govukSummaryList: GovukSummaryList
 )
 
-@(form: Form[_], summaryList: SummaryList, operatorId: String, submissionId: String)(implicit request: Request[_], messages: Messages)
+@(form: Form[_], summaryList: SummaryList, operatorId: String, caseId: String)(implicit request: Request[_], messages: Messages)
 
 @layout(pageTitle = title(form, messages("removeAssumedReport.title"))) {
 
-    @formHelper(action = routes.RemoveAssumedReportController.onSubmit(operatorId, submissionId), Symbol("autoComplete") -> "off") {
+    @formHelper(action = routes.RemoveAssumedReportController.onSubmit(operatorId, caseId), Symbol("autoComplete") -> "off") {
 
         @if(form.errors.nonEmpty) {
             @govukErrorSummary(ErrorSummaryViewModel(form))

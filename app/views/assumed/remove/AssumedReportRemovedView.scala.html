@@ -22,7 +22,7 @@
         govukSummaryList: GovukSummaryList
 )
 
-@(summaryList: SummaryList, operatorId: String, submissionId: String)(implicit request: Request[_], messages: Messages)
+@(summaryList: SummaryList, operatorId: String, caseId: String)(implicit request: Request[_], messages: Messages)
 
 @layout(
     pageTitle = titleNoForm(messages("assumedReportRemoved.title")),
