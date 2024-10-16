@@ -1,1 +1,1 @@
-GET        /view                            controllers.assumed.ViewAssumedReportsController.onPageLoad()
+GET     /view               controllers.assumed.ViewAssumedReportsController.onPageLoad()

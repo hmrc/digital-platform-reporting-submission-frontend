@@ -65,8 +65,18 @@
                             <td class="govuk-table__cell">@submission.reportingPeriod</td>
                             <td class="govuk-table__cell">@submission.assumingReporterName</td>
                             <td class="govuk-table__cell">
-                                @submission.link.map { link =>
-                                    <a href="@link.href" class="govuk-link">@link.text</a>
+                                @if(submission.links.size > 1) {
+                                    <ul class="govuk-summary-list__actions-list">
+                                        @submission.links.map { link =>
+                                            <li class="govuk-summary-list__actions-list-item">
+                                                <a href="@link.href" class="govuk-link">@link.text</a>
+                                            </li>
+                                        }
+                                    </ul>
+                                } else {
+                                    @submission.links.map { link =>
+                                        <a href="@link.href" class="govuk-link">@link.text</a>
+                                    }
                                 }
                             </td>
                         </tr>

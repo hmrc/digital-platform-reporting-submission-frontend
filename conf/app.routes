@@ -19,5 +19,7 @@ GET         /submission/unauthorised                                controllers.
 
 ->          /submission/hmrc-frontend                               hmrcfrontend.Routes
 ->          /submission                                             submissions.Routes
+
 ->          /assumed-reporting                                      assumed.Routes
 ->          /assumed-reporting                                      assumedCreate.Routes
+->          /assumed-reporting                                      assumedRemove.Routes
