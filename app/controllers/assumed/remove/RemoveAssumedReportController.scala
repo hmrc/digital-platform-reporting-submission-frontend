@@ -41,31 +41,31 @@ class RemoveAssumedReportController @Inject()(override val messagesApi: Messages
 
   private val form = formProvider()
 
-  def onPageLoad(operatorId: String, submissionId: String): Action[AnyContent] = (identify andThen getData(operatorId) andThen requireData) {
+  def onPageLoad(operatorId: String, caseId: String): Action[AnyContent] = (identify andThen getData(operatorId) andThen requireData) {
     implicit request =>
       getAnswer(AssumedReportSummariesQuery) { summaries =>
-        summaries.find(_.submissionId == submissionId).map { summary =>
+        summaries.find(_.submissionCaseId.contains(caseId)).map { summary =>
           val summaryList = AssumedReportSummaryList.list(summary)
 
-          Ok(view(form, summaryList, operatorId, submissionId))
+          Ok(view(form, summaryList, operatorId, caseId))
         }.getOrElse(NotFound)
       }
   }
 
-  def onSubmit(operatorId: String, submissionId: String): Action[AnyContent] = (identify andThen getData(operatorId) andThen requireData).async {
+  def onSubmit(operatorId: String, caseId: String): Action[AnyContent] = (identify andThen getData(operatorId) andThen requireData).async {
     implicit request =>
       getAnswerAsync(AssumedReportSummariesQuery) { summaries =>
-        summaries.find(_.submissionId == submissionId).map { summary =>
+        summaries.find(_.submissionCaseId.contains(caseId)).map { summary =>
           
           form.bindFromRequest().fold(
             formWithErrors => {
               val summaryList = AssumedReportSummaryList.list(summary)
-              Future.successful(BadRequest(view(formWithErrors, summaryList, operatorId, submissionId)))
+              Future.successful(BadRequest(view(formWithErrors, summaryList, operatorId, caseId)))
             },
             answer => 
               if (answer) {
                 // TODO: Actually delete the submission
-                Future.successful(Redirect(routes.AssumedReportRemovedController.onPageLoad(operatorId, submissionId)))
+                Future.successful(Redirect(routes.AssumedReportRemovedController.onPageLoad(operatorId, caseId)))
               } else {
                 Future.successful(Redirect(assumedRoutes.ViewAssumedReportsController.onPageLoad()))
               }

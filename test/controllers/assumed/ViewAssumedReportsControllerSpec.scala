@@ -61,7 +61,8 @@ class ViewAssumedReportsControllerSpec extends SpecBase with MockitoSugar with B
         reportingPeriod = "2024",
         submissionDateTime = now,
         submissionStatus = SubmissionStatus.Success,
-        assumingReporterName = Some("name")
+        assumingReporterName = Some("name"),
+        submissionCaseId = Some("caseId1")
       )
       val submissionSummary2 = SubmissionSummary(
         submissionId = "submissionId2",
@@ -71,7 +72,8 @@ class ViewAssumedReportsControllerSpec extends SpecBase with MockitoSugar with B
         reportingPeriod = "2024",
         submissionDateTime = now,
         submissionStatus = SubmissionStatus.Success,
-        assumingReporterName = Some("name")
+        assumingReporterName = Some("name"),
+        submissionCaseId = Some("caseId1")
       )
       val submissionSummary3 = SubmissionSummary(
         submissionId = "submissionId3",
@@ -81,7 +83,8 @@ class ViewAssumedReportsControllerSpec extends SpecBase with MockitoSugar with B
         reportingPeriod = "2024",
         submissionDateTime = now,
         submissionStatus = SubmissionStatus.Success,
-        assumingReporterName = Some("name")
+        assumingReporterName = Some("name"),
+        submissionCaseId = None
       )
       val summary = SubmissionsSummary(Seq(submissionSummary1, submissionSummary2), Seq(submissionSummary3))
 
