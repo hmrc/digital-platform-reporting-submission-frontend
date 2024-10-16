@@ -28,5 +28,5 @@ case object AssumingOperatorNamePage extends AssumedReportingQuestionPage[String
   override def toString: String = "assumingOperatorName"
 
   override protected def nextPageNormalMode(answers: UserAnswers): Call =
-    routes.HasTaxIdentifierController.onPageLoad(NormalMode, answers.operatorId)
+    routes.HasUkTaxIdentifierController.onPageLoad(NormalMode, answers.operatorId)
 }

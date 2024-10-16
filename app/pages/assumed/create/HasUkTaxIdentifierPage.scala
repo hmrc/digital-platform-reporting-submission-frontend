@@ -24,11 +24,11 @@ import play.api.mvc.Call
 
 import scala.util.Try
 
-case object HasTaxIdentifierPage extends AssumedReportingQuestionPage[Boolean] {
+case object HasUkTaxIdentifierPage extends AssumedReportingQuestionPage[Boolean] {
 
   override def path: JsPath = JsPath \ toString
 
-  override def toString: String = "hasTaxIdentifier"
+  override def toString: String = "hasUkTaxIdentifier"
 
   override protected def nextPageNormalMode(answers: UserAnswers): Call =
     answers.get(this).map {

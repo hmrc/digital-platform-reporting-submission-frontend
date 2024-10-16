@@ -26,22 +26,22 @@
 
 @(form: Form[_], mode: Mode, operatorId: String, assumingOperatorName: String)(implicit request: Request[_], messages: Messages)
 
-@layout(pageTitle = title(form, messages("hasTaxIdentifier.title"))) {
+@layout(pageTitle = title(form, messages("hasUkTaxIdentifier.title"))) {
 
-    @formHelper(action = routes.HasTaxIdentifierController.onSubmit(mode, operatorId), Symbol("autoComplete") -> "off") {
+    @formHelper(action = routes.HasUkTaxIdentifierController.onSubmit(mode, operatorId), Symbol("autoComplete") -> "off") {
 
         @if(form.errors.nonEmpty) {
             @govukErrorSummary(ErrorSummaryViewModel(form))
         }
 
-        <h1 class="govuk-heading-xl">@messages("hasTaxIdentifier.heading", assumingOperatorName)</h1>
+        <h1 class="govuk-heading-xl">@messages("hasUkTaxIdentifier.heading", assumingOperatorName)</h1>
 
-        <p class="govuk-body">@messages("hasTaxIdentifier.p1")</p>
+        <p class="govuk-body">@messages("hasUkTaxIdentifier.p1")</p>
 
         @govukRadios(
             RadiosViewModel.yesNo(
                 field = form("value"),
-                legend = LegendViewModel(messages("hasTaxIdentifier.heading", assumingOperatorName)).visuallyHidden()
+                legend = LegendViewModel(messages("hasUkTaxIdentifier.heading", assumingOperatorName)).visuallyHidden()
             )
         )
 

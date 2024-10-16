@@ -88,7 +88,7 @@ class UserAnswersServiceSpec
       val answers = UserAnswers("id", "operatorId")
         .set(AssumingOperatorNamePage, "assumingOperator").success.value
         .set(ReportingPeriodPage, 2024).success.value
-        .set(HasTaxIdentifierPage, true).success.value
+        .set(HasUkTaxIdentifierPage, true).success.value
         .set(TaxResidentInUkPage, true).success.value
         .set(UkTaxIdentifiersPage, UkTaxIdentifiers.values.toSet).success.value
         .set(UtrPage, "tin1").success.value
@@ -126,7 +126,7 @@ class UserAnswersServiceSpec
       val answers = UserAnswers("id", "operatorId")
         .set(AssumingOperatorNamePage, "assumingOperator").success.value
         .set(ReportingPeriodPage, 2024).success.value
-        .set(HasTaxIdentifierPage, false).success.value
+        .set(HasUkTaxIdentifierPage, false).success.value
         .set(TaxResidentInUkPage, true).success.value // TODO currently this won't be answered in the journey
         .set(RegisteredInUkPage, true).success.value
         .set(UkAddressPage, UkAddress(line1 = "line1", line2 = None, town = "city", county = None, postCode = "postcode", country = Country("GB", "United Kingdom"))).success.value
@@ -164,7 +164,7 @@ class UserAnswersServiceSpec
       val answers = UserAnswers("id", "operatorId")
         .set(AssumingOperatorNamePage, "assumingOperator").success.value
         .set(ReportingPeriodPage, 2024).success.value
-        .set(HasTaxIdentifierPage, true).success.value
+        .set(HasUkTaxIdentifierPage, true).success.value
         .set(TaxResidentInUkPage, false).success.value
         .set(TaxResidencyCountryPage, Country("US", "United States")).success.value
         .set(InternationalTaxIdentifierPage, "tin").success.value
@@ -198,7 +198,7 @@ class UserAnswersServiceSpec
       val answers = UserAnswers("id", "operatorId")
         .set(AssumingOperatorNamePage, "assumingOperator").success.value
         .set(ReportingPeriodPage, 2024).success.value
-        .set(HasTaxIdentifierPage, false).success.value
+        .set(HasUkTaxIdentifierPage, false).success.value
         .set(TaxResidentInUkPage, false).success.value // TODO currently this won't be answered in the journey
         .set(TaxResidencyCountryPage, Country("US", "United States")).success.value
         .set(RegisteredInUkPage, false).success.value

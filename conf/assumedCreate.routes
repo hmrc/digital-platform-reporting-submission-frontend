@@ -16,10 +16,10 @@ POST       /:operatorId/empref                                  controllers.assu
 GET        /:operatorId/change-empref                           controllers.assumed.create.EmprefController.onPageLoad(mode: Mode = CheckMode, operatorId: String)
 POST       /:operatorId/change-empref                           controllers.assumed.create.EmprefController.onSubmit(mode: Mode = CheckMode, operatorId: String)
 
-GET        /:operatorId/have-tin                                controllers.assumed.create.HasTaxIdentifierController.onPageLoad(mode: Mode = NormalMode, operatorId: String)
-POST       /:operatorId/have-tin                                controllers.assumed.create.HasTaxIdentifierController.onSubmit(mode: Mode = NormalMode, operatorId: String)
-GET        /:operatorId/change-have-tin                         controllers.assumed.create.HasTaxIdentifierController.onPageLoad(mode: Mode = CheckMode, operatorId: String)
-POST       /:operatorId/change-have-tin                         controllers.assumed.create.HasTaxIdentifierController.onSubmit(mode: Mode = CheckMode, operatorId: String)
+GET        /:operatorId/have-uk-tin                                controllers.assumed.create.HasUkTaxIdentifierController.onPageLoad(mode: Mode = NormalMode, operatorId: String)
+POST       /:operatorId/have-uk-tin                                controllers.assumed.create.HasUkTaxIdentifierController.onSubmit(mode: Mode = NormalMode, operatorId: String)
+GET        /:operatorId/change-have-uk-tin                         controllers.assumed.create.HasUkTaxIdentifierController.onPageLoad(mode: Mode = CheckMode, operatorId: String)
+POST       /:operatorId/change-have-uk-tin                         controllers.assumed.create.HasUkTaxIdentifierController.onSubmit(mode: Mode = CheckMode, operatorId: String)
 
 GET        /:operatorId/international-address                   controllers.assumed.create.InternationalAddressController.onPageLoad(mode: Mode = NormalMode, operatorId: String)
 POST       /:operatorId/international-address                   controllers.assumed.create.InternationalAddressController.onSubmit(mode: Mode = NormalMode, operatorId: String)

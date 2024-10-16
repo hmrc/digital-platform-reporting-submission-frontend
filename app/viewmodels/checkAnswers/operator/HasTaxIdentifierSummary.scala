@@ -29,7 +29,7 @@ object HasTaxIdentifierSummary {
     val value = if (operator.tinDetails.nonEmpty) "site.yes" else "site.no"
 
     Some(SummaryListRowViewModel(
-      key = messages("hasTaxIdentifier.checkYourAnswersLabel", operator.operatorName),
+      key = messages("hasUkTaxIdentifier.checkYourAnswersLabel", operator.operatorName),
       value = ValueViewModel(value),
       actions = Nil
     ))

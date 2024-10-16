@@ -18,28 +18,28 @@ package viewmodels.checkAnswers.assumed.create
 
 import controllers.assumed.create.routes
 import models.{CheckMode, UserAnswers}
-import pages.assumed.create.{AssumingOperatorNamePage, HasTaxIdentifierPage}
+import pages.assumed.create.{AssumingOperatorNamePage, HasUkTaxIdentifierPage}
 import play.api.i18n.Messages
 import uk.gov.hmrc.govukfrontend.views.viewmodels.summarylist.SummaryListRow
 import viewmodels.govuk.summarylist.*
 import viewmodels.implicits.*
 
-object HasTaxIdentifierSummary  {
+object HasUkTaxIdentifierSummary  {
 
   def row(answers: UserAnswers)(implicit messages: Messages): Option[SummaryListRow] =
     for {
-      answer <- answers.get(HasTaxIdentifierPage)
+      answer <- answers.get(HasUkTaxIdentifierPage)
       assumingOperatorName <- answers.get(AssumingOperatorNamePage)
     } yield {
 
       val value = if (answer) "site.yes" else "site.no"
 
       SummaryListRowViewModel(
-        key     = messages("hasTaxIdentifier.checkYourAnswersLabel", assumingOperatorName),
+        key     = messages("hasUkTaxIdentifier.checkYourAnswersLabel", assumingOperatorName),
         value   = ValueViewModel(value),
         actions = Seq(
-          ActionItemViewModel("site.change", routes.HasTaxIdentifierController.onPageLoad(CheckMode, answers.operatorId).url)
-            .withVisuallyHiddenText(messages("hasTaxIdentifier.change.hidden", assumingOperatorName))
+          ActionItemViewModel("site.change", routes.HasUkTaxIdentifierController.onPageLoad(CheckMode, answers.operatorId).url)
+            .withVisuallyHiddenText(messages("hasUkTaxIdentifier.change.hidden", assumingOperatorName))
         )
       )
     }

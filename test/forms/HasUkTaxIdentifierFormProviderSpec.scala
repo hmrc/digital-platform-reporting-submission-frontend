@@ -19,13 +19,13 @@ package forms
 import forms.behaviours.BooleanFieldBehaviours
 import play.api.data.FormError
 
-class HasTaxIdentifierFormProviderSpec extends BooleanFieldBehaviours {
+class HasUkTaxIdentifierFormProviderSpec extends BooleanFieldBehaviours {
 
-  val requiredKey = "hasTaxIdentifier.error.required"
+  val requiredKey = "hasUkTaxIdentifier.error.required"
   val invalidKey = "error.boolean"
 
   val assumingOperatorName = "name"
-  val form = new HasTaxIdentifierFormProvider()(assumingOperatorName)
+  val form = new HasUkTaxIdentifierFormProvider()(assumingOperatorName)
 
   ".value" - {
 

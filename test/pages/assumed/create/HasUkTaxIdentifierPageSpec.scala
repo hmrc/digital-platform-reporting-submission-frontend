@@ -22,7 +22,7 @@ import org.scalatest.{OptionValues, TryValues}
 import org.scalatest.freespec.AnyFreeSpec
 import org.scalatest.matchers.must.Matchers
 
-class HasTaxIdentifierPageSpec extends AnyFreeSpec with Matchers with TryValues with OptionValues {
+class HasUkTaxIdentifierPageSpec extends AnyFreeSpec with Matchers with TryValues with OptionValues {
 
   private val emptyAnswers = UserAnswers("userId", "operatorId")
   
@@ -32,14 +32,14 @@ class HasTaxIdentifierPageSpec extends AnyFreeSpec with Matchers with TryValues 
 
       "must go to Tax Resident in UK when the answer is yes" in {
 
-        val answers = emptyAnswers.set(HasTaxIdentifierPage, true).success.value
-        HasTaxIdentifierPage.nextPage(NormalMode, answers) mustEqual routes.TaxResidentInUkController.onPageLoad(NormalMode, "operatorId")
+        val answers = emptyAnswers.set(HasUkTaxIdentifierPage, true).success.value
+        HasUkTaxIdentifierPage.nextPage(NormalMode, answers) mustEqual routes.TaxResidentInUkController.onPageLoad(NormalMode, "operatorId")
       }
 
       "must go to Registered in UK when the answer is no" in {
 
-        val answers = emptyAnswers.set(HasTaxIdentifierPage, false).success.value
-        HasTaxIdentifierPage.nextPage(NormalMode, answers) mustEqual routes.RegisteredInUkController.onPageLoad(NormalMode, "operatorId")
+        val answers = emptyAnswers.set(HasUkTaxIdentifierPage, false).success.value
+        HasUkTaxIdentifierPage.nextPage(NormalMode, answers) mustEqual routes.RegisteredInUkController.onPageLoad(NormalMode, "operatorId")
       }
     }
 
@@ -51,16 +51,16 @@ class HasTaxIdentifierPageSpec extends AnyFreeSpec with Matchers with TryValues 
 
           val answers =
             emptyAnswers
-              .set(HasTaxIdentifierPage, true).success.value
+              .set(HasUkTaxIdentifierPage, true).success.value
               .set(TaxResidentInUkPage, true).success.value
 
-          HasTaxIdentifierPage.nextPage(CheckMode, answers) mustEqual routes.CheckYourAnswersController.onPageLoad("operatorId")
+          HasUkTaxIdentifierPage.nextPage(CheckMode, answers) mustEqual routes.CheckYourAnswersController.onPageLoad("operatorId")
         }
 
         "when the answer is no" in {
 
-          val answers = emptyAnswers.set(HasTaxIdentifierPage, false).success.value
-          HasTaxIdentifierPage.nextPage(CheckMode, answers) mustEqual routes.CheckYourAnswersController.onPageLoad("operatorId")
+          val answers = emptyAnswers.set(HasUkTaxIdentifierPage, false).success.value
+          HasUkTaxIdentifierPage.nextPage(CheckMode, answers) mustEqual routes.CheckYourAnswersController.onPageLoad("operatorId")
         }
       }
 
@@ -68,8 +68,8 @@ class HasTaxIdentifierPageSpec extends AnyFreeSpec with Matchers with TryValues 
 
         "when the answer is yes and Tax Resident in UK has not been answered" in {
 
-          val answers = emptyAnswers.set(HasTaxIdentifierPage, true).success.value
-          HasTaxIdentifierPage.nextPage(CheckMode, answers) mustEqual routes.TaxResidentInUkController.onPageLoad(CheckMode, "operatorId")
+          val answers = emptyAnswers.set(HasUkTaxIdentifierPage, true).success.value
+          HasUkTaxIdentifierPage.nextPage(CheckMode, answers) mustEqual routes.TaxResidentInUkController.onPageLoad(CheckMode, "operatorId")
         }
       }
     }
@@ -91,7 +91,7 @@ class HasTaxIdentifierPageSpec extends AnyFreeSpec with Matchers with TryValues 
           .set(TaxResidencyCountryPage, Country.internationalCountries.head).success.value
           .set(InternationalTaxIdentifierPage, "foo").success.value
 
-      val result = answers.set(HasTaxIdentifierPage, false).success.value
+      val result = answers.set(HasUkTaxIdentifierPage, false).success.value
 
       result.get(TaxResidentInUkPage)            must not be defined
       result.get(UkTaxIdentifiersPage)           must not be defined
@@ -118,7 +118,7 @@ class HasTaxIdentifierPageSpec extends AnyFreeSpec with Matchers with TryValues 
           .set(TaxResidencyCountryPage, Country.internationalCountries.head).success.value
           .set(InternationalTaxIdentifierPage, "foo").success.value
 
-      val result = answers.set(HasTaxIdentifierPage, true).success.value
+      val result = answers.set(HasUkTaxIdentifierPage, true).success.value
 
       result.get(TaxResidentInUkPage)            mustBe defined
       result.get(UkTaxIdentifiersPage)           mustBe defined
