@@ -30,23 +30,23 @@ class TaxResidencyCountryPageSpec extends AnyFreeSpec with Matchers with TryValu
 
     "in Normal Mode" - {
 
-      "must go to International Tax Identifier" in {
+      "must go to Has International Tax Identifier" in {
 
-        TaxResidencyCountryPage.nextPage(NormalMode, emptyAnswers) mustEqual routes.InternationalTaxIdentifierController.onPageLoad(NormalMode, "operatorId")
+        TaxResidencyCountryPage.nextPage(NormalMode, emptyAnswers) mustEqual routes.HasInternationalTaxIdentifierController.onPageLoad(NormalMode, "operatorId")
       }
     }
 
     "in Check Mode" - {
 
-      "must go to Check Answers when International Tax identifier has been answered" in {
+      "must go to Check Answers when Has International Tax identifier has been answered" in {
 
-        val answers = emptyAnswers.set(InternationalTaxIdentifierPage, "id").success.value
+        val answers = emptyAnswers.set(HasInternationalTaxIdentifierPage, false).success.value
         TaxResidencyCountryPage.nextPage(CheckMode, answers) mustEqual routes.CheckYourAnswersController.onPageLoad("operatorId")
       }
 
-      "must go to International Tax identifier when it has not been answered" in {
+      "must go to Has International Tax identifier when it has not been answered" in {
 
-        TaxResidencyCountryPage.nextPage(CheckMode, emptyAnswers) mustEqual routes.InternationalTaxIdentifierController.onPageLoad(CheckMode, "operatorId")
+        TaxResidencyCountryPage.nextPage(CheckMode, emptyAnswers) mustEqual routes.HasInternationalTaxIdentifierController.onPageLoad(CheckMode, "operatorId")
       }
     }
   }

@@ -50,8 +50,8 @@ class CheckYourAnswersController @Inject()(
       val list = SummaryListViewModel(
         rows = Seq(
           AssumingOperatorNameSummary.row(request.userAnswers),
-          HasUkTaxIdentifierSummary.row(request.userAnswers),
           TaxResidentInUkSummary.row(request.userAnswers),
+          HasUkTaxIdentifierSummary.row(request.userAnswers),
           UkTaxIdentifiersSummary.row(request.userAnswers),
           UtrSummary.row(request.userAnswers),
           CrnSummary.row(request.userAnswers),
@@ -59,6 +59,7 @@ class CheckYourAnswersController @Inject()(
           EmprefSummary.row(request.userAnswers),
           ChrnSummary.row(request.userAnswers),
           TaxResidencyCountrySummary.row(request.userAnswers),
+          HasInternationalTaxIdentifierSummary.row(request.userAnswers),
           InternationalTaxIdentifierSummary.row(request.userAnswers),
           RegisteredInUkSummary.row(request.userAnswers),
           UkAddressSummary.row(request.userAnswers),

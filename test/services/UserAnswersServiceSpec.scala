@@ -88,8 +88,8 @@ class UserAnswersServiceSpec
       val answers = UserAnswers("id", "operatorId")
         .set(AssumingOperatorNamePage, "assumingOperator").success.value
         .set(ReportingPeriodPage, 2024).success.value
-        .set(HasUkTaxIdentifierPage, true).success.value
         .set(TaxResidentInUkPage, true).success.value
+        .set(HasUkTaxIdentifierPage, true).success.value
         .set(UkTaxIdentifiersPage, UkTaxIdentifiers.values.toSet).success.value
         .set(UtrPage, "tin1").success.value
         .set(CrnPage, "tin2").success.value
@@ -126,8 +126,8 @@ class UserAnswersServiceSpec
       val answers = UserAnswers("id", "operatorId")
         .set(AssumingOperatorNamePage, "assumingOperator").success.value
         .set(ReportingPeriodPage, 2024).success.value
+        .set(TaxResidentInUkPage, true).success.value
         .set(HasUkTaxIdentifierPage, false).success.value
-        .set(TaxResidentInUkPage, true).success.value // TODO currently this won't be answered in the journey
         .set(RegisteredInUkPage, true).success.value
         .set(UkAddressPage, UkAddress(line1 = "line1", line2 = None, town = "city", county = None, postCode = "postcode", country = Country("GB", "United Kingdom"))).success.value
 
@@ -164,9 +164,9 @@ class UserAnswersServiceSpec
       val answers = UserAnswers("id", "operatorId")
         .set(AssumingOperatorNamePage, "assumingOperator").success.value
         .set(ReportingPeriodPage, 2024).success.value
-        .set(HasUkTaxIdentifierPage, true).success.value
         .set(TaxResidentInUkPage, false).success.value
         .set(TaxResidencyCountryPage, Country("US", "United States")).success.value
+        .set(HasInternationalTaxIdentifierPage, true).success.value
         .set(InternationalTaxIdentifierPage, "tin").success.value
         .set(RegisteredInUkPage, false).success.value
         .set(InternationalAddressPage, InternationalAddress(line1 = "line1", line2 = Some("line2"), city = "city", region = Some("region"), postal = "postcode", country = Country("US", "United States"))).success.value
@@ -198,9 +198,9 @@ class UserAnswersServiceSpec
       val answers = UserAnswers("id", "operatorId")
         .set(AssumingOperatorNamePage, "assumingOperator").success.value
         .set(ReportingPeriodPage, 2024).success.value
-        .set(HasUkTaxIdentifierPage, false).success.value
-        .set(TaxResidentInUkPage, false).success.value // TODO currently this won't be answered in the journey
+        .set(TaxResidentInUkPage, false).success.value
         .set(TaxResidencyCountryPage, Country("US", "United States")).success.value
+        .set(HasInternationalTaxIdentifierPage, false).success.value
         .set(RegisteredInUkPage, false).success.value
         .set(InternationalAddressPage, InternationalAddress(line1 = "line1", line2 = None, city = "city", region = None, postal = "postcode", country = Country("US", "United States"))).success.value
 

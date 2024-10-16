@@ -66,15 +66,16 @@ class UserAnswersService @Inject() () {
     }
 
   private def getTinDetails(answers: UserAnswers): EitherNec[Query, Seq[TinDetails]] =
-    answers.getEither(HasUkTaxIdentifierPage).flatMap {
-      case false =>
-        Seq.empty.rightNec
+    answers.getEither(TaxResidentInUkPage).flatMap {
       case true =>
-        answers.getEither(TaxResidentInUkPage).flatMap {
-          case true =>
-            getUkTinDetails(answers)
-          case false =>
-            getInternationalTinDetails(answers)
+        answers.getEither(HasUkTaxIdentifierPage).flatMap {
+          case true  => getUkTinDetails(answers)
+          case false => Nil.rightNec
+        }
+      case false =>
+        answers.getEither(HasInternationalTaxIdentifierPage).flatMap {
+          case true  => getInternationalTinDetails(answers)
+          case false => Nil.rightNec
         }
     }
 
