@@ -132,7 +132,7 @@ class CheckYourAnswersControllerSpec extends SpecBase with SummaryListFluency wi
 
         when(mockUserAnswersService.toAssumedReportingSubmissionRequest(any())).thenReturn(Right(assumedReportingSubmissionRequest))
         when(mockSubmissionConnector.submitAssumedReporting(any())(using any())).thenReturn(Future.successful(submission))
-        when(mockSessionRepository.clear(any(), any())).thenReturn(Future.successful(true))
+        when(mockSessionRepository.clear(any(), any(), any())).thenReturn(Future.successful(true))
 
         running(application) {
           val request = FakeRequest(routes.CheckYourAnswersController.onSubmit(operatorId))
@@ -144,7 +144,7 @@ class CheckYourAnswersControllerSpec extends SpecBase with SummaryListFluency wi
 
         verify(mockUserAnswersService).toAssumedReportingSubmissionRequest(eqTo(answers))
         verify(mockSubmissionConnector).submitAssumedReporting(eqTo(assumedReportingSubmissionRequest))(using any())
-        verify(mockSessionRepository).clear(answers.userId, answers.operatorId)
+        verify(mockSessionRepository).clear(answers.userId, answers.operatorId, answers.caseId)
       }
 
       "must fail if a request cannot be created from the user answers" in {
@@ -159,7 +159,7 @@ class CheckYourAnswersControllerSpec extends SpecBase with SummaryListFluency wi
 
         when(mockUserAnswersService.toAssumedReportingSubmissionRequest(any())).thenReturn(Left(NonEmptyChain.one(AssumingOperatorNamePage)))
         when(mockSubmissionConnector.submitAssumedReporting(any())(using any())).thenReturn(Future.successful(Done))
-        when(mockSessionRepository.clear(any(), any())).thenReturn(Future.successful(true))
+        when(mockSessionRepository.clear(any(), any(), any())).thenReturn(Future.successful(true))
 
         running(application) {
           val request = FakeRequest(routes.CheckYourAnswersController.onSubmit(operatorId))
@@ -167,7 +167,7 @@ class CheckYourAnswersControllerSpec extends SpecBase with SummaryListFluency wi
         }
 
         verify(mockSubmissionConnector, never()).submitAssumedReporting(any())(using any())
-        verify(mockSessionRepository, never()).clear(any())
+        verify(mockSessionRepository, never()).clear(any(), any(), any())
       }
     }
   }

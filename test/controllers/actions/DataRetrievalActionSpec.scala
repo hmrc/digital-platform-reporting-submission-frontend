@@ -29,7 +29,7 @@ import scala.concurrent.Future
 
 class DataRetrievalActionSpec extends SpecBase with MockitoSugar {
 
-  class Harness(operatorId: String, sessionRepository: SessionRepository) extends DataRetrievalAction(operatorId, sessionRepository) {
+  class Harness(operatorId: String, caseId: Option[String], sessionRepository: SessionRepository) extends DataRetrievalAction(operatorId, caseId, sessionRepository) {
     def callTransform[A](request: IdentifierRequest[A]): Future[OptionalDataRequest[A]] = transform(request)
   }
 
@@ -40,8 +40,8 @@ class DataRetrievalActionSpec extends SpecBase with MockitoSugar {
       "must set userAnswers to 'None' in the request" in {
 
         val sessionRepository = mock[SessionRepository]
-        when(sessionRepository.get("userId", "operatorId")).thenReturn(Future.successful(None))
-        val action = new Harness("operatorId", sessionRepository)
+        when(sessionRepository.get("userId", "operatorId", None)).thenReturn(Future.successful(None))
+        val action = new Harness("operatorId", None, sessionRepository)
 
         val result = action.callTransform(IdentifierRequest(FakeRequest(), "userId", "operatorId")).futureValue
 
@@ -54,8 +54,8 @@ class DataRetrievalActionSpec extends SpecBase with MockitoSugar {
       "must build a userAnswers object and add it to the request" in {
 
         val sessionRepository = mock[SessionRepository]
-        when(sessionRepository.get("userId", "operatorId")).thenReturn(Future.successful(Some(UserAnswers("userId", "operatorId"))))
-        val action = new Harness("operatorId", sessionRepository)
+        when(sessionRepository.get("userId", "operatorId", None)).thenReturn(Future.successful(Some(UserAnswers("userId", "operatorId"))))
+        val action = new Harness("operatorId", None, sessionRepository)
 
         val result = action.callTransform(IdentifierRequest(FakeRequest(), "userId", "operatorId")).futureValue
 
