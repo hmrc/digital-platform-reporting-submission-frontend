@@ -23,12 +23,12 @@ import repositories.SessionRepository
 
 import scala.concurrent.{ExecutionContext, Future}
 
-class DataRetrievalAction @Inject()(operatorId: String, repository: SessionRepository)
+class DataRetrievalAction @Inject()(operatorId: String, caseId: Option[String], repository: SessionRepository)
                                    (implicit val executionContext: ExecutionContext) extends ActionTransformer[IdentifierRequest, OptionalDataRequest] {
 
   override protected def transform[A](request: IdentifierRequest[A]): Future[OptionalDataRequest[A]] = {
 
-    repository.get(request.userId, operatorId).map {
+    repository.get(request.userId, operatorId, caseId).map {
       OptionalDataRequest(request.request, request.userId, _, request.dprsId)
     }
   }
@@ -36,7 +36,6 @@ class DataRetrievalAction @Inject()(operatorId: String, repository: SessionRepos
 
 class DataRetrievalActionProvider @Inject()(repository: SessionRepository)(implicit ec: ExecutionContext) {
 
-  def apply(operatorId: String): DataRetrievalAction =
-    new DataRetrievalAction(operatorId, repository)
+  def apply(operatorId: String, caseId: Option[String] = None): DataRetrievalAction =
+    new DataRetrievalAction(operatorId, caseId, repository)
 }
-

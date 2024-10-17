@@ -25,7 +25,7 @@ import scala.concurrent.{ExecutionContext, Future}
 import scala.concurrent.ExecutionContext.Implicits.global
 
 class FakeDataRetrievalAction(dataToReturn: Option[UserAnswers])
-  extends DataRetrievalAction("operatorId", mock[SessionRepository]) {
+  extends DataRetrievalAction("operatorId", None, mock[SessionRepository]) {
 
   override protected def transform[A](request: IdentifierRequest[A]): Future[OptionalDataRequest[A]] =
     Future(OptionalDataRequest(request.request, request.userId, dataToReturn, request.dprsId))(ExecutionContext.Implicits.global)
@@ -34,6 +34,6 @@ class FakeDataRetrievalAction(dataToReturn: Option[UserAnswers])
 class FakeDataRetrievalActionProvider(dataToReturn: Option[UserAnswers])
   extends DataRetrievalActionProvider(mock[SessionRepository]) {
 
-  override def apply(operatorId: String): DataRetrievalAction =
+  override def apply(operatorId: String, caseId: Option[String]): DataRetrievalAction =
     new FakeDataRetrievalAction(dataToReturn)
 }

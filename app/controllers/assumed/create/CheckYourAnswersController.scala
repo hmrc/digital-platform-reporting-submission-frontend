@@ -81,7 +81,7 @@ class CheckYourAnswersController @Inject()(
         .flatMap { submissionRequest =>
           for {
             submission <- submissionConnector.submitAssumedReporting(submissionRequest)
-            _          <- sessionRepository.clear(request.userId, operatorId)
+            _          <- sessionRepository.clear(request.userId, operatorId, None)
           } yield Redirect(routes.SubmissionConfirmationController.onPageLoad(operatorId, submission._id))
         }
   }
