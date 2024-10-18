@@ -23,3 +23,4 @@ GET         /submission/unauthorised                                controllers.
 ->          /assumed-reporting                                      assumed.Routes
 ->          /assumed-reporting                                      assumedCreate.Routes
 ->          /assumed-reporting                                      assumedRemove.Routes
+->          /assumed-reporting                                      assumedUpdate.Routes
