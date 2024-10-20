@@ -17,7 +17,7 @@
 package pages.assumed.update
 
 import config.FrontendAppConfig
-import controllers.assumed.create.routes
+import controllers.assumed.update.routes
 import controllers.routes as baseRoutes
 import models.UserAnswers
 import play.api.libs.json.JsPath
@@ -28,5 +28,10 @@ import javax.inject.Inject
 class CheckReportingNotificationsPage @Inject()(appConfig: FrontendAppConfig) extends AssumedReportingUpdateQuestionPage[Boolean] {
 
   override def path: JsPath = JsPath \ "checkPlatformOperator"
-  
+
+  override def nextPage(caseId: String, answers: UserAnswers): Call =
+    answers.get(this).map {
+      case true  => routes.CheckContactDetailsController.onPageLoad(answers.operatorId, caseId)
+      case false => Call("GET", appConfig.addReportingNotificationUrl(answers.operatorId))
+    }.getOrElse(baseRoutes.JourneyRecoveryController.onPageLoad())
 }

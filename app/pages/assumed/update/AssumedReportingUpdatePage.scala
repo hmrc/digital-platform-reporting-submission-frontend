@@ -16,12 +16,12 @@
 
 package pages.assumed.update
 
-import controllers.assumed.routes
+import controllers.assumed.update.routes
 import models.UserAnswers
 import play.api.mvc.Call
 
 trait AssumedReportingUpdatePage {
 
   def nextPage(caseId: String, answers: UserAnswers): Call =
-    routes.ViewAssumedReportsController.onPageLoad() // TODO: Remove implementation when navigation is implemented
+    routes.CheckYourAnswersController.onPageLoad(answers.operatorId, caseId)
 }

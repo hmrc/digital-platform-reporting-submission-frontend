@@ -16,7 +16,7 @@
 
 package pages.assumed.update
 
-import controllers.assumed.create.routes
+import controllers.assumed.update.routes
 import models.{CheckMode, Country, NormalMode, UserAnswers}
 import play.api.libs.json.JsPath
 import play.api.mvc.Call

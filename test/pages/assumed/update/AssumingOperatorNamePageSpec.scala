@@ -16,22 +16,22 @@
 
 package pages.assumed.update
 
-import config.FrontendAppConfig
 import controllers.assumed.update.routes
-import controllers.routes as baseRoutes
 import models.UserAnswers
-import play.api.libs.json.JsPath
-import play.api.mvc.Call
+import org.scalatest.freespec.AnyFreeSpec
+import org.scalatest.matchers.must.Matchers
 
-import javax.inject.Inject
+class AssumingOperatorNamePageSpec extends AnyFreeSpec with Matchers {
 
-class CheckPlatformOperatorPage @Inject()(appConfig: FrontendAppConfig) extends AssumedReportingUpdateQuestionPage[Boolean] {
-
-  override def path: JsPath = JsPath \ "checkPlatformOperator"
-
-  override def nextPage(caseId: String, answers: UserAnswers): Call =
-    answers.get(this).map {
-      case true  => routes.CheckReportingNotificationsController.onPageLoad(answers.operatorId, caseId)
-      case false => Call("GET", appConfig.updateOperatorUrl(answers.operatorId))
-    }.getOrElse(baseRoutes.JourneyRecoveryController.onPageLoad())
+  ".nextPage" - {
+    
+    val caseId = "caseId"
+    val operatorId = "operatorId"
+    val emptyAnswers = UserAnswers("id", operatorId, Some(caseId))
+    
+    "must go to Check Answers" in {
+      
+      AssumingOperatorNamePage.nextPage(caseId, emptyAnswers).mustEqual(routes.CheckYourAnswersController.onPageLoad(operatorId, caseId))
+    }
+  }
 }
