@@ -18,8 +18,8 @@ package viewmodels.checkAnswers.assumed.update
 
 import controllers.assumed.update.routes
 import models.{CheckMode, UserAnswers}
-import pages.assumed.update.ReportingPeriodPage
 import play.api.i18n.Messages
+import queries.ReportingPeriodQuery
 import uk.gov.hmrc.govukfrontend.views.viewmodels.summarylist.SummaryListRow
 import viewmodels.govuk.summarylist.*
 import viewmodels.implicits.*
@@ -27,7 +27,7 @@ import viewmodels.implicits.*
 object ReportingPeriodSummary  {
 
   def row(caseId: String, answers: UserAnswers)(implicit messages: Messages): Option[SummaryListRow] =
-    answers.get(ReportingPeriodPage).map {
+    answers.get(ReportingPeriodQuery).map {
       answer =>
 
         SummaryListRowViewModel(

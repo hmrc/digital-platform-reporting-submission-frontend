@@ -14,14 +14,11 @@
  * limitations under the License.
  */
 
-package pages.assumed.update
+package queries
 
-import controllers.assumed.update.routes
-import models.UserAnswers
 import play.api.libs.json.JsPath
-import play.api.mvc.Call
 
-case object ReportingPeriodPage extends AssumedReportingUpdateQuestionPage[Int] {
+case object ReportingPeriodQuery extends Gettable[Int] with Settable[Int] {
 
   override def path: JsPath = JsPath \ toString
 
