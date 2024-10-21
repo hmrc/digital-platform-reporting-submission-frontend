@@ -16,9 +16,9 @@
 
 package pages.assumed.update
 
-import controllers.assumed.create.routes
+import controllers.assumed.update.routes
 import controllers.routes as baseRoutes
-import models.{CheckMode, NormalMode, UserAnswers}
+import models.UserAnswers
 import play.api.libs.json.JsPath
 import play.api.mvc.Call
 
@@ -29,4 +29,23 @@ case object RegisteredInUkPage extends AssumedReportingUpdateQuestionPage[Boolea
   override def path: JsPath = JsPath \ toString
 
   override def toString: String = "registeredInUk"
+
+  override def nextPage(caseId: String, answers: UserAnswers): Call =
+    answers.get(this).map {
+      case true =>
+        answers.get(UkAddressPage)
+          .map(_ => routes.CheckYourAnswersController.onPageLoad(answers.operatorId, caseId))
+          .getOrElse(routes.UkAddressController.onPageLoad(answers.operatorId, caseId))
+
+      case false =>
+        answers.get(InternationalAddressPage)
+          .map(_ => routes.CheckYourAnswersController.onPageLoad(answers.operatorId, caseId))
+          .getOrElse(routes.InternationalAddressController.onPageLoad(answers.operatorId, caseId))
+    }.getOrElse(baseRoutes.JourneyRecoveryController.onPageLoad())
+
+  override def cleanup(value: Option[Boolean], userAnswers: UserAnswers): Try[UserAnswers] =
+    value.map {
+      case true  => userAnswers.remove(InternationalAddressPage)
+      case false => userAnswers.remove(UkAddressPage)
+    }.getOrElse(super.cleanup(value, userAnswers))
 }

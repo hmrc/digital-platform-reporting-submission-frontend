@@ -16,9 +16,9 @@
 
 package pages.assumed.update
 
-import controllers.assumed.create.routes
+import controllers.assumed.update.routes
 import controllers.routes as baseRoutes
-import models.{CheckMode, NormalMode, UserAnswers}
+import models.UserAnswers
 import play.api.libs.json.JsPath
 import play.api.mvc.Call
 
@@ -30,4 +30,35 @@ case object TaxResidentInUkPage extends AssumedReportingUpdateQuestionPage[Boole
 
   override def toString: String = "taxResidentInUk"
 
+  override def nextPage(caseId: String, answers: UserAnswers): Call =
+    answers.get(this).map {
+      case true =>
+        answers.get(HasUkTaxIdentifierPage)
+          .map(_ => routes.CheckYourAnswersController.onPageLoad(answers.operatorId, caseId))
+          .getOrElse(routes.HasUkTaxIdentifierController.onPageLoad(answers.operatorId, caseId))
+
+      case false =>
+        answers.get(TaxResidencyCountryPage)
+          .map(_ => routes.CheckYourAnswersController.onPageLoad(answers.operatorId, caseId))
+          .getOrElse(routes.TaxResidencyCountryController.onPageLoad(answers.operatorId, caseId))
+    }.getOrElse(baseRoutes.JourneyRecoveryController.onPageLoad())
+
+  override def cleanup(value: Option[Boolean], userAnswers: UserAnswers): Try[UserAnswers] =
+    value.map {
+      case true =>
+        userAnswers
+          .remove(TaxResidencyCountryPage)
+          .flatMap(_.remove(HasInternationalTaxIdentifierPage))
+          .flatMap(_.remove(InternationalTaxIdentifierPage))
+
+      case false =>
+        userAnswers
+          .remove(HasUkTaxIdentifierPage)
+          .flatMap(_.remove(UkTaxIdentifiersPage))
+          .flatMap(_.remove(UtrPage))
+          .flatMap(_.remove(CrnPage))
+          .flatMap(_.remove(VrnPage))
+          .flatMap(_.remove(EmprefPage))
+          .flatMap(_.remove(ChrnPage))
+    }.getOrElse(super.cleanup(value, userAnswers))
 }

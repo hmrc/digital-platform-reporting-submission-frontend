@@ -131,7 +131,7 @@ class CrnPageSpec
           CrnPage.nextPage(CheckMode, answers) mustEqual routes.ChrnController.onPageLoad(CheckMode, "operatorId")
         }
 
-        "and VRN and EMPREF are selected and  answered" in {
+        "and VRN and EMPREF are selected and answered" in {
 
           val answers =
             emptyAnswers

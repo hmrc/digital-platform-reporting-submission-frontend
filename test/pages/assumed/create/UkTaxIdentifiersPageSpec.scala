@@ -17,7 +17,7 @@
 package pages.assumed.create
 
 import controllers.assumed.create.routes
-import models.UkTaxIdentifiers._
+import models.UkTaxIdentifiers.*
 import models.{CheckMode, NormalMode, UkTaxIdentifiers, UserAnswers}
 import org.scalacheck.Gen
 import org.scalatest.freespec.AnyFreeSpec

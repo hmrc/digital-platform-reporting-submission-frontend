@@ -16,10 +16,10 @@
 
 package pages.assumed.update
 
-import controllers.assumed.create.routes
+import controllers.assumed.update.routes
 import controllers.routes as baseRoutes
 import models.UkTaxIdentifiers.Chrn
-import models.{CheckMode, NormalMode, UserAnswers}
+import models.UserAnswers
 import play.api.libs.json.JsPath
 import play.api.mvc.Call
 
@@ -29,4 +29,12 @@ case object EmprefPage extends AssumedReportingUpdateQuestionPage[String] {
 
   override def toString: String = "empref"
 
+  override def nextPage(caseId: String, answers: UserAnswers): Call =
+    answers.get(UkTaxIdentifiersPage).map { identifiers =>
+      if (identifiers.contains(Chrn) && answers.get(ChrnPage).isEmpty) {
+        routes.ChrnController.onPageLoad(answers.operatorId, caseId)
+      } else {
+        routes.CheckYourAnswersController.onPageLoad(answers.operatorId, caseId)
+      }
+    }.getOrElse(baseRoutes.JourneyRecoveryController.onPageLoad())
 }

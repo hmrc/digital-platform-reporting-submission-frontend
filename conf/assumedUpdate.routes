@@ -25,9 +25,6 @@ POST       /:operatorId/:caseId/change-assuming-operator-name           controll
 GET        /:operatorId/:caseId/change-registered-address-in-uk         controllers.assumed.update.RegisteredInUkController.onPageLoad(operatorId: String, caseId: String)
 POST       /:operatorId/:caseId/change-registered-address-in-uk         controllers.assumed.update.RegisteredInUkController.onSubmit(operatorId: String, caseId: String)
 
-GET        /:operatorId/:caseId/change-reporting-period                 controllers.assumed.update.ReportingPeriodController.onPageLoad(operatorId: String, caseId: String)
-POST       /:operatorId/:caseId/change-reporting-period                 controllers.assumed.update.ReportingPeriodController.onSubmit(operatorId: String, caseId: String)
-
 GET        /:operatorId/:caseId/change-tax-resident-country             controllers.assumed.update.TaxResidencyCountryController.onPageLoad(operatorId: String, caseId: String)
 POST       /:operatorId/:caseId/change-tax-resident-country             controllers.assumed.update.TaxResidencyCountryController.onSubmit(operatorId: String, caseId: String)
 

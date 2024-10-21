@@ -16,8 +16,8 @@
 
 package pages.assumed.update
 
-import controllers.assumed.create.routes
-import models.{NormalMode, UserAnswers}
+import controllers.assumed.update.routes
+import models.UserAnswers
 import play.api.libs.json.JsPath
 import play.api.mvc.Call
 

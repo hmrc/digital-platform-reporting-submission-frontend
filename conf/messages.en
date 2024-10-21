@@ -33,9 +33,14 @@ index.title = digital-platform-reporting-submission-frontend
 index.heading = digital-platform-reporting-submission-frontend
 index.guidance = Welcome to your new frontend. Please see the README file for a guide to getting started.
 
-checkYourAnswers.title = Check your answers
-checkYourAnswers.heading = Check your answers
-checkYourAnswers.p1 = By sending this report, you are confirming that the information is correct and complete to the best of your knowledge.
+checkYourAnswers.create.title = Check your answers
+checkYourAnswers.create.heading = Check your answers
+checkYourAnswers.create.p1 = By sending this report, you are confirming that the information is correct and complete to the best of your knowledge.
+
+checkYourAnswers.update.title = Change your answers
+checkYourAnswers.update.heading = Change your answers
+checkYourAnswers.update.p1 = By sending this report, you are confirming that the information is correct and complete to the best of your knowledge.
+checkYourAnswers.update.confirm = Confirm and update
 
 journeyRecovery.continue.title = Sorry, there is a problem with the service
 journeyRecovery.continue.heading = Sorry, there is a problem with the service

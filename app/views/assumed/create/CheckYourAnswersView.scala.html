@@ -23,13 +23,13 @@
 
 @(list: SummaryList, operatorId: String)(implicit request: Request[_], messages: Messages)
 
-@layout(pageTitle = titleNoForm(messages("checkYourAnswers.title"))) {
+@layout(pageTitle = titleNoForm(messages("checkYourAnswers.create.title"))) {
 
-  <h1 class="govuk-heading-xl">@messages("checkYourAnswers.heading")</h1>
+  <h1 class="govuk-heading-xl">@messages("checkYourAnswers.create.heading")</h1>
 
   @govukSummaryList(list)
 
-  <p class="govuk-body">@messages("checkYourAnswers.p1")</p>
+  <p class="govuk-body">@messages("checkYourAnswers.create.p1")</p>
 
   @formHelper(action = controllers.assumed.create.routes.CheckYourAnswersController.onSubmit(operatorId)) {
     @govukButton(

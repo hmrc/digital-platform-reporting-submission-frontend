@@ -18,25 +18,22 @@ package viewmodels.checkAnswers.assumed.update
 
 import controllers.assumed.update.routes
 import models.{CheckMode, UserAnswers}
-import pages.assumed.update.ReportingPeriodPage
 import play.api.i18n.Messages
+import queries.ReportingPeriodQuery
 import uk.gov.hmrc.govukfrontend.views.viewmodels.summarylist.SummaryListRow
-import viewmodels.govuk.summarylist._
-import viewmodels.implicits._
+import viewmodels.govuk.summarylist.*
+import viewmodels.implicits.*
 
 object ReportingPeriodSummary  {
 
   def row(caseId: String, answers: UserAnswers)(implicit messages: Messages): Option[SummaryListRow] =
-    answers.get(ReportingPeriodPage).map {
+    answers.get(ReportingPeriodQuery).map {
       answer =>
 
         SummaryListRowViewModel(
           key     = "reportingPeriod.checkYourAnswersLabel",
           value   = ValueViewModel(answer.toString),
-          actions = Seq(
-            ActionItemViewModel("site.change", routes.ReportingPeriodController.onPageLoad(answers.operatorId, caseId).url)
-              .withVisuallyHiddenText(messages("reportingPeriod.change.hidden"))
-          )
+          actions = Nil
         )
     }
 }

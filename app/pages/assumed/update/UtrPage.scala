@@ -16,10 +16,10 @@
 
 package pages.assumed.update
 
-import controllers.assumed.create.routes
+import controllers.assumed.update.routes
 import controllers.routes as baseRoutes
 import models.UkTaxIdentifiers.*
-import models.{CheckMode, NormalMode, UserAnswers}
+import models.UserAnswers
 import play.api.libs.json.JsPath
 import play.api.mvc.Call
 
@@ -28,5 +28,19 @@ case object UtrPage extends AssumedReportingUpdateQuestionPage[String] {
   override def path: JsPath = JsPath \ toString
 
   override def toString: String = "utr"
-  
+
+  override def nextPage(caseId: String, answers: UserAnswers): Call =
+    answers.get(UkTaxIdentifiersPage).map { identifiers =>
+      if (identifiers.contains(Crn) && answers.get(CrnPage).isEmpty) {
+        routes.CrnController.onPageLoad(answers.operatorId, caseId)
+      } else if (identifiers.contains(Vrn) && answers.get(VrnPage).isEmpty) {
+        routes.VrnController.onPageLoad(answers.operatorId, caseId)
+      } else if (identifiers.contains(Empref) && answers.get(EmprefPage).isEmpty) {
+        routes.EmprefController.onPageLoad(answers.operatorId, caseId)
+      } else if (identifiers.contains(Chrn) && answers.get(ChrnPage).isEmpty) {
+        routes.ChrnController.onPageLoad(answers.operatorId, caseId)
+      } else {
+        routes.CheckYourAnswersController.onPageLoad(answers.operatorId, caseId)
+      }
+    }.getOrElse(baseRoutes.JourneyRecoveryController.onPageLoad())
 }

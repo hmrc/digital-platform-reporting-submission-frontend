@@ -16,8 +16,8 @@
 
 package pages.assumed.update
 
-import controllers.assumed.create.routes
-import models.{NormalMode, UserAnswers}
+import controllers.assumed.update.routes
+import models.UserAnswers
 import play.api.libs.json.JsPath
 import play.api.mvc.Call
 
@@ -26,4 +26,7 @@ case object ChrnPage extends AssumedReportingUpdateQuestionPage[String] {
   override def path: JsPath = JsPath \ toString
 
   override def toString: String = "chrn"
+
+  override def nextPage(caseId: String, answers: UserAnswers): Call =
+    routes.CheckYourAnswersController.onPageLoad(answers.operatorId, caseId)
 }

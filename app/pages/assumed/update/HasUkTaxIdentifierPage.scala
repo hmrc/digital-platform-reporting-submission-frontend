@@ -16,9 +16,9 @@
 
 package pages.assumed.update
 
-import controllers.assumed.create.routes
+import controllers.assumed.update.routes
 import controllers.routes as baseRoutes
-import models.{CheckMode, NormalMode, UserAnswers}
+import models.UserAnswers
 import play.api.libs.json.JsPath
 import play.api.mvc.Call
 
@@ -29,5 +29,28 @@ case object HasUkTaxIdentifierPage extends AssumedReportingUpdateQuestionPage[Bo
   override def path: JsPath = JsPath \ toString
 
   override def toString: String = "hasUkTaxIdentifier"
-  
+
+  override def nextPage(caseId: String, answers: UserAnswers): Call =
+    answers.get(this).map {
+      case true =>
+        answers.get(UkTaxIdentifiersPage)
+          .map(_ => routes.CheckYourAnswersController.onPageLoad(answers.operatorId, caseId))
+          .getOrElse(routes.UkTaxIdentifiersController.onPageLoad(answers.operatorId, caseId))
+
+      case false =>
+        routes.CheckYourAnswersController.onPageLoad(answers.operatorId, caseId)
+    }.getOrElse(baseRoutes.JourneyRecoveryController.onPageLoad())
+
+  override def cleanup(value: Option[Boolean], userAnswers: UserAnswers): Try[UserAnswers] =
+    if (value.contains(false)) {
+      userAnswers
+        .remove(UkTaxIdentifiersPage)
+        .flatMap(_.remove(UtrPage))
+        .flatMap(_.remove(CrnPage))
+        .flatMap(_.remove(VrnPage))
+        .flatMap(_.remove(EmprefPage))
+        .flatMap(_.remove(ChrnPage))
+    } else {
+      super.cleanup(value, userAnswers)
+    }
 }

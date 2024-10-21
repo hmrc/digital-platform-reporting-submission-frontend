@@ -14,14 +14,13 @@
  * limitations under the License.
  */
 
-package pages.assumed.update
+package queries
 
-import controllers.assumed.update.routes
-import models.UserAnswers
-import play.api.mvc.Call
+import play.api.libs.json.JsPath
 
-trait AssumedReportingUpdatePage {
+case object ReportingPeriodQuery extends Gettable[Int] with Settable[Int] {
 
-  def nextPage(caseId: String, answers: UserAnswers): Call =
-    routes.CheckYourAnswersController.onPageLoad(answers.operatorId, caseId)
+  override def path: JsPath = JsPath \ toString
+
+  override def toString: String = "reportingPeriod"
 }

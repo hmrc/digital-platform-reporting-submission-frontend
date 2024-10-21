@@ -16,9 +16,9 @@
 
 package pages.assumed.update
 
-import controllers.assumed.create.routes
+import controllers.assumed.update.routes
 import controllers.routes as baseRoutes
-import models.{CheckMode, NormalMode, UserAnswers}
+import models.UserAnswers
 import play.api.libs.json.JsPath
 import play.api.mvc.Call
 
@@ -29,5 +29,18 @@ case object HasInternationalTaxIdentifierPage extends AssumedReportingUpdateQues
   override def path: JsPath = JsPath \ toString
 
   override def toString: String = "hasInternationalTaxIdentifier"
-  
+
+  override def nextPage(caseId: String, answers: UserAnswers): Call =
+    answers.get(this).map {
+      case true =>
+        answers.get(InternationalTaxIdentifierPage)
+          .map(_ => routes.CheckYourAnswersController.onPageLoad(answers.operatorId, caseId))
+          .getOrElse(routes.InternationalTaxIdentifierController.onPageLoad(answers.operatorId, caseId))
+
+      case false =>
+        routes.CheckYourAnswersController.onPageLoad(answers.operatorId, caseId)
+    }.getOrElse(baseRoutes.JourneyRecoveryController.onPageLoad())
+
+  override def cleanup(value: Option[Boolean], userAnswers: UserAnswers): Try[UserAnswers] =
+    if (value.contains(false)) userAnswers.remove(InternationalTaxIdentifierPage) else super.cleanup(value, userAnswers)
 }
