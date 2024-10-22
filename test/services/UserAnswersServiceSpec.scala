@@ -18,8 +18,9 @@ package services
 
 import models.operator.TinDetails
 import models.operator.TinType.Other
-import models.submission.{AssumedReportingSubmissionRequest, AssumingPlatformOperator}
+import models.submission.{AssumedReportingSubmission, AssumingPlatformOperator}
 import models.{Country,  UkTaxIdentifiers, UserAnswers}
+import models.operator.TinType.{Chrn, Crn, Empref, Other, Utr, Vrn}
 import org.scalatest.{EitherValues, TryValues}
 import org.scalatest.freespec.AnyFreeSpec
 import org.scalatest.matchers.must.Matchers
@@ -37,11 +38,11 @@ class UserAnswersServiceSpec
 
   private lazy val userAnswersService: UserAnswersService = app.injector.instanceOf[UserAnswersService]
 
-  "toAssumedReportingSubmissionRequest" - {
+  "toAssumedReportingSubmission" - {
 
-    "must return an AssumedReportingSubmissionRequest for a GB operator when optional answers are given" in {
+    "must return an AssumedReportingSubmission for a GB operator when optional answers are given" in {
 
-      val expectedRequest = AssumedReportingSubmissionRequest(
+      val expectedRequest = AssumedReportingSubmission(
         operatorId = "operatorId",
         assumingOperator = AssumingPlatformOperator(
           name = "assumingOperator",
@@ -68,13 +69,13 @@ class UserAnswersServiceSpec
         .set(RegisteredCountryPage, Country("US", "United States")).success.value
         .set(AddressPage, "address").success.value
 
-      val result = userAnswersService.toAssumedReportingSubmissionRequest(answers).value
+      val result = userAnswersService.toAssumedReportingSubmission(answers).value
       result mustEqual expectedRequest
     }
 
-    "must return an AssumedReportingSubmissionRequest for a GB operator when optional answers are not given" in {
+    "must return an AssumedReportingSubmission for a GB operator when optional answers are not given" in {
 
-      val expectedRequest = AssumedReportingSubmissionRequest(
+      val expectedRequest = AssumedReportingSubmission(
         operatorId = "operatorId",
         assumingOperator = AssumingPlatformOperator(
           name = "assumingOperator",
@@ -94,13 +95,13 @@ class UserAnswersServiceSpec
         .set(RegisteredCountryPage, Country("US", "UnitedStates")).success.value
         .set(AddressPage, "address").success.value
 
-      val result = userAnswersService.toAssumedReportingSubmissionRequest(answers).value
+      val result = userAnswersService.toAssumedReportingSubmission(answers).value
       result mustEqual expectedRequest
     }
 
-    "must return an AssumedReportingSubmissionRequest for a non-GB operator when optional answers are given" in {
+    "must return an AssumedReportingSubmission for a non-GB operator when optional answers are given" in {
 
-      val expectedRequest = AssumedReportingSubmissionRequest(
+      val expectedRequest = AssumedReportingSubmission(
         operatorId = "operatorId",
         assumingOperator = AssumingPlatformOperator(
           name = "assumingOperator",
@@ -128,13 +129,13 @@ class UserAnswersServiceSpec
         .set(RegisteredCountryPage, Country("GB", "United Kingdom")).success.value
         .set(AddressPage, "address").success.value
 
-      val result = userAnswersService.toAssumedReportingSubmissionRequest(answers).value
+      val result = userAnswersService.toAssumedReportingSubmission(answers).value
       result mustEqual expectedRequest
     }
 
-    "must return an AssumedReportingSubmissionRequest for a non-GB operator when optional answers are not given" in {
+    "must return an AssumedReportingSubmission for a non-GB operator when optional answers are not given" in {
 
-      val expectedRequest = AssumedReportingSubmissionRequest(
+      val expectedRequest = AssumedReportingSubmission(
         operatorId = "operatorId",
         assumingOperator = AssumingPlatformOperator(
           name = "assumingOperator",
@@ -155,7 +156,7 @@ class UserAnswersServiceSpec
         .set(RegisteredCountryPage, Country("GB", "United Kingdom")).success.value
         .set(AddressPage, "address").success.value
 
-      val result = userAnswersService.toAssumedReportingSubmissionRequest(answers).value
+      val result = userAnswersService.toAssumedReportingSubmission(answers).value
       result mustEqual expectedRequest
     }
   }

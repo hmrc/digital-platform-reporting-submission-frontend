@@ -21,7 +21,7 @@ import cats.implicits.given
 import com.google.inject.{Inject, Singleton}
 import models.UserAnswers
 import models.operator.{TinDetails, TinType}
-import models.submission.{AssumedReportingSubmissionRequest, AssumingPlatformOperator}
+import models.submission.{AssumedReportingSubmission, AssumingPlatformOperator}
 import pages.assumed.create.*
 import queries.{Gettable, Query}
 
@@ -31,12 +31,12 @@ import scala.util.Try
 @Singleton
 class UserAnswersService @Inject() () {
 
-  def toAssumedReportingSubmissionRequest(answers: UserAnswers): EitherNec[Query, AssumedReportingSubmissionRequest] =
+  def toAssumedReportingSubmission(answers: UserAnswers): EitherNec[Query, AssumedReportingSubmission] =
     (
       getAssumingOperator(answers),
       getReportingPeriod(answers)
     ).parMapN { (assumingOperator, reportingPeriod) =>
-      AssumedReportingSubmissionRequest(
+      AssumedReportingSubmission(
         operatorId = answers.operatorId,
         assumingOperator = assumingOperator,
         reportingPeriod = reportingPeriod
@@ -103,7 +103,7 @@ class UserAnswersService @Inject() () {
 
 object UserAnswersService {
 
-  final case class BuildAssumedReportingSubmissionRequestFailure(errors: NonEmptyChain[Query]) extends Throwable {
+  final case class BuildAssumedReportingSubmissionFailure(errors: NonEmptyChain[Query]) extends Throwable {
     override def getMessage: String = s"unable to build assumed reporting submission request, path(s) missing: ${errors.toChain.toList.map(_.path).mkString(", ")}"
   }
 }

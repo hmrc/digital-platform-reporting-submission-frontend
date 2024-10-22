@@ -22,7 +22,7 @@ import connectors.SubmissionConnector
 import controllers.routes as baseRoutes
 import models.submission.Submission.State.Submitted
 import models.submission.Submission.SubmissionType
-import models.submission.{AssumedReportingSubmissionRequest, AssumingPlatformOperator, Submission}
+import models.submission.{AssumedReportingSubmission, AssumingPlatformOperator, Submission}
 import org.apache.pekko.Done
 import org.mockito.ArgumentMatchers.{any, eq as eqTo}
 import org.mockito.Mockito
@@ -92,7 +92,7 @@ class CheckYourAnswersControllerSpec extends SpecBase with SummaryListFluency wi
 
       "must submit an assumed reporting submission request, clear other data from user answers and redirect to the next page" in {
 
-        val assumedReportingSubmissionRequest = AssumedReportingSubmissionRequest(
+        val assumedReportingSubmissionRequest = AssumedReportingSubmission(
           operatorId = "operatorId",
           assumingOperator = AssumingPlatformOperator(
             name = "assumingOperator",
@@ -126,7 +126,7 @@ class CheckYourAnswersControllerSpec extends SpecBase with SummaryListFluency wi
           )
           .build()
 
-        when(mockUserAnswersService.toAssumedReportingSubmissionRequest(any())).thenReturn(Right(assumedReportingSubmissionRequest))
+        when(mockUserAnswersService.toAssumedReportingSubmission(any())).thenReturn(Right(assumedReportingSubmissionRequest))
         when(mockSubmissionConnector.submitAssumedReporting(any())(using any())).thenReturn(Future.successful(submission))
         when(mockSessionRepository.clear(any(), any(), any())).thenReturn(Future.successful(true))
 
@@ -138,7 +138,7 @@ class CheckYourAnswersControllerSpec extends SpecBase with SummaryListFluency wi
           redirectLocation(result).value mustEqual routes.SubmissionConfirmationController.onPageLoad(operatorId, "submissionId").url
         }
 
-        verify(mockUserAnswersService).toAssumedReportingSubmissionRequest(eqTo(answers))
+        verify(mockUserAnswersService).toAssumedReportingSubmission(eqTo(answers))
         verify(mockSubmissionConnector).submitAssumedReporting(eqTo(assumedReportingSubmissionRequest))(using any())
         verify(mockSessionRepository).clear(answers.userId, answers.operatorId, answers.reportingPeriod)
       }
@@ -153,7 +153,7 @@ class CheckYourAnswersControllerSpec extends SpecBase with SummaryListFluency wi
           )
           .build()
 
-        when(mockUserAnswersService.toAssumedReportingSubmissionRequest(any())).thenReturn(Left(NonEmptyChain.one(AssumingOperatorNamePage)))
+        when(mockUserAnswersService.toAssumedReportingSubmission(any())).thenReturn(Left(NonEmptyChain.one(AssumingOperatorNamePage)))
         when(mockSubmissionConnector.submitAssumedReporting(any())(using any())).thenReturn(Future.successful(Done))
         when(mockSessionRepository.clear(any(), any(), any())).thenReturn(Future.successful(true))
 
