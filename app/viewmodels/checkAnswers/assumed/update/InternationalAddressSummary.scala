@@ -17,7 +17,7 @@
 package viewmodels.checkAnswers.assumed.update
 
 import controllers.assumed.update.routes
-import models.{CheckMode, UserAnswers}
+import models.UserAnswers
 import pages.assumed.update.{AssumingOperatorNamePage, InternationalAddressPage}
 import play.api.i18n.Messages
 import play.twirl.api.HtmlFormat

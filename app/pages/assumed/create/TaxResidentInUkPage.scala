@@ -60,11 +60,6 @@ case object TaxResidentInUkPage extends AssumedReportingQuestionPage[Boolean] {
       case false =>
         userAnswers
           .remove(HasUkTaxIdentifierPage)
-          .flatMap(_.remove(UkTaxIdentifiersPage))
-          .flatMap(_.remove(UtrPage))
-          .flatMap(_.remove(CrnPage))
-          .flatMap(_.remove(VrnPage))
-          .flatMap(_.remove(EmprefPage))
-          .flatMap(_.remove(ChrnPage))
+          .flatMap(_.remove(UkTaxIdentifierPage))
     }.getOrElse(super.cleanup(value, userAnswers))
 }

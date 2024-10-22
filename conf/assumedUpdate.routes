@@ -1,12 +1,3 @@
-GET        /:operatorId/:caseId/change-chrn                             controllers.assumed.update.ChrnController.onPageLoad(operatorId: String, caseId: String)
-POST       /:operatorId/:caseId/change-chrn                             controllers.assumed.update.ChrnController.onSubmit(operatorId: String, caseId: String)
-
-GET        /:operatorId/:caseId/change-crn                              controllers.assumed.update.CrnController.onPageLoad(operatorId: String, caseId: String)
-POST       /:operatorId/:caseId/change-crn                              controllers.assumed.update.CrnController.onSubmit(operatorId: String, caseId: String)
-
-GET        /:operatorId/:caseId/change-empref                           controllers.assumed.update.EmprefController.onPageLoad(operatorId: String, caseId: String)
-POST       /:operatorId/:caseId/change-empref                           controllers.assumed.update.EmprefController.onSubmit(operatorId: String, caseId: String)
-
 GET        /:operatorId/:caseId/change-have-uk-tin                         controllers.assumed.update.HasUkTaxIdentifierController.onPageLoad(operatorId: String, caseId: String)
 POST       /:operatorId/:caseId/change-have-uk-tin                         controllers.assumed.update.HasUkTaxIdentifierController.onSubmit(operatorId: String, caseId: String)
 
@@ -34,14 +25,8 @@ POST       /:operatorId/:caseId/change-tax-resident-in-uk               controll
 GET        /:operatorId/:caseId/change-uk-address                       controllers.assumed.update.UkAddressController.onPageLoad(operatorId: String, caseId: String)
 POST       /:operatorId/:caseId/change-uk-address                       controllers.assumed.update.UkAddressController.onSubmit(operatorId: String, caseId: String)
 
-GET        /:operatorId/:caseId/change-uk-tin-type                      controllers.assumed.update.UkTaxIdentifiersController.onPageLoad(operatorId: String, caseId: String)
-POST       /:operatorId/:caseId/change-uk-tin-type                      controllers.assumed.update.UkTaxIdentifiersController.onSubmit(operatorId: String, caseId: String)
-
-GET        /:operatorId/:caseId/change-utr                              controllers.assumed.update.UtrController.onPageLoad(operatorId: String, caseId: String)
-POST       /:operatorId/:caseId/change-utr                              controllers.assumed.update.UtrController.onSubmit(operatorId: String, caseId: String)
-
-GET        /:operatorId/:caseId/changevrn                               controllers.assumed.update.VrnController.onPageLoad(operatorId: String, caseId: String)
-POST       /:operatorId/:caseId/changevrn                               controllers.assumed.update.VrnController.onSubmit(operatorId: String, caseId: String)
+GET        /:operatorId/:caseId/change-uk-tin                      controllers.assumed.update.UkTaxIdentifierController.onPageLoad(operatorId: String, caseId: String)
+POST       /:operatorId/:caseId/change-uk-tin                      controllers.assumed.update.UkTaxIdentifierController.onSubmit(operatorId: String, caseId: String)
 
 GET        /:operatorId/:caseId/check-your-answers                      controllers.assumed.update.CheckYourAnswersController.onPageLoad(operatorId: String, caseId: String)
 POST       /:operatorId/:caseId/check-your-answers                      controllers.assumed.update.CheckYourAnswersController.onSubmit(operatorId: String, caseId: String)

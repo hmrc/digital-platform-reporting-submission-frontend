@@ -17,7 +17,7 @@
 package services
 
 import models.operator.TinDetails
-import models.operator.TinType.{Chrn, Crn, Empref, Other, Utr, Vrn}
+import models.operator.TinType.Other
 import models.submission.{AssumedReportingSubmissionRequest, AssumingOperatorAddress, AssumingPlatformOperator}
 import models.{Country, InternationalAddress, UkAddress, UkTaxIdentifiers, UserAnswers}
 import org.scalatest.{EitherValues, TryValues}
@@ -48,28 +48,8 @@ class UserAnswersServiceSpec
           residentCountry = "GB",
           tinDetails = Seq(
             TinDetails(
-              tin = "tin2",
-              tinType = Crn,
-              issuedBy = "GB"
-            ),
-            TinDetails(
-              tin = "tin4",
-              tinType = Empref,
-              issuedBy = "GB"
-            ),
-            TinDetails(
-              tin = "tin3",
-              tinType = Vrn,
-              issuedBy = "GB"
-            ),
-            TinDetails(
-              tin = "tin5",
-              tinType = Chrn,
-              issuedBy = "GB"
-            ),
-            TinDetails(
               tin = "tin1",
-              tinType = Utr,
+              tinType = Other,
               issuedBy = "GB"
             )
           ),
@@ -90,12 +70,7 @@ class UserAnswersServiceSpec
         .set(ReportingPeriodPage, 2024).success.value
         .set(TaxResidentInUkPage, true).success.value
         .set(HasUkTaxIdentifierPage, true).success.value
-        .set(UkTaxIdentifiersPage, UkTaxIdentifiers.values.toSet).success.value
-        .set(UtrPage, "tin1").success.value
-        .set(CrnPage, "tin2").success.value
-        .set(VrnPage, "tin3").success.value
-        .set(EmprefPage, "tin4").success.value
-        .set(ChrnPage, "tin5").success.value
+        .set(UkTaxIdentifierPage, "tin1").success.value
         .set(RegisteredInUkPage, true).success.value
         .set(UkAddressPage, UkAddress(line1 = "line1", line2 = Some("line2"), town = "city", county = Some("region"), postCode = "postcode", country = Country("GB", "United Kingdom"))).success.value
 

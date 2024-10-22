@@ -1,21 +1,6 @@
 GET        /:operatorId/start                                   controllers.assumed.create.StartController.onPageLoad(operatorId: String)
 POST       /:operatorId/start                                   controllers.assumed.create.StartController.onSubmit(operatorId: String)
 
-GET        /:operatorId/chrn                                    controllers.assumed.create.ChrnController.onPageLoad(mode: Mode = NormalMode, operatorId: String)
-POST       /:operatorId/chrn                                    controllers.assumed.create.ChrnController.onSubmit(mode: Mode = NormalMode, operatorId: String)
-GET        /:operatorId/change-chrn                             controllers.assumed.create.ChrnController.onPageLoad(mode: Mode = CheckMode, operatorId: String)
-POST       /:operatorId/change-chrn                             controllers.assumed.create.ChrnController.onSubmit(mode: Mode = CheckMode, operatorId: String)
-
-GET        /:operatorId/crn                                     controllers.assumed.create.CrnController.onPageLoad(mode: Mode = NormalMode, operatorId: String)
-POST       /:operatorId/crn                                     controllers.assumed.create.CrnController.onSubmit(mode: Mode = NormalMode, operatorId: String)
-GET        /:operatorId/change-crn                              controllers.assumed.create.CrnController.onPageLoad(mode: Mode = CheckMode, operatorId: String)
-POST       /:operatorId/change-crn                              controllers.assumed.create.CrnController.onSubmit(mode: Mode = CheckMode, operatorId: String)
-
-GET        /:operatorId/empref                                  controllers.assumed.create.EmprefController.onPageLoad(mode: Mode = NormalMode, operatorId: String)
-POST       /:operatorId/empref                                  controllers.assumed.create.EmprefController.onSubmit(mode: Mode = NormalMode, operatorId: String)
-GET        /:operatorId/change-empref                           controllers.assumed.create.EmprefController.onPageLoad(mode: Mode = CheckMode, operatorId: String)
-POST       /:operatorId/change-empref                           controllers.assumed.create.EmprefController.onSubmit(mode: Mode = CheckMode, operatorId: String)
-
 GET        /:operatorId/have-uk-tin                                controllers.assumed.create.HasUkTaxIdentifierController.onPageLoad(mode: Mode = NormalMode, operatorId: String)
 POST       /:operatorId/have-uk-tin                                controllers.assumed.create.HasUkTaxIdentifierController.onSubmit(mode: Mode = NormalMode, operatorId: String)
 GET        /:operatorId/change-have-uk-tin                         controllers.assumed.create.HasUkTaxIdentifierController.onPageLoad(mode: Mode = CheckMode, operatorId: String)
@@ -66,20 +51,10 @@ POST       /:operatorId/uk-address                              controllers.assu
 GET        /:operatorId/change-uk-address                       controllers.assumed.create.UkAddressController.onPageLoad(mode: Mode = CheckMode, operatorId: String)
 POST       /:operatorId/change-uk-address                       controllers.assumed.create.UkAddressController.onSubmit(mode: Mode = CheckMode, operatorId: String)
 
-GET        /:operatorId/uk-tin-type                             controllers.assumed.create.UkTaxIdentifiersController.onPageLoad(mode: Mode = NormalMode, operatorId: String)
-POST       /:operatorId/uk-tin-type                             controllers.assumed.create.UkTaxIdentifiersController.onSubmit(mode: Mode = NormalMode, operatorId: String)
-GET        /:operatorId/change-uk-tin-type                      controllers.assumed.create.UkTaxIdentifiersController.onPageLoad(mode: Mode = CheckMode, operatorId: String)
-POST       /:operatorId/change-uk-tin-type                      controllers.assumed.create.UkTaxIdentifiersController.onSubmit(mode: Mode = CheckMode, operatorId: String)
-
-GET        /:operatorId/utr                                     controllers.assumed.create.UtrController.onPageLoad(mode: Mode = NormalMode, operatorId: String)
-POST       /:operatorId/utr                                     controllers.assumed.create.UtrController.onSubmit(mode: Mode = NormalMode, operatorId: String)
-GET        /:operatorId/change-utr                              controllers.assumed.create.UtrController.onPageLoad(mode: Mode = CheckMode, operatorId: String)
-POST       /:operatorId/change-utr                              controllers.assumed.create.UtrController.onSubmit(mode: Mode = CheckMode, operatorId: String)
-
-GET        /:operatorId/vrn                                     controllers.assumed.create.VrnController.onPageLoad(mode: Mode = NormalMode, operatorId: String)
-POST       /:operatorId/vrn                                     controllers.assumed.create.VrnController.onSubmit(mode: Mode = NormalMode, operatorId: String)
-GET        /:operatorId/changevrn                               controllers.assumed.create.VrnController.onPageLoad(mode: Mode = CheckMode, operatorId: String)
-POST       /:operatorId/changevrn                               controllers.assumed.create.VrnController.onSubmit(mode: Mode = CheckMode, operatorId: String)
+GET        /:operatorId/uk-tin                             controllers.assumed.create.UkTaxIdentifierController.onPageLoad(mode: Mode = NormalMode, operatorId: String)
+POST       /:operatorId/uk-tin                             controllers.assumed.create.UkTaxIdentifierController.onSubmit(mode: Mode = NormalMode, operatorId: String)
+GET        /:operatorId/change-uk-tin                      controllers.assumed.create.UkTaxIdentifierController.onPageLoad(mode: Mode = CheckMode, operatorId: String)
+POST       /:operatorId/change-uk-tin                      controllers.assumed.create.UkTaxIdentifierController.onSubmit(mode: Mode = CheckMode, operatorId: String)
 
 GET        /:operatorId/check-your-answers                      controllers.assumed.create.CheckYourAnswersController.onPageLoad(operatorId: String)
 POST       /:operatorId/check-your-answers                      controllers.assumed.create.CheckYourAnswersController.onSubmit(operatorId: String)

@@ -19,7 +19,6 @@ package services
 import cats.data.{EitherNec, NonEmptyChain}
 import cats.implicits.given
 import com.google.inject.{Inject, Singleton}
-import models.UkTaxIdentifiers.{Chrn, Crn, Empref, Utr, Vrn}
 import models.UserAnswers
 import models.operator.{TinDetails, TinType}
 import models.submission.{AssumedReportingSubmissionRequest, AssumingOperatorAddress, AssumingPlatformOperator}
@@ -80,23 +79,12 @@ class UserAnswersService @Inject() () {
     }
 
   private def getUkTinDetails(answers: UserAnswers): EitherNec[Query, Seq[TinDetails]] =
-    answers.getEither(UkTaxIdentifiersPage).flatMap { tins =>
-      tins.toSeq.traverse {
-        case Utr => getUkTaxIdentifier(answers, UtrPage, TinType.Utr)
-        case Crn => getUkTaxIdentifier(answers, CrnPage, TinType.Crn)
-        case Vrn => getUkTaxIdentifier(answers, VrnPage, TinType.Vrn)
-        case Empref => getUkTaxIdentifier(answers, EmprefPage, TinType.Empref)
-        case Chrn => getUkTaxIdentifier(answers, ChrnPage, TinType.Chrn)
-      }
-    }
-
-  private def getUkTaxIdentifier(answers: UserAnswers, query: Gettable[String], tinType: TinType): EitherNec[Query, TinDetails] =
-    answers.getEither(query).map { value =>
-      TinDetails(
+    answers.getEither(UkTaxIdentifierPage).map { value =>
+      Seq(TinDetails(
         tin = value,
-        tinType = tinType,
+        tinType = TinType.Other,
         issuedBy = "GB"
-      )
+      ))
     }
 
   private def getInternationalTinDetails(answers: UserAnswers): EitherNec[Query, Seq[TinDetails]] =

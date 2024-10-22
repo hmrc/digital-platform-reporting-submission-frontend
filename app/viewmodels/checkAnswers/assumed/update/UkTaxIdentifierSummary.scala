@@ -18,26 +18,28 @@ package viewmodels.checkAnswers.assumed.update
 
 import controllers.assumed.update.routes
 import models.UserAnswers
-import pages.assumed.update.AssumingOperatorNamePage
+import pages.assumed.update.{AssumingOperatorNamePage, UkTaxIdentifierPage}
 import play.api.i18n.Messages
 import play.twirl.api.HtmlFormat
 import uk.gov.hmrc.govukfrontend.views.viewmodels.summarylist.SummaryListRow
-import viewmodels.govuk.summarylist._
-import viewmodels.implicits._
+import viewmodels.govuk.summarylist.*
+import viewmodels.implicits.*
 
-object AssumingOperatorNameSummary  {
+object UkTaxIdentifierSummary  {
 
   def row(caseId: String, answers: UserAnswers)(implicit messages: Messages): Option[SummaryListRow] =
-    answers.get(AssumingOperatorNamePage).map {
-      answer =>
+    for {
+      answer               <- answers.get(UkTaxIdentifierPage)
+      assumingOperatorName <- answers.get(AssumingOperatorNamePage)
+    } yield {
 
-        SummaryListRowViewModel(
-          key     = "assumingOperatorName.checkYourAnswersLabel",
-          value   = ValueViewModel(HtmlFormat.escape(answer).toString),
-          actions = Seq(
-            ActionItemViewModel("site.change", routes.AssumingOperatorNameController.onPageLoad(answers.operatorId, caseId).url)
-              .withVisuallyHiddenText(messages("assumingOperatorName.change.hidden"))
-          )
+      SummaryListRowViewModel(
+        key     = messages("ukTaxIdentifier.checkYourAnswersLabel", assumingOperatorName),
+        value   = ValueViewModel(HtmlFormat.escape(answer).toString),
+        actions = Seq(
+          ActionItemViewModel("site.change", routes.UkTaxIdentifierController.onPageLoad(answers.operatorId, caseId).url)
+            .withVisuallyHiddenText(messages("ukTaxIdentifier.change.hidden", assumingOperatorName))
         )
+      )
     }
 }

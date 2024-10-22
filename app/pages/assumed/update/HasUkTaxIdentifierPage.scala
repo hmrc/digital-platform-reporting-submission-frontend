@@ -33,24 +33,14 @@ case object HasUkTaxIdentifierPage extends AssumedReportingUpdateQuestionPage[Bo
   override def nextPage(caseId: String, answers: UserAnswers): Call =
     answers.get(this).map {
       case true =>
-        answers.get(UkTaxIdentifiersPage)
+        answers.get(UkTaxIdentifierPage)
           .map(_ => routes.CheckYourAnswersController.onPageLoad(answers.operatorId, caseId))
-          .getOrElse(routes.UkTaxIdentifiersController.onPageLoad(answers.operatorId, caseId))
+          .getOrElse(routes.UkTaxIdentifierController.onPageLoad(answers.operatorId, caseId))
 
       case false =>
         routes.CheckYourAnswersController.onPageLoad(answers.operatorId, caseId)
     }.getOrElse(baseRoutes.JourneyRecoveryController.onPageLoad())
 
   override def cleanup(value: Option[Boolean], userAnswers: UserAnswers): Try[UserAnswers] =
-    if (value.contains(false)) {
-      userAnswers
-        .remove(UkTaxIdentifiersPage)
-        .flatMap(_.remove(UtrPage))
-        .flatMap(_.remove(CrnPage))
-        .flatMap(_.remove(VrnPage))
-        .flatMap(_.remove(EmprefPage))
-        .flatMap(_.remove(ChrnPage))
-    } else {
-      super.cleanup(value, userAnswers)
-    }
+    if (value.contains(false)) userAnswers.remove(UkTaxIdentifierPage) else super.cleanup(value, userAnswers)
 }

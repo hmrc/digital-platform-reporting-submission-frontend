@@ -14,32 +14,31 @@
  * limitations under the License.
  */
 
-package viewmodels.checkAnswers.assumed.update
+package viewmodels.checkAnswers.assumed.create
 
-import controllers.assumed.update.routes
-import models.UserAnswers
-import pages.assumed.update.{AssumingOperatorNamePage, TaxResidentInUkPage}
+import controllers.assumed.create.routes
+import models.{CheckMode, UserAnswers}
+import pages.assumed.create.{AssumingOperatorNamePage, UkTaxIdentifierPage}
 import play.api.i18n.Messages
+import play.twirl.api.HtmlFormat
 import uk.gov.hmrc.govukfrontend.views.viewmodels.summarylist.SummaryListRow
 import viewmodels.govuk.summarylist.*
 import viewmodels.implicits.*
 
-object TaxResidentInUkSummary  {
+object UkTaxIdentifierSummary  {
 
-  def row(caseId: String, answers: UserAnswers)(implicit messages: Messages): Option[SummaryListRow] =
+  def row(answers: UserAnswers)(implicit messages: Messages): Option[SummaryListRow] =
     for {
-      answer               <- answers.get(TaxResidentInUkPage)
+      answer               <- answers.get(UkTaxIdentifierPage)
       assumingOperatorName <- answers.get(AssumingOperatorNamePage)
     } yield {
 
-      val value = if (answer) "site.yes" else "site.no"
-
       SummaryListRowViewModel(
-        key     = messages("taxResidentInUk.checkYourAnswersLabel", assumingOperatorName),
-        value   = ValueViewModel(value),
+        key     = messages("ukTaxIdentifier.checkYourAnswersLabel", assumingOperatorName),
+        value   = ValueViewModel(HtmlFormat.escape(answer).toString),
         actions = Seq(
-          ActionItemViewModel("site.change", routes.TaxResidentInUkController.onPageLoad(answers.operatorId, caseId).url)
-            .withVisuallyHiddenText(messages("taxResidentInUk.change.hidden", assumingOperatorName))
+          ActionItemViewModel("site.change", routes.UkTaxIdentifierController.onPageLoad(CheckMode, answers.operatorId).url)
+            .withVisuallyHiddenText(messages("ukTaxIdentifier.change.hidden", assumingOperatorName))
         )
       )
     }

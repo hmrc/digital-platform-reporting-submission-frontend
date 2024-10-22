@@ -14,26 +14,24 @@
  * limitations under the License.
  */
 
-package viewmodels.checkAnswers.assumed.update
+package pages.assumed.update
 
 import controllers.assumed.update.routes
 import models.UserAnswers
-import play.api.i18n.Messages
-import queries.ReportingPeriodQuery
-import uk.gov.hmrc.govukfrontend.views.viewmodels.summarylist.SummaryListRow
-import viewmodels.govuk.summarylist.*
-import viewmodels.implicits.*
+import org.scalatest.freespec.AnyFreeSpec
+import org.scalatest.matchers.must.Matchers
 
-object ReportingPeriodSummary  {
+class UkTaxIdentifierPageSpec extends AnyFreeSpec with Matchers {
 
-  def row(caseId: String, answers: UserAnswers)(implicit messages: Messages): Option[SummaryListRow] =
-    answers.get(ReportingPeriodQuery).map {
-      answer =>
+  ".nextPage" - {
 
-        SummaryListRowViewModel(
-          key     = "reportingPeriod.checkYourAnswersLabel",
-          value   = ValueViewModel(answer.toString),
-          actions = Nil
-        )
+    val caseId = "caseId"
+    val operatorId = "operatorId"
+    val emptyAnswers = UserAnswers("id", operatorId, Some(caseId))
+
+    "must go to Check Answers" in {
+
+      UkTaxIdentifierPage.nextPage(caseId, emptyAnswers).mustEqual(routes.CheckYourAnswersController.onPageLoad(operatorId, caseId))
     }
+  }
 }
