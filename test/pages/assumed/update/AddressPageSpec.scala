@@ -14,19 +14,24 @@
  * limitations under the License.
  */
 
-package pages.assumed.create
+package pages.assumed.update
 
-import controllers.assumed.create.routes
-import models.{NormalMode, UserAnswers}
-import play.api.libs.json.JsPath
-import play.api.mvc.Call
+import controllers.assumed.update.routes
+import models.UserAnswers
+import org.scalatest.freespec.AnyFreeSpec
+import org.scalatest.matchers.must.Matchers
 
-case object UkTaxIdentifierPage extends AssumedReportingQuestionPage[String] {
+class AddressPageSpec extends AnyFreeSpec with Matchers {
 
-  override def path: JsPath = JsPath \ toString
+  ".nextPage" - {
 
-  override def toString: String = "ukTaxIdentifier"
+    val caseId = "caseId"
+    val operatorId = "operatorId"
+    val emptyAnswers = UserAnswers("id", operatorId, Some(caseId))
 
-  override protected def nextPageNormalMode(answers: UserAnswers): Call =
-    routes.RegisteredCountryController.onPageLoad(NormalMode, answers.operatorId)
+    "must go to Check Answers" in {
+
+      AddressPage.nextPage(caseId, emptyAnswers).mustEqual(routes.CheckYourAnswersController.onPageLoad(operatorId, caseId))
+    }
+  }
 }

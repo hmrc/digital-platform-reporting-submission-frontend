@@ -57,9 +57,8 @@ class CheckYourAnswersController @Inject()(
             TaxResidencyCountrySummary.row(caseId, request.userAnswers),
             HasInternationalTaxIdentifierSummary.row(caseId, request.userAnswers),
             InternationalTaxIdentifierSummary.row(caseId, request.userAnswers),
-            RegisteredInUkSummary.row(caseId, request.userAnswers),
-            UkAddressSummary.row(caseId, request.userAnswers),
-            InternationalAddressSummary.row(caseId, request.userAnswers),
+            RegisteredCountrySummary.row(caseId, request.userAnswers),
+            AddressSummary.row(caseId, request.userAnswers),
             ReportingPeriodSummary.row(caseId, request.userAnswers),
           ).flatten
         )

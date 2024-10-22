@@ -14,19 +14,17 @@
  * limitations under the License.
  */
 
-package pages.assumed.create
+package pages.assumed.update
 
-import controllers.assumed.create.routes
-import models.{NormalMode, UserAnswers}
+import controllers.assumed.update.routes
+import models.{UkAddress, UserAnswers}
 import play.api.libs.json.JsPath
 import play.api.mvc.Call
 
-case object UkTaxIdentifierPage extends AssumedReportingQuestionPage[String] {
+case object AddressPage extends AssumedReportingUpdateQuestionPage[String] {
 
   override def path: JsPath = JsPath \ toString
 
-  override def toString: String = "ukTaxIdentifier"
+  override def toString: String = "address"
 
-  override protected def nextPageNormalMode(answers: UserAnswers): Call =
-    routes.RegisteredCountryController.onPageLoad(NormalMode, answers.operatorId)
 }

@@ -18,8 +18,8 @@ package services
 
 import models.operator.TinDetails
 import models.operator.TinType.Other
-import models.submission.{AssumedReportingSubmissionRequest, AssumingOperatorAddress, AssumingPlatformOperator}
-import models.{Country, InternationalAddress, UkAddress, UkTaxIdentifiers, UserAnswers}
+import models.submission.{AssumedReportingSubmissionRequest, AssumingPlatformOperator}
+import models.{Country,  UkTaxIdentifiers, UserAnswers}
 import org.scalatest.{EitherValues, TryValues}
 import org.scalatest.freespec.AnyFreeSpec
 import org.scalatest.matchers.must.Matchers
@@ -53,14 +53,8 @@ class UserAnswersServiceSpec
               issuedBy = "GB"
             )
           ),
-          address = AssumingOperatorAddress(
-            line1 = "line1",
-            line2 = Some("line2"),
-            city = "city",
-            region = Some("region"),
-            postCode = "postcode",
-            country = "GB"
-          )
+          registeredCountry = "US",
+          address = "address"
         ),
         reportingPeriod = Year.of(2024)
       )
@@ -71,8 +65,8 @@ class UserAnswersServiceSpec
         .set(TaxResidentInUkPage, true).success.value
         .set(HasUkTaxIdentifierPage, true).success.value
         .set(UkTaxIdentifierPage, "tin1").success.value
-        .set(RegisteredInUkPage, true).success.value
-        .set(UkAddressPage, UkAddress(line1 = "line1", line2 = Some("line2"), town = "city", county = Some("region"), postCode = "postcode", country = Country("GB", "United Kingdom"))).success.value
+        .set(RegisteredCountryPage, Country("US", "United States")).success.value
+        .set(AddressPage, "address").success.value
 
       val result = userAnswersService.toAssumedReportingSubmissionRequest(answers).value
       result mustEqual expectedRequest
@@ -86,14 +80,8 @@ class UserAnswersServiceSpec
           name = "assumingOperator",
           residentCountry = "GB",
           tinDetails = Seq.empty,
-          address = AssumingOperatorAddress(
-            line1 = "line1",
-            line2 = None,
-            city = "city",
-            region = None,
-            postCode = "postcode",
-            country = "GB"
-          )
+          registeredCountry = "US",
+          address = "address"
         ),
         reportingPeriod = Year.of(2024)
       )
@@ -103,8 +91,8 @@ class UserAnswersServiceSpec
         .set(ReportingPeriodPage, 2024).success.value
         .set(TaxResidentInUkPage, true).success.value
         .set(HasUkTaxIdentifierPage, false).success.value
-        .set(RegisteredInUkPage, true).success.value
-        .set(UkAddressPage, UkAddress(line1 = "line1", line2 = None, town = "city", county = None, postCode = "postcode", country = Country("GB", "United Kingdom"))).success.value
+        .set(RegisteredCountryPage, Country("US", "UnitedStates")).success.value
+        .set(AddressPage, "address").success.value
 
       val result = userAnswersService.toAssumedReportingSubmissionRequest(answers).value
       result mustEqual expectedRequest
@@ -124,14 +112,8 @@ class UserAnswersServiceSpec
               issuedBy = "US"
             )
           ),
-          address = AssumingOperatorAddress(
-            line1 = "line1",
-            line2 = Some("line2"),
-            city = "city",
-            region = Some("region"),
-            postCode = "postcode",
-            country = "US"
-          )
+          registeredCountry = "GB",
+          address = "address"
         ),
         reportingPeriod = Year.of(2024)
       )
@@ -143,8 +125,8 @@ class UserAnswersServiceSpec
         .set(TaxResidencyCountryPage, Country("US", "United States")).success.value
         .set(HasInternationalTaxIdentifierPage, true).success.value
         .set(InternationalTaxIdentifierPage, "tin").success.value
-        .set(RegisteredInUkPage, false).success.value
-        .set(InternationalAddressPage, InternationalAddress(line1 = "line1", line2 = Some("line2"), city = "city", region = Some("region"), postal = "postcode", country = Country("US", "United States"))).success.value
+        .set(RegisteredCountryPage, Country("GB", "United Kingdom")).success.value
+        .set(AddressPage, "address").success.value
 
       val result = userAnswersService.toAssumedReportingSubmissionRequest(answers).value
       result mustEqual expectedRequest
@@ -158,14 +140,8 @@ class UserAnswersServiceSpec
           name = "assumingOperator",
           residentCountry = "US",
           tinDetails = Seq.empty,
-          address = AssumingOperatorAddress(
-            line1 = "line1",
-            line2 = None,
-            city = "city",
-            region = None,
-            postCode = "postcode",
-            country = "US"
-          )
+          registeredCountry = "GB",
+          address = "address"
         ),
         reportingPeriod = Year.of(2024)
       )
@@ -176,8 +152,8 @@ class UserAnswersServiceSpec
         .set(TaxResidentInUkPage, false).success.value
         .set(TaxResidencyCountryPage, Country("US", "United States")).success.value
         .set(HasInternationalTaxIdentifierPage, false).success.value
-        .set(RegisteredInUkPage, false).success.value
-        .set(InternationalAddressPage, InternationalAddress(line1 = "line1", line2 = None, city = "city", region = None, postal = "postcode", country = Country("US", "United States"))).success.value
+        .set(RegisteredCountryPage, Country("GB", "United Kingdom")).success.value
+        .set(AddressPage, "address").success.value
 
       val result = userAnswersService.toAssumedReportingSubmissionRequest(answers).value
       result mustEqual expectedRequest

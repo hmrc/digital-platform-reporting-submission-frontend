@@ -36,10 +36,10 @@ class HasUkTaxIdentifierPageSpec extends AnyFreeSpec with Matchers with TryValue
         HasUkTaxIdentifierPage.nextPage(NormalMode, answers) mustEqual routes.UkTaxIdentifierController.onPageLoad(NormalMode, "operatorId")
       }
 
-      "must go to Registered in UK when the answer is no" in {
+      "must go to Registered country when the answer is no" in {
 
         val answers = emptyAnswers.set(HasUkTaxIdentifierPage, false).success.value
-        HasUkTaxIdentifierPage.nextPage(NormalMode, answers) mustEqual routes.RegisteredInUkController.onPageLoad(NormalMode, "operatorId")
+        HasUkTaxIdentifierPage.nextPage(NormalMode, answers) mustEqual routes.RegisteredCountryController.onPageLoad(NormalMode, "operatorId")
       }
     }
 

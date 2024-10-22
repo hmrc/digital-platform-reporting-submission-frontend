@@ -17,16 +17,19 @@
 package pages.assumed.create
 
 import controllers.assumed.create.routes
-import models.{NormalMode, UserAnswers}
+import controllers.routes as baseRoutes
+import models.{CheckMode, Country, NormalMode, UserAnswers}
 import play.api.libs.json.JsPath
 import play.api.mvc.Call
 
-case object UkTaxIdentifierPage extends AssumedReportingQuestionPage[String] {
+import scala.util.Try
+
+case object RegisteredCountryPage extends AssumedReportingQuestionPage[Country] {
 
   override def path: JsPath = JsPath \ toString
 
-  override def toString: String = "ukTaxIdentifier"
+  override def toString: String = "registeredCountry"
 
   override protected def nextPageNormalMode(answers: UserAnswers): Call =
-    routes.RegisteredCountryController.onPageLoad(NormalMode, answers.operatorId)
+    routes.AddressController.onPageLoad(NormalMode, answers.operatorId)
 }

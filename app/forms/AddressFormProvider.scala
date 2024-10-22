@@ -14,19 +14,22 @@
  * limitations under the License.
  */
 
-package pages.assumed.create
+package forms
 
-import controllers.assumed.create.routes
-import models.{NormalMode, UserAnswers}
-import play.api.libs.json.JsPath
-import play.api.mvc.Call
+import forms.mappings.Mappings
+import models.{Country, UkAddress}
+import play.api.data.Form
+import play.api.data.Forms._
 
-case object UkTaxIdentifierPage extends AssumedReportingQuestionPage[String] {
+import javax.inject.Inject
 
-  override def path: JsPath = JsPath \ toString
+class AddressFormProvider @Inject() extends Mappings {
 
-  override def toString: String = "ukTaxIdentifier"
-
-  override protected def nextPageNormalMode(answers: UserAnswers): Call =
-    routes.RegisteredCountryController.onPageLoad(NormalMode, answers.operatorId)
+  def apply(assumingOperatorName: String): Form[String] = Form(
+    "value" -> text("address.error.required", args = Seq(assumingOperatorName))
+      .verifying(firstError(
+        maxLength(500, "address.error.length"), // TODO: Check length
+        regexp(Validation.textInputPattern.toString, "address.error.format") // TODO: Check line breaks
+      ))
+  )
 }

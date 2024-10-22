@@ -21,17 +21,18 @@ import models.{CheckMode, NormalMode, UserAnswers}
 import org.scalatest.freespec.AnyFreeSpec
 import org.scalatest.matchers.must.Matchers
 
-class UkTaxIdentifierPageSpec extends AnyFreeSpec with Matchers {
+
+class RegisteredCountryPageSpec extends AnyFreeSpec with Matchers {
+
+  private val emptyAnswers = UserAnswers("id", "operatorId")
 
   ".nextPage" - {
 
-    val emptyAnswers = UserAnswers("id", "operatorId")
-
     "in Normal Mode" - {
 
-      "must go to Registered in UK" in {
+      "must go to Address" in {
 
-        UkTaxIdentifierPage.nextPage(NormalMode, emptyAnswers) mustEqual routes.RegisteredCountryController.onPageLoad(NormalMode, "operatorId")
+        RegisteredCountryPage.nextPage(NormalMode, emptyAnswers) mustEqual routes.AddressController.onPageLoad(NormalMode, "operatorId")
       }
     }
 
@@ -39,7 +40,7 @@ class UkTaxIdentifierPageSpec extends AnyFreeSpec with Matchers {
 
       "must go to Check Answers" in {
 
-        UkTaxIdentifierPage.nextPage(CheckMode, emptyAnswers) mustEqual routes.CheckYourAnswersController.onPageLoad("operatorId")
+        RegisteredCountryPage.nextPage(CheckMode, emptyAnswers) mustEqual routes.CheckYourAnswersController.onPageLoad("operatorId")
       }
     }
   }

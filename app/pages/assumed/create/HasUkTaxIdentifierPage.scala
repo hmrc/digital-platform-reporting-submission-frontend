@@ -33,7 +33,7 @@ case object HasUkTaxIdentifierPage extends AssumedReportingQuestionPage[Boolean]
   override protected def nextPageNormalMode(answers: UserAnswers): Call =
     answers.get(this).map {
       case true => routes.UkTaxIdentifierController.onPageLoad(NormalMode, answers.operatorId)
-      case false => routes.RegisteredInUkController.onPageLoad(NormalMode, answers.operatorId)
+      case false => routes.RegisteredCountryController.onPageLoad(NormalMode, answers.operatorId)
     }.getOrElse(baseRoutes.JourneyRecoveryController.onPageLoad())
 
   override protected def nextPageCheckMode(answers: UserAnswers): Call =

@@ -28,5 +28,5 @@ case object InternationalTaxIdentifierPage extends AssumedReportingQuestionPage[
   override def toString: String = "internationalTaxIdentifier"
 
   override protected def nextPageNormalMode(answers: UserAnswers): Call =
-    routes.RegisteredInUkController.onPageLoad(NormalMode, answers.operatorId)
+    routes.RegisteredCountryController.onPageLoad(NormalMode, answers.operatorId)
 }

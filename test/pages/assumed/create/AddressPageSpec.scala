@@ -17,11 +17,12 @@
 package pages.assumed.create
 
 import controllers.assumed.create.routes
+import controllers.routes as baseRoutes
 import models.{CheckMode, NormalMode, UserAnswers}
 import org.scalatest.freespec.AnyFreeSpec
 import org.scalatest.matchers.must.Matchers
 
-class UkTaxIdentifierPageSpec extends AnyFreeSpec with Matchers {
+class AddressPageSpec extends AnyFreeSpec with Matchers {
 
   ".nextPage" - {
 
@@ -29,9 +30,9 @@ class UkTaxIdentifierPageSpec extends AnyFreeSpec with Matchers {
 
     "in Normal Mode" - {
 
-      "must go to Registered in UK" in {
+      "must go to Check Answers" in {
 
-        UkTaxIdentifierPage.nextPage(NormalMode, emptyAnswers) mustEqual routes.RegisteredCountryController.onPageLoad(NormalMode, "operatorId")
+        AddressPage.nextPage(NormalMode, emptyAnswers) mustEqual routes.CheckYourAnswersController.onPageLoad("operatorId")
       }
     }
 
@@ -39,7 +40,7 @@ class UkTaxIdentifierPageSpec extends AnyFreeSpec with Matchers {
 
       "must go to Check Answers" in {
 
-        UkTaxIdentifierPage.nextPage(CheckMode, emptyAnswers) mustEqual routes.CheckYourAnswersController.onPageLoad("operatorId")
+        AddressPage.nextPage(CheckMode, emptyAnswers) mustEqual routes.CheckYourAnswersController.onPageLoad("operatorId")
       }
     }
   }
