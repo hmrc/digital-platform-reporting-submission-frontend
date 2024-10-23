@@ -63,13 +63,7 @@ class AddressController @Inject()(
       val form = formProvider(assumingOperatorName)
       
       form.bindFromRequest().fold(
-        formWithErrors => {
-          println()
-          println(formWithErrors.data)
-          println()
-          Future.successful(BadRequest(view(formWithErrors, mode, operatorId, assumingOperatorName)))
-        },
-
+        formWithErrors => Future.successful(BadRequest(view(formWithErrors, mode, operatorId, assumingOperatorName))),
         value =>
           for {
             updatedAnswers <- Future.fromTry(request.userAnswers.set(AddressPage, value))
