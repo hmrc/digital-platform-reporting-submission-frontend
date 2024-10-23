@@ -17,7 +17,7 @@
 package viewmodels.checkAnswers.assumed.update
 
 import controllers.assumed.update.routes
-import models.{CheckMode, UserAnswers}
+import models.UserAnswers
 import play.api.i18n.Messages
 import queries.ReportingPeriodQuery
 import uk.gov.hmrc.govukfrontend.views.viewmodels.summarylist.SummaryListRow

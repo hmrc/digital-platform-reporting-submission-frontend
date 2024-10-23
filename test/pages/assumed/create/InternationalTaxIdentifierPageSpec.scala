@@ -31,7 +31,7 @@ class InternationalTaxIdentifierPageSpec extends AnyFreeSpec with Matchers {
 
       "must go to Registered in UK" in {
 
-        InternationalTaxIdentifierPage.nextPage(NormalMode, emptyAnswers) mustEqual routes.RegisteredInUkController.onPageLoad(NormalMode, "operatorId")
+        InternationalTaxIdentifierPage.nextPage(NormalMode, emptyAnswers) mustEqual routes.RegisteredCountryController.onPageLoad(NormalMode, "operatorId")
       }
     }
 

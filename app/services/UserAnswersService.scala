@@ -19,10 +19,9 @@ package services
 import cats.data.{EitherNec, NonEmptyChain}
 import cats.implicits.given
 import com.google.inject.{Inject, Singleton}
-import models.UkTaxIdentifiers.{Chrn, Crn, Empref, Utr, Vrn}
 import models.UserAnswers
 import models.operator.{TinDetails, TinType}
-import models.submission.{AssumedReportingSubmissionRequest, AssumingOperatorAddress, AssumingPlatformOperator}
+import models.submission.{AssumedReportingSubmissionRequest, AssumingPlatformOperator}
 import pages.assumed.create.*
 import queries.{Gettable, Query}
 
@@ -54,7 +53,8 @@ class UserAnswersService @Inject() () {
       answers.getEither(AssumingOperatorNamePage),
       getResidentialCountry(answers),
       getTinDetails(answers),
-      getAddress(answers)
+      answers.getEither(RegisteredCountryPage).map(_.code),
+      answers.getEither(AddressPage)
     ).parMapN(AssumingPlatformOperator.apply)
 
   private def getResidentialCountry(answers: UserAnswers): EitherNec[Query, String] =
@@ -80,23 +80,12 @@ class UserAnswersService @Inject() () {
     }
 
   private def getUkTinDetails(answers: UserAnswers): EitherNec[Query, Seq[TinDetails]] =
-    answers.getEither(UkTaxIdentifiersPage).flatMap { tins =>
-      tins.toSeq.traverse {
-        case Utr => getUkTaxIdentifier(answers, UtrPage, TinType.Utr)
-        case Crn => getUkTaxIdentifier(answers, CrnPage, TinType.Crn)
-        case Vrn => getUkTaxIdentifier(answers, VrnPage, TinType.Vrn)
-        case Empref => getUkTaxIdentifier(answers, EmprefPage, TinType.Empref)
-        case Chrn => getUkTaxIdentifier(answers, ChrnPage, TinType.Chrn)
-      }
-    }
-
-  private def getUkTaxIdentifier(answers: UserAnswers, query: Gettable[String], tinType: TinType): EitherNec[Query, TinDetails] =
-    answers.getEither(query).map { value =>
-      TinDetails(
+    answers.getEither(UkTaxIdentifierPage).map { value =>
+      Seq(TinDetails(
         tin = value,
-        tinType = tinType,
+        tinType = TinType.Other,
         issuedBy = "GB"
-      )
+      ))
     }
 
   private def getInternationalTinDetails(answers: UserAnswers): EitherNec[Query, Seq[TinDetails]] =
@@ -109,38 +98,6 @@ class UserAnswersService @Inject() () {
         tinType = TinType.Other,
         issuedBy = country.code
       ))
-    }
-
-  private def getAddress(answers: UserAnswers): EitherNec[Query, AssumingOperatorAddress] =
-    answers.getEither(RegisteredInUkPage).flatMap {
-      case true =>
-        getUkAddress(answers)
-      case false =>
-        getInternationalAddress(answers)
-    }
-
-  private def getUkAddress(answers: UserAnswers): EitherNec[Query, AssumingOperatorAddress] =
-    answers.getEither(UkAddressPage).map { address =>
-      AssumingOperatorAddress(
-        line1 = address.line1,
-        line2 = address.line2,
-        city = address.town,
-        region = address.county,
-        postCode = address.postCode,
-        country = address.country.code
-      )
-    }
-
-  private def getInternationalAddress(answers: UserAnswers): EitherNec[Query, AssumingOperatorAddress] =
-    answers.getEither(InternationalAddressPage).map { address =>
-      AssumingOperatorAddress(
-        line1 = address.line1,
-        line2 = address.line2,
-        city = address.city,
-        region = address.region,
-        postCode = address.postal,
-        country = address.country.code
-      )
     }
 }
 

@@ -21,7 +21,7 @@ import cats.data.NonEmptyChain
 import connectors.SubmissionConnector
 import controllers.routes as baseRoutes
 import models.submission.Submission.State.Submitted
-import models.submission.{AssumedReportingSubmissionRequest, AssumingOperatorAddress, AssumingPlatformOperator, Submission}
+import models.submission.{AssumedReportingSubmissionRequest, AssumingPlatformOperator, Submission}
 import org.apache.pekko.Done
 import org.mockito.ArgumentMatchers.{any, eq as eqTo}
 import org.mockito.Mockito
@@ -97,14 +97,8 @@ class CheckYourAnswersControllerSpec extends SpecBase with SummaryListFluency wi
             name = "assumingOperator",
             residentCountry = "GB",
             tinDetails = Seq.empty,
-            address = AssumingOperatorAddress(
-              line1 = "line1",
-              line2 = None,
-              city = "city",
-              region = None,
-              postCode = "postcode",
-              country = "GB"
-            )
+            registeredCountry = "GB",
+            address = "address"
           ),
           reportingPeriod = Year.of(2024)
         )
