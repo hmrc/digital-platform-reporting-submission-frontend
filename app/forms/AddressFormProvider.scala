@@ -17,9 +17,7 @@
 package forms
 
 import forms.mappings.Mappings
-import models.{Country, UkAddress}
 import play.api.data.Form
-import play.api.data.Forms._
 
 import javax.inject.Inject
 
@@ -28,8 +26,8 @@ class AddressFormProvider @Inject() extends Mappings {
   def apply(assumingOperatorName: String): Form[String] = Form(
     "value" -> text("address.error.required", args = Seq(assumingOperatorName))
       .verifying(firstError(
-        maxLength(500, "address.error.length"), // TODO: Check length
-        regexp(Validation.textInputPattern.toString, "address.error.format") // TODO: Check line breaks
+        maxLength(500, "address.error.length"),
+        regexp(Validation.addressInputPattern.toString, "address.error.format")
       ))
   )
 }

@@ -34,8 +34,7 @@ object AddressSummary  {
       assumingOperatorName <- answers.get(AssumingOperatorNamePage)
     } yield {
 
-      // TODO: Format properly
-      val value = answer
+      val value = answer.split("\r\n").map(HtmlFormat.escape(_).toString).mkString("<br/>")
 
       SummaryListRowViewModel(
         key     = messages("address.checkYourAnswersLabel", assumingOperatorName),

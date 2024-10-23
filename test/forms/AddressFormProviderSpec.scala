@@ -17,8 +17,6 @@
 package forms
 
 import forms.behaviours.StringFieldBehaviours
-import models.Country
-import org.scalacheck.Gen
 import play.api.data.FormError
 
 class AddressFormProviderSpec extends StringFieldBehaviours {
@@ -37,14 +35,14 @@ class AddressFormProviderSpec extends StringFieldBehaviours {
     behave like fieldThatBindsValidData(
       form,
       fieldName,
-      safeTextInputsWithMaxLength(maxLength)
+      safeAddressInputsWithMaxLength(maxLength)
     )
 
     behave like fieldThatDoesNotBindInvalidData(
       form,
       fieldName,
       unsafeTextInputsWithMaxLength(maxLength),
-      FormError(fieldName, formatKey, Seq(Validation.textInputPattern.toString))
+      FormError(fieldName, formatKey, Seq(Validation.addressInputPattern.toString))
     )
 
     behave like fieldWithMaxLength(
