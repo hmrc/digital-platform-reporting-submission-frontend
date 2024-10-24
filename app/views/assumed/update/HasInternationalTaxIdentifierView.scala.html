@@ -24,11 +24,11 @@
     govukButton: GovukButton
 )
 
-@(form: Form[_], operatorId: String, caseId: String, assumingOperatorName: String, country: Country)(implicit request: Request[_], messages: Messages)
+@(form: Form[_], operatorId: String, reportingPeriod: String, assumingOperatorName: String, country: Country)(implicit request: Request[_], messages: Messages)
 
 @layout(pageTitle = title(form, messages("hasInternationalTaxIdentifier.title", country.name))) {
 
-    @formHelper(action = routes.HasInternationalTaxIdentifierController.onSubmit(operatorId, caseId), Symbol("autoComplete") -> "off") {
+    @formHelper(action = routes.HasInternationalTaxIdentifierController.onSubmit(operatorId, reportingPeriod), Symbol("autoComplete") -> "off") {
 
         @if(form.errors.nonEmpty) {
             @govukErrorSummary(ErrorSummaryViewModel(form))

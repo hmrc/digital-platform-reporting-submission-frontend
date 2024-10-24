@@ -34,12 +34,12 @@ import scala.concurrent.Future
 
 class RegisteredCountryControllerSpec extends SpecBase with MockitoSugar {
 
-  private val caseId = "caseId"
+  private val reportingPeriod = "reportingPeriod"
   private val formProvider = new RegisteredCountryFormProvider()
   private val assumingOperatorName = "name"
-  private val baseAnswers = emptyUserAnswers.copy(caseId = Some(caseId)).set(AssumingOperatorNamePage, assumingOperatorName).success.value
+  private val baseAnswers = emptyUserAnswers.copy(reportingPeriod = Some(reportingPeriod)).set(AssumingOperatorNamePage, assumingOperatorName).success.value
 
-  private lazy val registeredCountryRoute = routes.RegisteredCountryController.onPageLoad(operatorId, caseId).url
+  private lazy val registeredCountryRoute = routes.RegisteredCountryController.onPageLoad(operatorId, reportingPeriod).url
 
   "RegisteredCountry Controller" - {
 
@@ -56,7 +56,7 @@ class RegisteredCountryControllerSpec extends SpecBase with MockitoSugar {
         val form = formProvider(assumingOperatorName)(messages(application))
         
         status(result) mustEqual OK
-        contentAsString(result) mustEqual view(form, operatorId, caseId, assumingOperatorName)(request, messages(application)).toString
+        contentAsString(result) mustEqual view(form, operatorId, reportingPeriod, assumingOperatorName)(request, messages(application)).toString
       }
     }
 
@@ -75,7 +75,7 @@ class RegisteredCountryControllerSpec extends SpecBase with MockitoSugar {
         val result = route(application, request).value
 
         status(result) mustEqual OK
-        contentAsString(result) mustEqual view(form.fill(Country.allCountries.head), operatorId, caseId, assumingOperatorName)(request, messages(application)).toString
+        contentAsString(result) mustEqual view(form.fill(Country.allCountries.head), operatorId, reportingPeriod, assumingOperatorName)(request, messages(application)).toString
       }
     }
 
@@ -101,7 +101,7 @@ class RegisteredCountryControllerSpec extends SpecBase with MockitoSugar {
         val answers = baseAnswers.set(RegisteredCountryPage, Country.allCountries.head).success.value
 
         status(result) mustEqual SEE_OTHER
-        redirectLocation(result).value mustEqual RegisteredCountryPage.nextPage(caseId, answers).url
+        redirectLocation(result).value mustEqual RegisteredCountryPage.nextPage(reportingPeriod, answers).url
       }
     }
 
@@ -121,7 +121,7 @@ class RegisteredCountryControllerSpec extends SpecBase with MockitoSugar {
         val result = route(application, request).value
 
         status(result) mustEqual BAD_REQUEST
-        contentAsString(result) mustEqual view(boundForm, operatorId, caseId, assumingOperatorName)(request, messages(application)).toString
+        contentAsString(result) mustEqual view(boundForm, operatorId, reportingPeriod, assumingOperatorName)(request, messages(application)).toString
       }
     }
 

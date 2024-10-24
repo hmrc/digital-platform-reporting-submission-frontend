@@ -23,15 +23,15 @@ import org.scalatest.matchers.must.Matchers
 
 class RegisteredCountryPageSpec extends AnyFreeSpec with Matchers {
 
-  private val caseId = "caseId"
+  private val reportingPeriod = "reportingPeriod"
   private val operatorId = "operatorId"
-  private val emptyAnswers = UserAnswers("id", operatorId, Some(caseId))
+  private val emptyAnswers = UserAnswers("id", operatorId, Some(reportingPeriod))
   
   ".nextPage" - {
     
     "must go to Check Answers" - {
 
-      RegisteredCountryPage.nextPage(caseId, emptyAnswers).mustEqual(routes.CheckYourAnswersController.onPageLoad(operatorId, caseId))
+      RegisteredCountryPage.nextPage(reportingPeriod, emptyAnswers).mustEqual(routes.CheckYourAnswersController.onPageLoad(operatorId, reportingPeriod))
     }
   }
 }

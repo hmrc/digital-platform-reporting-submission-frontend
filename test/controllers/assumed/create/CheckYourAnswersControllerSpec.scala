@@ -138,7 +138,7 @@ class CheckYourAnswersControllerSpec extends SpecBase with SummaryListFluency wi
 
         verify(mockUserAnswersService).toAssumedReportingSubmissionRequest(eqTo(answers))
         verify(mockSubmissionConnector).submitAssumedReporting(eqTo(assumedReportingSubmissionRequest))(using any())
-        verify(mockSessionRepository).clear(answers.userId, answers.operatorId, answers.caseId)
+        verify(mockSessionRepository).clear(answers.userId, answers.operatorId, answers.reportingPeriod)
       }
 
       "must fail if a request cannot be created from the user answers" in {

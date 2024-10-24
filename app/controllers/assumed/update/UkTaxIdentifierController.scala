@@ -42,8 +42,8 @@ class UkTaxIdentifierController @Inject()(
                                          )(implicit ec: ExecutionContext)
   extends FrontendBaseController with I18nSupport with AnswerExtractor {
 
-  def onPageLoad(operatorId: String, caseId: String): Action[AnyContent] =
-    (identify andThen getData(operatorId, Some(caseId)) andThen requireData) { implicit request =>
+  def onPageLoad(operatorId: String, reportingPeriod: String): Action[AnyContent] =
+    (identify andThen getData(operatorId, Some(reportingPeriod)) andThen requireData) { implicit request =>
       getAnswer(AssumingOperatorNamePage) { assumingOperatorName =>
   
         val form = formProvider(assumingOperatorName)
@@ -53,25 +53,25 @@ class UkTaxIdentifierController @Inject()(
           case Some(value) => form.fill(value)
         }
   
-        Ok(view(preparedForm, operatorId, caseId, assumingOperatorName))
+        Ok(view(preparedForm, operatorId, reportingPeriod, assumingOperatorName))
       }
     }
 
-  def onSubmit(operatorId: String, caseId: String): Action[AnyContent] =
-    (identify andThen getData(operatorId, Some(caseId)) andThen requireData).async { implicit request =>
+  def onSubmit(operatorId: String, reportingPeriod: String): Action[AnyContent] =
+    (identify andThen getData(operatorId, Some(reportingPeriod)) andThen requireData).async { implicit request =>
       getAnswerAsync(AssumingOperatorNamePage) { assumingOperatorName =>
   
         val form = formProvider(assumingOperatorName)
         
         form.bindFromRequest().fold(
           formWithErrors =>
-            Future.successful(BadRequest(view(formWithErrors, operatorId, caseId, assumingOperatorName))),
+            Future.successful(BadRequest(view(formWithErrors, operatorId, reportingPeriod, assumingOperatorName))),
   
           value =>
             for {
               updatedAnswers <- Future.fromTry(request.userAnswers.set(UkTaxIdentifierPage, value))
               _ <- sessionRepository.set(updatedAnswers)
-            } yield Redirect(UkTaxIdentifierPage.nextPage(caseId, updatedAnswers))
+            } yield Redirect(UkTaxIdentifierPage.nextPage(reportingPeriod, updatedAnswers))
         )
       }
     }

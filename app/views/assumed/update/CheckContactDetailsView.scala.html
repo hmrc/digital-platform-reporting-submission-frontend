@@ -26,11 +26,11 @@
         govukButton: GovukButton
 )
 
-@(form: Form[?], summaryList: SummaryList, operatorId: String, caseId: String)(implicit request: Request[_], messages: Messages)
+@(form: Form[?], summaryList: SummaryList, operatorId: String, reportingPeriod: String)(implicit request: Request[_], messages: Messages)
 
 @layout(pageTitle = titleNoForm(messages("checkContactDetails.title"))) {
 
-    @formHelper(action = routes.CheckContactDetailsController.onSubmit(operatorId, caseId), Symbol("autoComplete") -> "off") {
+    @formHelper(action = routes.CheckContactDetailsController.onSubmit(operatorId, reportingPeriod), Symbol("autoComplete") -> "off") {
 
         @if(form.errors.nonEmpty) {
             @govukErrorSummary(ErrorSummaryViewModel(form))

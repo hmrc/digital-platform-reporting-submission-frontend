@@ -34,6 +34,6 @@ class FakeDataRetrievalAction(dataToReturn: Option[UserAnswers])
 class FakeDataRetrievalActionProvider(dataToReturn: Option[UserAnswers])
   extends DataRetrievalActionProvider(mock[SessionRepository]) {
 
-  override def apply(operatorId: String, caseId: Option[String]): DataRetrievalAction =
+  override def apply(operatorId: String, reportingPeriod: Option[String]): DataRetrievalAction =
     new FakeDataRetrievalAction(dataToReturn)
 }

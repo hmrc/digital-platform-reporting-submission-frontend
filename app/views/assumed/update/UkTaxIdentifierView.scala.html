@@ -25,20 +25,24 @@
     govukButton: GovukButton
 )
 
-@(form: Form[_], operatorId: String, caseId: String, assumingOperatorName: String)(implicit request: Request[_], messages: Messages)
+@(form: Form[_], operatorId: String, reportingPeriod: String, assumingOperatorName: String)(implicit request: Request[_], messages: Messages)
 
 @layout(pageTitle = title(form, messages("ukTaxIdentifier.title"))) {
 
-    @formHelper(action = routes.UkTaxIdentifierController.onSubmit(operatorId, caseId)) {
+    @formHelper(action = routes.UkTaxIdentifierController.onSubmit(operatorId, reportingPeriod)) {
 
         @if(form.errors.nonEmpty) {
             @govukErrorSummary(ErrorSummaryViewModel(form))
         }
 
+        <h1 class="govuk-heading-xl">@messages("ukTaxIdentifier.heading", assumingOperatorName)</h1>
+
+        <p class="govuk-body">@messages("ukTaxIdentifier.p1")</p>
+
         @govukInput(
             InputViewModel(
                 field = form("value"),
-                label = LabelViewModel(messages("ukTaxIdentifier.heading", assumingOperatorName)).asPageHeading()
+                label = LabelViewModel(messages("ukTaxIdentifier.heading", assumingOperatorName)).visuallyHidden()
             )
             .withWidth(Fixed10)
         )

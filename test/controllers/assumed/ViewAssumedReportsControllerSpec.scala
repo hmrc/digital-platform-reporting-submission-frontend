@@ -62,7 +62,7 @@ class ViewAssumedReportsControllerSpec extends SpecBase with MockitoSugar with B
         submissionDateTime = now,
         submissionStatus = SubmissionStatus.Success,
         assumingReporterName = Some("name"),
-        submissionCaseId = Some("caseId1")
+        submissionCaseId = Some("reportingPeriod1")
       )
       val submissionSummary2 = SubmissionSummary(
         submissionId = "submissionId2",
@@ -73,7 +73,7 @@ class ViewAssumedReportsControllerSpec extends SpecBase with MockitoSugar with B
         submissionDateTime = now,
         submissionStatus = SubmissionStatus.Success,
         assumingReporterName = Some("name"),
-        submissionCaseId = Some("caseId1")
+        submissionCaseId = Some("reportingPeriod1")
       )
       val submissionSummary3 = SubmissionSummary(
         submissionId = "submissionId3",

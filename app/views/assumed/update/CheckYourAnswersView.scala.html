@@ -21,7 +21,7 @@
         govukButton: GovukButton
 )
 
-@(list: SummaryList, operatorId: String, caseId: String)(implicit request: Request[_], messages: Messages)
+@(list: SummaryList, operatorId: String, reportingPeriod: String)(implicit request: Request[_], messages: Messages)
 
 @layout(pageTitle = titleNoForm(messages("checkYourAnswers.update.title"))) {
 
@@ -31,7 +31,7 @@
 
   <p class="govuk-body">@messages("checkYourAnswers.update.p1")</p>
 
-  @formHelper(action = controllers.assumed.update.routes.CheckYourAnswersController.onSubmit(operatorId, caseId)) {
+  @formHelper(action = controllers.assumed.update.routes.CheckYourAnswersController.onSubmit(operatorId, reportingPeriod)) {
     @govukButton(
       ButtonViewModel(messages("checkYourAnswers.update.confirm")).preventingDoubleClick()
     )

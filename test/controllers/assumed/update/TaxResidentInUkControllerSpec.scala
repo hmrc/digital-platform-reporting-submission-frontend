@@ -34,13 +34,13 @@ import scala.concurrent.Future
 
 class TaxResidentInUkControllerSpec extends SpecBase with MockitoSugar {
 
-  private val caseId = "caseId"
+  private val reportingPeriod = "reportingPeriod"
   private val formProvider = new TaxResidentInUkFormProvider()
   private val assumingOperatorName = "name"
   private val form = formProvider(assumingOperatorName)
-  private val baseAnswers = emptyUserAnswers.copy(caseId = Some(caseId)).set(AssumingOperatorNamePage, assumingOperatorName).success.value
+  private val baseAnswers = emptyUserAnswers.copy(reportingPeriod = Some(reportingPeriod)).set(AssumingOperatorNamePage, assumingOperatorName).success.value
 
-  lazy val taxResidentInUkRoute = routes.TaxResidentInUkController.onPageLoad(operatorId, caseId).url
+  lazy val taxResidentInUkRoute = routes.TaxResidentInUkController.onPageLoad(operatorId, reportingPeriod).url
 
   "TaxResidentInUk Controller" - {
 
@@ -56,7 +56,7 @@ class TaxResidentInUkControllerSpec extends SpecBase with MockitoSugar {
         val view = application.injector.instanceOf[TaxResidentInUkView]
 
         status(result) mustEqual OK
-        contentAsString(result) mustEqual view(form, operatorId, caseId, assumingOperatorName)(request, messages(application)).toString
+        contentAsString(result) mustEqual view(form, operatorId, reportingPeriod, assumingOperatorName)(request, messages(application)).toString
       }
     }
 
@@ -74,7 +74,7 @@ class TaxResidentInUkControllerSpec extends SpecBase with MockitoSugar {
         val result = route(application, request).value
 
         status(result) mustEqual OK
-        contentAsString(result) mustEqual view(form.fill(true), operatorId, caseId, assumingOperatorName)(request, messages(application)).toString
+        contentAsString(result) mustEqual view(form.fill(true), operatorId, reportingPeriod, assumingOperatorName)(request, messages(application)).toString
       }
     }
 
@@ -100,7 +100,7 @@ class TaxResidentInUkControllerSpec extends SpecBase with MockitoSugar {
         val answers = baseAnswers.set(TaxResidentInUkPage, true).success.value
 
         status(result) mustEqual SEE_OTHER
-        redirectLocation(result).value mustEqual TaxResidentInUkPage.nextPage(caseId, answers).url
+        redirectLocation(result).value mustEqual TaxResidentInUkPage.nextPage(reportingPeriod, answers).url
       }
     }
 
@@ -120,7 +120,7 @@ class TaxResidentInUkControllerSpec extends SpecBase with MockitoSugar {
         val result = route(application, request).value
 
         status(result) mustEqual BAD_REQUEST
-        contentAsString(result) mustEqual view(boundForm, operatorId, caseId, assumingOperatorName)(request, messages(application)).toString
+        contentAsString(result) mustEqual view(boundForm, operatorId, reportingPeriod, assumingOperatorName)(request, messages(application)).toString
       }
     }
 

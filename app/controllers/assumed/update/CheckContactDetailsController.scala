@@ -45,17 +45,17 @@ class CheckContactDetailsController @Inject()(
                                                sessionRepository: SessionRepository
                                              )(implicit ec: ExecutionContext) extends FrontendBaseController with I18nSupport {
 
-  def onPageLoad(operatorId: String, caseId: String): Action[AnyContent] =
-    (identify andThen getData(operatorId, Some(caseId)) andThen requireData).async {
+  def onPageLoad(operatorId: String, reportingPeriod: String): Action[AnyContent] =
+    (identify andThen getData(operatorId, Some(reportingPeriod)) andThen requireData).async {
       implicit request =>
         connector.getSubscription.map { subscriptionInfo =>
           val list = summaryList(subscriptionInfo)
           val form = formProvider()
-          Ok(view(form, list, operatorId, caseId))
+          Ok(view(form, list, operatorId, reportingPeriod))
         }
     }
 
-  def onSubmit(operatorId: String, caseId: String): Action[AnyContent] = (identify andThen getData(operatorId, Some(caseId)) andThen requireData).async {
+  def onSubmit(operatorId: String, reportingPeriod: String): Action[AnyContent] = (identify andThen getData(operatorId, Some(reportingPeriod)) andThen requireData).async {
     implicit request =>
       
       val form = formProvider()
@@ -64,13 +64,13 @@ class CheckContactDetailsController @Inject()(
         formWithErrors => {
           connector.getSubscription.map { subscriptionInfo =>
             val list = summaryList(subscriptionInfo)
-            BadRequest(view(formWithErrors, list, operatorId, caseId))
+            BadRequest(view(formWithErrors, list, operatorId, reportingPeriod))
           }
         },
         answer => for {
           updatedAnswers <- Future.fromTry(request.userAnswers.set(page, answer))
           _              <- sessionRepository.set(updatedAnswers)
-        } yield Redirect(page.nextPage(caseId, updatedAnswers))
+        } yield Redirect(page.nextPage(reportingPeriod, updatedAnswers))
       )
   }
 

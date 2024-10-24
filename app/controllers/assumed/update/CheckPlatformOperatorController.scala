@@ -47,8 +47,8 @@ class CheckPlatformOperatorController @Inject()(
                                                  view: CheckPlatformOperatorView
                                                )(implicit ec: ExecutionContext) extends FrontendBaseController with I18nSupport {
 
-  def onPageLoad(operatorId: String, caseId: String): Action[AnyContent] =
-    (identify andThen getData(operatorId, Some(caseId)) andThen requireData).async {
+  def onPageLoad(operatorId: String, reportingPeriod: String): Action[AnyContent] =
+    (identify andThen getData(operatorId, Some(reportingPeriod)) andThen requireData).async {
       implicit request =>
         connector.viewPlatformOperator(operatorId).map { operator =>
     
@@ -60,14 +60,14 @@ class CheckPlatformOperatorController @Inject()(
             primaryContactList(operator),
             secondaryContactList(operator),
             operator.operatorId,
-            caseId,
+            reportingPeriod,
             operator.operatorName
           ))
         }
     }
   
-  def onSubmit(operatorId: String, caseId: String): Action[AnyContent] =
-    (identify andThen getData(operatorId, Some(caseId)) andThen requireData).async {
+  def onSubmit(operatorId: String, reportingPeriod: String): Action[AnyContent] =
+    (identify andThen getData(operatorId, Some(reportingPeriod)) andThen requireData).async {
       implicit request =>
   
         val form = formProvider()
@@ -81,7 +81,7 @@ class CheckPlatformOperatorController @Inject()(
                 primaryContactList(operator),
                 secondaryContactList(operator),
                 operator.operatorId,
-                caseId,
+                reportingPeriod,
                 operator.operatorName
               ))
             }
@@ -90,7 +90,7 @@ class CheckPlatformOperatorController @Inject()(
             for {
               updatedAnswers <- Future.fromTry(request.userAnswers.set(checkPlatformOperatorPage, answer))
               _              <- sessionRepository.set(updatedAnswers)
-            } yield Redirect(checkPlatformOperatorPage.nextPage(caseId, updatedAnswers))
+            } yield Redirect(checkPlatformOperatorPage.nextPage(reportingPeriod, updatedAnswers))
         )
     }
   

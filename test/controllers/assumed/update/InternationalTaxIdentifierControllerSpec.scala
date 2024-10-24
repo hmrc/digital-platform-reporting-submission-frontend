@@ -34,13 +34,13 @@ import scala.concurrent.Future
 
 class InternationalTaxIdentifierControllerSpec extends SpecBase with MockitoSugar {
 
-  private val caseId = "caseId"
+  private val reportingPeriod = "reportingPeriod"
   private val formProvider = new InternationalTaxIdentifierFormProvider()
   private val country = Country.internationalCountries.head
   private val form = formProvider(country)
   private val baseAnswers = emptyUserAnswers.set(TaxResidencyCountryPage, country).success.value
 
-  lazy val internationalTaxIdentifierRoute = routes.InternationalTaxIdentifierController.onPageLoad(operatorId, caseId).url
+  lazy val internationalTaxIdentifierRoute = routes.InternationalTaxIdentifierController.onPageLoad(operatorId, reportingPeriod).url
 
   "InternationalTaxIdentifier Controller" - {
 
@@ -56,7 +56,7 @@ class InternationalTaxIdentifierControllerSpec extends SpecBase with MockitoSuga
         val view = application.injector.instanceOf[InternationalTaxIdentifierView]
 
         status(result) mustEqual OK
-        contentAsString(result) mustEqual view(form, operatorId, caseId, country)(request, messages(application)).toString
+        contentAsString(result) mustEqual view(form, operatorId, reportingPeriod, country)(request, messages(application)).toString
       }
     }
 
@@ -74,7 +74,7 @@ class InternationalTaxIdentifierControllerSpec extends SpecBase with MockitoSuga
         val result = route(application, request).value
 
         status(result) mustEqual OK
-        contentAsString(result) mustEqual view(form.fill("answer"), operatorId, caseId, country)(request, messages(application)).toString
+        contentAsString(result) mustEqual view(form.fill("answer"), operatorId, reportingPeriod, country)(request, messages(application)).toString
       }
     }
 
@@ -100,7 +100,7 @@ class InternationalTaxIdentifierControllerSpec extends SpecBase with MockitoSuga
         val answers = baseAnswers.set(InternationalTaxIdentifierPage, "answer").success.value
 
         status(result) mustEqual SEE_OTHER
-        redirectLocation(result).value mustEqual InternationalTaxIdentifierPage.nextPage(caseId, answers).url
+        redirectLocation(result).value mustEqual InternationalTaxIdentifierPage.nextPage(reportingPeriod, answers).url
       }
     }
 
@@ -120,7 +120,7 @@ class InternationalTaxIdentifierControllerSpec extends SpecBase with MockitoSuga
         val result = route(application, request).value
 
         status(result) mustEqual BAD_REQUEST
-        contentAsString(result) mustEqual view(boundForm, operatorId, caseId, country)(request, messages(application)).toString
+        contentAsString(result) mustEqual view(boundForm, operatorId, reportingPeriod, country)(request, messages(application)).toString
       }
     }
 

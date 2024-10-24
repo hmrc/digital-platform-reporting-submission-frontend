@@ -28,9 +28,9 @@ class HasUkTaxIdentifierPageSpec
     with TryValues
     with OptionValues {
     
-  private val caseId = "caseId"
+  private val reportingPeriod = "reportingPeriod"
   private val operatorId = "operatorId"
-  private val emptyAnswers = UserAnswers("id", operatorId, Some(caseId))
+  private val emptyAnswers = UserAnswers("id", operatorId, Some(reportingPeriod))
 
   ".nextPage" - {
 
@@ -43,20 +43,20 @@ class HasUkTaxIdentifierPageSpec
             .set(HasUkTaxIdentifierPage, true).success.value
             .set(UkTaxIdentifierPage, "tin").success.value
 
-        HasUkTaxIdentifierPage.nextPage(caseId, answers).mustEqual(routes.CheckYourAnswersController.onPageLoad(operatorId, caseId))
+        HasUkTaxIdentifierPage.nextPage(reportingPeriod, answers).mustEqual(routes.CheckYourAnswersController.onPageLoad(operatorId, reportingPeriod))
       }
       
       "when the answer is no" in {
 
         val answers = emptyAnswers.set(HasUkTaxIdentifierPage, false).success.value
-        HasUkTaxIdentifierPage.nextPage(caseId, answers).mustEqual(routes.CheckYourAnswersController.onPageLoad(operatorId, caseId))
+        HasUkTaxIdentifierPage.nextPage(reportingPeriod, answers).mustEqual(routes.CheckYourAnswersController.onPageLoad(operatorId, reportingPeriod))
       }
     }
     
     "must go to UK Tax Identifier when the answer is yes and UK Tax Identifier has not been answered" in {
 
       val answers = emptyAnswers.set(HasUkTaxIdentifierPage, true).success.value
-      HasUkTaxIdentifierPage.nextPage(caseId, answers).mustEqual(routes.UkTaxIdentifierController.onPageLoad(operatorId, caseId))
+      HasUkTaxIdentifierPage.nextPage(reportingPeriod, answers).mustEqual(routes.UkTaxIdentifierController.onPageLoad(operatorId, reportingPeriod))
     }
   }
 

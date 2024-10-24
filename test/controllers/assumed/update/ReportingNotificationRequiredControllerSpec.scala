@@ -35,7 +35,7 @@ import scala.concurrent.Future
 
 class ReportingNotificationRequiredControllerSpec extends SpecBase with MockitoSugar with BeforeAndAfterEach {
 
-  private val caseId = "caseId"
+  private val reportingPeriod = "reportingPeriod"
   private val mockConnector = mock[PlatformOperatorConnector]
 
   override def beforeEach(): Unit = {
@@ -67,7 +67,7 @@ class ReportingNotificationRequiredControllerSpec extends SpecBase with MockitoS
           .build()
 
       running(application) {
-        val request = FakeRequest(GET, routes.ReportingNotificationRequiredController.onPageLoad(operatorId, caseId).url)
+        val request = FakeRequest(GET, routes.ReportingNotificationRequiredController.onPageLoad(operatorId, reportingPeriod).url)
 
         val result = route(application, request).value
 

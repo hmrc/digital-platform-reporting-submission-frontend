@@ -27,7 +27,7 @@ import viewmodels.implicits._
 
 object AssumingOperatorNameSummary  {
 
-  def row(caseId: String, answers: UserAnswers)(implicit messages: Messages): Option[SummaryListRow] =
+  def row(reportingPeriod: String, answers: UserAnswers)(implicit messages: Messages): Option[SummaryListRow] =
     answers.get(AssumingOperatorNamePage).map {
       answer =>
 
@@ -35,7 +35,7 @@ object AssumingOperatorNameSummary  {
           key     = "assumingOperatorName.checkYourAnswersLabel",
           value   = ValueViewModel(HtmlFormat.escape(answer).toString),
           actions = Seq(
-            ActionItemViewModel("site.change", routes.AssumingOperatorNameController.onPageLoad(answers.operatorId, caseId).url)
+            ActionItemViewModel("site.change", routes.AssumingOperatorNameController.onPageLoad(answers.operatorId, reportingPeriod).url)
               .withVisuallyHiddenText(messages("assumingOperatorName.change.hidden"))
           )
         )

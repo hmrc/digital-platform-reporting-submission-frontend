@@ -43,8 +43,8 @@ class HasInternationalTaxIdentifierController @Inject()(
   extends FrontendBaseController with I18nSupport with AnswerExtractor {
 
 
-  def onPageLoad(operatorId: String, caseId: String): Action[AnyContent] =
-    (identify andThen getData(operatorId, Some(caseId)) andThen requireData) { implicit request =>
+  def onPageLoad(operatorId: String, reportingPeriod: String): Action[AnyContent] =
+    (identify andThen getData(operatorId, Some(reportingPeriod)) andThen requireData) { implicit request =>
       getAnswers(AssumingOperatorNamePage, TaxResidencyCountryPage) { case (assumingOperatorName, country) =>
   
         val form = formProvider(assumingOperatorName, country)
@@ -54,25 +54,25 @@ class HasInternationalTaxIdentifierController @Inject()(
           case Some(value) => form.fill(value)
         }
   
-        Ok(view(preparedForm, operatorId, caseId, assumingOperatorName, country))
+        Ok(view(preparedForm, operatorId, reportingPeriod, assumingOperatorName, country))
       }
     }
 
-  def onSubmit(operatorId: String, caseId: String): Action[AnyContent] =
-    (identify andThen getData(operatorId, Some(caseId)) andThen requireData).async { implicit request =>
+  def onSubmit(operatorId: String, reportingPeriod: String): Action[AnyContent] =
+    (identify andThen getData(operatorId, Some(reportingPeriod)) andThen requireData).async { implicit request =>
       getAnswersAsync(AssumingOperatorNamePage, TaxResidencyCountryPage) { case (assumingOperatorName, country) =>
   
         val form = formProvider(assumingOperatorName, country)
   
         form.bindFromRequest().fold(
           formWithErrors =>
-            Future.successful(BadRequest(view(formWithErrors, operatorId, caseId, assumingOperatorName, country))),
+            Future.successful(BadRequest(view(formWithErrors, operatorId, reportingPeriod, assumingOperatorName, country))),
   
           value =>
             for {
               updatedAnswers <- Future.fromTry(request.userAnswers.set(HasInternationalTaxIdentifierPage, value))
               _              <- sessionRepository.set(updatedAnswers)
-            } yield Redirect(HasInternationalTaxIdentifierPage.nextPage(caseId, updatedAnswers))
+            } yield Redirect(HasInternationalTaxIdentifierPage.nextPage(reportingPeriod, updatedAnswers))
         )
       }
     }

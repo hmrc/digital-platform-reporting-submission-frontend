@@ -40,7 +40,7 @@ import scala.concurrent.Future
 
 class CheckContactDetailsControllerSpec extends SpecBase with SummaryListFluency with MockitoSugar with BeforeAndAfterEach {
 
-  private val caseId = "caseId"
+  private val reportingPeriod = "reportingPeriod"
   private val form = CheckContactDetailsFormProvider()()
   private val mockConnector = mock[SubscriptionConnector]
   private val mockRepository = mock[SessionRepository]
@@ -73,7 +73,7 @@ class CheckContactDetailsControllerSpec extends SpecBase with SummaryListFluency
             .build()
 
         running(application) {
-          val request = FakeRequest(GET, routes.CheckContactDetailsController.onPageLoad(operatorId, caseId).url)
+          val request = FakeRequest(GET, routes.CheckContactDetailsController.onPageLoad(operatorId, reportingPeriod).url)
 
           val result = route(application, request).value
 
@@ -87,7 +87,7 @@ class CheckContactDetailsControllerSpec extends SpecBase with SummaryListFluency
           ).flatten)
 
           status(result) mustEqual OK
-          contentAsString(result) mustEqual view(form, summaryList, operatorId, caseId)(request, implicitly).toString
+          contentAsString(result) mustEqual view(form, summaryList, operatorId, reportingPeriod)(request, implicitly).toString
         }
       }
 
@@ -110,7 +110,7 @@ class CheckContactDetailsControllerSpec extends SpecBase with SummaryListFluency
             .build()
 
         running(application) {
-          val request = FakeRequest(GET, routes.CheckContactDetailsController.onPageLoad(operatorId, caseId).url)
+          val request = FakeRequest(GET, routes.CheckContactDetailsController.onPageLoad(operatorId, reportingPeriod).url)
 
           val result = route(application, request).value
 
@@ -126,7 +126,7 @@ class CheckContactDetailsControllerSpec extends SpecBase with SummaryListFluency
           ).flatten)
 
           status(result) mustEqual OK
-          contentAsString(result) mustEqual view(form, summaryList, operatorId, caseId)(request, implicitly).toString
+          contentAsString(result) mustEqual view(form, summaryList, operatorId, reportingPeriod)(request, implicitly).toString
         }
       }
 
@@ -150,7 +150,7 @@ class CheckContactDetailsControllerSpec extends SpecBase with SummaryListFluency
             .build()
 
         running(application) {
-          val request = FakeRequest(GET, routes.CheckContactDetailsController.onPageLoad(operatorId, caseId).url)
+          val request = FakeRequest(GET, routes.CheckContactDetailsController.onPageLoad(operatorId, reportingPeriod).url)
 
           val result = route(application, request).value
 
@@ -171,7 +171,7 @@ class CheckContactDetailsControllerSpec extends SpecBase with SummaryListFluency
           ).flatten)
 
           status(result) mustEqual OK
-          contentAsString(result) mustEqual view(form, summaryList, operatorId, caseId)(request, implicitly).toString
+          contentAsString(result) mustEqual view(form, summaryList, operatorId, reportingPeriod)(request, implicitly).toString
         }
       }
     }
@@ -196,7 +196,7 @@ class CheckContactDetailsControllerSpec extends SpecBase with SummaryListFluency
 
       running(application) {
         val request =
-          FakeRequest(POST, routes.CheckContactDetailsController.onPageLoad(operatorId, caseId).url)
+          FakeRequest(POST, routes.CheckContactDetailsController.onPageLoad(operatorId, reportingPeriod).url)
             .withFormUrlEncodedBody("value" -> "invalid value")
 
         val result = route(application, request).value
@@ -213,7 +213,7 @@ class CheckContactDetailsControllerSpec extends SpecBase with SummaryListFluency
         val formWithErrors = form.bind(Map("value" -> "invalid value"))
 
         status(result) mustEqual BAD_REQUEST
-        contentAsString(result) mustEqual view(formWithErrors, summaryList, operatorId, caseId)(request, implicitly).toString
+        contentAsString(result) mustEqual view(formWithErrors, summaryList, operatorId, reportingPeriod)(request, implicitly).toString
       }
     }
 
@@ -228,7 +228,7 @@ class CheckContactDetailsControllerSpec extends SpecBase with SummaryListFluency
 
       running(application) {
         val request =
-          FakeRequest(POST, routes.CheckContactDetailsController.onPageLoad(operatorId, caseId).url)
+          FakeRequest(POST, routes.CheckContactDetailsController.onPageLoad(operatorId, reportingPeriod).url)
             .withFormUrlEncodedBody("value" -> "true")
 
         val page = application.injector.instanceOf[CheckContactDetailsPage]
@@ -238,7 +238,7 @@ class CheckContactDetailsControllerSpec extends SpecBase with SummaryListFluency
         val result = route(application, request).value
 
         status(result) mustEqual SEE_OTHER
-        redirectLocation(result).value mustEqual page.nextPage(caseId, expectedAnswers).url
+        redirectLocation(result).value mustEqual page.nextPage(reportingPeriod, expectedAnswers).url
         verify(mockRepository, times(1)).set(answersCaptor.capture())
 
         val answers = answersCaptor.getValue

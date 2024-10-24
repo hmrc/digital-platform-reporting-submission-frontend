@@ -44,9 +44,9 @@ class SessionRepository @Inject()(
     domainFormat   = UserAnswers.format,
     indexes        = Seq(
       IndexModel(
-        Indexes.ascending("userId", "operatorId", "caseId"),
+        Indexes.ascending("userId", "operatorId", "reportingPeriod"),
         IndexOptions()
-          .name("userId-operatorId-caseId-idx")
+          .name("userId-operatorId-reportingPeriod-idx")
           .unique(true)
       ),
       IndexModel(
@@ -63,11 +63,11 @@ class SessionRepository @Inject()(
 
   private def byUserId(userId: String): Bson = Filters.equal("userId", userId)
 
-  private def byIds(userId: String, operatorId: String, caseId: Option[String]): Bson =
+  private def byIds(userId: String, operatorId: String, reportingPeriod: Option[String]): Bson =
     Filters.and(
       Filters.eq("userId", userId),
       Filters.eq("operatorId", operatorId),
-      caseId.map(Filters.equal("caseId", _)).getOrElse(Filters.exists("caseId", exists = false))
+      reportingPeriod.map(Filters.equal("reportingPeriod", _)).getOrElse(Filters.exists("reportingPeriod", exists = false))
     )
 
   def keepAlive(userId: String): Future[Boolean] = Mdc.preservingMdc {
@@ -80,11 +80,11 @@ class SessionRepository @Inject()(
       .map(_ => true)
   }
 
-  def get(userId: String, operatorId: String, caseId: Option[String]): Future[Option[UserAnswers]] = Mdc.preservingMdc {
+  def get(userId: String, operatorId: String, reportingPeriod: Option[String]): Future[Option[UserAnswers]] = Mdc.preservingMdc {
     keepAlive(userId).flatMap {
       _ =>
         collection
-          .find(byIds(userId, operatorId, caseId))
+          .find(byIds(userId, operatorId, reportingPeriod))
           .headOption()
     }
   }
@@ -95,7 +95,7 @@ class SessionRepository @Inject()(
 
     collection
       .replaceOne(
-        filter      = byIds(updatedAnswers.userId, updatedAnswers.operatorId, updatedAnswers.caseId),
+        filter      = byIds(updatedAnswers.userId, updatedAnswers.operatorId, updatedAnswers.reportingPeriod),
         replacement = updatedAnswers,
         options     = ReplaceOptions().upsert(true)
       )
@@ -103,9 +103,9 @@ class SessionRepository @Inject()(
       .map(_ => true)
   }
 
-  def clear(userId: String, operatorId: String, caseId: Option[String]): Future[Boolean] = Mdc.preservingMdc {
+  def clear(userId: String, operatorId: String, reportingPeriod: Option[String]): Future[Boolean] = Mdc.preservingMdc {
     collection
-      .deleteOne(byIds(userId, operatorId, caseId))
+      .deleteOne(byIds(userId, operatorId, reportingPeriod))
       .toFuture()
       .map(_ => true)
   }

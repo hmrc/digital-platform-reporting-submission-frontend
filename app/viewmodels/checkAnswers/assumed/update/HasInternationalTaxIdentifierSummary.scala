@@ -26,7 +26,7 @@ import viewmodels.implicits.*
 
 object HasInternationalTaxIdentifierSummary  {
 
-  def row(caseId: String, answers: UserAnswers)(implicit messages: Messages): Option[SummaryListRow] =
+  def row(reportingPeriod: String, answers: UserAnswers)(implicit messages: Messages): Option[SummaryListRow] =
     for {
       answer               <- answers.get(HasInternationalTaxIdentifierPage)
       taxResidencyCountry  <- answers.get(TaxResidencyCountryPage)
@@ -39,7 +39,7 @@ object HasInternationalTaxIdentifierSummary  {
         key     = messages("hasInternationalTaxIdentifier.checkYourAnswersLabel", assumingOperatorName, taxResidencyCountry.name),
         value   = ValueViewModel(value),
         actions = Seq(
-          ActionItemViewModel("site.change", routes.HasInternationalTaxIdentifierController.onPageLoad(answers.operatorId, caseId).url)
+          ActionItemViewModel("site.change", routes.HasInternationalTaxIdentifierController.onPageLoad(answers.operatorId, reportingPeriod).url)
             .withVisuallyHiddenText(messages("hasInternationalTaxIdentifier.change.hidden", assumingOperatorName, taxResidencyCountry.name))
         )
       )

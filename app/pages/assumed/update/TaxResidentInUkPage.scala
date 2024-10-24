@@ -30,17 +30,17 @@ case object TaxResidentInUkPage extends AssumedReportingUpdateQuestionPage[Boole
 
   override def toString: String = "taxResidentInUk"
 
-  override def nextPage(caseId: String, answers: UserAnswers): Call =
+  override def nextPage(reportingPeriod: String, answers: UserAnswers): Call =
     answers.get(this).map {
       case true =>
         answers.get(HasUkTaxIdentifierPage)
-          .map(_ => routes.CheckYourAnswersController.onPageLoad(answers.operatorId, caseId))
-          .getOrElse(routes.HasUkTaxIdentifierController.onPageLoad(answers.operatorId, caseId))
+          .map(_ => routes.CheckYourAnswersController.onPageLoad(answers.operatorId, reportingPeriod))
+          .getOrElse(routes.HasUkTaxIdentifierController.onPageLoad(answers.operatorId, reportingPeriod))
 
       case false =>
         answers.get(TaxResidencyCountryPage)
-          .map(_ => routes.CheckYourAnswersController.onPageLoad(answers.operatorId, caseId))
-          .getOrElse(routes.TaxResidencyCountryController.onPageLoad(answers.operatorId, caseId))
+          .map(_ => routes.CheckYourAnswersController.onPageLoad(answers.operatorId, reportingPeriod))
+          .getOrElse(routes.TaxResidencyCountryController.onPageLoad(answers.operatorId, reportingPeriod))
     }.getOrElse(baseRoutes.JourneyRecoveryController.onPageLoad())
 
   override def cleanup(value: Option[Boolean], userAnswers: UserAnswers): Try[UserAnswers] =

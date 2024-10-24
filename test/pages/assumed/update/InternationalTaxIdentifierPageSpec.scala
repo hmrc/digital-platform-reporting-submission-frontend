@@ -25,13 +25,13 @@ class InternationalTaxIdentifierPageSpec extends AnyFreeSpec with Matchers {
 
   ".nextPage" - {
 
-    val caseId = "caseId"
+    val reportingPeriod = "reportingPeriod"
     val operatorId = "operatorId"
-    val emptyAnswers = UserAnswers("id", operatorId, Some(caseId))
+    val emptyAnswers = UserAnswers("id", operatorId, Some(reportingPeriod))
 
     "must go to Check Answers" in {
 
-      InternationalTaxIdentifierPage.nextPage(caseId, emptyAnswers).mustEqual(routes.CheckYourAnswersController.onPageLoad(operatorId, caseId))
+      InternationalTaxIdentifierPage.nextPage(reportingPeriod, emptyAnswers).mustEqual(routes.CheckYourAnswersController.onPageLoad(operatorId, reportingPeriod))
     }
   }
 }

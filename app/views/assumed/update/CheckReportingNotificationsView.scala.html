@@ -27,7 +27,7 @@
         govukButton: GovukButton
 )
 
-@(form: Form[?], notifications: Seq[NotificationDetails], operatorId: String, caseId: String, businessName: String)(implicit request: Request[_], messages: Messages)
+@(form: Form[?], notifications: Seq[NotificationDetails], operatorId: String, reportingPeriod: String, businessName: String)(implicit request: Request[_], messages: Messages)
 
 @titleText = @{
     notifications.size match {
@@ -48,7 +48,7 @@
     showBackLink = false
 ) {
 
-    @formHelper(action = routes.CheckReportingNotificationsController.onSubmit(operatorId, caseId), Symbol("autoComplete") -> "off") {
+    @formHelper(action = routes.CheckReportingNotificationsController.onSubmit(operatorId, reportingPeriod), Symbol("autoComplete") -> "off") {
 
         @if(form.errors.nonEmpty) {
             @govukErrorSummary(ErrorSummaryViewModel(form))

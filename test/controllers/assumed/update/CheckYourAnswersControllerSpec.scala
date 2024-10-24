@@ -43,8 +43,8 @@ import scala.concurrent.Future
 
 class CheckYourAnswersControllerSpec extends SpecBase with SummaryListFluency with BeforeAndAfterEach {
 
-  private val caseId = "caseId"
-  private val baseAnswers = emptyUserAnswers.copy(caseId = Some(caseId))
+  private val reportingPeriod = "reportingPeriod"
+  private val baseAnswers = emptyUserAnswers.copy(reportingPeriod = Some(reportingPeriod))
   private val mockSubmissionConnector: SubmissionConnector = mock[SubmissionConnector]
   private val mockUserAnswersService: UserAnswersService = mock[UserAnswersService]
   private val mockSessionRepository: SessionRepository = mock[SessionRepository]
@@ -63,7 +63,7 @@ class CheckYourAnswersControllerSpec extends SpecBase with SummaryListFluency wi
       val application = applicationBuilder(userAnswers = Some(baseAnswers)).build()
 
       running(application) {
-        val request = FakeRequest(GET, routes.CheckYourAnswersController.onPageLoad(operatorId, caseId).url)
+        val request = FakeRequest(GET, routes.CheckYourAnswersController.onPageLoad(operatorId, reportingPeriod).url)
 
         val result = route(application, request).value
 
@@ -71,7 +71,7 @@ class CheckYourAnswersControllerSpec extends SpecBase with SummaryListFluency wi
         val list = SummaryListViewModel(Seq.empty)
 
         status(result) mustEqual OK
-        contentAsString(result) mustEqual view(list, operatorId, caseId)(request, messages(application)).toString
+        contentAsString(result) mustEqual view(list, operatorId, reportingPeriod)(request, messages(application)).toString
       }
     }
 
@@ -80,7 +80,7 @@ class CheckYourAnswersControllerSpec extends SpecBase with SummaryListFluency wi
       val application = applicationBuilder(userAnswers = None).build()
 
       running(application) {
-        val request = FakeRequest(GET, routes.CheckYourAnswersController.onPageLoad(operatorId, caseId).url)
+        val request = FakeRequest(GET, routes.CheckYourAnswersController.onPageLoad(operatorId, reportingPeriod).url)
 
         val result = route(application, request).value
 
@@ -131,7 +131,7 @@ class CheckYourAnswersControllerSpec extends SpecBase with SummaryListFluency wi
         when(mockSessionRepository.clear(any(), any(), any())).thenReturn(Future.successful(true))
 
         running(application) {
-          val request = FakeRequest(routes.CheckYourAnswersController.onSubmit(operatorId, caseId))
+          val request = FakeRequest(routes.CheckYourAnswersController.onSubmit(operatorId, reportingPeriod))
           val result = route(application, request).value
 
           status(result) mustEqual SEE_OTHER
@@ -140,7 +140,7 @@ class CheckYourAnswersControllerSpec extends SpecBase with SummaryListFluency wi
 
         verify(mockUserAnswersService).toAssumedReportingSubmissionRequest(eqTo(answers))
         verify(mockSubmissionConnector).submitAssumedReporting(eqTo(assumedReportingSubmissionRequest))(using any())
-        verify(mockSessionRepository).clear(answers.userId, answers.operatorId, answers.caseId)
+        verify(mockSessionRepository).clear(answers.userId, answers.operatorId, answers.reportingPeriod)
       }
 
       "must fail if a request cannot be created from the user answers" in {
@@ -158,7 +158,7 @@ class CheckYourAnswersControllerSpec extends SpecBase with SummaryListFluency wi
         when(mockSessionRepository.clear(any(), any(), any())).thenReturn(Future.successful(true))
 
         running(application) {
-          val request = FakeRequest(routes.CheckYourAnswersController.onSubmit(operatorId, caseId))
+          val request = FakeRequest(routes.CheckYourAnswersController.onSubmit(operatorId, reportingPeriod))
           route(application, request).value.failed.futureValue
         }
 

@@ -27,7 +27,7 @@ import viewmodels.implicits.*
 
 object UkTaxIdentifierSummary  {
 
-  def row(caseId: String, answers: UserAnswers)(implicit messages: Messages): Option[SummaryListRow] =
+  def row(reportingPeriod: String, answers: UserAnswers)(implicit messages: Messages): Option[SummaryListRow] =
     for {
       answer               <- answers.get(UkTaxIdentifierPage)
       assumingOperatorName <- answers.get(AssumingOperatorNamePage)
@@ -37,7 +37,7 @@ object UkTaxIdentifierSummary  {
         key     = messages("ukTaxIdentifier.checkYourAnswersLabel", assumingOperatorName),
         value   = ValueViewModel(HtmlFormat.escape(answer).toString),
         actions = Seq(
-          ActionItemViewModel("site.change", routes.UkTaxIdentifierController.onPageLoad(answers.operatorId, caseId).url)
+          ActionItemViewModel("site.change", routes.UkTaxIdentifierController.onPageLoad(answers.operatorId, reportingPeriod).url)
             .withVisuallyHiddenText(messages("ukTaxIdentifier.change.hidden", assumingOperatorName))
         )
       )

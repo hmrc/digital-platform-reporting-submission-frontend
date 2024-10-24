@@ -216,7 +216,7 @@ address.error.format = Address must only include letters, numbers, hyphens, spac
 
 ukTaxIdentifier.title = Enter a tax identification number for the platform operator
 ukTaxIdentifier.heading = Enter a tax identification number for {0}
-ukTaxIdentifier.hint = This could be a Unique Taxpayer Reference (UTR), Company Registration Number (CRN), VAT Registration Number (VRN), Employer PAYE Reference (EMPREF) or HMRC Charity Reference (CHRN)
+ukTaxIdentifier.p1 = This could be a Unique Taxpayer Reference (UTR), Company Registration Number (CRN), VAT Registration Number (VRN), Employer PAYE Reference (EMPREF) or HMRC Charity Reference (CHRN)
 ukTaxIdentifier.checkYourAnswersLabel = Tax identification number for {0}
 ukTaxIdentifier.error.required = Enter a tax identification number for {0}
 ukTaxIdentifier.error.length = Tax identification number must be {0} characters or less
