@@ -42,8 +42,8 @@ class InternationalTaxIdentifierController @Inject()(
                                     )(implicit ec: ExecutionContext)
   extends FrontendBaseController with I18nSupport with AnswerExtractor {
 
-  def onPageLoad(operatorId: String, caseId: String): Action[AnyContent] =
-    (identify andThen getData(operatorId, Some(caseId)) andThen requireData) { implicit request =>
+  def onPageLoad(operatorId: String, reportingPeriod: String): Action[AnyContent] =
+    (identify andThen getData(operatorId, Some(reportingPeriod)) andThen requireData) { implicit request =>
       getAnswer(TaxResidencyCountryPage) { country =>
   
         val form = formProvider(country)
@@ -53,25 +53,25 @@ class InternationalTaxIdentifierController @Inject()(
           case Some(value) => form.fill(value)
         }
   
-        Ok(view(preparedForm, operatorId, caseId, country))
+        Ok(view(preparedForm, operatorId, reportingPeriod, country))
       }
     }
 
-  def onSubmit(operatorId: String, caseId: String): Action[AnyContent] =
-    (identify andThen getData(operatorId, Some(caseId)) andThen requireData).async { implicit request =>
+  def onSubmit(operatorId: String, reportingPeriod: String): Action[AnyContent] =
+    (identify andThen getData(operatorId, Some(reportingPeriod)) andThen requireData).async { implicit request =>
       getAnswerAsync(TaxResidencyCountryPage) { country =>
   
         val form = formProvider(country)
         
         form.bindFromRequest().fold(
           formWithErrors =>
-            Future.successful(BadRequest(view(formWithErrors, operatorId, caseId, country))),
+            Future.successful(BadRequest(view(formWithErrors, operatorId, reportingPeriod, country))),
   
           value =>
             for {
               updatedAnswers <- Future.fromTry(request.userAnswers.set(InternationalTaxIdentifierPage, value))
               _ <- sessionRepository.set(updatedAnswers)
-            } yield Redirect(InternationalTaxIdentifierPage.nextPage(caseId, updatedAnswers))
+            } yield Redirect(InternationalTaxIdentifierPage.nextPage(reportingPeriod, updatedAnswers))
         )
       }
     }

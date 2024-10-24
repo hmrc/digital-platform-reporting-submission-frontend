@@ -25,11 +25,11 @@
     govukButton: GovukButton
 )
 
-@(form: Form[_], operatorId: String, caseId: String, assumingOperatorName: String)(implicit request: Request[_], messages: Messages)
+@(form: Form[_], operatorId: String, reportingPeriod: String, assumingOperatorName: String)(implicit request: Request[_], messages: Messages)
 
 @layout(pageTitle = title(form, messages("ukTaxIdentifier.title"))) {
 
-    @formHelper(action = routes.UkTaxIdentifierController.onSubmit(operatorId, caseId)) {
+    @formHelper(action = routes.UkTaxIdentifierController.onSubmit(operatorId, reportingPeriod)) {
 
         @if(form.errors.nonEmpty) {
             @govukErrorSummary(ErrorSummaryViewModel(form))

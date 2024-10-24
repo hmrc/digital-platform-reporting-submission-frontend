@@ -28,9 +28,9 @@ class HasInternationalTaxIdentifierPageSpec
     with TryValues
     with OptionValues {
 
-  private val caseId = "caseId"
+  private val reportingPeriod = "reportingPeriod"
   private val operatorId = "operatorId"
-  private val emptyAnswers = UserAnswers("id", operatorId, Some(caseId))
+  private val emptyAnswers = UserAnswers("id", operatorId, Some(reportingPeriod))
   
   ".nextPage" - {
 
@@ -43,20 +43,20 @@ class HasInternationalTaxIdentifierPageSpec
             .set(HasInternationalTaxIdentifierPage, true).success.value
             .set(InternationalTaxIdentifierPage, "foo").success.value
 
-        HasInternationalTaxIdentifierPage.nextPage(caseId, answers).mustEqual(routes.CheckYourAnswersController.onPageLoad(operatorId, caseId))
+        HasInternationalTaxIdentifierPage.nextPage(reportingPeriod, answers).mustEqual(routes.CheckYourAnswersController.onPageLoad(operatorId, reportingPeriod))
       }
       
       "when the answer is no" in {
 
         val answers = emptyAnswers.set(HasInternationalTaxIdentifierPage, false).success.value
-        HasInternationalTaxIdentifierPage.nextPage(caseId, answers).mustEqual(routes.CheckYourAnswersController.onPageLoad(operatorId, caseId))
+        HasInternationalTaxIdentifierPage.nextPage(reportingPeriod, answers).mustEqual(routes.CheckYourAnswersController.onPageLoad(operatorId, reportingPeriod))
       }
     }
     
     "must go to International Tax Identifier when the answer is yes and International Tax Identifier has not been answered" in {
 
       val answers = emptyAnswers.set(HasInternationalTaxIdentifierPage, true).success.value
-      HasInternationalTaxIdentifierPage.nextPage(caseId, answers).mustEqual(routes.InternationalTaxIdentifierController.onPageLoad(operatorId, caseId))
+      HasInternationalTaxIdentifierPage.nextPage(reportingPeriod, answers).mustEqual(routes.InternationalTaxIdentifierController.onPageLoad(operatorId, reportingPeriod))
     }
   }
 

@@ -49,13 +49,13 @@ class SessionRepositorySpec
   private val stubClock: Clock = Clock.fixed(instant, ZoneId.systemDefault)
 
   private val userAnswers1 = UserAnswers("id", "operator1", None, Json.obj("foo" -> "bar"), Instant.ofEpochSecond(1))
-  private val userAnswers2 = UserAnswers("id", "operator1", Some("caseId2"), Json.obj("foo" -> "bar"), Instant.ofEpochSecond(1))
+  private val userAnswers2 = UserAnswers("id", "operator1", Some("reportingPeriod2"), Json.obj("foo" -> "bar"), Instant.ofEpochSecond(1))
 
-  private def byIds(userId: String, operatorId: String, caseId: Option[String]) =
+  private def byIds(userId: String, operatorId: String, reportingPeriod: Option[String]) =
     Filters.and(
       Filters.equal("userId", userId),
       Filters.equal("operatorId", operatorId),
-      caseId.map(Filters.equal("caseId", _)).getOrElse(Filters.exists("caseId", exists = false))
+      reportingPeriod.map(Filters.equal("reportingPeriod", _)).getOrElse(Filters.exists("reportingPeriod", exists = false))
     )
 
   private val mockAppConfig = mock[FrontendAppConfig]
@@ -77,8 +77,8 @@ class SessionRepositorySpec
       val expectedRecord1 = userAnswers1.copy(lastUpdated = instant)
 
       repository.set(userAnswers1).futureValue
-      val record1 = find(byIds(userAnswers1.userId, userAnswers1.operatorId, userAnswers1.caseId)).futureValue.headOption.value
-      val record2 = find(byIds(userAnswers2.userId, userAnswers2.operatorId, userAnswers2.caseId)).futureValue.headOption.value
+      val record1 = find(byIds(userAnswers1.userId, userAnswers1.operatorId, userAnswers1.reportingPeriod)).futureValue.headOption.value
+      val record2 = find(byIds(userAnswers2.userId, userAnswers2.operatorId, userAnswers2.reportingPeriod)).futureValue.headOption.value
 
       record1 mustEqual expectedRecord1
       record2 mustEqual userAnswers2
@@ -96,8 +96,8 @@ class SessionRepositorySpec
         insert(userAnswers1).futureValue
         insert(userAnswers2).futureValue
 
-        val result1         = repository.get(userAnswers1.userId, userAnswers1.operatorId, userAnswers1.caseId).futureValue
-        val result2         = repository.get(userAnswers2.userId, userAnswers2.operatorId, userAnswers2.caseId).futureValue
+        val result1         = repository.get(userAnswers1.userId, userAnswers1.operatorId, userAnswers1.reportingPeriod).futureValue
+        val result2         = repository.get(userAnswers2.userId, userAnswers2.operatorId, userAnswers2.reportingPeriod).futureValue
         val expectedResult1 = userAnswers1.copy(lastUpdated = instant)
         val expectedResult2 = userAnswers2.copy(lastUpdated = instant)
 
@@ -114,20 +114,20 @@ class SessionRepositorySpec
       }
     }
 
-    mustPreserveMdc(repository.get(userAnswers1.userId, userAnswers1.operatorId, userAnswers1.caseId))
+    mustPreserveMdc(repository.get(userAnswers1.userId, userAnswers1.operatorId, userAnswers1.reportingPeriod))
   }
 
   ".clear" - {
 
-    "must remove a record when an operator id and caseId is specified" in {
+    "must remove a record when an operator id and reportingPeriod is specified" in {
 
       insert(userAnswers1).futureValue
       insert(userAnswers2).futureValue
 
-      repository.clear(userAnswers1.userId, userAnswers1.operatorId, userAnswers1.caseId).futureValue
+      repository.clear(userAnswers1.userId, userAnswers1.operatorId, userAnswers1.reportingPeriod).futureValue
 
-      repository.get(userAnswers1.userId, userAnswers1.operatorId, userAnswers1.caseId).futureValue must not be defined
-      repository.get(userAnswers2.userId, userAnswers2.operatorId, userAnswers2.caseId).futureValue mustBe defined
+      repository.get(userAnswers1.userId, userAnswers1.operatorId, userAnswers1.reportingPeriod).futureValue must not be defined
+      repository.get(userAnswers2.userId, userAnswers2.operatorId, userAnswers2.reportingPeriod).futureValue mustBe defined
     }
 
     "must remove all records for a user when an operator id is not specified" in {
@@ -137,8 +137,8 @@ class SessionRepositorySpec
 
       repository.clear(userAnswers1.userId).futureValue
 
-      repository.get(userAnswers1.userId, userAnswers1.operatorId, userAnswers1.caseId).futureValue must not be defined
-      repository.get(userAnswers2.userId, userAnswers2.operatorId, userAnswers2.caseId).futureValue must not be defined
+      repository.get(userAnswers1.userId, userAnswers1.operatorId, userAnswers1.reportingPeriod).futureValue must not be defined
+      repository.get(userAnswers2.userId, userAnswers2.operatorId, userAnswers2.reportingPeriod).futureValue must not be defined
     }
 
     "must return true when there is no record to remove" in {
@@ -154,7 +154,7 @@ class SessionRepositorySpec
 
     "when operator id and case id are specified" - {
 
-      mustPreserveMdc(repository.clear(userAnswers1.userId, userAnswers1.operatorId, userAnswers1.caseId))
+      mustPreserveMdc(repository.clear(userAnswers1.userId, userAnswers1.operatorId, userAnswers1.reportingPeriod))
     }
   }
 
@@ -172,8 +172,8 @@ class SessionRepositorySpec
         val expectedUpdatedAnswers1 = userAnswers1.copy(lastUpdated = instant)
         val expectedUpdatedAnswers2 = userAnswers2.copy(lastUpdated = instant)
 
-        val updatedAnswers1 = find(byIds(userAnswers1.userId, userAnswers1.operatorId, userAnswers1.caseId)).futureValue.headOption.value
-        val updatedAnswers2 = find(byIds(userAnswers2.userId, userAnswers2.operatorId, userAnswers2.caseId)).futureValue.headOption.value
+        val updatedAnswers1 = find(byIds(userAnswers1.userId, userAnswers1.operatorId, userAnswers1.reportingPeriod)).futureValue.headOption.value
+        val updatedAnswers2 = find(byIds(userAnswers2.userId, userAnswers2.operatorId, userAnswers2.reportingPeriod)).futureValue.headOption.value
         updatedAnswers1 mustEqual expectedUpdatedAnswers1
         updatedAnswers2 mustEqual expectedUpdatedAnswers2
       }

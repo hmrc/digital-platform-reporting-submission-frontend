@@ -42,8 +42,8 @@ class AssumingOperatorNameController @Inject()(
                                               )(implicit ec: ExecutionContext)
   extends FrontendBaseController with I18nSupport with AnswerExtractor {
 
-  def onPageLoad(operatorId: String, caseId: String): Action[AnyContent] =
-    (identify andThen getData(operatorId, Some(caseId)) andThen requireData) { implicit request =>
+  def onPageLoad(operatorId: String, reportingPeriod: String): Action[AnyContent] =
+    (identify andThen getData(operatorId, Some(reportingPeriod)) andThen requireData) { implicit request =>
       getAnswer(PlatformOperatorSummaryQuery) { operator =>
   
         val form = formProvider(operator.operatorName)
@@ -53,25 +53,25 @@ class AssumingOperatorNameController @Inject()(
           case Some(value) => form.fill(value)
         }
   
-        Ok(view(preparedForm, operator, caseId))
+        Ok(view(preparedForm, operator, reportingPeriod))
       }
     }
 
-  def onSubmit(operatorId: String, caseId: String): Action[AnyContent] =
-    (identify andThen getData(operatorId, Some(caseId)) andThen requireData).async { implicit request =>
+  def onSubmit(operatorId: String, reportingPeriod: String): Action[AnyContent] =
+    (identify andThen getData(operatorId, Some(reportingPeriod)) andThen requireData).async { implicit request =>
       getAnswerAsync(PlatformOperatorSummaryQuery) { operator =>
   
         val form = formProvider(operator.operatorName)
   
         form.bindFromRequest().fold(
           formWithErrors =>
-            Future.successful(BadRequest(view(formWithErrors, operator, caseId))),
+            Future.successful(BadRequest(view(formWithErrors, operator, reportingPeriod))),
   
           value =>
             for {
               updatedAnswers <- Future.fromTry(request.userAnswers.set(AssumingOperatorNamePage, value))
               _ <- sessionRepository.set(updatedAnswers)
-            } yield Redirect(AssumingOperatorNamePage.nextPage(caseId, updatedAnswers))
+            } yield Redirect(AssumingOperatorNamePage.nextPage(reportingPeriod, updatedAnswers))
         )
       }
     }

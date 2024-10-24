@@ -57,7 +57,7 @@ class ViewSubmissionsControllerSpec extends SpecBase with MockitoSugar with Befo
         submissionDateTime = now,
         submissionStatus = SubmissionStatus.Success,
         assumingReporterName = None,
-        submissionCaseId = Some("caseId")
+        submissionCaseId = Some("reportingPeriod")
       )
       val summary = SubmissionsSummary(Seq(submissionSummary), Nil)
 

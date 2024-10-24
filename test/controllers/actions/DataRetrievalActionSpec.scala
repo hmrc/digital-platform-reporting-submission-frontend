@@ -29,7 +29,7 @@ import scala.concurrent.Future
 
 class DataRetrievalActionSpec extends SpecBase with MockitoSugar {
 
-  class Harness(operatorId: String, caseId: Option[String], sessionRepository: SessionRepository) extends DataRetrievalAction(operatorId, caseId, sessionRepository) {
+  class Harness(operatorId: String, reportingPeriod: Option[String], sessionRepository: SessionRepository) extends DataRetrievalAction(operatorId, reportingPeriod, sessionRepository) {
     def callTransform[A](request: IdentifierRequest[A]): Future[OptionalDataRequest[A]] = transform(request)
   }
 

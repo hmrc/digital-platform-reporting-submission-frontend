@@ -1,42 +1,42 @@
-GET        /:operatorId/:caseId/change-have-uk-tin                         controllers.assumed.update.HasUkTaxIdentifierController.onPageLoad(operatorId: String, caseId: String)
-POST       /:operatorId/:caseId/change-have-uk-tin                         controllers.assumed.update.HasUkTaxIdentifierController.onSubmit(operatorId: String, caseId: String)
+GET        /:operatorId/:reportingPeriod/change-have-uk-tin                         controllers.assumed.update.HasUkTaxIdentifierController.onPageLoad(operatorId: String, reportingPeriod: String)
+POST       /:operatorId/:reportingPeriod/change-have-uk-tin                         controllers.assumed.update.HasUkTaxIdentifierController.onSubmit(operatorId: String, reportingPeriod: String)
 
-GET        /:operatorId/:caseId/change-have-international-tin                         controllers.assumed.update.HasInternationalTaxIdentifierController.onPageLoad(operatorId: String, caseId: String)
-POST       /:operatorId/:caseId/change-have-international-tin                         controllers.assumed.update.HasInternationalTaxIdentifierController.onSubmit(operatorId: String, caseId: String)
+GET        /:operatorId/:reportingPeriod/change-have-international-tin                         controllers.assumed.update.HasInternationalTaxIdentifierController.onPageLoad(operatorId: String, reportingPeriod: String)
+POST       /:operatorId/:reportingPeriod/change-have-international-tin                         controllers.assumed.update.HasInternationalTaxIdentifierController.onSubmit(operatorId: String, reportingPeriod: String)
 
-GET        /:operatorId/:caseId/change-international-tin                controllers.assumed.update.InternationalTaxIdentifierController.onPageLoad(operatorId: String, caseId: String)
-POST       /:operatorId/:caseId/change-international-tin                controllers.assumed.update.InternationalTaxIdentifierController.onSubmit(operatorId: String, caseId: String)
+GET        /:operatorId/:reportingPeriod/change-international-tin                controllers.assumed.update.InternationalTaxIdentifierController.onPageLoad(operatorId: String, reportingPeriod: String)
+POST       /:operatorId/:reportingPeriod/change-international-tin                controllers.assumed.update.InternationalTaxIdentifierController.onSubmit(operatorId: String, reportingPeriod: String)
 
-GET        /:operatorId/:caseId/change-assuming-operator-name           controllers.assumed.update.AssumingOperatorNameController.onPageLoad(operatorId: String, caseId: String)
-POST       /:operatorId/:caseId/change-assuming-operator-name           controllers.assumed.update.AssumingOperatorNameController.onSubmit(operatorId: String, caseId: String)
+GET        /:operatorId/:reportingPeriod/change-assuming-operator-name           controllers.assumed.update.AssumingOperatorNameController.onPageLoad(operatorId: String, reportingPeriod: String)
+POST       /:operatorId/:reportingPeriod/change-assuming-operator-name           controllers.assumed.update.AssumingOperatorNameController.onSubmit(operatorId: String, reportingPeriod: String)
 
-GET        /:operatorId/:caseId/change-registered-address-country       controllers.assumed.update.RegisteredCountryController.onPageLoad(operatorId: String, caseId: String)
-POST       /:operatorId/:caseId/change-registered-address-country       controllers.assumed.update.RegisteredCountryController.onSubmit(operatorId: String, caseId: String)
+GET        /:operatorId/:reportingPeriod/change-registered-address-country       controllers.assumed.update.RegisteredCountryController.onPageLoad(operatorId: String, reportingPeriod: String)
+POST       /:operatorId/:reportingPeriod/change-registered-address-country       controllers.assumed.update.RegisteredCountryController.onSubmit(operatorId: String, reportingPeriod: String)
 
-GET        /:operatorId/:caseId/change-tax-resident-country             controllers.assumed.update.TaxResidencyCountryController.onPageLoad(operatorId: String, caseId: String)
-POST       /:operatorId/:caseId/change-tax-resident-country             controllers.assumed.update.TaxResidencyCountryController.onSubmit(operatorId: String, caseId: String)
+GET        /:operatorId/:reportingPeriod/change-tax-resident-country             controllers.assumed.update.TaxResidencyCountryController.onPageLoad(operatorId: String, reportingPeriod: String)
+POST       /:operatorId/:reportingPeriod/change-tax-resident-country             controllers.assumed.update.TaxResidencyCountryController.onSubmit(operatorId: String, reportingPeriod: String)
 
-GET        /:operatorId/:caseId/change-tax-resident-in-uk               controllers.assumed.update.TaxResidentInUkController.onPageLoad(operatorId: String, caseId: String)
-POST       /:operatorId/:caseId/change-tax-resident-in-uk               controllers.assumed.update.TaxResidentInUkController.onSubmit(operatorId: String, caseId: String)
+GET        /:operatorId/:reportingPeriod/change-tax-resident-in-uk               controllers.assumed.update.TaxResidentInUkController.onPageLoad(operatorId: String, reportingPeriod: String)
+POST       /:operatorId/:reportingPeriod/change-tax-resident-in-uk               controllers.assumed.update.TaxResidentInUkController.onSubmit(operatorId: String, reportingPeriod: String)
 
-GET        /:operatorId/:caseId/change-registered-address               controllers.assumed.update.AddressController.onPageLoad(operatorId: String, caseId: String)
-POST       /:operatorId/:caseId/change-registered-address               controllers.assumed.update.AddressController.onSubmit(operatorId: String, caseId: String)
+GET        /:operatorId/:reportingPeriod/change-registered-address               controllers.assumed.update.AddressController.onPageLoad(operatorId: String, reportingPeriod: String)
+POST       /:operatorId/:reportingPeriod/change-registered-address               controllers.assumed.update.AddressController.onSubmit(operatorId: String, reportingPeriod: String)
 
-GET        /:operatorId/:caseId/change-uk-tin                           controllers.assumed.update.UkTaxIdentifierController.onPageLoad(operatorId: String, caseId: String)
-POST       /:operatorId/:caseId/change-uk-tin                           controllers.assumed.update.UkTaxIdentifierController.onSubmit(operatorId: String, caseId: String)
+GET        /:operatorId/:reportingPeriod/change-uk-tin                           controllers.assumed.update.UkTaxIdentifierController.onPageLoad(operatorId: String, reportingPeriod: String)
+POST       /:operatorId/:reportingPeriod/change-uk-tin                           controllers.assumed.update.UkTaxIdentifierController.onSubmit(operatorId: String, reportingPeriod: String)
 
-GET        /:operatorId/:caseId/check-your-answers                      controllers.assumed.update.CheckYourAnswersController.onPageLoad(operatorId: String, caseId: String)
-POST       /:operatorId/:caseId/check-your-answers                      controllers.assumed.update.CheckYourAnswersController.onSubmit(operatorId: String, caseId: String)
+GET        /:operatorId/:reportingPeriod/check-your-answers                      controllers.assumed.update.CheckYourAnswersController.onPageLoad(operatorId: String, reportingPeriod: String)
+POST       /:operatorId/:reportingPeriod/check-your-answers                      controllers.assumed.update.CheckYourAnswersController.onSubmit(operatorId: String, reportingPeriod: String)
 
-GET        /:operatorId/:caseId/confirmation-page                       controllers.assumed.update.SubmissionConfirmationController.onPageLoad(operatorId: String, caseId: String)
+GET        /:operatorId/:reportingPeriod/confirmation-page                       controllers.assumed.update.SubmissionConfirmationController.onPageLoad(operatorId: String, reportingPeriod: String)
 
-GET        /:operatorId/:caseId/check-platform-operator                 controllers.assumed.update.CheckPlatformOperatorController.onPageLoad(operatorId: String, caseId: String)
-POST       /:operatorId/:caseId/check-platform-operator                 controllers.assumed.update.CheckPlatformOperatorController.onSubmit(operatorId: String, caseId: String)
+GET        /:operatorId/:reportingPeriod/check-platform-operator                 controllers.assumed.update.CheckPlatformOperatorController.onPageLoad(operatorId: String, reportingPeriod: String)
+POST       /:operatorId/:reportingPeriod/check-platform-operator                 controllers.assumed.update.CheckPlatformOperatorController.onSubmit(operatorId: String, reportingPeriod: String)
 
-GET        /:operatorId/:caseId/check-reporting-notifications           controllers.assumed.update.CheckReportingNotificationsController.onPageLoad(operatorId: String, caseId: String)
-POST       /:operatorId/:caseId/check-reporting-notifications           controllers.assumed.update.CheckReportingNotificationsController.onSubmit(operatorId: String, caseId: String)
+GET        /:operatorId/:reportingPeriod/check-reporting-notifications           controllers.assumed.update.CheckReportingNotificationsController.onPageLoad(operatorId: String, reportingPeriod: String)
+POST       /:operatorId/:reportingPeriod/check-reporting-notifications           controllers.assumed.update.CheckReportingNotificationsController.onSubmit(operatorId: String, reportingPeriod: String)
 
-GET        /:operatorId/:caseId/check-contact-details                   controllers.assumed.update.CheckContactDetailsController.onPageLoad(operatorId: String, caseId: String)
-POST       /:operatorId/:caseId/check-contact-details                   controllers.assumed.update.CheckContactDetailsController.onSubmit(operatorId: String, caseId: String)
+GET        /:operatorId/:reportingPeriod/check-contact-details                   controllers.assumed.update.CheckContactDetailsController.onPageLoad(operatorId: String, reportingPeriod: String)
+POST       /:operatorId/:reportingPeriod/check-contact-details                   controllers.assumed.update.CheckContactDetailsController.onSubmit(operatorId: String, reportingPeriod: String)
 
-GET        /:operatorId/:caseId/no-reporting-notification               controllers.assumed.update.ReportingNotificationRequiredController.onPageLoad(operatorId: String, caseId: String)
+GET        /:operatorId/:reportingPeriod/no-reporting-notification               controllers.assumed.update.ReportingNotificationRequiredController.onPageLoad(operatorId: String, reportingPeriod: String)

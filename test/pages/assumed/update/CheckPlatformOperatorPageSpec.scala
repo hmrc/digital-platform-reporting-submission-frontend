@@ -46,21 +46,21 @@ class CheckPlatformOperatorPageSpec
 
   ".nextPage" - {
 
-    val caseId = "caseId"
+    val reportingPeriod = "reportingPeriod"
     val operatorId = "operatorId"
-    val emptyAnswers = UserAnswers("id", operatorId, Some(caseId))
+    val emptyAnswers = UserAnswers("id", operatorId, Some(reportingPeriod))
 
     "must go to Check Reporting Notification when the answer is yes" in {
 
       val answers = emptyAnswers.set(page, true).success.value
-      page.nextPage(caseId, answers).mustEqual(routes.CheckReportingNotificationsController.onPageLoad(operatorId, caseId))
+      page.nextPage(reportingPeriod, answers).mustEqual(routes.CheckReportingNotificationsController.onPageLoad(operatorId, reportingPeriod))
     }
 
     "must go to update the operator when the answer is no" in {
 
       when(mockAppConfig.updateOperatorUrl(eqTo(operatorId))).thenReturn("/foo")
       val answers = emptyAnswers.set(page, false).success.value
-      page.nextPage(caseId, answers).mustEqual(Call("GET", "/foo"))
+      page.nextPage(reportingPeriod, answers).mustEqual(Call("GET", "/foo"))
     }
   }
 }

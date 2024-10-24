@@ -43,23 +43,23 @@ class CheckReportingNotificationsController @Inject()(
                                                        view: CheckReportingNotificationsView
                                                      )(implicit ec: ExecutionContext) extends FrontendBaseController with I18nSupport {
 
-  def onPageLoad(operatorId: String, caseId: String): Action[AnyContent] =
-    (identify andThen getData(operatorId, Some(caseId)) andThen requireData).async {
+  def onPageLoad(operatorId: String, reportingPeriod: String): Action[AnyContent] =
+    (identify andThen getData(operatorId, Some(reportingPeriod)) andThen requireData).async {
       implicit request =>
         connector.viewPlatformOperator(operatorId).map { operator =>
   
           if (operator.notifications.isEmpty) {
-            Redirect(routes.ReportingNotificationRequiredController.onPageLoad(operatorId, caseId))
+            Redirect(routes.ReportingNotificationRequiredController.onPageLoad(operatorId, reportingPeriod))
           } else {
             val form = formProvider()
   
-            Ok(view(form, operator.notifications, operatorId, caseId, operator.operatorName))
+            Ok(view(form, operator.notifications, operatorId, reportingPeriod, operator.operatorName))
           }
         }
     }
 
-  def onSubmit(operatorId: String, caseId: String): Action[AnyContent] =
-    (identify andThen getData(operatorId, Some(caseId)) andThen requireData).async {
+  def onSubmit(operatorId: String, reportingPeriod: String): Action[AnyContent] =
+    (identify andThen getData(operatorId, Some(reportingPeriod)) andThen requireData).async {
       implicit request =>
   
         val form = formProvider()
@@ -67,14 +67,14 @@ class CheckReportingNotificationsController @Inject()(
         form.bindFromRequest().fold(
           formWithErrors => {
             connector.viewPlatformOperator(operatorId).map { operator =>
-              BadRequest(view(formWithErrors, operator.notifications, operatorId, caseId, operator.operatorName))
+              BadRequest(view(formWithErrors, operator.notifications, operatorId, reportingPeriod, operator.operatorName))
             }
           },
           answer =>
             for {
               updatedAnswers <- Future.fromTry(request.userAnswers.set(page, answer))
               _              <- sessionRepository.set(updatedAnswers)
-            } yield Redirect(page.nextPage(caseId, updatedAnswers))
+            } yield Redirect(page.nextPage(reportingPeriod, updatedAnswers))
         )
     }
 }

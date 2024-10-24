@@ -33,13 +33,13 @@ class AssumedReportRemovedControllerSpec extends SpecBase {
   private val now = Instant.now()
   private val fixedClock = Clock.fixed(now, ZoneId.systemDefault())
   private val submission1 = SubmissionSummary("submissionId1", "file1", "operatorId", "operatorName", "2024", now, SubmissionStatus.Success, Some("assuming"), Some("caseId1"))
-  private val submission2 = SubmissionSummary("submissionId2", "file2", "operatorId", "operatorName", "2024", now, SubmissionStatus.Success, Some("assuming"), Some("caseId2"))
+  private val submission2 = SubmissionSummary("submissionId2", "file2", "operatorId", "operatorName", "2025", now, SubmissionStatus.Success, Some("assuming"), Some("caseId2"))
 
   private val baseAnswers = emptyUserAnswers.set(AssumedReportSummariesQuery, Seq(submission1, submission2)).success.value
 
   "Assumed Report Removed Controller" - {
 
-    "must return OK and the correct view for a GET of a known submission Id" in {
+    "must return OK and the correct view for a GET of a known reporting period" in {
 
       val application =
         applicationBuilder(userAnswers = Some(baseAnswers))
@@ -49,7 +49,7 @@ class AssumedReportRemovedControllerSpec extends SpecBase {
       running(application) {
         given Messages = messages(application)
 
-        val request = FakeRequest(routes.AssumedReportRemovedController.onPageLoad(operatorId, "caseId1"))
+        val request = FakeRequest(routes.AssumedReportRemovedController.onPageLoad(operatorId, "2024"))
 
         val result = route(application, request).value
 
@@ -57,11 +57,11 @@ class AssumedReportRemovedControllerSpec extends SpecBase {
         val summaryList = AssumedReportRemovedSummaryList.list(submission1, now)
 
         status(result) mustEqual OK
-        contentAsString(result) mustEqual view(summaryList, operatorId, "caseId1")(request, implicitly).toString
+        contentAsString(result) mustEqual view(summaryList, operatorId, "2024")(request, implicitly).toString
       }
     }
     
-    "must return NOT_FOUND for an unknown submission Id" in {
+    "must return NOT_FOUND for an unknown reporting period" in {
 
       val application =
         applicationBuilder(userAnswers = Some(baseAnswers))
@@ -71,7 +71,7 @@ class AssumedReportRemovedControllerSpec extends SpecBase {
       running(application) {
         given Messages = messages(application)
 
-        val request = FakeRequest(routes.AssumedReportRemovedController.onPageLoad(operatorId, "unknown submission id"))
+        val request = FakeRequest(routes.AssumedReportRemovedController.onPageLoad(operatorId, "unknown reporting period"))
 
         val result = route(application, request).value
 

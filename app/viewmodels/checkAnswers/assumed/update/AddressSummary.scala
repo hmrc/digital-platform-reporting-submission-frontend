@@ -28,7 +28,7 @@ import viewmodels.implicits.*
 
 object AddressSummary  {
 
-  def row(caseId: String, answers: UserAnswers)(implicit messages: Messages): Option[SummaryListRow] =
+  def row(reportingPeriod: String, answers: UserAnswers)(implicit messages: Messages): Option[SummaryListRow] =
     for {
       answer               <- answers.get(AddressPage)
       assumingOperatorName <- answers.get(AssumingOperatorNamePage)
@@ -40,7 +40,7 @@ object AddressSummary  {
         key     = messages("address.checkYourAnswersLabel", assumingOperatorName),
         value   = ValueViewModel(HtmlContent(value)),
         actions = Seq(
-          ActionItemViewModel("site.change", routes.AddressController.onPageLoad(answers.operatorId, caseId).url)
+          ActionItemViewModel("site.change", routes.AddressController.onPageLoad(answers.operatorId, reportingPeriod).url)
             .withVisuallyHiddenText(messages("address.change.hidden", assumingOperatorName))
         )
       )

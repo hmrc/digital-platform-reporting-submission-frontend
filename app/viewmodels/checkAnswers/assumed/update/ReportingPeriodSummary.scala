@@ -26,7 +26,7 @@ import viewmodels.implicits.*
 
 object ReportingPeriodSummary  {
 
-  def row(caseId: String, answers: UserAnswers)(implicit messages: Messages): Option[SummaryListRow] =
+  def row(reportingPeriod: String, answers: UserAnswers)(implicit messages: Messages): Option[SummaryListRow] =
     answers.get(ReportingPeriodQuery).map {
       answer =>
 

@@ -44,12 +44,12 @@ import scala.concurrent.Future
 
 class CheckReportingNotificationsControllerSpec extends SpecBase with SummaryListFluency with MockitoSugar with BeforeAndAfterEach {
 
-  private val caseId = "caseId"
+  private val reportingPeriod = "reportingPeriod"
   private val form = CheckReportingNotificationsFormProvider()()
   private val mockConnector = mock[PlatformOperatorConnector]
   private val mockRepository = mock[SessionRepository]
   private val operatorSummary = PlatformOperatorSummary("operatorId", "operatorName", true)
-  private val baseAnswers = emptyUserAnswers.copy(caseId = Some(caseId)).set(PlatformOperatorSummaryQuery, operatorSummary).success.value
+  private val baseAnswers = emptyUserAnswers.copy(reportingPeriod = Some(reportingPeriod)).set(PlatformOperatorSummaryQuery, operatorSummary).success.value
 
   override def beforeEach(): Unit = {
     Mockito.reset(mockConnector, mockRepository)
@@ -81,14 +81,14 @@ class CheckReportingNotificationsControllerSpec extends SpecBase with SummaryLis
           .build()
 
       running(application) {
-        val request = FakeRequest(GET, routes.CheckReportingNotificationsController.onPageLoad(operatorId, caseId).url)
+        val request = FakeRequest(GET, routes.CheckReportingNotificationsController.onPageLoad(operatorId, reportingPeriod).url)
 
         val result = route(application, request).value
 
         val view = application.injector.instanceOf[CheckReportingNotificationsView]
 
         status(result) mustEqual OK
-        contentAsString(result) mustEqual view(form, Seq(notification), "operatorId", caseId, "operatorName")(request, messages(application)).toString
+        contentAsString(result) mustEqual view(form, Seq(notification), "operatorId", reportingPeriod, "operatorName")(request, messages(application)).toString
       }
     }
 
@@ -114,12 +114,12 @@ class CheckReportingNotificationsControllerSpec extends SpecBase with SummaryLis
           .build()
 
       running(application) {
-        val request = FakeRequest(GET, routes.CheckReportingNotificationsController.onPageLoad(operatorId, caseId).url)
+        val request = FakeRequest(GET, routes.CheckReportingNotificationsController.onPageLoad(operatorId, reportingPeriod).url)
 
         val result = route(application, request).value
 
         status(result) mustEqual SEE_OTHER
-        redirectLocation(result).value mustEqual routes.ReportingNotificationRequiredController.onPageLoad(operatorId, caseId).url
+        redirectLocation(result).value mustEqual routes.ReportingNotificationRequiredController.onPageLoad(operatorId, reportingPeriod).url
       }
     }
 
@@ -147,7 +147,7 @@ class CheckReportingNotificationsControllerSpec extends SpecBase with SummaryLis
 
       running(application) {
         val request =
-          FakeRequest(POST, routes.CheckReportingNotificationsController.onPageLoad(operatorId, caseId).url)
+          FakeRequest(POST, routes.CheckReportingNotificationsController.onPageLoad(operatorId, reportingPeriod).url)
             .withFormUrlEncodedBody("value" -> "invalid value")
 
         val result = route(application, request).value
@@ -157,7 +157,7 @@ class CheckReportingNotificationsControllerSpec extends SpecBase with SummaryLis
         val formWithErrors = form.bind(Map("value" -> "invalid value"))
 
         status(result) mustEqual BAD_REQUEST
-        contentAsString(result) mustEqual view(formWithErrors, Seq(notification), "operatorId", caseId, "operatorName")(request, messages(application)).toString
+        contentAsString(result) mustEqual view(formWithErrors, Seq(notification), "operatorId", reportingPeriod, "operatorName")(request, messages(application)).toString
       }
     }
 
@@ -172,7 +172,7 @@ class CheckReportingNotificationsControllerSpec extends SpecBase with SummaryLis
 
       running(application) {
         val request =
-          FakeRequest(POST, routes.CheckReportingNotificationsController.onPageLoad(operatorId, caseId).url)
+          FakeRequest(POST, routes.CheckReportingNotificationsController.onPageLoad(operatorId, reportingPeriod).url)
             .withFormUrlEncodedBody("value" -> "true")
 
         val page = application.injector.instanceOf[CheckReportingNotificationsPage]
@@ -182,7 +182,7 @@ class CheckReportingNotificationsControllerSpec extends SpecBase with SummaryLis
         val result = route(application, request).value
 
         status(result) mustEqual SEE_OTHER
-        redirectLocation(result).value mustEqual page.nextPage(caseId, expectedAnswers).url
+        redirectLocation(result).value mustEqual page.nextPage(reportingPeriod, expectedAnswers).url
         verify(mockRepository, times(1)).set(answersCaptor.capture())
 
         val answers = answersCaptor.getValue

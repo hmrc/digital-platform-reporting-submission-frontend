@@ -24,9 +24,9 @@ import org.scalatest.matchers.must.Matchers
 
 class TaxResidentInUkPageSpec extends AnyFreeSpec with Matchers with TryValues with OptionValues {
 
-  private val caseId = "caseId"
+  private val reportingPeriod = "reportingPeriod"
   private val operatorId = "operatorId"
-  private val emptyAnswers = UserAnswers("id", operatorId, Some(caseId))
+  private val emptyAnswers = UserAnswers("id", operatorId, Some(reportingPeriod))
   
   ".nextPage" - {
 
@@ -39,7 +39,7 @@ class TaxResidentInUkPageSpec extends AnyFreeSpec with Matchers with TryValues w
             .set(TaxResidentInUkPage, true).success.value
             .set(HasUkTaxIdentifierPage, true).success.value
 
-        TaxResidentInUkPage.nextPage(caseId, answers).mustEqual(routes.CheckYourAnswersController.onPageLoad(operatorId, caseId))
+        TaxResidentInUkPage.nextPage(reportingPeriod, answers).mustEqual(routes.CheckYourAnswersController.onPageLoad(operatorId, reportingPeriod))
       }
 
       "when the answer is no and Tax Residency Country has been answered" in {
@@ -49,20 +49,20 @@ class TaxResidentInUkPageSpec extends AnyFreeSpec with Matchers with TryValues w
             .set(TaxResidentInUkPage, false).success.value
             .set(TaxResidencyCountryPage, Country.internationalCountries.head).success.value
 
-        TaxResidentInUkPage.nextPage(caseId, answers).mustEqual(routes.CheckYourAnswersController.onPageLoad(operatorId, caseId))
+        TaxResidentInUkPage.nextPage(reportingPeriod, answers).mustEqual(routes.CheckYourAnswersController.onPageLoad(operatorId, reportingPeriod))
       }
     }
 
     "must go to Has UK Tax Identifier when the answer is yes and Has UK Tax Identifier has not been answered" in {
 
       val answers = emptyAnswers.set(TaxResidentInUkPage, true).success.value
-      TaxResidentInUkPage.nextPage(caseId, answers).mustEqual(routes.HasUkTaxIdentifierController.onPageLoad(operatorId, caseId))
+      TaxResidentInUkPage.nextPage(reportingPeriod, answers).mustEqual(routes.HasUkTaxIdentifierController.onPageLoad(operatorId, reportingPeriod))
     }
 
     "must go to Tax Residency Country when the answer is yes and Tax Residency Country has not been answered" in {
 
       val answers = emptyAnswers.set(TaxResidentInUkPage, false).success.value
-      TaxResidentInUkPage.nextPage(caseId, answers).mustEqual(routes.TaxResidencyCountryController.onPageLoad(operatorId, caseId))
+      TaxResidentInUkPage.nextPage(reportingPeriod, answers).mustEqual(routes.TaxResidencyCountryController.onPageLoad(operatorId, reportingPeriod))
     }
   }
 

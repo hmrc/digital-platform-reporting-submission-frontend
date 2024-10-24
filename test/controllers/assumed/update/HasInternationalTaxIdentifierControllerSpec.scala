@@ -34,18 +34,18 @@ import scala.concurrent.Future
 
 class HasInternationalTaxIdentifierControllerSpec extends SpecBase with MockitoSugar {
 
-  private val caseId = "caseId"
+  private val reportingPeriod = "reportingPeriod"
   val formProvider = new HasInternationalTaxIdentifierFormProvider()
   private val assumingOperatorName = "name"
   private val country = Country.internationalCountries.head
   private val form = formProvider(assumingOperatorName, country)
   private val baseAnswers =
     emptyUserAnswers
-      .copy(caseId = Some(caseId))
+      .copy(reportingPeriod = Some(reportingPeriod))
       .set(AssumingOperatorNamePage, assumingOperatorName).success.value
       .set(TaxResidencyCountryPage, country).success.value
 
-  private lazy val hasInternationalTaxIdentifierRoute = routes.HasInternationalTaxIdentifierController.onPageLoad(operatorId, caseId).url
+  private lazy val hasInternationalTaxIdentifierRoute = routes.HasInternationalTaxIdentifierController.onPageLoad(operatorId, reportingPeriod).url
 
   "HasInternationalTaxIdentifier Controller" - {
 
@@ -61,7 +61,7 @@ class HasInternationalTaxIdentifierControllerSpec extends SpecBase with MockitoS
         val view = application.injector.instanceOf[HasInternationalTaxIdentifierView]
 
         status(result) mustEqual OK
-        contentAsString(result) mustEqual view(form, operatorId, caseId, assumingOperatorName, country)(request, messages(application)).toString
+        contentAsString(result) mustEqual view(form, operatorId, reportingPeriod, assumingOperatorName, country)(request, messages(application)).toString
       }
     }
 
@@ -79,7 +79,7 @@ class HasInternationalTaxIdentifierControllerSpec extends SpecBase with MockitoS
         val result = route(application, request).value
 
         status(result) mustEqual OK
-        contentAsString(result) mustEqual view(form.fill(true), operatorId, caseId, assumingOperatorName, country)(request, messages(application)).toString
+        contentAsString(result) mustEqual view(form.fill(true), operatorId, reportingPeriod, assumingOperatorName, country)(request, messages(application)).toString
       }
     }
 
@@ -105,7 +105,7 @@ class HasInternationalTaxIdentifierControllerSpec extends SpecBase with MockitoS
         val answers = baseAnswers.set(HasInternationalTaxIdentifierPage, true).success.value
 
         status(result) mustEqual SEE_OTHER
-        redirectLocation(result).value mustEqual HasInternationalTaxIdentifierPage.nextPage(caseId, answers).url
+        redirectLocation(result).value mustEqual HasInternationalTaxIdentifierPage.nextPage(reportingPeriod, answers).url
       }
     }
 
@@ -125,7 +125,7 @@ class HasInternationalTaxIdentifierControllerSpec extends SpecBase with MockitoS
         val result = route(application, request).value
 
         status(result) mustEqual BAD_REQUEST
-        contentAsString(result) mustEqual view(boundForm, operatorId, caseId, assumingOperatorName, country)(request, messages(application)).toString
+        contentAsString(result) mustEqual view(boundForm, operatorId, reportingPeriod, assumingOperatorName, country)(request, messages(application)).toString
       }
     }
 

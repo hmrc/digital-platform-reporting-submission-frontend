@@ -26,11 +26,11 @@
     govukButton: GovukButton
 )
 
-@(form: Form[_], operator: PlatformOperatorSummary, caseId: String)(implicit request: Request[_], messages: Messages)
+@(form: Form[_], operator: PlatformOperatorSummary, reportingPeriod: String)(implicit request: Request[_], messages: Messages)
 
 @layout(pageTitle = title(form, messages("assumingOperatorName.title"))) {
 
-    @formHelper(action = routes.AssumingOperatorNameController.onSubmit(operator.operatorId, caseId)) {
+    @formHelper(action = routes.AssumingOperatorNameController.onSubmit(operator.operatorId, reportingPeriod)) {
 
         @if(form.errors.nonEmpty) {
             @govukErrorSummary(ErrorSummaryViewModel(form))

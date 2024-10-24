@@ -44,30 +44,30 @@ class CheckYourAnswersController @Inject()(
                                             sessionRepository: SessionRepository
                                           )(using ExecutionContext) extends FrontendBaseController with I18nSupport {
 
-  def onPageLoad(operatorId: String, caseId: String): Action[AnyContent] =
-    (identify andThen getData(operatorId, Some(caseId)) andThen requireData) {
+  def onPageLoad(operatorId: String, reportingPeriod: String): Action[AnyContent] =
+    (identify andThen getData(operatorId, Some(reportingPeriod)) andThen requireData) {
       implicit request =>
   
         val list = SummaryListViewModel(
           rows = Seq(
-            AssumingOperatorNameSummary.row(caseId, request.userAnswers),
-            TaxResidentInUkSummary.row(caseId, request.userAnswers),
-            HasUkTaxIdentifierSummary.row(caseId, request.userAnswers),
-            UkTaxIdentifierSummary.row(caseId, request.userAnswers),
-            TaxResidencyCountrySummary.row(caseId, request.userAnswers),
-            HasInternationalTaxIdentifierSummary.row(caseId, request.userAnswers),
-            InternationalTaxIdentifierSummary.row(caseId, request.userAnswers),
-            RegisteredCountrySummary.row(caseId, request.userAnswers),
-            AddressSummary.row(caseId, request.userAnswers),
-            ReportingPeriodSummary.row(caseId, request.userAnswers),
+            AssumingOperatorNameSummary.row(reportingPeriod, request.userAnswers),
+            TaxResidentInUkSummary.row(reportingPeriod, request.userAnswers),
+            HasUkTaxIdentifierSummary.row(reportingPeriod, request.userAnswers),
+            UkTaxIdentifierSummary.row(reportingPeriod, request.userAnswers),
+            TaxResidencyCountrySummary.row(reportingPeriod, request.userAnswers),
+            HasInternationalTaxIdentifierSummary.row(reportingPeriod, request.userAnswers),
+            InternationalTaxIdentifierSummary.row(reportingPeriod, request.userAnswers),
+            RegisteredCountrySummary.row(reportingPeriod, request.userAnswers),
+            AddressSummary.row(reportingPeriod, request.userAnswers),
+            ReportingPeriodSummary.row(reportingPeriod, request.userAnswers),
           ).flatten
         )
   
-        Ok(view(list, operatorId, caseId))
+        Ok(view(list, operatorId, reportingPeriod))
     }
 
-  def onSubmit(operatorId: String, caseId: String): Action[AnyContent] =
-    (identify andThen getData(operatorId, Some(caseId)) andThen requireData).async {
+  def onSubmit(operatorId: String, reportingPeriod: String): Action[AnyContent] =
+    (identify andThen getData(operatorId, Some(reportingPeriod)) andThen requireData).async {
       implicit request =>
   
         userAnswersService.toAssumedReportingSubmissionRequest(request.userAnswers)
@@ -77,7 +77,7 @@ class CheckYourAnswersController @Inject()(
           .flatMap { submissionRequest =>
             for {
               submission <- submissionConnector.submitAssumedReporting(submissionRequest)
-              _          <- sessionRepository.clear(request.userId, operatorId, Some(caseId))
+              _          <- sessionRepository.clear(request.userId, operatorId, Some(reportingPeriod))
             } yield Redirect(routes.SubmissionConfirmationController.onPageLoad(operatorId, submission._id))
           }
     }

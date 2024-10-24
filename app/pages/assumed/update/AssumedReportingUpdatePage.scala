@@ -22,6 +22,6 @@ import play.api.mvc.Call
 
 trait AssumedReportingUpdatePage {
 
-  def nextPage(caseId: String, answers: UserAnswers): Call =
-    routes.CheckYourAnswersController.onPageLoad(answers.operatorId, caseId)
+  def nextPage(reportingPeriod: String, answers: UserAnswers): Call =
+    routes.CheckYourAnswersController.onPageLoad(answers.operatorId, reportingPeriod)
 }

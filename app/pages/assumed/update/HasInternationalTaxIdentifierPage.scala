@@ -30,15 +30,15 @@ case object HasInternationalTaxIdentifierPage extends AssumedReportingUpdateQues
 
   override def toString: String = "hasInternationalTaxIdentifier"
 
-  override def nextPage(caseId: String, answers: UserAnswers): Call =
+  override def nextPage(reportingPeriod: String, answers: UserAnswers): Call =
     answers.get(this).map {
       case true =>
         answers.get(InternationalTaxIdentifierPage)
-          .map(_ => routes.CheckYourAnswersController.onPageLoad(answers.operatorId, caseId))
-          .getOrElse(routes.InternationalTaxIdentifierController.onPageLoad(answers.operatorId, caseId))
+          .map(_ => routes.CheckYourAnswersController.onPageLoad(answers.operatorId, reportingPeriod))
+          .getOrElse(routes.InternationalTaxIdentifierController.onPageLoad(answers.operatorId, reportingPeriod))
 
       case false =>
-        routes.CheckYourAnswersController.onPageLoad(answers.operatorId, caseId)
+        routes.CheckYourAnswersController.onPageLoad(answers.operatorId, reportingPeriod)
     }.getOrElse(baseRoutes.JourneyRecoveryController.onPageLoad())
 
   override def cleanup(value: Option[Boolean], userAnswers: UserAnswers): Try[UserAnswers] =

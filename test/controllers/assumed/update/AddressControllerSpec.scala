@@ -34,13 +34,13 @@ import scala.concurrent.Future
 
 class AddressControllerSpec extends SpecBase with MockitoSugar {
 
-  private val caseId = "caseId"
+  private val reportingPeriod = "reportingPeriod"
   private val formProvider = new AddressFormProvider()
   private val assumingOperatorName = "name"
   private val form = formProvider(assumingOperatorName)
-  private val baseAnswers = emptyUserAnswers.copy(caseId = Some(caseId)).set(AssumingOperatorNamePage, assumingOperatorName).success.value
+  private val baseAnswers = emptyUserAnswers.copy(reportingPeriod = Some(reportingPeriod)).set(AssumingOperatorNamePage, assumingOperatorName).success.value
 
-  private lazy val addressRoute = routes.AddressController.onPageLoad(operatorId, caseId).url
+  private lazy val addressRoute = routes.AddressController.onPageLoad(operatorId, reportingPeriod).url
   private val address = "address"
   private val userAnswers = baseAnswers.set(AddressPage, address).success.value
 
@@ -58,7 +58,7 @@ class AddressControllerSpec extends SpecBase with MockitoSugar {
         val result = route(application, request).value
 
         status(result) mustEqual OK
-        contentAsString(result) mustEqual view(form, operatorId, caseId, assumingOperatorName)(request, messages(application)).toString
+        contentAsString(result) mustEqual view(form, operatorId, reportingPeriod, assumingOperatorName)(request, messages(application)).toString
       }
     }
 
@@ -74,7 +74,7 @@ class AddressControllerSpec extends SpecBase with MockitoSugar {
         val result = route(application, request).value
 
         status(result) mustEqual OK
-        contentAsString(result) mustEqual view(form.fill(address), operatorId, caseId, assumingOperatorName)(request, messages(application)).toString
+        contentAsString(result) mustEqual view(form.fill(address), operatorId, reportingPeriod, assumingOperatorName)(request, messages(application)).toString
       }
     }
 
@@ -99,7 +99,7 @@ class AddressControllerSpec extends SpecBase with MockitoSugar {
         val result = route(application, request).value
 
         status(result) mustEqual SEE_OTHER
-        redirectLocation(result).value mustEqual AddressPage.nextPage(caseId, userAnswers).url
+        redirectLocation(result).value mustEqual AddressPage.nextPage(reportingPeriod, userAnswers).url
       }
     }
 
@@ -119,7 +119,7 @@ class AddressControllerSpec extends SpecBase with MockitoSugar {
         val result = route(application, request).value
 
         status(result) mustEqual BAD_REQUEST
-        contentAsString(result) mustEqual view(boundForm, operatorId, caseId, assumingOperatorName)(request, messages(application)).toString
+        contentAsString(result) mustEqual view(boundForm, operatorId, reportingPeriod, assumingOperatorName)(request, messages(application)).toString
       }
     }
 

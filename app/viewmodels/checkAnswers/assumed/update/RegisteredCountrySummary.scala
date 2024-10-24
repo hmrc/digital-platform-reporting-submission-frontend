@@ -26,7 +26,7 @@ import viewmodels.implicits.*
 
 object RegisteredCountrySummary  {
 
-  def row(caseId: String, answers: UserAnswers)(implicit messages: Messages): Option[SummaryListRow] =
+  def row(reportingPeriod: String, answers: UserAnswers)(implicit messages: Messages): Option[SummaryListRow] =
     for {
       answer               <- answers.get(RegisteredCountryPage)
       assumingOperatorName <- answers.get(AssumingOperatorNamePage)
@@ -36,7 +36,7 @@ object RegisteredCountrySummary  {
         key     = messages("registeredCountry.checkYourAnswersLabel", assumingOperatorName),
         value   = ValueViewModel(answer.name),
         actions = Seq(
-          ActionItemViewModel("site.change", routes.RegisteredCountryController.onPageLoad(answers.operatorId, caseId).url)
+          ActionItemViewModel("site.change", routes.RegisteredCountryController.onPageLoad(answers.operatorId, reportingPeriod).url)
             .withVisuallyHiddenText(messages("registeredCountry.change.hidden", assumingOperatorName))
         )
       )
