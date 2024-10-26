@@ -505,21 +505,10 @@ class SubmissionConnectorSpec
           tin = "tin3",
           tinType = Utr,
           issuedBy = "GB"
-        ),
-        TinDetails(
-          tin = "tin4",
-          tinType = Vrn,
-          issuedBy = "GB"
         )
       ),
-      address = AssumingOperatorAddress(
-        line1 = "assumed line1",
-        line2 = Some("assumed line2"),
-        city = "assumed city",
-        region = Some("assumed regionName"),
-        postCode = "assumed postcode",
-        country = "US"
-      )
+      registeredCountry = "GB",
+      address = "address"
     )
     
     val submission = AssumedReportingSubmission("operatorId", assumingOperator, Year.of(2024))
