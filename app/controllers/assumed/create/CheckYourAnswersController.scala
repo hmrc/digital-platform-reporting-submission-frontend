@@ -24,7 +24,7 @@ import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import repositories.SessionRepository
 import services.UserAnswersService
-import services.UserAnswersService.BuildAssumedReportingSubmissionRequestFailure
+import services.UserAnswersService.BuildAssumedReportingSubmissionFailure
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import viewmodels.checkAnswers.assumed.create.*
 import viewmodels.govuk.summarylist.*
@@ -68,9 +68,9 @@ class CheckYourAnswersController @Inject()(
   def onSubmit(operatorId: String): Action[AnyContent] = (identify andThen getData(operatorId) andThen requireData).async {
     implicit request =>
 
-      userAnswersService.toAssumedReportingSubmissionRequest(request.userAnswers)
+      userAnswersService.toAssumedReportingSubmission(request.userAnswers)
         .map(Future.successful)
-        .left.map(errors => Future.failed(BuildAssumedReportingSubmissionRequestFailure(errors)))
+        .left.map(errors => Future.failed(BuildAssumedReportingSubmissionFailure(errors)))
         .merge
         .flatMap { submissionRequest =>
           for {

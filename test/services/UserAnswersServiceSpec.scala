@@ -18,13 +18,15 @@ package services
 
 import models.operator.TinDetails
 import models.operator.TinType.Other
-import models.submission.{AssumedReportingSubmissionRequest, AssumingPlatformOperator}
-import models.{Country,  UkTaxIdentifiers, UserAnswers}
-import org.scalatest.{EitherValues, TryValues}
+import models.submission.{AssumedReportingSubmission, AssumingPlatformOperator}
+import models.{Country, UserAnswers}
+import org.scalatest.{EitherValues, OptionValues, TryValues}
 import org.scalatest.freespec.AnyFreeSpec
 import org.scalatest.matchers.must.Matchers
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
 import pages.assumed.create.*
+import pages.assumed.update as updatePages
+import queries.ReportingPeriodQuery
 
 import java.time.Year
 
@@ -33,15 +35,16 @@ class UserAnswersServiceSpec
     with Matchers
     with TryValues
     with GuiceOneAppPerSuite
-    with EitherValues {
+    with EitherValues
+    with OptionValues {
 
   private lazy val userAnswersService: UserAnswersService = app.injector.instanceOf[UserAnswersService]
 
-  "toAssumedReportingSubmissionRequest" - {
+  "toAssumedReportingSubmission" - {
 
-    "must return an AssumedReportingSubmissionRequest for a GB operator when optional answers are given" in {
+    "must return an AssumedReportingSubmission for a GB operator when optional answers are given" in {
 
-      val expectedRequest = AssumedReportingSubmissionRequest(
+      val expectedRequest = AssumedReportingSubmission(
         operatorId = "operatorId",
         assumingOperator = AssumingPlatformOperator(
           name = "assumingOperator",
@@ -60,21 +63,21 @@ class UserAnswersServiceSpec
       )
 
       val answers = UserAnswers("id", "operatorId")
-        .set(AssumingOperatorNamePage, "assumingOperator").success.value
-        .set(ReportingPeriodPage, 2024).success.value
-        .set(TaxResidentInUkPage, true).success.value
-        .set(HasUkTaxIdentifierPage, true).success.value
-        .set(UkTaxIdentifierPage, "tin1").success.value
-        .set(RegisteredCountryPage, Country("US", "United States")).success.value
-        .set(AddressPage, "address").success.value
+        .set(updatePages.AssumingOperatorNamePage, "assumingOperator").success.value
+        .set(ReportingPeriodQuery, 2024).success.value
+        .set(updatePages.TaxResidentInUkPage, true).success.value
+        .set(updatePages.HasUkTaxIdentifierPage, true).success.value
+        .set(updatePages.UkTaxIdentifierPage, "tin1").success.value
+        .set(updatePages.RegisteredCountryPage, Country("US", "United States")).success.value
+        .set(updatePages.AddressPage, "address").success.value
 
-      val result = userAnswersService.toAssumedReportingSubmissionRequest(answers).value
+      val result = userAnswersService.toAssumedReportingSubmission(answers).value
       result mustEqual expectedRequest
     }
 
-    "must return an AssumedReportingSubmissionRequest for a GB operator when optional answers are not given" in {
+    "must return an AssumedReportingSubmission for a GB operator when optional answers are not given" in {
 
-      val expectedRequest = AssumedReportingSubmissionRequest(
+      val expectedRequest = AssumedReportingSubmission(
         operatorId = "operatorId",
         assumingOperator = AssumingPlatformOperator(
           name = "assumingOperator",
@@ -94,13 +97,13 @@ class UserAnswersServiceSpec
         .set(RegisteredCountryPage, Country("US", "UnitedStates")).success.value
         .set(AddressPage, "address").success.value
 
-      val result = userAnswersService.toAssumedReportingSubmissionRequest(answers).value
+      val result = userAnswersService.toAssumedReportingSubmission(answers).value
       result mustEqual expectedRequest
     }
 
-    "must return an AssumedReportingSubmissionRequest for a non-GB operator when optional answers are given" in {
+    "must return an AssumedReportingSubmission for a non-GB operator when optional answers are given" in {
 
-      val expectedRequest = AssumedReportingSubmissionRequest(
+      val expectedRequest = AssumedReportingSubmission(
         operatorId = "operatorId",
         assumingOperator = AssumingPlatformOperator(
           name = "assumingOperator",
@@ -128,13 +131,13 @@ class UserAnswersServiceSpec
         .set(RegisteredCountryPage, Country("GB", "United Kingdom")).success.value
         .set(AddressPage, "address").success.value
 
-      val result = userAnswersService.toAssumedReportingSubmissionRequest(answers).value
+      val result = userAnswersService.toAssumedReportingSubmission(answers).value
       result mustEqual expectedRequest
     }
 
-    "must return an AssumedReportingSubmissionRequest for a non-GB operator when optional answers are not given" in {
+    "must return an AssumedReportingSubmission for a non-GB operator when optional answers are not given" in {
 
-      val expectedRequest = AssumedReportingSubmissionRequest(
+      val expectedRequest = AssumedReportingSubmission(
         operatorId = "operatorId",
         assumingOperator = AssumingPlatformOperator(
           name = "assumingOperator",
@@ -155,8 +158,185 @@ class UserAnswersServiceSpec
         .set(RegisteredCountryPage, Country("GB", "United Kingdom")).success.value
         .set(AddressPage, "address").success.value
 
-      val result = userAnswersService.toAssumedReportingSubmissionRequest(answers).value
+      val result = userAnswersService.toAssumedReportingSubmission(answers).value
       result mustEqual expectedRequest
+    }
+  }
+
+  "fromAssumedReportingSubmission" - {
+
+    val userId = "userId"
+
+    "must return UserAnswers for a GB operator when optional answers are given" in {
+
+      val submission = AssumedReportingSubmission(
+        operatorId = "operatorId",
+        assumingOperator = AssumingPlatformOperator(
+          name = "assumingOperator",
+          residentCountry = "GB",
+          tinDetails = Seq(
+            TinDetails(
+              tin = "tin1",
+              tinType = Other,
+              issuedBy = "GB"
+            )
+          ),
+          registeredCountry = "US",
+          address = "address"
+        ),
+        reportingPeriod = Year.of(2024)
+      )
+
+      val result = userAnswersService.fromAssumedReportingSubmission(userId, submission).success.value
+
+      result.userId                                             mustEqual userId
+      result.operatorId                                         mustEqual "operatorId"
+      result.reportingPeriod.value                              mustEqual "2024"
+      result.get(ReportingPeriodQuery).value                    mustEqual 2024
+      result.get(updatePages.AssumingOperatorNamePage).value    mustEqual "assumingOperator"
+      result.get(updatePages.TaxResidentInUkPage).value         mustEqual true
+      result.get(updatePages.HasUkTaxIdentifierPage).value      mustEqual true
+      result.get(updatePages.UkTaxIdentifierPage).value         mustEqual "tin1"
+      result.get(updatePages.RegisteredCountryPage).value       mustEqual Country("US", "United States")
+      result.get(updatePages.AddressPage).value                 mustEqual "address"
+      result.get(updatePages.TaxResidencyCountryPage)           must not be defined
+      result.get(updatePages.HasInternationalTaxIdentifierPage) must not be defined
+      result.get(updatePages.InternationalTaxIdentifierPage)    must not be defined
+    }
+
+    "must return UserAnswers for a GB operator when optional answers are not given" in {
+
+      val submission = AssumedReportingSubmission(
+        operatorId = "operatorId",
+        assumingOperator = AssumingPlatformOperator(
+          name = "assumingOperator",
+          residentCountry = "GB",
+          tinDetails = Seq.empty,
+          registeredCountry = "US",
+          address = "address"
+        ),
+        reportingPeriod = Year.of(2024)
+      )
+
+      val result = userAnswersService.fromAssumedReportingSubmission(userId, submission).success.value
+
+      result.userId                                             mustEqual userId
+      result.operatorId                                         mustEqual "operatorId"
+      result.reportingPeriod.value                              mustEqual "2024"
+      result.get(ReportingPeriodQuery).value                    mustEqual 2024
+      result.get(updatePages.AssumingOperatorNamePage).value    mustEqual "assumingOperator"
+      result.get(updatePages.TaxResidentInUkPage).value         mustEqual true
+      result.get(updatePages.HasUkTaxIdentifierPage).value      mustEqual false
+      result.get(updatePages.RegisteredCountryPage).value       mustEqual Country("US", "United States")
+      result.get(updatePages.AddressPage).value                 mustEqual "address"
+      result.get(updatePages.UkTaxIdentifierPage)               must not be defined
+      result.get(updatePages.TaxResidencyCountryPage)           must not be defined
+      result.get(updatePages.HasInternationalTaxIdentifierPage) must not be defined
+      result.get(updatePages.InternationalTaxIdentifierPage)    must not be defined
+    }
+
+    "must return UserAnswers for a non-GB operator when optional answers are given" in {
+
+      val submission = AssumedReportingSubmission(
+        operatorId = "operatorId",
+        assumingOperator = AssumingPlatformOperator(
+          name = "assumingOperator",
+          residentCountry = "US",
+          tinDetails = Seq(
+            TinDetails(
+              tin = "tin",
+              tinType = Other,
+              issuedBy = "US"
+            )
+          ),
+          registeredCountry = "GB",
+          address = "address"
+        ),
+        reportingPeriod = Year.of(2024)
+      )
+
+      val result = userAnswersService.fromAssumedReportingSubmission(userId, submission).success.value
+
+      result.userId                                                   mustEqual userId
+      result.operatorId                                               mustEqual "operatorId"
+      result.reportingPeriod.value                                    mustEqual "2024"
+      result.get(ReportingPeriodQuery).value                          mustEqual 2024
+      result.get(updatePages.AssumingOperatorNamePage).value          mustEqual "assumingOperator"
+      result.get(updatePages.TaxResidentInUkPage).value               mustEqual false
+      result.get(updatePages.TaxResidencyCountryPage).value           mustEqual Country("US", "United States")
+      result.get(updatePages.HasInternationalTaxIdentifierPage).value mustEqual true
+      result.get(updatePages.InternationalTaxIdentifierPage).value    mustEqual "tin"
+      result.get(updatePages.RegisteredCountryPage).value             mustEqual Country("GB", "United Kingdom")
+      result.get(updatePages.AddressPage).value                       mustEqual "address"
+      result.get(updatePages.HasUkTaxIdentifierPage)                  must not be defined
+      result.get(updatePages.UkTaxIdentifierPage)                     must not be defined
+    }
+
+    "must return UserAnswers for a non-GB operator when optional answers are not given" in {
+
+      val submission = AssumedReportingSubmission(
+        operatorId = "operatorId",
+        assumingOperator = AssumingPlatformOperator(
+          name = "assumingOperator",
+          residentCountry = "US",
+          tinDetails = Seq.empty,
+          registeredCountry = "GB",
+          address = "address"
+        ),
+        reportingPeriod = Year.of(2024)
+      )
+
+      val result = userAnswersService.fromAssumedReportingSubmission(userId, submission).success.value
+
+      result.userId                                                   mustEqual userId
+      result.operatorId                                               mustEqual "operatorId"
+      result.reportingPeriod.value                                    mustEqual "2024"
+      result.get(ReportingPeriodQuery).value                          mustEqual 2024
+      result.get(updatePages.AssumingOperatorNamePage).value          mustEqual "assumingOperator"
+      result.get(updatePages.TaxResidentInUkPage).value               mustEqual false
+      result.get(updatePages.TaxResidencyCountryPage).value           mustEqual Country("US", "United States")
+      result.get(updatePages.HasInternationalTaxIdentifierPage).value mustEqual false
+      result.get(updatePages.RegisteredCountryPage).value             mustEqual Country("GB", "United Kingdom")
+      result.get(updatePages.AddressPage).value                       mustEqual "address"
+      result.get(updatePages.InternationalTaxIdentifierPage)          must not be defined
+      result.get(updatePages.HasUkTaxIdentifierPage)                  must not be defined
+      result.get(updatePages.UkTaxIdentifierPage)                     must not be defined
+    }
+
+    "must fail when registered country is not a valid country code" in {
+
+      val submission = AssumedReportingSubmission(
+        operatorId = "operatorId",
+        assumingOperator = AssumingPlatformOperator(
+          name = "assumingOperator",
+          residentCountry = "US",
+          tinDetails = Seq.empty,
+          registeredCountry = "not a country",
+          address = "address"
+        ),
+        reportingPeriod = Year.of(2024)
+      )
+
+      val result = userAnswersService.fromAssumedReportingSubmission(userId, submission)
+      result.isFailure mustEqual true
+    }
+
+    "must fail when resident country is not a valid country code" in {
+
+      val submission = AssumedReportingSubmission(
+        operatorId = "operatorId",
+        assumingOperator = AssumingPlatformOperator(
+          name = "assumingOperator",
+          residentCountry = "not a country",
+          tinDetails = Seq.empty,
+          registeredCountry = "GB",
+          address = "address"
+        ),
+        reportingPeriod = Year.of(2024)
+      )
+
+      val result = userAnswersService.fromAssumedReportingSubmission(userId, submission)
+      result.isFailure mustEqual true
     }
   }
 }

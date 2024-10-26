@@ -22,9 +22,8 @@ import models.submission.*
 import org.apache.pekko.stream.Materializer
 import org.apache.pekko.stream.scaladsl.{JsonFraming, Source}
 import org.apache.pekko.{Done, NotUsed}
-import org.apache.pekko.Done
 import play.api.Configuration
-import play.api.http.Status.{CONFLICT, CREATED, NOT_FOUND, NO_CONTENT, OK}
+import play.api.http.Status.{CONFLICT, CREATED, NOT_FOUND, OK}
 import play.api.libs.json.Json
 import play.api.libs.ws.JsonBodyWritables.writeableOf_JsValue
 import uk.gov.hmrc.http.client.{HttpClientV2, given}
@@ -149,7 +148,7 @@ class SubmissionConnector @Inject() (
         }
       }
 
-  def submitAssumedReporting(request: AssumedReportingSubmissionRequest)(using HeaderCarrier): Future[Submission] =
+  def submitAssumedReporting(request: AssumedReportingSubmission)(using HeaderCarrier): Future[Submission] =
     httpClient.post(url"$digitalPlatformReportingService/digital-platform-reporting/submission/assumed/submit")
       .withBody(Json.toJson(request))
       .execute[HttpResponse]
@@ -157,6 +156,17 @@ class SubmissionConnector @Inject() (
         response.status match {
           case OK => Future.successful(response.json.as[Submission])
           case _  => Future.failed(SubmitAssumedReportingFailure)
+        }
+      }
+      
+  def getAssumedReport(operatorId: String, reportingPeriod: String)(using HeaderCarrier): Future[Option[AssumedReportingSubmission]] =
+    httpClient.get(url"$digitalPlatformReportingService/digital-platform-reporting/submission/assumed/$operatorId/$reportingPeriod")
+      .execute[HttpResponse]
+      .flatMap { response =>
+        response.status match {
+          case OK        => Future.successful(Some(response.json.as[AssumedReportingSubmission]))
+          case NOT_FOUND => Future.successful(None)
+          case _         => Future.failed(GetAssumedReportFailure)
         }
       }
 }
@@ -172,4 +182,5 @@ object SubmissionConnector {
   final case class GetErrorsFailure(id: String, status: Int) extends Throwable
   case object ViewFailure extends Throwable
   case object SubmitAssumedReportingFailure extends Throwable
+  case object GetAssumedReportFailure extends Throwable
 }

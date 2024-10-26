@@ -17,6 +17,7 @@
 package models.submission
 
 import controllers.assumed.remove.{routes as removeRoutes}
+import controllers.assumed.update.{routes as updateRoutes}
 import play.api.i18n.Messages
 import play.api.libs.json.{Json, OFormat}
 import viewmodels.Link
@@ -36,9 +37,13 @@ final case class SubmissionSummary(submissionId: String,
   private def removeAssumedReportLink(implicit messages: Messages): Link =
     Link(messages("site.delete"), removeRoutes.RemoveAssumedReportController.onPageLoad(operatorId, reportingPeriod).url)
 
-  // TODO: Add update link when pages exist
-  // TODO: Consider status when deciding which links to show?
+  private def updateAssumedReportLink(implicit messages: Messages): Link =
+    Link(messages("site.edit"), updateRoutes.CheckYourAnswersController.initialise(operatorId, reportingPeriod).url)
+    
+  // TODO: Different links for regular file submissions
+  // TODO: Consider status when deciding which links to show
   def links(implicit messages: Messages): Seq[Link] = Seq(
+    updateAssumedReportLink,
     removeAssumedReportLink
   )
 }

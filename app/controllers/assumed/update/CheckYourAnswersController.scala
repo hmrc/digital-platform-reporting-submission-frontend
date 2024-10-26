@@ -19,12 +19,13 @@ package controllers.assumed.update
 import com.google.inject.Inject
 import connectors.SubmissionConnector
 import controllers.actions.*
+import controllers.routes as baseRoutes
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import repositories.SessionRepository
 import services.UserAnswersService
-import services.UserAnswersService.BuildAssumedReportingSubmissionRequestFailure
+import services.UserAnswersService.BuildAssumedReportingSubmissionFailure
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import viewmodels.checkAnswers.assumed.update.*
 import viewmodels.govuk.summarylist.*
@@ -70,9 +71,9 @@ class CheckYourAnswersController @Inject()(
     (identify andThen getData(operatorId, Some(reportingPeriod)) andThen requireData).async {
       implicit request =>
   
-        userAnswersService.toAssumedReportingSubmissionRequest(request.userAnswers)
+        userAnswersService.toAssumedReportingSubmission(request.userAnswers)
           .map(Future.successful)
-          .left.map(errors => Future.failed(BuildAssumedReportingSubmissionRequestFailure(errors)))
+          .left.map(errors => Future.failed(BuildAssumedReportingSubmissionFailure(errors)))
           .merge
           .flatMap { submissionRequest =>
             for {
@@ -81,4 +82,15 @@ class CheckYourAnswersController @Inject()(
             } yield Redirect(routes.SubmissionConfirmationController.onPageLoad(operatorId, submission._id))
           }
     }
+
+  def initialise(operatorId: String, reportingPeriod: String): Action[AnyContent] = identify.async {
+    implicit request =>
+      submissionConnector.getAssumedReport(operatorId, reportingPeriod)
+        .flatMap(_.map { submission =>
+          for {
+            userAnswers <- Future.fromTry(userAnswersService.fromAssumedReportingSubmission(request.userId, submission))
+            _           <- sessionRepository.set(userAnswers)
+          } yield Redirect(routes.CheckYourAnswersController.onPageLoad(operatorId, reportingPeriod))
+        }.getOrElse(Future.successful(Redirect(baseRoutes.JourneyRecoveryController.onPageLoad()))))
+  }
 }

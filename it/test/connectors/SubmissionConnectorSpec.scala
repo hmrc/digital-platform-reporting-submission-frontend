@@ -450,7 +450,7 @@ class SubmissionConnectorSpec
       address = "address"
     )
 
-    val request = AssumedReportingSubmissionRequest(
+    val request = AssumedReportingSubmission(
       operatorId = "operatorId",
       assumingOperator = assumingOperator,
       reportingPeriod = Year.of(2024)
@@ -492,6 +492,58 @@ class SubmissionConnectorSpec
 
       val result = connector.submitAssumedReporting(request)(using hc).failed.futureValue
       result mustBe SubmitAssumedReportingFailure
+    }
+  }
+  
+  "getAssumedReport" - {
+    
+    val assumingOperator = AssumingPlatformOperator(
+      name = "assumingOperator",
+      residentCountry = "US",
+      tinDetails = Seq(
+        TinDetails(
+          tin = "tin3",
+          tinType = Utr,
+          issuedBy = "GB"
+        )
+      ),
+      registeredCountry = "GB",
+      address = "address"
+    )
+    
+    val submission = AssumedReportingSubmission("operatorId", assumingOperator, Year.of(2024))
+    
+    "must return a submission when the server returns OK" in {
+      
+      wireMockServer.stubFor(
+        get(urlPathEqualTo("/digital-platform-reporting/submission/assumed/operatorId/2024"))
+          .willReturn(ok(Json.toJson(submission).toString))
+      )
+
+      val result = connector.getAssumedReport("operatorId", "2024")(using hc).futureValue
+      result.value mustEqual submission
+    }
+    
+    "must return None when the server returns NOT_FOUND" in {
+
+      wireMockServer.stubFor(
+        get(urlPathEqualTo("/digital-platform-reporting/submission/assumed/operatorId/2024"))
+          .willReturn(notFound())
+      )
+
+      val result = connector.getAssumedReport("operatorId", "2024")(using hc).futureValue
+      result must not be defined
+    }
+    
+    "must return a failed future when the server returns an error" in {
+
+      wireMockServer.stubFor(
+        get(urlPathEqualTo("/digital-platform-reporting/submission/assumed/operatorId/2024"))
+          .willReturn(serverError())
+      )
+      
+      val result = connector.getAssumedReport("operatorId", "2024")(using hc).failed.futureValue
+      result mustBe a[GetAssumedReportFailure.type]
     }
   }
 }
