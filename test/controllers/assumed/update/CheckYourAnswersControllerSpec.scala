@@ -31,7 +31,6 @@ import org.scalatest.BeforeAndAfterEach
 import org.scalatestplus.mockito.MockitoSugar.mock
 import pages.assumed.update.AssumingOperatorNamePage
 import play.api.inject.bind
-import play.api.libs.json.Json
 import play.api.test.FakeRequest
 import play.api.test.Helpers.*
 import repositories.SessionRepository
@@ -41,6 +40,7 @@ import views.html.assumed.update.CheckYourAnswersView
 
 import java.time.{Instant, Year}
 import scala.concurrent.Future
+import scala.util.Success
 
 class CheckYourAnswersControllerSpec extends SpecBase with SummaryListFluency with BeforeAndAfterEach {
 
@@ -166,6 +166,83 @@ class CheckYourAnswersControllerSpec extends SpecBase with SummaryListFluency wi
 
         verify(mockSubmissionConnector, never()).submitAssumedReporting(any())(using any())
         verify(mockSessionRepository, never()).clear(any(), any(), any())
+      }
+    }
+
+    "initialise" - {
+
+      "when a MAR can be found" - {
+
+        "must create and save user answers, then redirect to CYA onPageLoad" in {
+
+          val submission = AssumedReportingSubmission(
+            operatorId = "operatorId",
+            assumingOperator = AssumingPlatformOperator(
+              name = "assumingOperator",
+              residentCountry = "not a country",
+              tinDetails = Seq.empty,
+              registeredCountry = "GB",
+              address = "address"
+            ),
+            reportingPeriod = Year.of(2024)
+          )
+
+          val userAnswers = emptyUserAnswers
+
+          when(mockSubmissionConnector.getAssumedReport(any(), any())(using any())).thenReturn(Future.successful(Some(submission)))
+          when(mockSessionRepository.set(any())).thenReturn(Future.successful(true))
+          when(mockUserAnswersService.fromAssumedReportingSubmission(any(), any())).thenReturn(Success(userAnswers))
+
+          val application = applicationBuilder(userAnswers = None)
+            .overrides(
+              bind[SubmissionConnector].toInstance(mockSubmissionConnector),
+              bind[UserAnswersService].toInstance(mockUserAnswersService),
+              bind[SessionRepository].toInstance(mockSessionRepository)
+            )
+            .build()
+
+          running(application) {
+            val request = FakeRequest(routes.CheckYourAnswersController.initialise(operatorId, reportingPeriod))
+
+            val result = route(application, request).value
+
+            status(result) mustEqual SEE_OTHER
+            redirectLocation(result).value mustEqual routes.CheckYourAnswersController.onPageLoad(operatorId, reportingPeriod).url
+
+            verify(mockSubmissionConnector).getAssumedReport(eqTo(operatorId), eqTo(reportingPeriod))(using any())
+            verify(mockUserAnswersService).fromAssumedReportingSubmission(eqTo(userAnswers.userId), eqTo(submission))
+            verify(mockSessionRepository).set(eqTo(userAnswers))
+          }
+        }
+      }
+
+      "when a MAR cannot be found" - {
+
+        "must redirect to Journey Recovery" in {
+          
+          when(mockSubmissionConnector.getAssumedReport(any(), any())(using any())).thenReturn(Future.successful(None))
+          
+          val application = applicationBuilder(userAnswers = None)
+            .overrides(
+              bind[SubmissionConnector].toInstance(mockSubmissionConnector),
+              bind[UserAnswersService].toInstance(mockUserAnswersService),
+              bind[SessionRepository].toInstance(mockSessionRepository)
+            )
+            .build()
+
+          running(application) {
+            val request = FakeRequest(routes.CheckYourAnswersController.initialise(operatorId, reportingPeriod))
+
+            val result = route(application, request).value
+
+            status(result) mustEqual SEE_OTHER
+            redirectLocation(result).value mustEqual baseRoutes.JourneyRecoveryController.onPageLoad().url
+
+            verify(mockSubmissionConnector).getAssumedReport(eqTo(operatorId), eqTo(reportingPeriod))(using any())
+            verify(mockUserAnswersService, never()).fromAssumedReportingSubmission(any(), any())
+            verify(mockSessionRepository, never()).set(any())
+          }
+        }
       }
     }
   }

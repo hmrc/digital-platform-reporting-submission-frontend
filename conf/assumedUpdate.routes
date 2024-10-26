@@ -27,6 +27,7 @@ POST       /:operatorId/:reportingPeriod/change-uk-tin                          
 
 GET        /:operatorId/:reportingPeriod/check-your-answers                      controllers.assumed.update.CheckYourAnswersController.onPageLoad(operatorId: String, reportingPeriod: String)
 POST       /:operatorId/:reportingPeriod/check-your-answers                      controllers.assumed.update.CheckYourAnswersController.onSubmit(operatorId: String, reportingPeriod: String)
+GET        /:operatorId/:reportingPeriod/initialise                              controllers.assumed.update.CheckYourAnswersController.initialise(operatorId: String, reportingPeriod: String)
 
 GET        /:operatorId/:reportingPeriod/confirmation-page                       controllers.assumed.update.SubmissionConfirmationController.onPageLoad(operatorId: String, reportingPeriod: String)
 

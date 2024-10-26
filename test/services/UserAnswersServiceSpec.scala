@@ -165,7 +165,7 @@ class UserAnswersServiceSpec
 
   "fromAssumedReportingSubmission" - {
 
-    val dprsId = "dprsId"
+    val userId = "userId"
 
     "must return UserAnswers for a GB operator when optional answers are given" in {
 
@@ -187,9 +187,9 @@ class UserAnswersServiceSpec
         reportingPeriod = Year.of(2024)
       )
 
-      val result = userAnswersService.fromAssumedReportingSubmission(dprsId, submission).success.value
+      val result = userAnswersService.fromAssumedReportingSubmission(userId, submission).success.value
 
-      result.userId                                             mustEqual dprsId
+      result.userId                                             mustEqual userId
       result.operatorId                                         mustEqual "operatorId"
       result.reportingPeriod.value                              mustEqual "2024"
       result.get(ReportingPeriodQuery).value                    mustEqual 2024
@@ -218,9 +218,9 @@ class UserAnswersServiceSpec
         reportingPeriod = Year.of(2024)
       )
 
-      val result = userAnswersService.fromAssumedReportingSubmission(dprsId, submission).success.value
+      val result = userAnswersService.fromAssumedReportingSubmission(userId, submission).success.value
 
-      result.userId                                             mustEqual dprsId
+      result.userId                                             mustEqual userId
       result.operatorId                                         mustEqual "operatorId"
       result.reportingPeriod.value                              mustEqual "2024"
       result.get(ReportingPeriodQuery).value                    mustEqual 2024
@@ -255,9 +255,9 @@ class UserAnswersServiceSpec
         reportingPeriod = Year.of(2024)
       )
 
-      val result = userAnswersService.fromAssumedReportingSubmission(dprsId, submission).success.value
+      val result = userAnswersService.fromAssumedReportingSubmission(userId, submission).success.value
 
-      result.userId                                                   mustEqual dprsId
+      result.userId                                                   mustEqual userId
       result.operatorId                                               mustEqual "operatorId"
       result.reportingPeriod.value                                    mustEqual "2024"
       result.get(ReportingPeriodQuery).value                          mustEqual 2024
@@ -286,9 +286,9 @@ class UserAnswersServiceSpec
         reportingPeriod = Year.of(2024)
       )
 
-      val result = userAnswersService.fromAssumedReportingSubmission(dprsId, submission).success.value
+      val result = userAnswersService.fromAssumedReportingSubmission(userId, submission).success.value
 
-      result.userId                                                   mustEqual dprsId
+      result.userId                                                   mustEqual userId
       result.operatorId                                               mustEqual "operatorId"
       result.reportingPeriod.value                                    mustEqual "2024"
       result.get(ReportingPeriodQuery).value                          mustEqual 2024
@@ -317,7 +317,7 @@ class UserAnswersServiceSpec
         reportingPeriod = Year.of(2024)
       )
 
-      val result = userAnswersService.fromAssumedReportingSubmission(dprsId, submission)
+      val result = userAnswersService.fromAssumedReportingSubmission(userId, submission)
       result.isFailure mustEqual true
     }
 
@@ -335,7 +335,7 @@ class UserAnswersServiceSpec
         reportingPeriod = Year.of(2024)
       )
 
-      val result = userAnswersService.fromAssumedReportingSubmission(dprsId, submission)
+      val result = userAnswersService.fromAssumedReportingSubmission(userId, submission)
       result.isFailure mustEqual true
     }
   }

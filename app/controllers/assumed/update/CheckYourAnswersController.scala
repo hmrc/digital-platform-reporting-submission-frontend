@@ -19,6 +19,7 @@ package controllers.assumed.update
 import com.google.inject.Inject
 import connectors.SubmissionConnector
 import controllers.actions.*
+import controllers.routes as baseRoutes
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
@@ -81,4 +82,15 @@ class CheckYourAnswersController @Inject()(
             } yield Redirect(routes.SubmissionConfirmationController.onPageLoad(operatorId, submission._id))
           }
     }
+
+  def initialise(operatorId: String, reportingPeriod: String): Action[AnyContent] = identify.async {
+    implicit request =>
+      submissionConnector.getAssumedReport(operatorId, reportingPeriod)
+        .flatMap(_.map { submission =>
+          for {
+            userAnswers <- Future.fromTry(userAnswersService.fromAssumedReportingSubmission(request.userId, submission))
+            _           <- sessionRepository.set(userAnswers)
+          } yield Redirect(routes.CheckYourAnswersController.onPageLoad(operatorId, reportingPeriod))
+        }.getOrElse(Future.successful(Redirect(baseRoutes.JourneyRecoveryController.onPageLoad()))))
+  }
 }

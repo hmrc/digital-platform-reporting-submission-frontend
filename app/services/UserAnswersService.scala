@@ -34,7 +34,7 @@ import scala.util.{Failure, Try}
 @Singleton
 class UserAnswersService @Inject() () {
 
-  def fromAssumedReportingSubmission(dprsId: String, submission: AssumedReportingSubmission): Try[UserAnswers] = {
+  def fromAssumedReportingSubmission(userId: String, submission: AssumedReportingSubmission): Try[UserAnswers] = {
 
     val transformation = for {
       _ <- set(ReportingPeriodQuery, submission.reportingPeriod.getValue)
@@ -44,7 +44,7 @@ class UserAnswersService @Inject() () {
       _ <- set(updatePages.AddressPage, submission.assumingOperator.address)
     } yield ()
 
-    transformation.runS(UserAnswers(dprsId, submission.operatorId, Some(submission.reportingPeriod.toString)))
+    transformation.runS(UserAnswers(userId, submission.operatorId, Some(submission.reportingPeriod.toString)))
   }
 
   private def set[A](settable: Settable[A], value: A)(implicit writes: Writes[A]): StateT[Try, UserAnswers, Unit] =
