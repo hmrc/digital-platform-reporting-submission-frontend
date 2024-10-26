@@ -20,6 +20,7 @@ import base.SpecBase
 import connectors.SubmissionConnector
 import models.submission.{CadxValidationError, Submission}
 import models.submission.Submission.State.{Approved, Ready, Rejected, Submitted, UploadFailed, Uploading, Validated}
+import models.submission.Submission.SubmissionType
 import org.apache.pekko.stream.Materializer
 import org.apache.pekko.stream.scaladsl.Source
 import org.mockito.ArgumentMatchers.{any, eq as eqTo}
@@ -64,6 +65,7 @@ class FileErrorsControllerSpec extends SpecBase with MockitoSugar with BeforeAnd
 
           val submission = Submission(
             _id = "id",
+            submissionType = SubmissionType.Xml,
             dprsId = "dprsId",
             operatorId = "operatorId",
             operatorName = "operatorName",
@@ -121,6 +123,7 @@ class FileErrorsControllerSpec extends SpecBase with MockitoSugar with BeforeAnd
 
             val submission = Submission(
               _id = "id",
+              submissionType = SubmissionType.Xml,
               dprsId = "dprsId",
               operatorId = "operatorId",
               operatorName = "operatorName",
@@ -156,6 +159,7 @@ class FileErrorsControllerSpec extends SpecBase with MockitoSugar with BeforeAnd
 
             val submission = Submission(
               _id = "id",
+              submissionType = SubmissionType.Xml,
               dprsId = "dprsId",
               operatorId = "operatorId",
               operatorName = "operatorName",
@@ -191,6 +195,7 @@ class FileErrorsControllerSpec extends SpecBase with MockitoSugar with BeforeAnd
 
             val submission = Submission(
               _id = "id",
+              submissionType = SubmissionType.Xml,
               dprsId = "dprsId",
               operatorId = "operatorId",
               operatorName = "operatorName",
@@ -226,6 +231,7 @@ class FileErrorsControllerSpec extends SpecBase with MockitoSugar with BeforeAnd
 
             val submission = Submission(
               _id = "id",
+              submissionType = SubmissionType.Xml,
               dprsId = "dprsId",
               operatorId = "operatorId",
               operatorName = "operatorName",
@@ -267,6 +273,7 @@ class FileErrorsControllerSpec extends SpecBase with MockitoSugar with BeforeAnd
 
             val submission = Submission(
               _id = "id",
+              submissionType = SubmissionType.Xml,
               dprsId = "dprsId",
               operatorId = "operatorId",
               operatorName = "operatorName",
@@ -302,6 +309,7 @@ class FileErrorsControllerSpec extends SpecBase with MockitoSugar with BeforeAnd
 
             val submission = Submission(
               _id = "id",
+              submissionType = SubmissionType.Xml,
               dprsId = "dprsId",
               operatorId = "operatorId",
               operatorName = "operatorName",
@@ -363,6 +371,7 @@ class FileErrorsControllerSpec extends SpecBase with MockitoSugar with BeforeAnd
 
           val submission = Submission(
             _id = "id",
+            submissionType = SubmissionType.Xml,
             dprsId = "dprsId",
             operatorId = "operatorId",
             operatorName = "operatorName",
@@ -430,6 +439,7 @@ class FileErrorsControllerSpec extends SpecBase with MockitoSugar with BeforeAnd
 
             val submission = Submission(
               _id = "id",
+              submissionType = SubmissionType.Xml,
               dprsId = "dprsId",
               operatorId = "operatorId",
               operatorName = "operatorName",
@@ -465,6 +475,7 @@ class FileErrorsControllerSpec extends SpecBase with MockitoSugar with BeforeAnd
 
             val submission = Submission(
               _id = "id",
+              submissionType = SubmissionType.Xml,
               dprsId = "dprsId",
               operatorId = "operatorId",
               operatorName = "operatorName",
@@ -500,6 +511,7 @@ class FileErrorsControllerSpec extends SpecBase with MockitoSugar with BeforeAnd
 
             val submission = Submission(
               _id = "id",
+              submissionType = SubmissionType.Xml,
               dprsId = "dprsId",
               operatorId = "operatorId",
               operatorName = "operatorName",
@@ -535,6 +547,7 @@ class FileErrorsControllerSpec extends SpecBase with MockitoSugar with BeforeAnd
 
             val submission = Submission(
               _id = "id",
+              submissionType = SubmissionType.Xml,
               dprsId = "dprsId",
               operatorId = "operatorId",
               operatorName = "operatorName",
@@ -576,6 +589,7 @@ class FileErrorsControllerSpec extends SpecBase with MockitoSugar with BeforeAnd
 
             val submission = Submission(
               _id = "id",
+              submissionType = SubmissionType.Xml,
               dprsId = "dprsId",
               operatorId = "operatorId",
               operatorName = "operatorName",
@@ -611,6 +625,7 @@ class FileErrorsControllerSpec extends SpecBase with MockitoSugar with BeforeAnd
 
             val submission = Submission(
               _id = "id",
+              submissionType = SubmissionType.Xml,
               dprsId = "dprsId",
               operatorId = "operatorId",
               operatorName = "operatorName",

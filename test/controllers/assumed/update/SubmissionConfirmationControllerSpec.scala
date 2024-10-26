@@ -20,6 +20,7 @@ import base.SpecBase
 import connectors.SubmissionConnector
 import models.submission.Submission
 import models.submission.Submission.State.{Approved, Ready, Rejected, Submitted, UploadFailed, Uploading, Validated}
+import models.submission.Submission.SubmissionType
 import org.mockito.ArgumentMatchers.{any, eq as eqTo}
 import org.mockito.Mockito
 import org.mockito.Mockito.{never, verify, when}
@@ -65,6 +66,7 @@ class SubmissionConfirmationControllerSpec extends SpecBase with MockitoSugar wi
 
           val submission = Submission(
             _id = submissionId,
+            submissionType = SubmissionType.Xml,
             dprsId = "dprsId",
             operatorId = "operatorId",
             operatorName = operatorName,
@@ -103,6 +105,7 @@ class SubmissionConfirmationControllerSpec extends SpecBase with MockitoSugar wi
 
           val submission = Submission(
             _id = submissionId,
+            submissionType = SubmissionType.Xml,
             dprsId = "dprsId",
             operatorId = "operatorId",
             operatorName = operatorName,
@@ -141,6 +144,7 @@ class SubmissionConfirmationControllerSpec extends SpecBase with MockitoSugar wi
 
           val submission = Submission(
             _id = submissionId,
+            submissionType = SubmissionType.Xml,
             dprsId = "dprsId",
             operatorId = "operatorId",
             operatorName = operatorName,
@@ -201,6 +205,7 @@ class SubmissionConfirmationControllerSpec extends SpecBase with MockitoSugar wi
 
           val submission = Submission(
             _id = submissionId,
+            submissionType = SubmissionType.Xml,
             dprsId = "dprsId",
             operatorId = "operatorId",
             operatorName = operatorName,
@@ -236,6 +241,7 @@ class SubmissionConfirmationControllerSpec extends SpecBase with MockitoSugar wi
 
           val submission = Submission(
             _id = submissionId,
+            submissionType = SubmissionType.Xml,
             dprsId = "dprsId",
             operatorId = "operatorId",
             operatorName = operatorName,
@@ -271,6 +277,7 @@ class SubmissionConfirmationControllerSpec extends SpecBase with MockitoSugar wi
 
           val submission = Submission(
             _id = submissionId,
+            submissionType = SubmissionType.Xml,
             dprsId = "dprsId",
             operatorId = "operatorId",
             operatorName = operatorName,
@@ -306,6 +313,7 @@ class SubmissionConfirmationControllerSpec extends SpecBase with MockitoSugar wi
 
           val submission = Submission(
             _id = submissionId,
+            submissionType = SubmissionType.Xml,
             dprsId = "dprsId",
             operatorId = "operatorId",
             operatorName = operatorName,

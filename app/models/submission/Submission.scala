@@ -16,6 +16,7 @@
 
 package models.submission
 
+import models.submission.Submission.SubmissionType
 import play.api.libs.json.*
 
 import java.net.URL
@@ -24,6 +25,7 @@ import models.{urlFormat, yearFormat}
 
 final case class Submission(
                              _id: String,
+                             submissionType: SubmissionType,
                              dprsId: String,
                              operatorId: String,
                              operatorName: String,
@@ -34,6 +36,31 @@ final case class Submission(
                            )
 
 object Submission {
+
+  sealed trait SubmissionType extends Product with Serializable
+
+  object SubmissionType {
+
+    case object Xml extends SubmissionType
+    case object ManualAssumedReport extends SubmissionType
+
+    given Format[SubmissionType] = {
+
+      val reads: Reads[SubmissionType] =
+        __.read[String].flatMap {
+          case "Xml" => Reads.pure(Xml)
+          case "ManualAssumedReport" => Reads.pure(ManualAssumedReport)
+          case _ => Reads.failed("Invalid submission type")
+        }
+
+      val writes: Writes[SubmissionType] =
+        Writes { submissionType =>
+          JsString(submissionType.toString)
+        }
+
+      Format(reads, writes)
+    }
+  }
 
   sealed trait State extends Product with Serializable
 
@@ -50,21 +77,21 @@ object Submission {
     private def singletonOFormat[A](a: A): OFormat[A] =
       OFormat(Reads.pure(a), OWrites[A](_ => Json.obj()))
 
-    private implicit lazy val readyFormat: OFormat[Ready.type] = singletonOFormat(Ready)
-    private implicit lazy val uploadFailedFormat: OFormat[UploadFailed] = Json.format
-    private implicit lazy val uploadingFormat: OFormat[Uploading.type] = singletonOFormat(Uploading)
-    private implicit lazy val validatedFormat: OFormat[Validated] = Json.format
-    private implicit lazy val submittedFormat: OFormat[Submitted] = Json.format
-    private implicit lazy val approvedFormat: OFormat[Approved] = Json.format
-    private implicit lazy val rejectedFormat: OFormat[Rejected] = Json.format
+    private given OFormat[Ready.type] = singletonOFormat(Ready)
+    private given OFormat[UploadFailed] = Json.format
+    private given OFormat[Uploading.type] = singletonOFormat(Uploading)
+    private given OFormat[Validated] = Json.format
+    private given OFormat[Submitted] = Json.format
+    private given OFormat[Approved] = Json.format
+    private given OFormat[Rejected] = Json.format
 
     private implicit val jsonConfig: JsonConfiguration = JsonConfiguration(
       discriminator = "type",
       typeNaming = _.split("\\.").last
     )
 
-    implicit lazy val format: OFormat[State] = Json.format
+    given OFormat[State] = Json.format
   }
 
-  implicit lazy val format: OFormat[Submission] = Json.format
+  given OFormat[Submission] = Json.format
 }

@@ -22,6 +22,7 @@ import models.operator.TinDetails
 import models.operator.TinType.{Utr, Vrn}
 import models.submission.*
 import models.submission.Submission.State.{Ready, Submitted}
+import models.submission.Submission.SubmissionType
 import org.apache.pekko.stream.Materializer
 import org.apache.pekko.stream.scaladsl.Sink
 import org.scalatest.OptionValues
@@ -63,6 +64,7 @@ class SubmissionConnectorSpec
 
     val expectedSubmission = Submission(
       _id = "id",
+      submissionType = SubmissionType.Xml,
       dprsId = "dprsId",
       operatorId = "operatorId",
       operatorName = "operatorName",
@@ -130,6 +132,7 @@ class SubmissionConnectorSpec
 
     val expectedSubmission = Submission(
       _id = "id",
+      submissionType = SubmissionType.Xml,
       operatorId = "operatorId",
       operatorName = "operatorName",
       assumingOperatorName = None,
@@ -457,6 +460,7 @@ class SubmissionConnectorSpec
 
       val expectedSubmission = Submission(
         _id = "id",
+        submissionType = SubmissionType.ManualAssumedReport,
         operatorId = "operatorId",
         operatorName = "operatorName",
         assumingOperatorName = Some("assumedOperatorName"),

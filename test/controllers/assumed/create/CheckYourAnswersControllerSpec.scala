@@ -21,6 +21,7 @@ import cats.data.NonEmptyChain
 import connectors.SubmissionConnector
 import controllers.routes as baseRoutes
 import models.submission.Submission.State.Submitted
+import models.submission.Submission.SubmissionType
 import models.submission.{AssumedReportingSubmissionRequest, AssumingPlatformOperator, Submission}
 import org.apache.pekko.Done
 import org.mockito.ArgumentMatchers.{any, eq as eqTo}
@@ -105,6 +106,7 @@ class CheckYourAnswersControllerSpec extends SpecBase with SummaryListFluency wi
 
         val submission = Submission(
           _id = "submissionId",
+          submissionType = SubmissionType.ManualAssumedReport,
           dprsId = "dprsId",
           operatorId = "operatorId",
           operatorName = operatorName,
