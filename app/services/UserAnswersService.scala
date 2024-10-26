@@ -16,20 +16,95 @@
 
 package services
 
-import cats.data.{EitherNec, NonEmptyChain}
+import cats.data.{EitherNec, NonEmptyChain, StateT}
 import cats.implicits.given
 import com.google.inject.{Inject, Singleton}
-import models.UserAnswers
+import models.{Country, UserAnswers}
 import models.operator.{TinDetails, TinType}
 import models.submission.{AssumedReportingSubmission, AssumingPlatformOperator}
 import pages.assumed.create.*
-import queries.{Gettable, Query}
+import pages.assumed.update as updatePages
+import play.api.libs.json.Writes
+import queries.{Query, ReportingPeriodQuery, Settable}
+import services.UserAnswersService.InvalidCountryCodeFailure
 
 import java.time.Year
-import scala.util.Try
+import scala.util.{Failure, Try}
 
 @Singleton
 class UserAnswersService @Inject() () {
+
+  def fromAssumedReportingSubmission(dprsId: String, submission: AssumedReportingSubmission): Try[UserAnswers] = {
+
+    val transformation = for {
+      _ <- set(ReportingPeriodQuery, submission.reportingPeriod.getValue)
+      _ <- set(updatePages.AssumingOperatorNamePage, submission.assumingOperator.name)
+      _ <- setTaxDetails(submission.assumingOperator)
+      _ <- setRegisteredCountry(submission.assumingOperator)
+      _ <- set(updatePages.AddressPage, submission.assumingOperator.address)
+    } yield ()
+
+    transformation.runS(UserAnswers(dprsId, submission.operatorId, Some(submission.reportingPeriod.toString)))
+  }
+
+  private def set[A](settable: Settable[A], value: A)(implicit writes: Writes[A]): StateT[Try, UserAnswers, Unit] =
+    StateT.modifyF[Try, UserAnswers](_.set(settable, value))
+
+  private def setRegisteredCountry(assumingOperator: AssumingPlatformOperator): StateT[Try, UserAnswers, Unit] =
+    Country.allCountries
+      .find(_.code == assumingOperator.registeredCountry)
+      .map(country => set(updatePages.RegisteredCountryPage, country))
+      .getOrElse(StateT.modifyF[Try, UserAnswers](_ => Failure(InvalidCountryCodeFailure(assumingOperator.registeredCountry))))
+
+  private def setResidentCountry(assumingOperator: AssumingPlatformOperator): StateT[Try, UserAnswers, Unit] =
+    Country.allCountries
+      .find(_.code == assumingOperator.residentCountry)
+      .map(country => set(updatePages.TaxResidencyCountryPage, country))
+      .getOrElse(StateT.modifyF[Try, UserAnswers](_ => Failure(InvalidCountryCodeFailure(assumingOperator.registeredCountry))))
+
+  private def setTaxDetails(assumingOperator: AssumingPlatformOperator): StateT[Try, UserAnswers, Unit] =
+    if (ukCountryCodes.contains(assumingOperator.residentCountry)) {
+      setUkTaxDetails(assumingOperator)
+    } else {
+      for {
+        _ <- setResidentCountry(assumingOperator)
+        _ <- setInternationalTaxDetails(assumingOperator)
+      } yield ()
+    }
+
+  private def setUkTaxDetails(assumingOperator: AssumingPlatformOperator): StateT[Try, UserAnswers, Unit] =
+    assumingOperator.tinDetails
+      .find(tin => ukCountryCodes.contains(tin.issuedBy))
+      .map { tin =>
+        for {
+          _ <- set(updatePages.TaxResidentInUkPage, true)
+          _ <- set(updatePages.HasUkTaxIdentifierPage, true)
+          _ <- set(updatePages.UkTaxIdentifierPage, tin.tin)
+        } yield ()
+      }.getOrElse {
+        for {
+          _ <- set(updatePages.TaxResidentInUkPage, true)
+          _ <- set(updatePages.HasUkTaxIdentifierPage, false)
+        } yield ()
+      }
+
+  private def setInternationalTaxDetails(assumingOperator: AssumingPlatformOperator): StateT[Try, UserAnswers, Unit] =
+    assumingOperator.tinDetails
+      .headOption
+      .map { tin =>
+        for {
+          _ <- set(updatePages.TaxResidentInUkPage, false)
+          _ <- set(updatePages.HasInternationalTaxIdentifierPage, true)
+          _ <- set(updatePages.InternationalTaxIdentifierPage, tin.tin)
+        } yield ()
+      }.getOrElse {
+        for {
+          _ <- set(updatePages.TaxResidentInUkPage, false)
+          _ <- set(updatePages.HasInternationalTaxIdentifierPage, false)
+        } yield ()
+      }
+
+  private lazy val ukCountryCodes = Country.ukCountries.map(_.code)
 
   def toAssumedReportingSubmission(answers: UserAnswers): EitherNec[Query, AssumedReportingSubmission] =
     (
@@ -105,5 +180,9 @@ object UserAnswersService {
 
   final case class BuildAssumedReportingSubmissionFailure(errors: NonEmptyChain[Query]) extends Throwable {
     override def getMessage: String = s"unable to build assumed reporting submission request, path(s) missing: ${errors.toChain.toList.map(_.path).mkString(", ")}"
+  }
+
+  final case class InvalidCountryCodeFailure(countryCode: String) extends Throwable {
+    override def getMessage: String = s"Unable to find country code $countryCode"
   }
 }
