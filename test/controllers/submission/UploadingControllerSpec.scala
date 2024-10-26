@@ -20,6 +20,7 @@ import base.SpecBase
 import connectors.SubmissionConnector
 import models.submission.Submission
 import models.submission.Submission.State.{Approved, Ready, Rejected, Submitted, UploadFailed, Uploading, Validated}
+import models.submission.Submission.SubmissionType
 import org.apache.pekko.Done
 import org.mockito.ArgumentMatchers.{any, eq as eqTo}
 import org.mockito.Mockito
@@ -65,6 +66,7 @@ class UploadingControllerSpec extends SpecBase with MockitoSugar with BeforeAndA
 
           val submission = Submission(
             _id = "id",
+            submissionType = SubmissionType.Xml,
             dprsId = "dprsId",
             operatorId = "operatorId",
             operatorName = "operatorName",
@@ -124,6 +126,7 @@ class UploadingControllerSpec extends SpecBase with MockitoSugar with BeforeAndA
 
           val submission = Submission(
             _id = "id",
+            submissionType = SubmissionType.Xml,
             dprsId = "dprsId",
             operatorId = "operatorId",
             operatorName = "operatorName",
@@ -159,6 +162,7 @@ class UploadingControllerSpec extends SpecBase with MockitoSugar with BeforeAndA
 
           val submission = Submission(
             _id = "id",
+            submissionType = SubmissionType.Xml,
             dprsId = "dprsId",
             operatorId = "operatorId",
             operatorName = "operatorName",
@@ -194,6 +198,7 @@ class UploadingControllerSpec extends SpecBase with MockitoSugar with BeforeAndA
 
           val submission = Submission(
             _id = "id",
+            submissionType = SubmissionType.Xml,
             dprsId = "dprsId",
             operatorId = "operatorId",
             operatorName = "operatorName",
@@ -235,6 +240,7 @@ class UploadingControllerSpec extends SpecBase with MockitoSugar with BeforeAndA
 
           val submission = Submission(
             _id = "id",
+            submissionType = SubmissionType.Xml,
             dprsId = "dprsId",
             operatorId = "operatorId",
             operatorName = "operatorName",
@@ -270,6 +276,7 @@ class UploadingControllerSpec extends SpecBase with MockitoSugar with BeforeAndA
 
           val submission = Submission(
             _id = "id",
+            submissionType = SubmissionType.Xml,
             dprsId = "dprsId",
             operatorId = "operatorId",
             operatorName = "operatorName",
@@ -305,6 +312,7 @@ class UploadingControllerSpec extends SpecBase with MockitoSugar with BeforeAndA
 
           val submission = Submission(
             _id = "id",
+            submissionType = SubmissionType.Xml,
             dprsId = "dprsId",
             operatorId = "operatorId",
             operatorName = "operatorName",
@@ -365,6 +373,7 @@ class UploadingControllerSpec extends SpecBase with MockitoSugar with BeforeAndA
 
           val submission = Submission(
             _id = "id",
+            submissionType = SubmissionType.Xml,
             dprsId = "dprsId",
             operatorId = "operatorId",
             operatorName = "operatorName",
@@ -402,6 +411,7 @@ class UploadingControllerSpec extends SpecBase with MockitoSugar with BeforeAndA
 
           val submission = Submission(
             _id = "id",
+            submissionType = SubmissionType.Xml,
             dprsId = "dprsId",
             operatorId = "operatorId",
             operatorName = "operatorName",
@@ -464,6 +474,7 @@ class UploadingControllerSpec extends SpecBase with MockitoSugar with BeforeAndA
 
           val submission = Submission(
             _id = "id",
+            submissionType = SubmissionType.Xml,
             dprsId = "dprsId",
             operatorId = "operatorId",
             operatorName = "operatorName",
@@ -501,6 +512,7 @@ class UploadingControllerSpec extends SpecBase with MockitoSugar with BeforeAndA
 
           val submission = Submission(
             _id = "id",
+            submissionType = SubmissionType.Xml,
             dprsId = "dprsId",
             operatorId = "operatorId",
             operatorName = "operatorName",
@@ -544,6 +556,7 @@ class UploadingControllerSpec extends SpecBase with MockitoSugar with BeforeAndA
 
           val submission = Submission(
             _id = "id",
+            submissionType = SubmissionType.Xml,
             dprsId = "dprsId",
             operatorId = "operatorId",
             operatorName = "operatorName",
@@ -581,6 +594,7 @@ class UploadingControllerSpec extends SpecBase with MockitoSugar with BeforeAndA
 
           val submission = Submission(
             _id = "id",
+            submissionType = SubmissionType.Xml,
             dprsId = "dprsId",
             operatorId = "operatorId",
             operatorName = "operatorName",
@@ -618,6 +632,7 @@ class UploadingControllerSpec extends SpecBase with MockitoSugar with BeforeAndA
 
           val submission = Submission(
             _id = "id",
+            submissionType = SubmissionType.Xml,
             dprsId = "dprsId",
             operatorId = "operatorId",
             operatorName = "operatorName",

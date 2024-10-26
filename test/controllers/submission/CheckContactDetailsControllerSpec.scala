@@ -22,6 +22,7 @@ import connectors.{SubmissionConnector, SubscriptionConnector}
 import forms.CheckContactDetailsFormProvider
 import models.submission.Submission
 import models.submission.Submission.State.Ready
+import models.submission.Submission.SubmissionType
 import models.subscription.*
 import org.mockito.ArgumentMatchers.{any, eq as eqTo}
 import org.mockito.Mockito.{never, verify, when}
@@ -232,6 +233,7 @@ class CheckContactDetailsControllerSpec extends SpecBase with SummaryListFluency
         val submissionId = "id"
         val submission = Submission(
           _id = "id",
+          submissionType = SubmissionType.Xml,
           dprsId = "dprsId",
           operatorId = "operatorId",
           operatorName = "operatorName",
