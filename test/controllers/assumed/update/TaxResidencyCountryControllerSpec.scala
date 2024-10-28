@@ -30,11 +30,12 @@ import play.api.test.Helpers.*
 import repositories.SessionRepository
 import views.html.assumed.update.TaxResidencyCountryView
 
+import java.time.Year
 import scala.concurrent.Future
 
 class TaxResidencyCountryControllerSpec extends SpecBase with MockitoSugar {
 
-  private val reportingPeriod = "reportingPeriod"
+  private val reportingPeriod = Year.of(2024)
   private val formProvider = new TaxResidencyCountryFormProvider()
   private val assumingOperatorName = "name"
   private val baseAnswers = emptyUserAnswers.copy(reportingPeriod = Some(reportingPeriod)).set(AssumingOperatorNamePage, assumingOperatorName).success.value

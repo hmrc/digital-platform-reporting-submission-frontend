@@ -17,17 +17,17 @@
 package repositories
 
 import config.FrontendAppConfig
-import models.UserAnswers
+import models.{UserAnswers, yearFormat}
 import org.mongodb.scala.bson.conversions.Bson
-import org.mongodb.scala.model._
+import org.mongodb.scala.model.*
 import org.mongodb.scala.SingleObservableFuture
 import play.api.libs.json.Format
 import uk.gov.hmrc.mongo.MongoComponent
-import uk.gov.hmrc.mongo.play.json.PlayMongoRepository
+import uk.gov.hmrc.mongo.play.json.{Codecs, PlayMongoRepository}
 import uk.gov.hmrc.mongo.play.json.formats.MongoJavatimeFormats
 import uk.gov.hmrc.play.http.logging.Mdc
 
-import java.time.{Clock, Instant}
+import java.time.{Clock, Instant, Year}
 import java.util.concurrent.TimeUnit
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
@@ -56,14 +56,15 @@ class SessionRepository @Inject()(
           .expireAfter(appConfig.cacheTtl, TimeUnit.SECONDS)
       )
     ),
-    replaceIndexes = true
+    replaceIndexes = true,
+    extraCodecs = Seq(Codecs.playFormatCodec(yearFormat))
   ) {
 
   implicit val instantFormat: Format[Instant] = MongoJavatimeFormats.instantFormat
 
   private def byUserId(userId: String): Bson = Filters.equal("userId", userId)
 
-  private def byIds(userId: String, operatorId: String, reportingPeriod: Option[String]): Bson =
+  private def byIds(userId: String, operatorId: String, reportingPeriod: Option[Year]): Bson =
     Filters.and(
       Filters.eq("userId", userId),
       Filters.eq("operatorId", operatorId),
@@ -80,7 +81,7 @@ class SessionRepository @Inject()(
       .map(_ => true)
   }
 
-  def get(userId: String, operatorId: String, reportingPeriod: Option[String]): Future[Option[UserAnswers]] = Mdc.preservingMdc {
+  def get(userId: String, operatorId: String, reportingPeriod: Option[Year]): Future[Option[UserAnswers]] = Mdc.preservingMdc {
     keepAlive(userId).flatMap {
       _ =>
         collection
@@ -103,7 +104,7 @@ class SessionRepository @Inject()(
       .map(_ => true)
   }
 
-  def clear(userId: String, operatorId: String, reportingPeriod: Option[String]): Future[Boolean] = Mdc.preservingMdc {
+  def clear(userId: String, operatorId: String, reportingPeriod: Option[Year]): Future[Boolean] = Mdc.preservingMdc {
     collection
       .deleteOne(byIds(userId, operatorId, reportingPeriod))
       .toFuture()

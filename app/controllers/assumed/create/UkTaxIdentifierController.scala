@@ -19,7 +19,7 @@ package controllers.assumed.create
 import controllers.AnswerExtractor
 import controllers.actions.*
 import forms.UkTaxIdentifierFormProvider
-import models.Mode
+import models.{Mode, yearFormat}
 import pages.assumed.create.{AssumingOperatorNamePage, UkTaxIdentifierPage}
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}

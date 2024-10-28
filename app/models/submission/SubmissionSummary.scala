@@ -16,19 +16,20 @@
 
 package models.submission
 
-import controllers.assumed.remove.{routes as removeRoutes}
-import controllers.assumed.update.{routes as updateRoutes}
+import controllers.assumed.remove.routes as removeRoutes
+import controllers.assumed.update.routes as updateRoutes
+import models.yearFormat
 import play.api.i18n.Messages
 import play.api.libs.json.{Json, OFormat}
 import viewmodels.Link
 
-import java.time.Instant
+import java.time.{Instant, Year}
 
 final case class SubmissionSummary(submissionId: String,
                                    fileName: String,
                                    operatorId: String,
                                    operatorName: String,
-                                   reportingPeriod: String,
+                                   reportingPeriod: Year,
                                    submissionDateTime: Instant,
                                    submissionStatus: SubmissionStatus,
                                    assumingReporterName: Option[String],

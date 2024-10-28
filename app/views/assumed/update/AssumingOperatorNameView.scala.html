@@ -26,7 +26,7 @@
     govukButton: GovukButton
 )
 
-@(form: Form[_], operator: PlatformOperatorSummary, reportingPeriod: String)(implicit request: Request[_], messages: Messages)
+@(form: Form[_], operator: PlatformOperatorSummary, reportingPeriod: Year)(implicit request: Request[_], messages: Messages)
 
 @layout(pageTitle = title(form, messages("assumingOperatorName.title"))) {
 

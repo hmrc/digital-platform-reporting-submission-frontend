@@ -30,6 +30,7 @@ import uk.gov.hmrc.http.client.{HttpClientV2, given}
 import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse, StringContextOps}
 
 import javax.inject.{Inject, Singleton}
+import java.time.Year
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
@@ -148,7 +149,7 @@ class SubmissionConnector @Inject() (
         }
       }
 
-  def submitAssumedReporting(request: AssumedReportingSubmission)(using HeaderCarrier): Future[Submission] =
+  def submitAssumedReporting(request: AssumedReportingSubmissionRequest)(using HeaderCarrier): Future[Submission] =
     httpClient.post(url"$digitalPlatformReportingService/digital-platform-reporting/submission/assumed/submit")
       .withBody(Json.toJson(request))
       .execute[HttpResponse]
@@ -159,7 +160,7 @@ class SubmissionConnector @Inject() (
         }
       }
       
-  def getAssumedReport(operatorId: String, reportingPeriod: String)(using HeaderCarrier): Future[Option[AssumedReportingSubmission]] =
+  def getAssumedReport(operatorId: String, reportingPeriod: Year)(using HeaderCarrier): Future[Option[AssumedReportingSubmission]] =
     httpClient.get(url"$digitalPlatformReportingService/digital-platform-reporting/submission/assumed/$operatorId/$reportingPeriod")
       .execute[HttpResponse]
       .flatMap { response =>

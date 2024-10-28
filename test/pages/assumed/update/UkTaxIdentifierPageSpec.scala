@@ -21,11 +21,13 @@ import models.UserAnswers
 import org.scalatest.freespec.AnyFreeSpec
 import org.scalatest.matchers.must.Matchers
 
+import java.time.Year
+
 class UkTaxIdentifierPageSpec extends AnyFreeSpec with Matchers {
 
   ".nextPage" - {
 
-    val reportingPeriod = "reportingPeriod"
+    val reportingPeriod = Year.of(2024)
     val operatorId = "operatorId"
     val emptyAnswers = UserAnswers("id", operatorId, Some(reportingPeriod))
 

@@ -21,6 +21,7 @@ import models.requests.{IdentifierRequest, OptionalDataRequest}
 import org.scalatestplus.mockito.MockitoSugar.mock
 import repositories.SessionRepository
 
+import java.time.Year
 import scala.concurrent.{ExecutionContext, Future}
 import scala.concurrent.ExecutionContext.Implicits.global
 
@@ -34,6 +35,6 @@ class FakeDataRetrievalAction(dataToReturn: Option[UserAnswers])
 class FakeDataRetrievalActionProvider(dataToReturn: Option[UserAnswers])
   extends DataRetrievalActionProvider(mock[SessionRepository]) {
 
-  override def apply(operatorId: String, reportingPeriod: Option[String]): DataRetrievalAction =
+  override def apply(operatorId: String, reportingPeriod: Option[Year]): DataRetrievalAction =
     new FakeDataRetrievalAction(dataToReturn)
 }

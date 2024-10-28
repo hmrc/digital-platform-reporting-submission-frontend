@@ -22,6 +22,7 @@ import models.UserAnswers
 import play.api.libs.json.JsPath
 import play.api.mvc.Call
 
+import java.time.Year
 import scala.util.Try
 
 case object HasUkTaxIdentifierPage extends AssumedReportingUpdateQuestionPage[Boolean] {
@@ -30,7 +31,7 @@ case object HasUkTaxIdentifierPage extends AssumedReportingUpdateQuestionPage[Bo
 
   override def toString: String = "hasUkTaxIdentifier"
 
-  override def nextPage(reportingPeriod: String, answers: UserAnswers): Call =
+  override def nextPage(reportingPeriod: Year, answers: UserAnswers): Call =
     answers.get(this).map {
       case true =>
         answers.get(UkTaxIdentifierPage)

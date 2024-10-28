@@ -21,9 +21,10 @@ import models.requests.{IdentifierRequest, OptionalDataRequest}
 import play.api.mvc.ActionTransformer
 import repositories.SessionRepository
 
+import java.time.Year
 import scala.concurrent.{ExecutionContext, Future}
 
-class DataRetrievalAction @Inject()(operatorId: String, reportingPeriod: Option[String], repository: SessionRepository)
+class DataRetrievalAction @Inject()(operatorId: String, reportingPeriod: Option[Year], repository: SessionRepository)
                                    (implicit val executionContext: ExecutionContext) extends ActionTransformer[IdentifierRequest, OptionalDataRequest] {
 
   override protected def transform[A](request: IdentifierRequest[A]): Future[OptionalDataRequest[A]] = {
@@ -36,6 +37,6 @@ class DataRetrievalAction @Inject()(operatorId: String, reportingPeriod: Option[
 
 class DataRetrievalActionProvider @Inject()(repository: SessionRepository)(implicit ec: ExecutionContext) {
 
-  def apply(operatorId: String, reportingPeriod: Option[String] = None): DataRetrievalAction =
+  def apply(operatorId: String, reportingPeriod: Option[Year] = None): DataRetrievalAction =
     new DataRetrievalAction(operatorId, reportingPeriod, repository)
 }

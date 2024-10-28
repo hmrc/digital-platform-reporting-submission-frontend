@@ -20,9 +20,12 @@ import com.google.inject.Inject
 import connectors.SubmissionConnector
 import controllers.actions.*
 import controllers.routes as baseRoutes
+import models.UserAnswers
+import models.submission.AssumedReportSummary
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
+import queries.AssumedReportSummaryQuery
 import repositories.SessionRepository
 import services.UserAnswersService
 import services.UserAnswersService.BuildAssumedReportingSubmissionFailure
@@ -31,6 +34,7 @@ import viewmodels.checkAnswers.assumed.update.*
 import viewmodels.govuk.summarylist.*
 import views.html.assumed.update.CheckYourAnswersView
 
+import java.time.Year
 import scala.concurrent.{ExecutionContext, Future}
 
 class CheckYourAnswersController @Inject()(
@@ -45,7 +49,7 @@ class CheckYourAnswersController @Inject()(
                                             sessionRepository: SessionRepository
                                           )(using ExecutionContext) extends FrontendBaseController with I18nSupport {
 
-  def onPageLoad(operatorId: String, reportingPeriod: String): Action[AnyContent] =
+  def onPageLoad(operatorId: String, reportingPeriod: Year): Action[AnyContent] =
     (identify andThen getData(operatorId, Some(reportingPeriod)) andThen requireData) {
       implicit request =>
   
@@ -67,7 +71,7 @@ class CheckYourAnswersController @Inject()(
         Ok(view(list, operatorId, reportingPeriod))
     }
 
-  def onSubmit(operatorId: String, reportingPeriod: String): Action[AnyContent] =
+  def onSubmit(operatorId: String, reportingPeriod: Year): Action[AnyContent] =
     (identify andThen getData(operatorId, Some(reportingPeriod)) andThen requireData).async {
       implicit request =>
   
@@ -77,13 +81,16 @@ class CheckYourAnswersController @Inject()(
           .merge
           .flatMap { submissionRequest =>
             for {
-              submission <- submissionConnector.submitAssumedReporting(submissionRequest)
-              _          <- sessionRepository.clear(request.userId, operatorId, Some(reportingPeriod))
-            } yield Redirect(routes.SubmissionConfirmationController.onPageLoad(operatorId, submission._id))
+              submission   <- submissionConnector.submitAssumedReporting(submissionRequest)
+              summary      <- AssumedReportSummary(request.userAnswers).map(Future.successful).getOrElse(Future.failed(Exception("unable to build an assumed report summary")))
+              emptyAnswers = UserAnswers(request.userId, operatorId, Some(reportingPeriod))
+              answers      <- Future.fromTry(emptyAnswers.set(AssumedReportSummaryQuery, summary))
+              _            <- sessionRepository.set(answers)
+            } yield Redirect(routes.SubmissionConfirmationController.onPageLoad(operatorId, reportingPeriod))
           }
     }
 
-  def initialise(operatorId: String, reportingPeriod: String): Action[AnyContent] = identify.async {
+  def initialise(operatorId: String, reportingPeriod: Year): Action[AnyContent] = identify.async {
     implicit request =>
       submissionConnector.getAssumedReport(operatorId, reportingPeriod)
         .flatMap(_.map { submission =>

@@ -21,13 +21,13 @@ import play.api.libs.json.*
 import queries.{Gettable, Query, Settable}
 import uk.gov.hmrc.mongo.play.json.formats.MongoJavatimeFormats
 
-import java.time.Instant
+import java.time.{Instant, Year}
 import scala.util.{Failure, Success, Try}
 
 final case class UserAnswers(
                               userId: String,
                               operatorId: String,
-                              reportingPeriod: Option[String] = None,
+                              reportingPeriod: Option[Year] = None,
                               data: JsObject = Json.obj(),
                               lastUpdated: Instant = Instant.now
                             ) {
@@ -80,7 +80,7 @@ object UserAnswers {
     (
       (__ \ "userId").read[String] and
       (__ \ "operatorId").read[String] and
-      (__ \ "reportingPeriod").readNullable[String] and
+      (__ \ "reportingPeriod").readNullable[Year] and
       (__ \ "data").read[JsObject] and
       (__ \ "lastUpdated").read(MongoJavatimeFormats.instantFormat)
     )(UserAnswers(_, _, _, _, _))
@@ -93,7 +93,7 @@ object UserAnswers {
     (
       (__ \ "userId").write[String] and
       (__ \ "operatorId").write[String] and
-      (__ \ "reportingPeriod").writeNullable[String] and
+      (__ \ "reportingPeriod").writeNullable[Year] and
       (__ \ "data").write[JsObject] and
       (__ \ "lastUpdated").write(MongoJavatimeFormats.instantFormat)
     )(ua => (ua.userId, ua.operatorId, ua.reportingPeriod, ua.data, ua.lastUpdated))

@@ -24,9 +24,11 @@ import uk.gov.hmrc.govukfrontend.views.viewmodels.summarylist.SummaryListRow
 import viewmodels.govuk.summarylist.*
 import viewmodels.implicits.*
 
+import java.time.Year
+
 object HasInternationalTaxIdentifierSummary  {
 
-  def row(reportingPeriod: String, answers: UserAnswers)(implicit messages: Messages): Option[SummaryListRow] =
+  def row(reportingPeriod: Year, answers: UserAnswers)(implicit messages: Messages): Option[SummaryListRow] =
     for {
       answer               <- answers.get(HasInternationalTaxIdentifierPage)
       taxResidencyCountry  <- answers.get(TaxResidencyCountryPage)

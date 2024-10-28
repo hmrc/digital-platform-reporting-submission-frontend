@@ -22,9 +22,11 @@ import org.scalatest.{OptionValues, TryValues}
 import org.scalatest.freespec.AnyFreeSpec
 import org.scalatest.matchers.must.Matchers
 
+import java.time.Year
+
 class TaxResidentInUkPageSpec extends AnyFreeSpec with Matchers with TryValues with OptionValues {
 
-  private val reportingPeriod = "reportingPeriod"
+  private val reportingPeriod = Year.of(2024)
   private val operatorId = "operatorId"
   private val emptyAnswers = UserAnswers("id", operatorId, Some(reportingPeriod))
   

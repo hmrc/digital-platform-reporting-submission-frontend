@@ -20,7 +20,7 @@ import com.google.inject.Inject
 import connectors.SubscriptionConnector
 import controllers.actions.{DataRequiredAction, DataRetrievalActionProvider, IdentifierAction}
 import forms.CheckContactDetailsFormProvider
-import models.NormalMode
+import models.{NormalMode, yearFormat}
 import models.subscription.{IndividualContact, OrganisationContact, SubscriptionInfo}
 import pages.assumed.create.CheckContactDetailsPage
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}

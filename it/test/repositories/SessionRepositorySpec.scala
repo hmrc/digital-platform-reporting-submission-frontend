@@ -17,7 +17,7 @@
 package repositories
 
 import config.FrontendAppConfig
-import models.UserAnswers
+import models.{UserAnswers, yearFormat}
 import org.mockito.Mockito.when
 import org.mongodb.scala.model.Filters
 import org.scalactic.source.Position
@@ -31,7 +31,7 @@ import play.api.libs.json.Json
 import uk.gov.hmrc.mongo.test.DefaultPlayMongoRepositorySupport
 import uk.gov.hmrc.play.bootstrap.dispatchers.MDCPropagatingExecutorService
 
-import java.time.{Clock, Instant, ZoneId}
+import java.time.{Clock, Instant, Year, ZoneId}
 import java.time.temporal.ChronoUnit
 import java.util.concurrent.Executors
 import scala.concurrent.{ExecutionContext, Future}
@@ -49,9 +49,9 @@ class SessionRepositorySpec
   private val stubClock: Clock = Clock.fixed(instant, ZoneId.systemDefault)
 
   private val userAnswers1 = UserAnswers("id", "operator1", None, Json.obj("foo" -> "bar"), Instant.ofEpochSecond(1))
-  private val userAnswers2 = UserAnswers("id", "operator1", Some("reportingPeriod2"), Json.obj("foo" -> "bar"), Instant.ofEpochSecond(1))
+  private val userAnswers2 = UserAnswers("id", "operator1", Some(Year.of(2024)), Json.obj("foo" -> "bar"), Instant.ofEpochSecond(1))
 
-  private def byIds(userId: String, operatorId: String, reportingPeriod: Option[String]) =
+  private def byIds(userId: String, operatorId: String, reportingPeriod: Option[Year]) =
     Filters.and(
       Filters.equal("userId", userId),
       Filters.equal("operatorId", operatorId),

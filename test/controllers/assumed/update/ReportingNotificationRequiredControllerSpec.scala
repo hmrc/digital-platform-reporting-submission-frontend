@@ -31,11 +31,12 @@ import play.api.test.FakeRequest
 import play.api.test.Helpers.*
 import views.html.assumed.update.ReportingNotificationRequiredView
 
+import java.time.Year
 import scala.concurrent.Future
 
 class ReportingNotificationRequiredControllerSpec extends SpecBase with MockitoSugar with BeforeAndAfterEach {
 
-  private val reportingPeriod = "reportingPeriod"
+  private val reportingPeriod = Year.of(2024)
   private val mockConnector = mock[PlatformOperatorConnector]
 
   override def beforeEach(): Unit = {

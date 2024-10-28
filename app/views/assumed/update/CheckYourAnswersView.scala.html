@@ -21,7 +21,7 @@
         govukButton: GovukButton
 )
 
-@(list: SummaryList, operatorId: String, reportingPeriod: String)(implicit request: Request[_], messages: Messages)
+@(list: SummaryList, operatorId: String, reportingPeriod: Year)(implicit request: Request[_], messages: Messages)
 
 @layout(pageTitle = titleNoForm(messages("checkYourAnswers.update.title"))) {
 

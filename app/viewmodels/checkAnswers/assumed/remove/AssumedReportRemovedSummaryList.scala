@@ -36,7 +36,7 @@ object AssumedReportRemovedSummaryList {
       )),
       Some(SummaryListRowViewModel(
         key = messages("assumedReportSummary.reportingPeriod"),
-        value = ValueViewModel(summary.reportingPeriod)
+        value = ValueViewModel(summary.reportingPeriod.toString)
       )),
       summary.assumingReporterName.map { name =>
         SummaryListRowViewModel(

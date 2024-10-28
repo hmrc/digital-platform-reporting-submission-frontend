@@ -520,7 +520,7 @@ class SubmissionConnectorSpec
           .willReturn(ok(Json.toJson(submission).toString))
       )
 
-      val result = connector.getAssumedReport("operatorId", "2024")(using hc).futureValue
+      val result = connector.getAssumedReport("operatorId", Year.of(2024))(using hc).futureValue
       result.value mustEqual submission
     }
     
@@ -531,7 +531,7 @@ class SubmissionConnectorSpec
           .willReturn(notFound())
       )
 
-      val result = connector.getAssumedReport("operatorId", "2024")(using hc).futureValue
+      val result = connector.getAssumedReport("operatorId", Year.of(2024))(using hc).futureValue
       result must not be defined
     }
     
@@ -542,7 +542,7 @@ class SubmissionConnectorSpec
           .willReturn(serverError())
       )
       
-      val result = connector.getAssumedReport("operatorId", "2024")(using hc).failed.futureValue
+      val result = connector.getAssumedReport("operatorId", Year.of(2024))(using hc).failed.futureValue
       result mustBe a[GetAssumedReportFailure.type]
     }
   }

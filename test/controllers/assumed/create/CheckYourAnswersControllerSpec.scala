@@ -22,7 +22,7 @@ import connectors.SubmissionConnector
 import controllers.routes as baseRoutes
 import models.submission.Submission.State.Submitted
 import models.submission.Submission.SubmissionType
-import models.submission.{AssumedReportingSubmission, AssumingPlatformOperator, Submission}
+import models.submission.{AssumedReportingSubmission, AssumedReportingSubmissionRequest, AssumingPlatformOperator, Submission}
 import org.apache.pekko.Done
 import org.mockito.ArgumentMatchers.{any, eq as eqTo}
 import org.mockito.Mockito
@@ -92,7 +92,7 @@ class CheckYourAnswersControllerSpec extends SpecBase with SummaryListFluency wi
 
       "must submit an assumed reporting submission request, clear other data from user answers and redirect to the next page" in {
 
-        val assumedReportingSubmissionRequest = AssumedReportingSubmission(
+        val assumedReportingSubmissionRequest = AssumedReportingSubmissionRequest(
           operatorId = "operatorId",
           assumingOperator = AssumingPlatformOperator(
             name = "assumingOperator",

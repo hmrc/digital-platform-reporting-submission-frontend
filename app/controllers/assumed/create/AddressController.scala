@@ -21,7 +21,7 @@ import controllers.actions.*
 import forms.AddressFormProvider
 
 import javax.inject.Inject
-import models.Mode
+import models.{Mode, yearFormat}
 import pages.assumed.create.{AssumingOperatorNamePage, AddressPage}
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}

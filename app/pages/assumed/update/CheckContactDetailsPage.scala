@@ -23,13 +23,14 @@ import models.UserAnswers
 import play.api.libs.json.JsPath
 import play.api.mvc.Call
 
+import java.time.Year
 import javax.inject.Inject
 
 class CheckContactDetailsPage @Inject()(appConfig: FrontendAppConfig) extends AssumedReportingUpdateQuestionPage[Boolean] {
 
   override def path: JsPath = JsPath \ "checkContactDetails"
 
-  override def nextPage(reportingPeriod: String, answers: UserAnswers): Call =
+  override def nextPage(reportingPeriod: Year, answers: UserAnswers): Call =
     answers.get(this).map {
       case true  => routes.SubmissionConfirmationController.onPageLoad(answers.operatorId, reportingPeriod)
       case false => Call("GET", appConfig.updateContactDetailsUrl)

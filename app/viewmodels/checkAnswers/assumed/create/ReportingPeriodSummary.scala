@@ -17,7 +17,7 @@
 package viewmodels.checkAnswers.assumed.create
 
 import controllers.assumed.create.routes
-import models.{CheckMode, UserAnswers}
+import models.{CheckMode, UserAnswers, yearFormat}
 import pages.assumed.create.ReportingPeriodPage
 import play.api.i18n.Messages
 import uk.gov.hmrc.govukfrontend.views.viewmodels.summarylist.SummaryListRow

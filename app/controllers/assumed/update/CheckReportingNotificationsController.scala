@@ -28,6 +28,7 @@ import repositories.SessionRepository
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import views.html.assumed.update.CheckReportingNotificationsView
 
+import java.time.Year
 import scala.concurrent.{ExecutionContext, Future}
 
 class CheckReportingNotificationsController @Inject()(
@@ -43,7 +44,7 @@ class CheckReportingNotificationsController @Inject()(
                                                        view: CheckReportingNotificationsView
                                                      )(implicit ec: ExecutionContext) extends FrontendBaseController with I18nSupport {
 
-  def onPageLoad(operatorId: String, reportingPeriod: String): Action[AnyContent] =
+  def onPageLoad(operatorId: String, reportingPeriod: Year): Action[AnyContent] =
     (identify andThen getData(operatorId, Some(reportingPeriod)) andThen requireData).async {
       implicit request =>
         connector.viewPlatformOperator(operatorId).map { operator =>
@@ -58,7 +59,7 @@ class CheckReportingNotificationsController @Inject()(
         }
     }
 
-  def onSubmit(operatorId: String, reportingPeriod: String): Action[AnyContent] =
+  def onSubmit(operatorId: String, reportingPeriod: Year): Action[AnyContent] =
     (identify andThen getData(operatorId, Some(reportingPeriod)) andThen requireData).async {
       implicit request =>
   

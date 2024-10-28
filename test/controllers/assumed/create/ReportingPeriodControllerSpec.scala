@@ -19,7 +19,7 @@ package controllers.assumed.create
 import base.SpecBase
 import controllers.routes as baseRoutes
 import forms.ReportingPeriodFormProvider
-import models.NormalMode
+import models.{NormalMode, yearFormat}
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.when
 import org.scalatestplus.mockito.MockitoSugar
@@ -30,7 +30,7 @@ import play.api.test.Helpers.*
 import repositories.SessionRepository
 import views.html.assumed.create.ReportingPeriodView
 
-import java.time.{Clock, Instant, ZoneId}
+import java.time.{Clock, Instant, Year, ZoneId}
 import scala.concurrent.Future
 
 class ReportingPeriodControllerSpec extends SpecBase with MockitoSugar {
@@ -41,9 +41,9 @@ class ReportingPeriodControllerSpec extends SpecBase with MockitoSugar {
   private val formProvider = new ReportingPeriodFormProvider(stubClock)
   private val form = formProvider()
 
-  val validAnswer = 2024
+  private val validAnswer = Year.of(2024)
 
-  lazy val reportingPeriodRoute = routes.ReportingPeriodController.onPageLoad(NormalMode, operatorId).url
+  private lazy val reportingPeriodRoute = routes.ReportingPeriodController.onPageLoad(NormalMode, operatorId).url
 
   "ReportingPeriod Controller" - {
 

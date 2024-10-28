@@ -20,7 +20,7 @@ import com.google.inject.Inject
 import connectors.PlatformOperatorConnector
 import controllers.actions.{DataRequiredAction, DataRetrievalActionProvider, IdentifierAction}
 import forms.CheckReportingNotificationsFormProvider
-import models.NormalMode
+import models.{NormalMode, yearFormat}
 import pages.assumed.create.CheckReportingNotificationsPage
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}

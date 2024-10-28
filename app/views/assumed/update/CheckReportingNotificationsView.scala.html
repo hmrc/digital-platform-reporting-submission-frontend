@@ -27,7 +27,7 @@
         govukButton: GovukButton
 )
 
-@(form: Form[?], notifications: Seq[NotificationDetails], operatorId: String, reportingPeriod: String, businessName: String)(implicit request: Request[_], messages: Messages)
+@(form: Form[?], notifications: Seq[NotificationDetails], operatorId: String, reportingPeriod: Year, businessName: String)(implicit request: Request[_], messages: Messages)
 
 @titleText = @{
     notifications.size match {

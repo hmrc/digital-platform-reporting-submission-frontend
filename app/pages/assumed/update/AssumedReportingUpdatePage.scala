@@ -20,8 +20,10 @@ import controllers.assumed.update.routes
 import models.UserAnswers
 import play.api.mvc.Call
 
+import java.time.Year
+
 trait AssumedReportingUpdatePage {
 
-  def nextPage(reportingPeriod: String, answers: UserAnswers): Call =
+  def nextPage(reportingPeriod: Year, answers: UserAnswers): Call =
     routes.CheckYourAnswersController.onPageLoad(answers.operatorId, reportingPeriod)
 }

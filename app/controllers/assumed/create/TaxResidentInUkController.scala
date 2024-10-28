@@ -21,7 +21,7 @@ import controllers.actions.*
 import forms.TaxResidentInUkFormProvider
 
 import javax.inject.Inject
-import models.Mode
+import models.{Mode, yearFormat}
 import pages.assumed.create.{AssumingOperatorNamePage, TaxResidentInUkPage}
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}

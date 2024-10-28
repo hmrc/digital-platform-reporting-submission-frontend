@@ -20,12 +20,12 @@ import config.Constants
 import forms.mappings.Mappings
 import play.api.data.Form
 
-import java.time.{Clock, LocalDate}
+import java.time.{Clock, LocalDate, Year}
 import javax.inject.Inject
 
 class ReportingPeriodFormProvider @Inject()(clock: Clock) extends Mappings {
 
-  def apply(): Form[Int] = {
+  def apply(): Form[Year] = {
 
     val maxYear = LocalDate.now(clock).getYear
     val minYear = Constants.firstLegislativeYear
@@ -34,6 +34,7 @@ class ReportingPeriodFormProvider @Inject()(clock: Clock) extends Mappings {
       "value" -> int("reportingPeriod.error.required", "reportingPeriod.error.wholeNumber", "reportingPeriod.error.nonNumeric")
         .verifying(minimumValue(minYear, "reportingPeriod.error.belowMinimum", args = minYear.toString))
         .verifying(maximumValue(maxYear, "reportingPeriod.error.aboveMaximum", args = maxYear.toString))
+        .transform[Year](year => Year.of(year), year => year.getValue)
     )
   }
 }

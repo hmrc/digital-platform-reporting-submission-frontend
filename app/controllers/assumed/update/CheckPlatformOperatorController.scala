@@ -32,6 +32,7 @@ import viewmodels.checkAnswers.operator.*
 import viewmodels.govuk.summarylist.*
 import views.html.assumed.update.CheckPlatformOperatorView
 
+import java.time.Year
 import scala.concurrent.{ExecutionContext, Future}
 
 class CheckPlatformOperatorController @Inject()(
@@ -47,7 +48,7 @@ class CheckPlatformOperatorController @Inject()(
                                                  view: CheckPlatformOperatorView
                                                )(implicit ec: ExecutionContext) extends FrontendBaseController with I18nSupport {
 
-  def onPageLoad(operatorId: String, reportingPeriod: String): Action[AnyContent] =
+  def onPageLoad(operatorId: String, reportingPeriod: Year): Action[AnyContent] =
     (identify andThen getData(operatorId, Some(reportingPeriod)) andThen requireData).async {
       implicit request =>
         connector.viewPlatformOperator(operatorId).map { operator =>
@@ -66,7 +67,7 @@ class CheckPlatformOperatorController @Inject()(
         }
     }
   
-  def onSubmit(operatorId: String, reportingPeriod: String): Action[AnyContent] =
+  def onSubmit(operatorId: String, reportingPeriod: Year): Action[AnyContent] =
     (identify andThen getData(operatorId, Some(reportingPeriod)) andThen requireData).async {
       implicit request =>
   

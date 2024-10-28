@@ -27,6 +27,7 @@ import repositories.SessionRepository
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import views.html.assumed.update.RegisteredCountryView
 
+import java.time.Year
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -43,7 +44,7 @@ class RegisteredCountryController @Inject()(
   extends FrontendBaseController with I18nSupport with AnswerExtractor {
 
 
-  def onPageLoad(operatorId: String, reportingPeriod: String): Action[AnyContent] =
+  def onPageLoad(operatorId: String, reportingPeriod: Year): Action[AnyContent] =
     (identify andThen getData(operatorId, Some(reportingPeriod)) andThen requireData) { implicit request =>
       getAnswer(AssumingOperatorNamePage) { assumingOperatorName =>
   
@@ -58,7 +59,7 @@ class RegisteredCountryController @Inject()(
       }
     }
 
-  def onSubmit(operatorId: String, reportingPeriod: String): Action[AnyContent] =
+  def onSubmit(operatorId: String, reportingPeriod: Year): Action[AnyContent] =
     (identify andThen getData(operatorId, Some(reportingPeriod)) andThen requireData).async { implicit request =>
       getAnswerAsync(AssumingOperatorNamePage) { assumingOperatorName =>
   

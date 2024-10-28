@@ -19,13 +19,13 @@ package services
 import cats.data.{EitherNec, NonEmptyChain, StateT}
 import cats.implicits.given
 import com.google.inject.{Inject, Singleton}
-import models.{Country, UserAnswers}
+import models.{Country, UserAnswers, yearFormat}
 import models.operator.{TinDetails, TinType}
-import models.submission.{AssumedReportingSubmission, AssumingPlatformOperator}
+import models.submission.{AssumedReportingSubmission, AssumedReportingSubmissionRequest, AssumingPlatformOperator}
 import pages.assumed.create.*
 import pages.assumed.update as updatePages
 import play.api.libs.json.Writes
-import queries.{Query, ReportingPeriodQuery, Settable}
+import queries.{PlatformOperatorNameQuery, Query, ReportingPeriodQuery, Settable}
 import services.UserAnswersService.InvalidCountryCodeFailure
 
 import java.time.Year
@@ -37,14 +37,15 @@ class UserAnswersService @Inject() () {
   def fromAssumedReportingSubmission(userId: String, submission: AssumedReportingSubmission): Try[UserAnswers] = {
 
     val transformation = for {
-      _ <- set(ReportingPeriodQuery, submission.reportingPeriod.getValue)
+      _ <- set(PlatformOperatorNameQuery, submission.operatorName)
+      _ <- set(ReportingPeriodQuery, submission.reportingPeriod)
       _ <- set(updatePages.AssumingOperatorNamePage, submission.assumingOperator.name)
       _ <- setTaxDetails(submission.assumingOperator)
       _ <- setRegisteredCountry(submission.assumingOperator)
       _ <- set(updatePages.AddressPage, submission.assumingOperator.address)
     } yield ()
 
-    transformation.runS(UserAnswers(userId, submission.operatorId, Some(submission.reportingPeriod.toString)))
+    transformation.runS(UserAnswers(userId, submission.operatorId, Some(submission.reportingPeriod)))
   }
 
   private def set[A](settable: Settable[A], value: A)(implicit writes: Writes[A]): StateT[Try, UserAnswers, Unit] =
@@ -106,21 +107,16 @@ class UserAnswersService @Inject() () {
 
   private lazy val ukCountryCodes = Country.ukCountries.map(_.code)
 
-  def toAssumedReportingSubmission(answers: UserAnswers): EitherNec[Query, AssumedReportingSubmission] =
+  def toAssumedReportingSubmission(answers: UserAnswers): EitherNec[Query, AssumedReportingSubmissionRequest] =
     (
       getAssumingOperator(answers),
-      getReportingPeriod(answers)
+      answers.getEither(ReportingPeriodPage)
     ).parMapN { (assumingOperator, reportingPeriod) =>
-      AssumedReportingSubmission(
+      AssumedReportingSubmissionRequest(
         operatorId = answers.operatorId,
         assumingOperator = assumingOperator,
         reportingPeriod = reportingPeriod
       )
-    }
-
-  private def getReportingPeriod(answers: UserAnswers): EitherNec[Query, Year] =
-    answers.getEither(ReportingPeriodPage).flatMap { number =>
-      Try(Year.of(number)).toEither.left.map(_ => NonEmptyChain.one(ReportingPeriodPage))
     }
 
   private def getAssumingOperator(answers: UserAnswers): EitherNec[Query, AssumingPlatformOperator] =

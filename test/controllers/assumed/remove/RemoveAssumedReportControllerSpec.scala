@@ -29,13 +29,13 @@ import queries.AssumedReportSummariesQuery
 import viewmodels.checkAnswers.assumed.remove.AssumedReportSummaryList
 import views.html.assumed.remove.RemoveAssumedReportView
 
-import java.time.Instant
+import java.time.{Instant, Year}
 
 class RemoveAssumedReportControllerSpec extends SpecBase with MockitoSugar with BeforeAndAfterEach {
 
   private val now = Instant.now()
-  private val submission1 = SubmissionSummary("submissionId1", "file1", "operatorId", "operatorName", "2024", now, SubmissionStatus.Success, Some("assuming"), Some("caseId1"))
-  private val submission2 = SubmissionSummary("submissionId2", "file2", "operatorId", "operatorName", "2025", now, SubmissionStatus.Success, Some("assuming"), Some("caseId2"))
+  private val submission1 = SubmissionSummary("submissionId1", "file1", "operatorId", "operatorName", Year.of(2024), now, SubmissionStatus.Success, Some("assuming"), Some("caseId1"))
+  private val submission2 = SubmissionSummary("submissionId2", "file2", "operatorId", "operatorName", Year.of(2025), now, SubmissionStatus.Success, Some("assuming"), Some("caseId2"))
 
   private val baseAnswers = emptyUserAnswers.set(AssumedReportSummariesQuery, Seq(submission1, submission2)).success.value
 
@@ -52,7 +52,7 @@ class RemoveAssumedReportControllerSpec extends SpecBase with MockitoSugar with 
         running(application) {
           given Messages = messages(application)
 
-          val request = FakeRequest(routes.RemoveAssumedReportController.onPageLoad("operatorId", "2024"))
+          val request = FakeRequest(routes.RemoveAssumedReportController.onPageLoad("operatorId", Year.of(2024)))
 
           val view = application.injector.instanceOf[RemoveAssumedReportView]
           val summaryList = AssumedReportSummaryList.list(submission1)
@@ -60,7 +60,7 @@ class RemoveAssumedReportControllerSpec extends SpecBase with MockitoSugar with 
           val result = route(application, request).value
 
           status(result) mustEqual OK
-          contentAsString(result) mustEqual view(form, summaryList, "operatorId", "2024")(request, implicitly).toString
+          contentAsString(result) mustEqual view(form, summaryList, "operatorId", Year.of(2024))(request, implicitly).toString
         }
       }
 
@@ -69,7 +69,7 @@ class RemoveAssumedReportControllerSpec extends SpecBase with MockitoSugar with 
         val application = applicationBuilder(userAnswers = Some(baseAnswers)).build()
 
         running(application) {
-          val request = FakeRequest(routes.RemoveAssumedReportController.onPageLoad("operatorId", "unknown reporting period"))
+          val request = FakeRequest(routes.RemoveAssumedReportController.onPageLoad("operatorId", Year.of(2000)))
 
           val result = route(application, request).value
 
@@ -87,13 +87,13 @@ class RemoveAssumedReportControllerSpec extends SpecBase with MockitoSugar with 
 
         running(application) {
           val request =
-            FakeRequest(routes.RemoveAssumedReportController.onSubmit("operatorId", "2024"))
+            FakeRequest(routes.RemoveAssumedReportController.onSubmit("operatorId", Year.of(2024)))
               .withFormUrlEncodedBody("value" -> "true")
 
           val result = route(application, request).value
 
           status(result) mustEqual SEE_OTHER
-          redirectLocation(result).value mustEqual routes.AssumedReportRemovedController.onPageLoad("operatorId", "2024").url
+          redirectLocation(result).value mustEqual routes.AssumedReportRemovedController.onPageLoad("operatorId", Year.of(2024)).url
         }
       }
 
@@ -104,7 +104,7 @@ class RemoveAssumedReportControllerSpec extends SpecBase with MockitoSugar with 
 
         running(application) {
           val request =
-            FakeRequest(routes.RemoveAssumedReportController.onSubmit("operatorId", "2024"))
+            FakeRequest(routes.RemoveAssumedReportController.onSubmit("operatorId", Year.of(2024)))
               .withFormUrlEncodedBody("value" -> "false")
 
           val result = route(application, request).value
@@ -122,7 +122,7 @@ class RemoveAssumedReportControllerSpec extends SpecBase with MockitoSugar with 
           given Messages = messages(application)
 
           val request =
-            FakeRequest(routes.RemoveAssumedReportController.onSubmit("operatorId", "2024"))
+            FakeRequest(routes.RemoveAssumedReportController.onSubmit("operatorId", Year.of(2024)))
               .withFormUrlEncodedBody("value" -> "")
 
           val view = application.injector.instanceOf[RemoveAssumedReportView]
@@ -132,7 +132,7 @@ class RemoveAssumedReportControllerSpec extends SpecBase with MockitoSugar with 
           val result = route(application, request).value
 
           status(result) mustEqual BAD_REQUEST
-          contentAsString(result) mustEqual view(boundForm, summaryList, "operatorId", "2024")(request, implicitly).toString
+          contentAsString(result) mustEqual view(boundForm, summaryList, "operatorId", Year.of(2024))(request, implicitly).toString
         }
       }
     }

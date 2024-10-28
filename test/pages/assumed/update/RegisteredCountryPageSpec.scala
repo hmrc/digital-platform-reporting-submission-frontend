@@ -21,9 +21,11 @@ import models.UserAnswers
 import org.scalatest.freespec.AnyFreeSpec
 import org.scalatest.matchers.must.Matchers
 
+import java.time.Year
+
 class RegisteredCountryPageSpec extends AnyFreeSpec with Matchers {
 
-  private val reportingPeriod = "reportingPeriod"
+  private val reportingPeriod = Year.of(2024)
   private val operatorId = "operatorId"
   private val emptyAnswers = UserAnswers("id", operatorId, Some(reportingPeriod))
   
