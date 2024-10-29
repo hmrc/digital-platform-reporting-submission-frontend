@@ -18,22 +18,23 @@ package viewmodels.checkAnswers.assumed.update
 
 import models.{UserAnswers, yearFormat}
 import play.api.i18n.Messages
-import queries.ReportingPeriodQuery
+import queries.PlatformOperatorNameQuery
+import play.twirl.api.HtmlFormat
 import uk.gov.hmrc.govukfrontend.views.viewmodels.summarylist.SummaryListRow
 import viewmodels.govuk.summarylist.*
 import viewmodels.implicits.*
 
 import java.time.Year
 
-object ReportingPeriodSummary {
+object PlatformOperatorSummary {
 
   def row(reportingPeriod: Year, answers: UserAnswers)(implicit messages: Messages): Option[SummaryListRow] =
-    answers.get(ReportingPeriodQuery).map {
+    answers.get(PlatformOperatorNameQuery).map {
       answer =>
 
         SummaryListRowViewModel(
-          key     = "reportingPeriod.checkYourAnswersLabel",
-          value   = ValueViewModel(answer.toString),
+          key     = "platformOperator.checkYourAnswersLabel",
+          value   = ValueViewModel(HtmlFormat.escape(answer).toString),
           actions = Nil
         )
     }

@@ -41,6 +41,7 @@ checkYourAnswers.update.title = Change your answers
 checkYourAnswers.update.heading = Change your answers
 checkYourAnswers.update.p1 = By sending this report, you are confirming that the information is correct and complete to the best of your knowledge.
 checkYourAnswers.update.confirm = Confirm and update
+platformOperator.checkYourAnswersLabel = Which platform operator is the assumed report for?
 
 journeyRecovery.continue.title = Sorry, there is a problem with the service
 journeyRecovery.continue.heading = Sorry, there is a problem with the service
@@ -303,9 +304,11 @@ assumed.start.beforeYouContinue.p2 = Adding an assumed reporting submission take
 assumed.start.startSubmission = Start submission
 
 assumedReportingConfirmation.title = Assumed reporting submission created
+assumedReportingConfirmation.title.updated = Assumed reporting submission updated
 assumedReportingConfirmation.heading = Assumed reporting submission created
+assumedReportingConfirmation.heading.updated = Assumed reporting submission updated
 assumedReportingConfirmation.p1 = {0} has been chosen to report on behalf of {1} during the {2} Reporting Period.
-assumedReportingConfirmation.return = Return to "Manage your Digital Platform Reporting"
+assumedReportingConfirmation.return = Return to manage your Digital Platform Reporting
 
 reportingNotificationRequired.title = You must add a reporting notification before making an assumed report
 reportingNotificationRequired.heading = You must add a reporting notification for {0} before making an assumed report
