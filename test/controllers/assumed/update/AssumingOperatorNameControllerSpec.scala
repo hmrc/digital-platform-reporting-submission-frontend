@@ -26,7 +26,7 @@ import pages.assumed.update.AssumingOperatorNamePage
 import play.api.inject.bind
 import play.api.test.FakeRequest
 import play.api.test.Helpers.*
-import queries.PlatformOperatorSummaryQuery
+import queries.PlatformOperatorNameQuery
 import repositories.SessionRepository
 import viewmodels.PlatformOperatorSummary
 import views.html.assumed.update.AssumingOperatorNameView
@@ -37,10 +37,10 @@ import scala.concurrent.Future
 class AssumingOperatorNameControllerSpec extends SpecBase with MockitoSugar {
 
   private val reportingPeriod = Year.of(2024)
-  private val operator = PlatformOperatorSummary("operatorId", "name", false)
-  private val baseAnswers = emptyUserAnswers.copy(reportingPeriod = Some(reportingPeriod)).set(PlatformOperatorSummaryQuery, operator).success.value
+  private val operatorName = "operatorName"
+  private val baseAnswers = emptyUserAnswers.copy(reportingPeriod = Some(reportingPeriod)).set(PlatformOperatorNameQuery, operatorName).success.value
   private val formProvider = new AssumingOperatorNameFormProvider()
-  private val form = formProvider(operator.operatorName)
+  private val form = formProvider(operatorName)
 
   private lazy val assumingOperatorNameRoute = routes.AssumingOperatorNameController.onPageLoad(operatorId, reportingPeriod).url
 
@@ -58,7 +58,7 @@ class AssumingOperatorNameControllerSpec extends SpecBase with MockitoSugar {
         val view = application.injector.instanceOf[AssumingOperatorNameView]
 
         status(result) mustEqual OK
-        contentAsString(result) mustEqual view(form, operator, reportingPeriod)(request, messages(application)).toString
+        contentAsString(result) mustEqual view(form, operatorId, operatorName, reportingPeriod)(request, messages(application)).toString
       }
     }
 
@@ -76,7 +76,7 @@ class AssumingOperatorNameControllerSpec extends SpecBase with MockitoSugar {
         val result = route(application, request).value
 
         status(result) mustEqual OK
-        contentAsString(result) mustEqual view(form.fill("answer"), operator, reportingPeriod)(request, messages(application)).toString
+        contentAsString(result) mustEqual view(form.fill("answer"), operatorId, operatorName, reportingPeriod)(request, messages(application)).toString
       }
     }
 
@@ -122,7 +122,7 @@ class AssumingOperatorNameControllerSpec extends SpecBase with MockitoSugar {
         val result = route(application, request).value
 
         status(result) mustEqual BAD_REQUEST
-        contentAsString(result) mustEqual view(boundForm, operator, reportingPeriod)(request, messages(application)).toString
+        contentAsString(result) mustEqual view(boundForm, operatorId, operatorName, reportingPeriod)(request, messages(application)).toString
       }
     }
 
