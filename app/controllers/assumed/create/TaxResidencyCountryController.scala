@@ -21,7 +21,7 @@ import controllers.actions.*
 import forms.TaxResidencyCountryFormProvider
 
 import javax.inject.Inject
-import models.{Mode, yearFormat}
+import models.Mode
 import pages.assumed.create.{AssumingOperatorNamePage, TaxResidencyCountryPage}
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
