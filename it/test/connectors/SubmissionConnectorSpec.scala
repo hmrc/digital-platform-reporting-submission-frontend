@@ -450,7 +450,7 @@ class SubmissionConnectorSpec
       address = "address"
     )
 
-    val request = AssumedReportingSubmission(
+    val request = AssumedReportingSubmissionRequest(
       operatorId = "operatorId",
       assumingOperator = assumingOperator,
       reportingPeriod = Year.of(2024)
@@ -511,7 +511,7 @@ class SubmissionConnectorSpec
       address = "address"
     )
     
-    val submission = AssumedReportingSubmission("operatorId", assumingOperator, Year.of(2024))
+    val submission = AssumedReportingSubmission("operatorId", "operatorName", assumingOperator, Year.of(2024), false)
     
     "must return a submission when the server returns OK" in {
       
