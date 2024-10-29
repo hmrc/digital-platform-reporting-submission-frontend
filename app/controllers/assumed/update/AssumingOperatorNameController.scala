@@ -22,7 +22,7 @@ import forms.AssumingOperatorNameFormProvider
 import pages.assumed.update.AssumingOperatorNamePage
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
-import queries.PlatformOperatorSummaryQuery
+import queries.PlatformOperatorNameQuery
 import repositories.SessionRepository
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import views.html.assumed.update.AssumingOperatorNameView
@@ -45,28 +45,28 @@ class AssumingOperatorNameController @Inject()(
 
   def onPageLoad(operatorId: String, reportingPeriod: Year): Action[AnyContent] =
     (identify andThen getData(operatorId, Some(reportingPeriod)) andThen requireData) { implicit request =>
-      getAnswer(PlatformOperatorSummaryQuery) { operator =>
+      getAnswer(PlatformOperatorNameQuery) { operatorName =>
   
-        val form = formProvider(operator.operatorName)
+        val form = formProvider(operatorName)
   
         val preparedForm = request.userAnswers.get(AssumingOperatorNamePage) match {
           case None => form
           case Some(value) => form.fill(value)
         }
   
-        Ok(view(preparedForm, operator, reportingPeriod))
+        Ok(view(preparedForm, operatorId, operatorName, reportingPeriod))
       }
     }
 
   def onSubmit(operatorId: String, reportingPeriod: Year): Action[AnyContent] =
     (identify andThen getData(operatorId, Some(reportingPeriod)) andThen requireData).async { implicit request =>
-      getAnswerAsync(PlatformOperatorSummaryQuery) { operator =>
+      getAnswerAsync(PlatformOperatorNameQuery) { operatorName =>
   
-        val form = formProvider(operator.operatorName)
+        val form = formProvider(operatorName)
   
         form.bindFromRequest().fold(
           formWithErrors =>
-            Future.successful(BadRequest(view(formWithErrors, operator, reportingPeriod))),
+            Future.successful(BadRequest(view(formWithErrors, operatorId, operatorName, reportingPeriod))),
   
           value =>
             for {

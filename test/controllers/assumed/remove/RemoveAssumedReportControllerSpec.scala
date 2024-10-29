@@ -17,12 +17,18 @@
 package controllers.assumed.remove
 
 import base.SpecBase
+import connectors.SubmissionConnector
 import controllers.assumed.routes as assumedRoutes
 import forms.RemoveAssumedReportFormProvider
 import models.submission.{SubmissionStatus, SubmissionSummary}
+import org.apache.pekko.Done
+import org.mockito.ArgumentMatchers.{any, eq as eqTo}
+import org.mockito.Mockito
+import org.mockito.Mockito.{never, verify, when}
 import org.scalatest.BeforeAndAfterEach
 import org.scalatestplus.mockito.MockitoSugar
 import play.api.i18n.Messages
+import play.api.inject.bind
 import play.api.test.FakeRequest
 import play.api.test.Helpers.*
 import queries.AssumedReportSummariesQuery
@@ -30,6 +36,7 @@ import viewmodels.checkAnswers.assumed.remove.AssumedReportSummaryList
 import views.html.assumed.remove.RemoveAssumedReportView
 
 import java.time.{Instant, Year}
+import scala.concurrent.Future
 
 class RemoveAssumedReportControllerSpec extends SpecBase with MockitoSugar with BeforeAndAfterEach {
 
@@ -40,6 +47,13 @@ class RemoveAssumedReportControllerSpec extends SpecBase with MockitoSugar with 
   private val baseAnswers = emptyUserAnswers.set(AssumedReportSummariesQuery, Seq(submission1, submission2)).success.value
 
   private val form = RemoveAssumedReportFormProvider()()
+
+  private val mockConnector = mock[SubmissionConnector]
+
+  override def beforeEach(): Unit = {
+    Mockito.reset(mockConnector)
+    super.beforeEach()
+  }
 
   "Remove Assumed Report Controller" - {
 
@@ -80,10 +94,14 @@ class RemoveAssumedReportControllerSpec extends SpecBase with MockitoSugar with 
 
     "for a POST" - {
 
-      // TODO: Verify submission is deleted
       "must delete the submission and redirect to Assumed Report Removed when the answer is yes" in {
 
-        val application = applicationBuilder(userAnswers = Some(baseAnswers)).build()
+        when(mockConnector.deleteAssumedReport(any(), any())(using any())).thenReturn(Future.successful(Done))
+
+        val application =
+          applicationBuilder(userAnswers = Some(baseAnswers))
+            .overrides(bind[SubmissionConnector].toInstance(mockConnector))
+            .build()
 
         running(application) {
           val request =
@@ -94,13 +112,16 @@ class RemoveAssumedReportControllerSpec extends SpecBase with MockitoSugar with 
 
           status(result) mustEqual SEE_OTHER
           redirectLocation(result).value mustEqual routes.AssumedReportRemovedController.onPageLoad("operatorId", Year.of(2024)).url
+          verify(mockConnector).deleteAssumedReport(eqTo("operatorId"), eqTo(Year.of(2024)))(using any())
         }
       }
 
-      // TODO: Verify submission is not deleted
       "must not delete the submission and redirect to View Submissions when the answer is no" in {
 
-        val application = applicationBuilder(userAnswers = Some(baseAnswers)).build()
+        val application =
+          applicationBuilder(userAnswers = Some(baseAnswers))
+            .overrides(bind[SubmissionConnector].toInstance(mockConnector))
+            .build()
 
         running(application) {
           val request =
@@ -111,6 +132,7 @@ class RemoveAssumedReportControllerSpec extends SpecBase with MockitoSugar with 
 
           status(result) mustEqual SEE_OTHER
           redirectLocation(result).value mustEqual assumedRoutes.ViewAssumedReportsController.onPageLoad().url
+          verify(mockConnector, never()).deleteAssumedReport(any(), any())(using any())
         }
       }
 

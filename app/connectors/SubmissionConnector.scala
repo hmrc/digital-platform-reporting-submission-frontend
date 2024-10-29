@@ -170,6 +170,16 @@ class SubmissionConnector @Inject() (
           case _         => Future.failed(GetAssumedReportFailure)
         }
       }
+      
+  def deleteAssumedReport(operatorId: String, reportingPeriod: Year)(using HeaderCarrier): Future[Done] =
+    httpClient.delete(url"$digitalPlatformReportingService/digital-platform-reporting/submission/assumed/$operatorId/$reportingPeriod")
+      .execute[HttpResponse]
+      .flatMap { response =>
+        response.status match {
+          case OK     => Future.successful(Done)
+          case status => Future.failed(DeleteAssumedReportFailure(status))
+        }
+      }
 }
 
 object SubmissionConnector {
@@ -184,4 +194,7 @@ object SubmissionConnector {
   case object ViewFailure extends Throwable
   case object SubmitAssumedReportingFailure extends Throwable
   case object GetAssumedReportFailure extends Throwable
+  final case class DeleteAssumedReportFailure(status: Int) extends Throwable {
+    override def getMessage: String = s"Unexpected status code $status received when trying to delete an assumed report"
+  }
 }

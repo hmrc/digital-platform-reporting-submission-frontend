@@ -26,11 +26,11 @@
     govukButton: GovukButton
 )
 
-@(form: Form[_], operator: PlatformOperatorSummary, reportingPeriod: Year)(implicit request: Request[_], messages: Messages)
+@(form: Form[_], operatorId: String, operatorName: String, reportingPeriod: Year)(implicit request: Request[_], messages: Messages)
 
 @layout(pageTitle = title(form, messages("assumingOperatorName.title"))) {
 
-    @formHelper(action = routes.AssumingOperatorNameController.onSubmit(operator.operatorId, reportingPeriod)) {
+    @formHelper(action = routes.AssumingOperatorNameController.onSubmit(operatorId, reportingPeriod)) {
 
         @if(form.errors.nonEmpty) {
             @govukErrorSummary(ErrorSummaryViewModel(form))
@@ -39,7 +39,7 @@
         @govukInput(
             InputViewModel(
                 field = form("value"),
-                label = LabelViewModel(messages("assumingOperatorName.heading", operator.operatorName)).asPageHeading()
+                label = LabelViewModel(messages("assumingOperatorName.heading", operatorName)).asPageHeading()
             )
             .withWidth(Full)
         )
