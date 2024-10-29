@@ -16,6 +16,7 @@
 
 package controllers.assumed.remove
 
+import connectors.SubmissionConnector
 import controllers.AnswerExtractor
 import controllers.actions.{DataRequiredAction, DataRetrievalActionProvider, IdentifierAction}
 import controllers.assumed.routes as assumedRoutes
@@ -29,7 +30,7 @@ import views.html.assumed.remove.RemoveAssumedReportView
 
 import java.time.Year
 import javax.inject.Inject
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
 class RemoveAssumedReportController @Inject()(override val messagesApi: MessagesApi,
                                               val controllerComponents: MessagesControllerComponents,
@@ -37,7 +38,8 @@ class RemoveAssumedReportController @Inject()(override val messagesApi: Messages
                                               getData: DataRetrievalActionProvider,
                                               requireData: DataRequiredAction,
                                               formProvider: RemoveAssumedReportFormProvider,
-                                              view: RemoveAssumedReportView)
+                                              view: RemoveAssumedReportView,
+                                              submissionConnector: SubmissionConnector)(implicit ec: ExecutionContext)
   extends FrontendBaseController with I18nSupport with AnswerExtractor {
 
   private val form = formProvider()
@@ -65,8 +67,8 @@ class RemoveAssumedReportController @Inject()(override val messagesApi: Messages
             },
             answer => 
               if (answer) {
-                // TODO: Actually delete the submission
-                Future.successful(Redirect(routes.AssumedReportRemovedController.onPageLoad(operatorId, reportingPeriod)))
+                submissionConnector.deleteAssumedReport(operatorId, reportingPeriod)
+                  .map(_ => Redirect(routes.AssumedReportRemovedController.onPageLoad(operatorId, reportingPeriod)))
               } else {
                 Future.successful(Redirect(assumedRoutes.ViewAssumedReportsController.onPageLoad()))
               }
