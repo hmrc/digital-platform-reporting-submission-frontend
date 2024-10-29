@@ -546,4 +546,31 @@ class SubmissionConnectorSpec
       result mustBe a[GetAssumedReportFailure.type]
     }
   }
+  
+  "deleteAssumedReport" - {
+    
+    "must send a delete request to the backend" in {
+
+      wireMockServer.stubFor(
+        delete(urlPathEqualTo("/digital-platform-reporting/submission/assumed/operatorId/2024"))
+          .willReturn(ok())
+      )
+
+      connector.deleteAssumedReport("operatorId", Year.of(2024))(using hc).futureValue
+    }
+    
+    "must return a failed future when the server returns an error" in {
+
+      wireMockServer.stubFor(
+        delete(urlPathEqualTo("/digital-platform-reporting/submission/assumed/operatorId/2024"))
+          .willReturn(serverError())
+      )
+
+      val result = connector.deleteAssumedReport("operatorId", Year.of(2024))(using hc).failed.futureValue
+      result mustBe a[DeleteAssumedReportFailure]
+      
+      val failure = result.asInstanceOf[DeleteAssumedReportFailure]
+      failure.status mustEqual 500
+    }
+  }
 }
