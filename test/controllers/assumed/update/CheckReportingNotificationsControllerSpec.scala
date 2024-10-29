@@ -40,11 +40,12 @@ import viewmodels.govuk.SummaryListFluency
 import views.html.assumed.update.CheckReportingNotificationsView
 
 import java.time.Instant
+import java.time.Year
 import scala.concurrent.Future
 
 class CheckReportingNotificationsControllerSpec extends SpecBase with SummaryListFluency with MockitoSugar with BeforeAndAfterEach {
 
-  private val reportingPeriod = "reportingPeriod"
+  private val reportingPeriod = Year.of(2024)
   private val form = CheckReportingNotificationsFormProvider()()
   private val mockConnector = mock[PlatformOperatorConnector]
   private val mockRepository = mock[SessionRepository]

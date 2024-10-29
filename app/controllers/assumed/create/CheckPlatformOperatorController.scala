@@ -20,7 +20,7 @@ import com.google.inject.Inject
 import connectors.PlatformOperatorConnector
 import controllers.actions.{DataRequiredAction, DataRetrievalActionProvider, IdentifierAction}
 import forms.CheckPlatformOperatorFormProvider
-import models.NormalMode
+import models.{NormalMode, yearFormat}
 import models.operator.responses.PlatformOperator
 import pages.assumed.create.CheckPlatformOperatorPage
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}

@@ -36,11 +36,12 @@ import viewmodels.checkAnswers.subscription.*
 import viewmodels.govuk.SummaryListFluency
 import views.html.assumed.update.CheckContactDetailsView
 
+import java.time.Year
 import scala.concurrent.Future
 
 class CheckContactDetailsControllerSpec extends SpecBase with SummaryListFluency with MockitoSugar with BeforeAndAfterEach {
 
-  private val reportingPeriod = "reportingPeriod"
+  private val reportingPeriod = Year.of(2024)
   private val form = CheckContactDetailsFormProvider()()
   private val mockConnector = mock[SubscriptionConnector]
   private val mockRepository = mock[SessionRepository]

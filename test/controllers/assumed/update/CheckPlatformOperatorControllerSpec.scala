@@ -39,11 +39,12 @@ import viewmodels.checkAnswers.operator.*
 import viewmodels.govuk.SummaryListFluency
 import views.html.assumed.update.CheckPlatformOperatorView
 
+import java.time.Year
 import scala.concurrent.Future
 
 class CheckPlatformOperatorControllerSpec extends SpecBase with SummaryListFluency with MockitoSugar with BeforeAndAfterEach {
 
-  private val reportingPeriod = "reportingPeriod"
+  private val reportingPeriod = Year.of(2024)
   private val form = CheckPlatformOperatorFormProvider()()
   private val mockConnector = mock[PlatformOperatorConnector]
   private val mockRepository = mock[SessionRepository]

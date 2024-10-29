@@ -20,6 +20,7 @@ import controllers.AnswerExtractor
 import controllers.actions.*
 import forms.TaxResidentInUkFormProvider
 
+import java.time.Year
 import javax.inject.Inject
 import models.Mode
 import pages.assumed.update.{AssumingOperatorNamePage, TaxResidentInUkPage}
@@ -43,7 +44,7 @@ class TaxResidentInUkController @Inject()(
                                  )(implicit ec: ExecutionContext)
   extends FrontendBaseController with I18nSupport with AnswerExtractor {
 
-  def onPageLoad(operatorId: String, reportingPeriod: String): Action[AnyContent] =
+  def onPageLoad(operatorId: String, reportingPeriod: Year): Action[AnyContent] =
     (identify andThen getData(operatorId, Some(reportingPeriod)) andThen requireData) { implicit request =>
       getAnswer(AssumingOperatorNamePage) { assumingOperatorName =>
   
@@ -58,7 +59,7 @@ class TaxResidentInUkController @Inject()(
       }
     }
 
-  def onSubmit(operatorId: String, reportingPeriod: String): Action[AnyContent] =
+  def onSubmit(operatorId: String, reportingPeriod: Year): Action[AnyContent] =
     (identify andThen getData(operatorId, Some(reportingPeriod)) andThen requireData).async { implicit request =>
       getAnswerAsync(AssumingOperatorNamePage) { assumingOperatorName =>
   

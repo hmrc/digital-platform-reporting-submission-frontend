@@ -27,6 +27,7 @@ import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import viewmodels.checkAnswers.assumed.remove.AssumedReportSummaryList
 import views.html.assumed.remove.RemoveAssumedReportView
 
+import java.time.Year
 import javax.inject.Inject
 import scala.concurrent.Future
 
@@ -41,7 +42,7 @@ class RemoveAssumedReportController @Inject()(override val messagesApi: Messages
 
   private val form = formProvider()
 
-  def onPageLoad(operatorId: String, reportingPeriod: String): Action[AnyContent] = (identify andThen getData(operatorId) andThen requireData) {
+  def onPageLoad(operatorId: String, reportingPeriod: Year): Action[AnyContent] = (identify andThen getData(operatorId) andThen requireData) {
     implicit request =>
       getAnswer(AssumedReportSummariesQuery) { summaries =>
         summaries.find(_.reportingPeriod == reportingPeriod).map { summary =>
@@ -52,7 +53,7 @@ class RemoveAssumedReportController @Inject()(override val messagesApi: Messages
       }
   }
 
-  def onSubmit(operatorId: String, reportingPeriod: String): Action[AnyContent] = (identify andThen getData(operatorId) andThen requireData).async {
+  def onSubmit(operatorId: String, reportingPeriod: Year): Action[AnyContent] = (identify andThen getData(operatorId) andThen requireData).async {
     implicit request =>
       getAnswerAsync(AssumedReportSummariesQuery) { summaries =>
         summaries.find(_.reportingPeriod == reportingPeriod).map { summary =>

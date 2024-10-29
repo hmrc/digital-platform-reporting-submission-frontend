@@ -30,11 +30,12 @@ import play.api.test.Helpers.*
 import repositories.SessionRepository
 import views.html.assumed.update.HasUkTaxIdentifierView
 
+import java.time.Year
 import scala.concurrent.Future
 
 class HasUkTaxIdentifierControllerSpec extends SpecBase with MockitoSugar {
 
-  private val reportingPeriod = "reportingPeriod"
+  private val reportingPeriod = Year.of(2024)
   private val formProvider = new HasUkTaxIdentifierFormProvider()
   private val assumingOperatorName = "name"
   private val form = formProvider(assumingOperatorName)

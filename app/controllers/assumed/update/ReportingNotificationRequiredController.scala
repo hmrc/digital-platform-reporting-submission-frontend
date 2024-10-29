@@ -23,6 +23,7 @@ import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import views.html.assumed.update.ReportingNotificationRequiredView
 
+import java.time.Year
 import javax.inject.Inject
 import scala.concurrent.ExecutionContext
 
@@ -34,7 +35,7 @@ class ReportingNotificationRequiredController @Inject()(
                                                          view: ReportingNotificationRequiredView
                                )(implicit ec: ExecutionContext) extends FrontendBaseController with I18nSupport {
 
-  def onPageLoad(operatorId: String, reportingPeriod: String): Action[AnyContent] = identify.async { implicit request =>
+  def onPageLoad(operatorId: String, reportingPeriod: Year): Action[AnyContent] = identify.async { implicit request =>
     connector.viewPlatformOperator(operatorId).map { operator =>
       Ok(view(operatorId, operator.operatorName))
     }

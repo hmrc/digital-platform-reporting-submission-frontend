@@ -450,7 +450,7 @@ class SubmissionConnectorSpec
       address = "address"
     )
 
-    val request = AssumedReportingSubmission(
+    val request = AssumedReportingSubmissionRequest(
       operatorId = "operatorId",
       assumingOperator = assumingOperator,
       reportingPeriod = Year.of(2024)
@@ -511,7 +511,7 @@ class SubmissionConnectorSpec
       address = "address"
     )
     
-    val submission = AssumedReportingSubmission("operatorId", assumingOperator, Year.of(2024))
+    val submission = AssumedReportingSubmission("operatorId", "operatorName", assumingOperator, Year.of(2024), false)
     
     "must return a submission when the server returns OK" in {
       
@@ -520,7 +520,7 @@ class SubmissionConnectorSpec
           .willReturn(ok(Json.toJson(submission).toString))
       )
 
-      val result = connector.getAssumedReport("operatorId", "2024")(using hc).futureValue
+      val result = connector.getAssumedReport("operatorId", Year.of(2024))(using hc).futureValue
       result.value mustEqual submission
     }
     
@@ -531,7 +531,7 @@ class SubmissionConnectorSpec
           .willReturn(notFound())
       )
 
-      val result = connector.getAssumedReport("operatorId", "2024")(using hc).futureValue
+      val result = connector.getAssumedReport("operatorId", Year.of(2024))(using hc).futureValue
       result must not be defined
     }
     
@@ -542,7 +542,7 @@ class SubmissionConnectorSpec
           .willReturn(serverError())
       )
       
-      val result = connector.getAssumedReport("operatorId", "2024")(using hc).failed.futureValue
+      val result = connector.getAssumedReport("operatorId", Year.of(2024))(using hc).failed.futureValue
       result mustBe a[GetAssumedReportFailure.type]
     }
   }

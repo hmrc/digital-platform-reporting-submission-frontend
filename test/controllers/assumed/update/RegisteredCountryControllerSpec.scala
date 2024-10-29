@@ -30,11 +30,12 @@ import play.api.test.Helpers.*
 import repositories.SessionRepository
 import views.html.assumed.update.RegisteredCountryView
 
+import java.time.Year
 import scala.concurrent.Future
 
 class RegisteredCountryControllerSpec extends SpecBase with MockitoSugar {
 
-  private val reportingPeriod = "reportingPeriod"
+  private val reportingPeriod = Year.of(2024)
   private val formProvider = new RegisteredCountryFormProvider()
   private val assumingOperatorName = "name"
   private val baseAnswers = emptyUserAnswers.copy(reportingPeriod = Some(reportingPeriod)).set(AssumingOperatorNamePage, assumingOperatorName).success.value

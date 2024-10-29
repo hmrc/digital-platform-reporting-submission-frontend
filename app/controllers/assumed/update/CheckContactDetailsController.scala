@@ -30,6 +30,7 @@ import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import viewmodels.checkAnswers.subscription.*
 import views.html.assumed.update.CheckContactDetailsView
 
+import java.time.Year
 import scala.concurrent.{ExecutionContext, Future}
 
 class CheckContactDetailsController @Inject()(
@@ -45,7 +46,7 @@ class CheckContactDetailsController @Inject()(
                                                sessionRepository: SessionRepository
                                              )(implicit ec: ExecutionContext) extends FrontendBaseController with I18nSupport {
 
-  def onPageLoad(operatorId: String, reportingPeriod: String): Action[AnyContent] =
+  def onPageLoad(operatorId: String, reportingPeriod: Year): Action[AnyContent] =
     (identify andThen getData(operatorId, Some(reportingPeriod)) andThen requireData).async {
       implicit request =>
         connector.getSubscription.map { subscriptionInfo =>
@@ -55,7 +56,7 @@ class CheckContactDetailsController @Inject()(
         }
     }
 
-  def onSubmit(operatorId: String, reportingPeriod: String): Action[AnyContent] = (identify andThen getData(operatorId, Some(reportingPeriod)) andThen requireData).async {
+  def onSubmit(operatorId: String, reportingPeriod: Year): Action[AnyContent] = (identify andThen getData(operatorId, Some(reportingPeriod)) andThen requireData).async {
     implicit request =>
       
       val form = formProvider()

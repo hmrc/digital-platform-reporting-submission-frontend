@@ -21,15 +21,13 @@ import play.api.libs.json.{Json, OFormat}
 
 import java.time.Year
 
-final case class AssumedReportingSubmission(
-                                             operatorId: String,
-                                             operatorName: String,
-                                             assumingOperator: AssumingPlatformOperator,
-                                             reportingPeriod: Year,
-                                             isDeleted: Boolean
-                                           )
+final case class AssumedReportingSubmissionRequest(
+                                                    operatorId: String,
+                                                    assumingOperator: AssumingPlatformOperator,
+                                                    reportingPeriod: Year
+                                                  )
 
-object AssumedReportingSubmission {
+object AssumedReportingSubmissionRequest {
 
-  given OFormat[AssumedReportingSubmission] = Json.format
+  given OFormat[AssumedReportingSubmissionRequest] = Json.format
 }

@@ -26,14 +26,14 @@ import queries.AssumedReportSummariesQuery
 import viewmodels.checkAnswers.assumed.remove.AssumedReportRemovedSummaryList
 import views.html.assumed.remove.AssumedReportRemovedView
 
-import java.time.{Clock, Instant, ZoneId}
+import java.time.{Clock, Instant, Year, ZoneId}
 
 class AssumedReportRemovedControllerSpec extends SpecBase {
 
   private val now = Instant.now()
   private val fixedClock = Clock.fixed(now, ZoneId.systemDefault())
-  private val submission1 = SubmissionSummary("submissionId1", "file1", "operatorId", "operatorName", "2024", now, SubmissionStatus.Success, Some("assuming"), Some("caseId1"))
-  private val submission2 = SubmissionSummary("submissionId2", "file2", "operatorId", "operatorName", "2025", now, SubmissionStatus.Success, Some("assuming"), Some("caseId2"))
+  private val submission1 = SubmissionSummary("submissionId1", "file1", "operatorId", "operatorName", Year.of(2024), now, SubmissionStatus.Success, Some("assuming"), Some("caseId1"))
+  private val submission2 = SubmissionSummary("submissionId2", "file2", "operatorId", "operatorName", Year.of(2025), now, SubmissionStatus.Success, Some("assuming"), Some("caseId2"))
 
   private val baseAnswers = emptyUserAnswers.set(AssumedReportSummariesQuery, Seq(submission1, submission2)).success.value
 
@@ -49,7 +49,7 @@ class AssumedReportRemovedControllerSpec extends SpecBase {
       running(application) {
         given Messages = messages(application)
 
-        val request = FakeRequest(routes.AssumedReportRemovedController.onPageLoad(operatorId, "2024"))
+        val request = FakeRequest(routes.AssumedReportRemovedController.onPageLoad(operatorId, Year.of(2024)))
 
         val result = route(application, request).value
 
@@ -57,7 +57,7 @@ class AssumedReportRemovedControllerSpec extends SpecBase {
         val summaryList = AssumedReportRemovedSummaryList.list(submission1, now)
 
         status(result) mustEqual OK
-        contentAsString(result) mustEqual view(summaryList, operatorId, "2024")(request, implicitly).toString
+        contentAsString(result) mustEqual view(summaryList, operatorId, Year.of(2024))(request, implicitly).toString
       }
     }
     
@@ -71,7 +71,7 @@ class AssumedReportRemovedControllerSpec extends SpecBase {
       running(application) {
         given Messages = messages(application)
 
-        val request = FakeRequest(routes.AssumedReportRemovedController.onPageLoad(operatorId, "unknown reporting period"))
+        val request = FakeRequest(routes.AssumedReportRemovedController.onPageLoad(operatorId, Year.of(2000)))
 
         val result = route(application, request).value
 

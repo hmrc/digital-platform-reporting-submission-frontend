@@ -16,17 +16,18 @@
 
 package viewmodels.checkAnswers.assumed.update
 
-import controllers.assumed.update.routes
-import models.UserAnswers
+import models.{UserAnswers, yearFormat}
 import play.api.i18n.Messages
 import queries.ReportingPeriodQuery
 import uk.gov.hmrc.govukfrontend.views.viewmodels.summarylist.SummaryListRow
 import viewmodels.govuk.summarylist.*
 import viewmodels.implicits.*
 
-object ReportingPeriodSummary  {
+import java.time.Year
 
-  def row(reportingPeriod: String, answers: UserAnswers)(implicit messages: Messages): Option[SummaryListRow] =
+object ReportingPeriodSummary {
+
+  def row(reportingPeriod: Year, answers: UserAnswers)(implicit messages: Messages): Option[SummaryListRow] =
     answers.get(ReportingPeriodQuery).map {
       answer =>
 

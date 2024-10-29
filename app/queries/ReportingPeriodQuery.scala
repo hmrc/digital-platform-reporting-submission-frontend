@@ -18,7 +18,9 @@ package queries
 
 import play.api.libs.json.JsPath
 
-case object ReportingPeriodQuery extends Gettable[Int] with Settable[Int] {
+import java.time.Year
+
+case object ReportingPeriodQuery extends Gettable[Year] with Settable[Year] {
 
   override def path: JsPath = JsPath \ toString
 

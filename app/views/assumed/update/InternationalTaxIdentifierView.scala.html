@@ -25,7 +25,7 @@
     govukButton: GovukButton
 )
 
-@(form: Form[_], operatorId: String, reportingPeriod: String, country: Country)(implicit request: Request[_], messages: Messages)
+@(form: Form[_], operatorId: String, reportingPeriod: Year, country: Country)(implicit request: Request[_], messages: Messages)
 
 @layout(pageTitle = title(form, messages("internationalTaxIdentifier.title"))) {
 

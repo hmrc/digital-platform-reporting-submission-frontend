@@ -33,7 +33,7 @@ import queries.AssumedReportSummariesQuery
 import repositories.SessionRepository
 import views.html.assumed.ViewAssumedReportsView
 
-import java.time.Instant
+import java.time.{Instant, Year}
 import scala.jdk.CollectionConverters.*
 import scala.concurrent.Future
 
@@ -58,7 +58,7 @@ class ViewAssumedReportsControllerSpec extends SpecBase with MockitoSugar with B
         fileName = "filename",
         operatorId = "operatorId1",
         operatorName = "operatorName",
-        reportingPeriod = "2024",
+        reportingPeriod = Year.of(2024),
         submissionDateTime = now,
         submissionStatus = SubmissionStatus.Success,
         assumingReporterName = Some("name"),
@@ -69,7 +69,7 @@ class ViewAssumedReportsControllerSpec extends SpecBase with MockitoSugar with B
         fileName = "filename2",
         operatorId = "operatorId1",
         operatorName = "operatorName",
-        reportingPeriod = "2024",
+        reportingPeriod = Year.of(2024),
         submissionDateTime = now,
         submissionStatus = SubmissionStatus.Success,
         assumingReporterName = Some("name"),
@@ -80,7 +80,7 @@ class ViewAssumedReportsControllerSpec extends SpecBase with MockitoSugar with B
         fileName = "filename3",
         operatorId = "operatorId2",
         operatorName = "operatorName",
-        reportingPeriod = "2024",
+        reportingPeriod = Year.of(2024),
         submissionDateTime = now,
         submissionStatus = SubmissionStatus.Success,
         assumingReporterName = Some("name"),

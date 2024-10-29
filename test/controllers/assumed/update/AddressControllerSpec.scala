@@ -30,11 +30,12 @@ import play.api.test.Helpers.*
 import repositories.SessionRepository
 import views.html.assumed.update.AddressView
 
+import java.time.Year
 import scala.concurrent.Future
 
 class AddressControllerSpec extends SpecBase with MockitoSugar {
 
-  private val reportingPeriod = "reportingPeriod"
+  private val reportingPeriod = Year.of(2024)
   private val formProvider = new AddressFormProvider()
   private val assumingOperatorName = "name"
   private val form = formProvider(assumingOperatorName)

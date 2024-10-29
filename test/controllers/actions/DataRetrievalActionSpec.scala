@@ -19,17 +19,18 @@ package controllers.actions
 import base.SpecBase
 import models.UserAnswers
 import models.requests.{IdentifierRequest, OptionalDataRequest}
-import org.mockito.Mockito._
+import org.mockito.Mockito.*
 import org.scalatestplus.mockito.MockitoSugar
 import play.api.test.FakeRequest
 import repositories.SessionRepository
 
+import java.time.Year
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 class DataRetrievalActionSpec extends SpecBase with MockitoSugar {
 
-  class Harness(operatorId: String, reportingPeriod: Option[String], sessionRepository: SessionRepository) extends DataRetrievalAction(operatorId, reportingPeriod, sessionRepository) {
+  class Harness(operatorId: String, reportingPeriod: Option[Year], sessionRepository: SessionRepository) extends DataRetrievalAction(operatorId, reportingPeriod, sessionRepository) {
     def callTransform[A](request: IdentifierRequest[A]): Future[OptionalDataRequest[A]] = transform(request)
   }
 

@@ -16,10 +16,9 @@
 
 package viewmodels.checkAnswers.assumed.update
 
-import controllers.assumed.update.routes
-import models.UserAnswers
-import pages.assumed.update.{AssumingOperatorNamePage, InternationalTaxIdentifierPage, TaxResidencyCountryPage}
+import models.{UserAnswers, yearFormat}
 import play.api.i18n.Messages
+import queries.PlatformOperatorNameQuery
 import play.twirl.api.HtmlFormat
 import uk.gov.hmrc.govukfrontend.views.viewmodels.summarylist.SummaryListRow
 import viewmodels.govuk.summarylist.*
@@ -27,21 +26,16 @@ import viewmodels.implicits.*
 
 import java.time.Year
 
-object InternationalTaxIdentifierSummary  {
+object PlatformOperatorSummary {
 
   def row(reportingPeriod: Year, answers: UserAnswers)(implicit messages: Messages): Option[SummaryListRow] =
-    for {
-      answer  <- answers.get(InternationalTaxIdentifierPage)
-      country <- answers.get(TaxResidencyCountryPage)
-    } yield {
+    answers.get(PlatformOperatorNameQuery).map {
+      answer =>
 
-      SummaryListRowViewModel(
-        key     = messages("internationalTaxIdentifier.checkYourAnswersLabel", country.name),
-        value   = ValueViewModel(HtmlFormat.escape(answer).toString),
-        actions = Seq(
-          ActionItemViewModel("site.change", routes.InternationalTaxIdentifierController.onPageLoad(answers.operatorId, reportingPeriod).url)
-            .withVisuallyHiddenText(messages("internationalTaxIdentifier.change.hidden", country.name))
+        SummaryListRowViewModel(
+          key     = "platformOperator.checkYourAnswersLabel",
+          value   = ValueViewModel(HtmlFormat.escape(answer).toString),
+          actions = Nil
         )
-      )
     }
 }

@@ -28,6 +28,8 @@ import org.scalatest.matchers.must.Matchers
 import org.scalatestplus.mockito.MockitoSugar
 import play.api.mvc.Call
 
+import java.time.Year
+
 class CheckPlatformOperatorPageSpec
   extends AnyFreeSpec
     with Matchers
@@ -46,7 +48,7 @@ class CheckPlatformOperatorPageSpec
 
   ".nextPage" - {
 
-    val reportingPeriod = "reportingPeriod"
+    val reportingPeriod = Year.of(2024)
     val operatorId = "operatorId"
     val emptyAnswers = UserAnswers("id", operatorId, Some(reportingPeriod))
 

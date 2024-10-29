@@ -31,11 +31,12 @@ import repositories.SessionRepository
 import viewmodels.PlatformOperatorSummary
 import views.html.assumed.update.AssumingOperatorNameView
 
+import java.time.Year
 import scala.concurrent.Future
 
 class AssumingOperatorNameControllerSpec extends SpecBase with MockitoSugar {
 
-  private val reportingPeriod = "reportingPeriod"
+  private val reportingPeriod = Year.of(2024)
   private val operator = PlatformOperatorSummary("operatorId", "name", false)
   private val baseAnswers = emptyUserAnswers.copy(reportingPeriod = Some(reportingPeriod)).set(PlatformOperatorSummaryQuery, operator).success.value
   private val formProvider = new AssumingOperatorNameFormProvider()

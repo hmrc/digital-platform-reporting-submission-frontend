@@ -30,7 +30,7 @@ import play.api.test.FakeRequest
 import play.api.test.Helpers.*
 import views.html.submission.ViewSubmissionsView
 
-import java.time.Instant
+import java.time.{Instant, Year}
 import scala.concurrent.Future
 
 class ViewSubmissionsControllerSpec extends SpecBase with MockitoSugar with BeforeAndAfterEach {
@@ -53,7 +53,7 @@ class ViewSubmissionsControllerSpec extends SpecBase with MockitoSugar with Befo
         fileName = "filename",
         operatorId = "operatorId",
         operatorName = "operatorName",
-        reportingPeriod = "2024",
+        reportingPeriod = Year.of(2024),
         submissionDateTime = now,
         submissionStatus = SubmissionStatus.Success,
         assumingReporterName = None,

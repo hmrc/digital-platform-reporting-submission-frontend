@@ -25,7 +25,7 @@ import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import viewmodels.checkAnswers.assumed.remove.AssumedReportRemovedSummaryList
 import views.html.assumed.remove.AssumedReportRemovedView
 
-import java.time.Clock
+import java.time.{Clock, Year}
 import javax.inject.Inject
 
 class AssumedReportRemovedController @Inject()(override val messagesApi: MessagesApi,
@@ -37,7 +37,7 @@ class AssumedReportRemovedController @Inject()(override val messagesApi: Message
                                                clock: Clock)
   extends FrontendBaseController with I18nSupport with AnswerExtractor {
 
-  def onPageLoad(operatorId: String, reportingPeriod: String): Action[AnyContent] = (identify andThen getData(operatorId) andThen requireData) {
+  def onPageLoad(operatorId: String, reportingPeriod: Year): Action[AnyContent] = (identify andThen getData(operatorId) andThen requireData) {
     implicit request =>
       getAnswer(AssumedReportSummariesQuery) { summaries =>
 

@@ -18,15 +18,15 @@ package services
 
 import models.operator.TinDetails
 import models.operator.TinType.Other
-import models.submission.{AssumedReportingSubmission, AssumingPlatformOperator}
-import models.{Country, UserAnswers}
+import models.submission.{AssumedReportingSubmission, AssumedReportingSubmissionRequest, AssumingPlatformOperator}
+import models.{Country, UserAnswers, yearFormat}
 import org.scalatest.{EitherValues, OptionValues, TryValues}
 import org.scalatest.freespec.AnyFreeSpec
 import org.scalatest.matchers.must.Matchers
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
 import pages.assumed.create.*
 import pages.assumed.update as updatePages
-import queries.ReportingPeriodQuery
+import queries.{PlatformOperatorNameQuery, ReportingPeriodQuery}
 
 import java.time.Year
 
@@ -42,9 +42,9 @@ class UserAnswersServiceSpec
 
   "toAssumedReportingSubmission" - {
 
-    "must return an AssumedReportingSubmission for a GB operator when optional answers are given" in {
+    "must return an AssumedReportingSubmissionRequest for a GB operator when optional answers are given" in {
 
-      val expectedRequest = AssumedReportingSubmission(
+      val expectedRequest = AssumedReportingSubmissionRequest(
         operatorId = "operatorId",
         assumingOperator = AssumingPlatformOperator(
           name = "assumingOperator",
@@ -64,7 +64,7 @@ class UserAnswersServiceSpec
 
       val answers = UserAnswers("id", "operatorId")
         .set(updatePages.AssumingOperatorNamePage, "assumingOperator").success.value
-        .set(ReportingPeriodQuery, 2024).success.value
+        .set(ReportingPeriodQuery, Year.of(2024)).success.value
         .set(updatePages.TaxResidentInUkPage, true).success.value
         .set(updatePages.HasUkTaxIdentifierPage, true).success.value
         .set(updatePages.UkTaxIdentifierPage, "tin1").success.value
@@ -75,9 +75,9 @@ class UserAnswersServiceSpec
       result mustEqual expectedRequest
     }
 
-    "must return an AssumedReportingSubmission for a GB operator when optional answers are not given" in {
+    "must return an AssumedReportingSubmissionRequest for a GB operator when optional answers are not given" in {
 
-      val expectedRequest = AssumedReportingSubmission(
+      val expectedRequest = AssumedReportingSubmissionRequest(
         operatorId = "operatorId",
         assumingOperator = AssumingPlatformOperator(
           name = "assumingOperator",
@@ -91,7 +91,7 @@ class UserAnswersServiceSpec
 
       val answers = UserAnswers("id", "operatorId")
         .set(AssumingOperatorNamePage, "assumingOperator").success.value
-        .set(ReportingPeriodPage, 2024).success.value
+        .set(ReportingPeriodPage, Year.of(2024)).success.value
         .set(TaxResidentInUkPage, true).success.value
         .set(HasUkTaxIdentifierPage, false).success.value
         .set(RegisteredCountryPage, Country("US", "UnitedStates")).success.value
@@ -101,9 +101,9 @@ class UserAnswersServiceSpec
       result mustEqual expectedRequest
     }
 
-    "must return an AssumedReportingSubmission for a non-GB operator when optional answers are given" in {
+    "must return an AssumedReportingSubmissionRequest for a non-GB operator when optional answers are given" in {
 
-      val expectedRequest = AssumedReportingSubmission(
+      val expectedRequest = AssumedReportingSubmissionRequest(
         operatorId = "operatorId",
         assumingOperator = AssumingPlatformOperator(
           name = "assumingOperator",
@@ -123,7 +123,7 @@ class UserAnswersServiceSpec
 
       val answers = UserAnswers("id", "operatorId")
         .set(AssumingOperatorNamePage, "assumingOperator").success.value
-        .set(ReportingPeriodPage, 2024).success.value
+        .set(ReportingPeriodPage, Year.of(2024)).success.value
         .set(TaxResidentInUkPage, false).success.value
         .set(TaxResidencyCountryPage, Country("US", "United States")).success.value
         .set(HasInternationalTaxIdentifierPage, true).success.value
@@ -135,9 +135,9 @@ class UserAnswersServiceSpec
       result mustEqual expectedRequest
     }
 
-    "must return an AssumedReportingSubmission for a non-GB operator when optional answers are not given" in {
+    "must return an AssumedReportingSubmissionRequest for a non-GB operator when optional answers are not given" in {
 
-      val expectedRequest = AssumedReportingSubmission(
+      val expectedRequest = AssumedReportingSubmissionRequest(
         operatorId = "operatorId",
         assumingOperator = AssumingPlatformOperator(
           name = "assumingOperator",
@@ -151,7 +151,7 @@ class UserAnswersServiceSpec
 
       val answers = UserAnswers("id", "operatorId")
         .set(AssumingOperatorNamePage, "assumingOperator").success.value
-        .set(ReportingPeriodPage, 2024).success.value
+        .set(ReportingPeriodPage, Year.of(2024)).success.value
         .set(TaxResidentInUkPage, false).success.value
         .set(TaxResidencyCountryPage, Country("US", "United States")).success.value
         .set(HasInternationalTaxIdentifierPage, false).success.value
@@ -171,6 +171,7 @@ class UserAnswersServiceSpec
 
       val submission = AssumedReportingSubmission(
         operatorId = "operatorId",
+        operatorName = "operatorName",
         assumingOperator = AssumingPlatformOperator(
           name = "assumingOperator",
           residentCountry = "GB",
@@ -184,15 +185,17 @@ class UserAnswersServiceSpec
           registeredCountry = "US",
           address = "address"
         ),
-        reportingPeriod = Year.of(2024)
+        reportingPeriod = Year.of(2024),
+        isDeleted = false
       )
 
       val result = userAnswersService.fromAssumedReportingSubmission(userId, submission).success.value
 
       result.userId                                             mustEqual userId
       result.operatorId                                         mustEqual "operatorId"
-      result.reportingPeriod.value                              mustEqual "2024"
-      result.get(ReportingPeriodQuery).value                    mustEqual 2024
+      result.reportingPeriod.value                              mustEqual Year.of(2024)
+      result.get(ReportingPeriodQuery).value                    mustEqual Year.of(2024)
+      result.get(PlatformOperatorNameQuery).value               mustEqual "operatorName"
       result.get(updatePages.AssumingOperatorNamePage).value    mustEqual "assumingOperator"
       result.get(updatePages.TaxResidentInUkPage).value         mustEqual true
       result.get(updatePages.HasUkTaxIdentifierPage).value      mustEqual true
@@ -208,6 +211,7 @@ class UserAnswersServiceSpec
 
       val submission = AssumedReportingSubmission(
         operatorId = "operatorId",
+        operatorName = "operatorName",
         assumingOperator = AssumingPlatformOperator(
           name = "assumingOperator",
           residentCountry = "GB",
@@ -215,15 +219,17 @@ class UserAnswersServiceSpec
           registeredCountry = "US",
           address = "address"
         ),
-        reportingPeriod = Year.of(2024)
+        reportingPeriod = Year.of(2024),
+        isDeleted = false
       )
 
       val result = userAnswersService.fromAssumedReportingSubmission(userId, submission).success.value
 
       result.userId                                             mustEqual userId
       result.operatorId                                         mustEqual "operatorId"
-      result.reportingPeriod.value                              mustEqual "2024"
-      result.get(ReportingPeriodQuery).value                    mustEqual 2024
+      result.reportingPeriod.value                              mustEqual Year.of(2024)
+      result.get(ReportingPeriodQuery).value                    mustEqual Year.of(2024)
+      result.get(PlatformOperatorNameQuery).value               mustEqual "operatorName"
       result.get(updatePages.AssumingOperatorNamePage).value    mustEqual "assumingOperator"
       result.get(updatePages.TaxResidentInUkPage).value         mustEqual true
       result.get(updatePages.HasUkTaxIdentifierPage).value      mustEqual false
@@ -239,6 +245,7 @@ class UserAnswersServiceSpec
 
       val submission = AssumedReportingSubmission(
         operatorId = "operatorId",
+        operatorName = "operatorName",
         assumingOperator = AssumingPlatformOperator(
           name = "assumingOperator",
           residentCountry = "US",
@@ -252,15 +259,17 @@ class UserAnswersServiceSpec
           registeredCountry = "GB",
           address = "address"
         ),
-        reportingPeriod = Year.of(2024)
+        reportingPeriod = Year.of(2024),
+        isDeleted = false
       )
 
       val result = userAnswersService.fromAssumedReportingSubmission(userId, submission).success.value
 
       result.userId                                                   mustEqual userId
       result.operatorId                                               mustEqual "operatorId"
-      result.reportingPeriod.value                                    mustEqual "2024"
-      result.get(ReportingPeriodQuery).value                          mustEqual 2024
+      result.reportingPeriod.value                                    mustEqual Year.of(2024)
+      result.get(ReportingPeriodQuery).value                          mustEqual Year.of(2024)
+      result.get(PlatformOperatorNameQuery).value                     mustEqual "operatorName"
       result.get(updatePages.AssumingOperatorNamePage).value          mustEqual "assumingOperator"
       result.get(updatePages.TaxResidentInUkPage).value               mustEqual false
       result.get(updatePages.TaxResidencyCountryPage).value           mustEqual Country("US", "United States")
@@ -276,6 +285,7 @@ class UserAnswersServiceSpec
 
       val submission = AssumedReportingSubmission(
         operatorId = "operatorId",
+        operatorName = "operatorName",
         assumingOperator = AssumingPlatformOperator(
           name = "assumingOperator",
           residentCountry = "US",
@@ -283,15 +293,17 @@ class UserAnswersServiceSpec
           registeredCountry = "GB",
           address = "address"
         ),
-        reportingPeriod = Year.of(2024)
+        reportingPeriod = Year.of(2024),
+        isDeleted = false
       )
 
       val result = userAnswersService.fromAssumedReportingSubmission(userId, submission).success.value
 
       result.userId                                                   mustEqual userId
       result.operatorId                                               mustEqual "operatorId"
-      result.reportingPeriod.value                                    mustEqual "2024"
-      result.get(ReportingPeriodQuery).value                          mustEqual 2024
+      result.reportingPeriod.value                                    mustEqual Year.of(2024)
+      result.get(ReportingPeriodQuery).value                          mustEqual Year.of(2024)
+      result.get(PlatformOperatorNameQuery).value                     mustEqual "operatorName"
       result.get(updatePages.AssumingOperatorNamePage).value          mustEqual "assumingOperator"
       result.get(updatePages.TaxResidentInUkPage).value               mustEqual false
       result.get(updatePages.TaxResidencyCountryPage).value           mustEqual Country("US", "United States")
@@ -307,6 +319,7 @@ class UserAnswersServiceSpec
 
       val submission = AssumedReportingSubmission(
         operatorId = "operatorId",
+        operatorName = "operatorName",
         assumingOperator = AssumingPlatformOperator(
           name = "assumingOperator",
           residentCountry = "US",
@@ -314,7 +327,8 @@ class UserAnswersServiceSpec
           registeredCountry = "not a country",
           address = "address"
         ),
-        reportingPeriod = Year.of(2024)
+        reportingPeriod = Year.of(2024),
+        isDeleted = false
       )
 
       val result = userAnswersService.fromAssumedReportingSubmission(userId, submission)
@@ -325,6 +339,7 @@ class UserAnswersServiceSpec
 
       val submission = AssumedReportingSubmission(
         operatorId = "operatorId",
+        operatorName = "operatorName",
         assumingOperator = AssumingPlatformOperator(
           name = "assumingOperator",
           residentCountry = "not a country",
@@ -332,7 +347,8 @@ class UserAnswersServiceSpec
           registeredCountry = "GB",
           address = "address"
         ),
-        reportingPeriod = Year.of(2024)
+        reportingPeriod = Year.of(2024),
+        isDeleted = false
       )
 
       val result = userAnswersService.fromAssumedReportingSubmission(userId, submission)

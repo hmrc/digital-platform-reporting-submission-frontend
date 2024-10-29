@@ -17,6 +17,7 @@ lazy val microservice = (project in file("."))
     name := appName,
     RoutesKeys.routesImport ++= Seq(
       "models._",
+      "java.time.Year",
       "uk.gov.hmrc.play.bootstrap.binders.RedirectUrl"
     ),
     TwirlKeys.templateImports ++= Seq(
@@ -29,7 +30,8 @@ lazy val microservice = (project in file("."))
       "views.ViewUtils._",
       "models.Mode",
       "controllers.routes._",
-      "viewmodels.govuk.all._"
+      "viewmodels.govuk.all._",
+      "java.time.Year"
     ),
     PlayKeys.playDefaultPort := 20007,
     ScoverageKeys.coverageExcludedFiles := "<empty>;Reverse.*;.*handlers.*;.*components.*;" +

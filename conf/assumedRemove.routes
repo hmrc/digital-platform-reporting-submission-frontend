@@ -1,4 +1,4 @@
-GET         /:operatorId/delete/:reportingPeriod           controllers.assumed.remove.RemoveAssumedReportController.onPageLoad(operatorId: String, reportingPeriod: String)
-POST        /:operatorId/delete/:reportingPeriod           controllers.assumed.remove.RemoveAssumedReportController.onSubmit(operatorId: String, reportingPeriod: String)
+GET         /:operatorId/delete/:reportingPeriod           controllers.assumed.remove.RemoveAssumedReportController.onPageLoad(operatorId: String, reportingPeriod: Year)
+POST        /:operatorId/delete/:reportingPeriod           controllers.assumed.remove.RemoveAssumedReportController.onSubmit(operatorId: String, reportingPeriod: Year)
 
-GET         /:operatorId/deleted/:reportingPeriod          controllers.assumed.remove.AssumedReportRemovedController.onPageLoad(operatorId: String, reportingPeriod: String)
+GET         /:operatorId/deleted/:reportingPeriod          controllers.assumed.remove.AssumedReportRemovedController.onPageLoad(operatorId: String, reportingPeriod: Year)

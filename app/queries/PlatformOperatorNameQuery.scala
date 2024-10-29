@@ -14,21 +14,10 @@
  * limitations under the License.
  */
 
-package pages.assumed.create
-
-import controllers.assumed.create.routes
-import models.{NormalMode, UserAnswers}
+package queries
 import play.api.libs.json.JsPath
-import play.api.mvc.Call
 
-import java.time.Year
+case object PlatformOperatorNameQuery extends Gettable[String] with Settable[String] {
 
-case object ReportingPeriodPage extends AssumedReportingQuestionPage[Year] {
-
-  override def path: JsPath = JsPath \ toString
-
-  override def toString: String = "reportingPeriod"
-
-  override protected def nextPageNormalMode(answers: UserAnswers): Call =
-    routes.AssumingOperatorNameController.onPageLoad(NormalMode, answers.operatorId)
+  override def path: JsPath = JsPath \ "operatorName"
 }

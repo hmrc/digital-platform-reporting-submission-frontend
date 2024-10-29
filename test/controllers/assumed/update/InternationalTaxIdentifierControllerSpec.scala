@@ -30,11 +30,12 @@ import play.api.test.Helpers.*
 import repositories.SessionRepository
 import views.html.assumed.update.InternationalTaxIdentifierView
 
+import java.time.Year
 import scala.concurrent.Future
 
 class InternationalTaxIdentifierControllerSpec extends SpecBase with MockitoSugar {
 
-  private val reportingPeriod = "reportingPeriod"
+  private val reportingPeriod = Year.of(2024)
   private val formProvider = new InternationalTaxIdentifierFormProvider()
   private val country = Country.internationalCountries.head
   private val form = formProvider(country)
