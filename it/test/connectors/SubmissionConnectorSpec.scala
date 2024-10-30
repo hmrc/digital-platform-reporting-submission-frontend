@@ -392,7 +392,7 @@ class SubmissionConnectorSpec
   
   "list" - {
     
-    val request = ViewSubmissionsRequest(assumedReporting = true)
+    val request = ViewSubmissionsRequest(assumedReporting = false)
 
     "must return a submission summary when the server returns OK" in {
 

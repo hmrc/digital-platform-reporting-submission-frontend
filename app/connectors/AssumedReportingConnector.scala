@@ -57,9 +57,9 @@ class AssumedReportingConnector @Inject() (
       .execute[HttpResponse]
       .flatMap { response =>
         response.status match {
-          case OK => Future.successful(Some(response.json.as[AssumedReportingSubmission]))
+          case OK        => Future.successful(Some(response.json.as[AssumedReportingSubmission]))
           case NOT_FOUND => Future.successful(None)
-          case _ => Future.failed(GetAssumedReportFailure)
+          case _         => Future.failed(GetAssumedReportFailure)
         }
       }
 
@@ -68,8 +68,18 @@ class AssumedReportingConnector @Inject() (
       .execute[HttpResponse]
       .flatMap { response =>
         response.status match {
-          case OK => Future.successful(Done)
+          case OK     => Future.successful(Done)
           case status => Future.failed(DeleteAssumedReportFailure(status))
+        }
+      }
+
+  def list(using HeaderCarrier): Future[Seq[AssumedReportingSubmissionSummary]] =
+    httpClient.post(url"$digitalPlatformReportingService/digital-platform-reporting/submission/assumed")
+      .execute[HttpResponse]
+      .flatMap { response =>
+        response.status match {
+          case OK => Future.successful(response.json.as[Seq[AssumedReportingSubmissionSummary]])
+          case _  => Future.failed(ListAssumedReportsFailure)
         }
       }
 }
@@ -81,4 +91,5 @@ object AssumedReportingConnector {
   final case class DeleteAssumedReportFailure(status: Int) extends Throwable {
     override def getMessage: String = s"Unexpected status code $status received when trying to delete an assumed report"
   }
+  case object ListAssumedReportsFailure extends Throwable
 }

@@ -201,4 +201,56 @@ class AssumedReportingConnectorSpec
       failure.status mustEqual 500
     }
   }
+  
+  "list" - {
+    
+    "must return submission summaries when the server returns OK and some submissions" in {
+
+      val submission = AssumedReportingSubmissionSummary(
+        submissionId = "submissionId",
+        fileName = "filename",
+        operatorId = "operatorId",
+        operatorName = "operatorName",
+        reportingPeriod = Year.of(2024),
+        submissionDateTime = now,
+        submissionStatus = SubmissionStatus.Success,
+        assumingReporterName = Some("assumedReporterName"),
+        submissionCaseId = Some("submissionCaseId"),
+        isDeleted = false
+      )
+      
+      wireMockServer.stubFor(
+        post(urlPathEqualTo("/digital-platform-reporting/submission/assumed"))
+          .withHeader("User-Agent", equalTo("app"))
+          .willReturn(ok(Json.arr(Json.toJson(submission)).toString))
+      )
+
+      val result = connector.list(using hc).futureValue
+      result mustEqual Seq(submission)
+    }
+
+    "must return an empty sequence when the server returns OK with no submissions" in {
+
+      wireMockServer.stubFor(
+        post(urlPathEqualTo("/digital-platform-reporting/submission/assumed"))
+          .withHeader("User-Agent", equalTo("app"))
+          .willReturn(ok(Json.arr().toString))
+      )
+
+      val result = connector.list(using hc).futureValue
+      result mustEqual Nil
+    }
+
+    "must return a failed future when the server returns an error" in {
+
+      wireMockServer.stubFor(
+        post(urlPathEqualTo("/digital-platform-reporting/submission/assumed"))
+          .withHeader("User-Agent", equalTo("app"))
+          .willReturn(serverError())
+      )
+
+      val result = connector.list(using hc).failed.futureValue
+      result mustBe a[ListAssumedReportsFailure.type]
+    }
+  }
 }

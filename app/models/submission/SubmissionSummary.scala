@@ -35,18 +35,8 @@ final case class SubmissionSummary(submissionId: String,
                                    assumingReporterName: Option[String],
                                    submissionCaseId: Option[String]) {
 
-  private def removeAssumedReportLink(implicit messages: Messages): Link =
-    Link(messages("site.delete"), removeRoutes.RemoveAssumedReportController.onPageLoad(operatorId, reportingPeriod).url)
-
-  private def updateAssumedReportLink(implicit messages: Messages): Link =
-    Link(messages("site.edit"), updateRoutes.CheckYourAnswersController.initialise(operatorId, reportingPeriod).url)
-    
-  // TODO: Different links for regular file submissions
-  // TODO: Consider status when deciding which links to show
-  def links(implicit messages: Messages): Seq[Link] = Seq(
-    updateAssumedReportLink,
-    removeAssumedReportLink
-  )
+  // TODO: Add appropriate links
+  def links(implicit messages: Messages): Seq[Link] = Nil
 }
 
 object SubmissionSummary {
