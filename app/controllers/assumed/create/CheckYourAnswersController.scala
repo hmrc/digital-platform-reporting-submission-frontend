@@ -17,10 +17,9 @@
 package controllers.assumed.create
 
 import com.google.inject.Inject
-import connectors.SubmissionConnector
+import connectors.AssumedReportingConnector
 import controllers.actions.*
 import play.api.i18n.{I18nSupport, MessagesApi}
-import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import repositories.SessionRepository
 import services.UserAnswersService
@@ -40,7 +39,7 @@ class CheckYourAnswersController @Inject()(
                                             val controllerComponents: MessagesControllerComponents,
                                             view: CheckYourAnswersView,
                                             userAnswersService: UserAnswersService,
-                                            submissionConnector: SubmissionConnector,
+                                            connector: AssumedReportingConnector,
                                             sessionRepository: SessionRepository
                                           )(using ExecutionContext) extends FrontendBaseController with I18nSupport {
 
@@ -74,7 +73,7 @@ class CheckYourAnswersController @Inject()(
         .merge
         .flatMap { submissionRequest =>
           for {
-            submission <- submissionConnector.submitAssumedReporting(submissionRequest)
+            submission <- connector.submit(submissionRequest)
             _          <- sessionRepository.clear(request.userId, operatorId, None)
           } yield Redirect(routes.SubmissionConfirmationController.onPageLoad(operatorId, submission._id))
         }

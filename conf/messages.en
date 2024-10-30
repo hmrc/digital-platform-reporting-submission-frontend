@@ -4,6 +4,7 @@ site.back = Back
 site.remove = Remove
 site.change = Change
 site.delete = Delete
+site.deleted = Deleted
 site.edit = Edit
 site.no = No
 site.yes = Yes
@@ -354,6 +355,8 @@ viewAssumedReports.platformOperator = Platform operator
 viewAssumedReports.reportingPeriod = Reporting period
 viewAssumedReports.assumingReporter = Assuming platform operator
 viewAssumedReports.action = Action
+viewAssumedReports.return = Return to
+viewAssumedReports.return.link = manage your digital platform reporting
 
 viewSubmissions.title = XML submissions
 viewSubmissions.heading = XML submissions

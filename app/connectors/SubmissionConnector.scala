@@ -148,38 +148,6 @@ class SubmissionConnector @Inject() (
           case _         => Future.failed(ViewFailure)
         }
       }
-
-  def submitAssumedReporting(request: AssumedReportingSubmissionRequest)(using HeaderCarrier): Future[Submission] =
-    httpClient.post(url"$digitalPlatformReportingService/digital-platform-reporting/submission/assumed/submit")
-      .withBody(Json.toJson(request))
-      .execute[HttpResponse]
-      .flatMap { response =>
-        response.status match {
-          case OK => Future.successful(response.json.as[Submission])
-          case _  => Future.failed(SubmitAssumedReportingFailure)
-        }
-      }
-      
-  def getAssumedReport(operatorId: String, reportingPeriod: Year)(using HeaderCarrier): Future[Option[AssumedReportingSubmission]] =
-    httpClient.get(url"$digitalPlatformReportingService/digital-platform-reporting/submission/assumed/$operatorId/$reportingPeriod")
-      .execute[HttpResponse]
-      .flatMap { response =>
-        response.status match {
-          case OK        => Future.successful(Some(response.json.as[AssumedReportingSubmission]))
-          case NOT_FOUND => Future.successful(None)
-          case _         => Future.failed(GetAssumedReportFailure)
-        }
-      }
-      
-  def deleteAssumedReport(operatorId: String, reportingPeriod: Year)(using HeaderCarrier): Future[Done] =
-    httpClient.delete(url"$digitalPlatformReportingService/digital-platform-reporting/submission/assumed/$operatorId/$reportingPeriod")
-      .execute[HttpResponse]
-      .flatMap { response =>
-        response.status match {
-          case OK     => Future.successful(Done)
-          case status => Future.failed(DeleteAssumedReportFailure(status))
-        }
-      }
 }
 
 object SubmissionConnector {
@@ -192,9 +160,5 @@ object SubmissionConnector {
   final case class SubmitFailure(id: String) extends Throwable
   final case class GetErrorsFailure(id: String, status: Int) extends Throwable
   case object ViewFailure extends Throwable
-  case object SubmitAssumedReportingFailure extends Throwable
-  case object GetAssumedReportFailure extends Throwable
-  final case class DeleteAssumedReportFailure(status: Int) extends Throwable {
-    override def getMessage: String = s"Unexpected status code $status received when trying to delete an assumed report"
-  }
+  
 }

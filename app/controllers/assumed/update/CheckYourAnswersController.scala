@@ -17,13 +17,12 @@
 package controllers.assumed.update
 
 import com.google.inject.Inject
-import connectors.SubmissionConnector
+import connectors.AssumedReportingConnector
 import controllers.actions.*
 import controllers.routes as baseRoutes
 import models.UserAnswers
 import models.submission.AssumedReportSummary
 import play.api.i18n.{I18nSupport, MessagesApi}
-import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import queries.AssumedReportSummaryQuery
 import repositories.SessionRepository
@@ -45,7 +44,7 @@ class CheckYourAnswersController @Inject()(
                                             val controllerComponents: MessagesControllerComponents,
                                             view: CheckYourAnswersView,
                                             userAnswersService: UserAnswersService,
-                                            submissionConnector: SubmissionConnector,
+                                            connector: AssumedReportingConnector,
                                             sessionRepository: SessionRepository
                                           )(using ExecutionContext) extends FrontendBaseController with I18nSupport {
 
@@ -82,7 +81,7 @@ class CheckYourAnswersController @Inject()(
           .merge
           .flatMap { submissionRequest =>
             for {
-              submission   <- submissionConnector.submitAssumedReporting(submissionRequest)
+              submission   <- connector.submit(submissionRequest)
               summary      <- AssumedReportSummary(request.userAnswers).map(Future.successful).getOrElse(Future.failed(Exception("unable to build an assumed report summary")))
               emptyAnswers = UserAnswers(request.userId, operatorId, Some(reportingPeriod))
               answers      <- Future.fromTry(emptyAnswers.set(AssumedReportSummaryQuery, summary))
@@ -93,7 +92,7 @@ class CheckYourAnswersController @Inject()(
 
   def initialise(operatorId: String, reportingPeriod: Year): Action[AnyContent] = identify.async {
     implicit request =>
-      submissionConnector.getAssumedReport(operatorId, reportingPeriod)
+      connector.get(operatorId, reportingPeriod)
         .flatMap(_.map { submission =>
           for {
             userAnswers <- Future.fromTry(userAnswersService.fromAssumedReportingSubmission(request.userId, submission))

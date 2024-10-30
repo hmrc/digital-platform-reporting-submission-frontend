@@ -16,7 +16,7 @@
 
 package viewmodels.checkAnswers.assumed.remove
 
-import models.submission.SubmissionSummary
+import models.submission.AssumedReportingSubmissionSummary
 import play.api.i18n.Messages
 import play.twirl.api.HtmlFormat
 import uk.gov.hmrc.govukfrontend.views.viewmodels.summarylist.SummaryList
@@ -28,7 +28,7 @@ import java.time.Instant
 
 object AssumedReportRemovedSummaryList {
 
-  def list(summary: SubmissionSummary, removed: Instant)(implicit messages: Messages): SummaryList =
+  def list(summary: AssumedReportingSubmissionSummary, removed: Instant)(implicit messages: Messages): SummaryList =
     SummaryList(rows = Seq(
       Some(SummaryListRowViewModel(
         key = messages("assumedReportSummary.platformOperator"),

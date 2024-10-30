@@ -18,7 +18,7 @@ package controllers.assumed.update
 
 import base.SpecBase
 import cats.data.NonEmptyChain
-import connectors.SubmissionConnector
+import connectors.AssumedReportingConnector
 import controllers.routes as baseRoutes
 import models.{UserAnswers, yearFormat}
 import models.submission.Submission.State.Submitted
@@ -32,7 +32,6 @@ import org.scalatest.BeforeAndAfterEach
 import org.scalatestplus.mockito.MockitoSugar.mock
 import pages.assumed.update.AssumingOperatorNamePage
 import play.api.inject.bind
-import play.api.libs.json.Json
 import play.api.test.FakeRequest
 import play.api.test.Helpers.*
 import queries.{AssumedReportSummaryQuery, PlatformOperatorNameQuery, ReportingPeriodQuery}
@@ -49,7 +48,7 @@ class CheckYourAnswersControllerSpec extends SpecBase with SummaryListFluency wi
 
   private val reportingPeriod = Year.of(2024)
   private val baseAnswers = emptyUserAnswers.copy(reportingPeriod = Some(reportingPeriod))
-  private val mockSubmissionConnector: SubmissionConnector = mock[SubmissionConnector]
+  private val mockAssumedReportingConnector: AssumedReportingConnector = mock[AssumedReportingConnector]
   private val mockUserAnswersService: UserAnswersService = mock[UserAnswersService]
   private val mockSessionRepository: SessionRepository = mock[SessionRepository]
 
@@ -57,7 +56,7 @@ class CheckYourAnswersControllerSpec extends SpecBase with SummaryListFluency wi
 
   override def beforeEach(): Unit = {
     super.beforeEach()
-    Mockito.reset(mockSubmissionConnector, mockUserAnswersService, mockSessionRepository)
+    Mockito.reset(mockAssumedReportingConnector, mockUserAnswersService, mockSessionRepository)
   }
 
   "Check Your Answers Controller" - {
@@ -129,14 +128,14 @@ class CheckYourAnswersControllerSpec extends SpecBase with SummaryListFluency wi
 
         val application = applicationBuilder(userAnswers = Some(answers))
           .overrides(
-            bind[SubmissionConnector].toInstance(mockSubmissionConnector),
+            bind[AssumedReportingConnector].toInstance(mockAssumedReportingConnector),
             bind[UserAnswersService].toInstance(mockUserAnswersService),
             bind[SessionRepository].toInstance(mockSessionRepository)
           )
           .build()
 
         when(mockUserAnswersService.toAssumedReportingSubmission(any())).thenReturn(Right(assumedReportingSubmissionRequest))
-        when(mockSubmissionConnector.submitAssumedReporting(any())(using any())).thenReturn(Future.successful(submission))
+        when(mockAssumedReportingConnector.submit(any())(using any())).thenReturn(Future.successful(submission))
         when(mockSessionRepository.set(any())).thenReturn(Future.successful(true))
 
         running(application) {
@@ -148,7 +147,7 @@ class CheckYourAnswersControllerSpec extends SpecBase with SummaryListFluency wi
         }
 
         verify(mockUserAnswersService).toAssumedReportingSubmission(eqTo(answers))
-        verify(mockSubmissionConnector).submitAssumedReporting(eqTo(assumedReportingSubmissionRequest))(using any())
+        verify(mockAssumedReportingConnector).submit(eqTo(assumedReportingSubmissionRequest))(using any())
 
         val answersCaptor: ArgumentCaptor[UserAnswers] = ArgumentCaptor.forClass(classOf[UserAnswers])
         verify(mockSessionRepository, times(1)).set(answersCaptor.capture())
@@ -164,14 +163,14 @@ class CheckYourAnswersControllerSpec extends SpecBase with SummaryListFluency wi
 
         val application = applicationBuilder(userAnswers = Some(baseAnswers))
           .overrides(
-            bind[SubmissionConnector].toInstance(mockSubmissionConnector),
+            bind[AssumedReportingConnector].toInstance(mockAssumedReportingConnector),
             bind[UserAnswersService].toInstance(mockUserAnswersService),
             bind[SessionRepository].toInstance(mockSessionRepository)
           )
           .build()
 
         when(mockUserAnswersService.toAssumedReportingSubmission(any())).thenReturn(Left(NonEmptyChain.one(AssumingOperatorNamePage)))
-        when(mockSubmissionConnector.submitAssumedReporting(any())(using any())).thenReturn(Future.successful(Done))
+        when(mockAssumedReportingConnector.submit(any())(using any())).thenReturn(Future.successful(Done))
         when(mockSessionRepository.clear(any(), any(), any())).thenReturn(Future.successful(true))
 
         running(application) {
@@ -179,7 +178,7 @@ class CheckYourAnswersControllerSpec extends SpecBase with SummaryListFluency wi
           route(application, request).value.failed.futureValue
         }
 
-        verify(mockSubmissionConnector, never()).submitAssumedReporting(any())(using any())
+        verify(mockAssumedReportingConnector, never()).submit(any())(using any())
         verify(mockSessionRepository, never()).clear(any(), any(), any())
       }
     }
@@ -206,13 +205,13 @@ class CheckYourAnswersControllerSpec extends SpecBase with SummaryListFluency wi
 
           val userAnswers = emptyUserAnswers
 
-          when(mockSubmissionConnector.getAssumedReport(any(), any())(using any())).thenReturn(Future.successful(Some(submission)))
+          when(mockAssumedReportingConnector.get(any(), any())(using any())).thenReturn(Future.successful(Some(submission)))
           when(mockSessionRepository.set(any())).thenReturn(Future.successful(true))
           when(mockUserAnswersService.fromAssumedReportingSubmission(any(), any())).thenReturn(Success(userAnswers))
 
           val application = applicationBuilder(userAnswers = None)
             .overrides(
-              bind[SubmissionConnector].toInstance(mockSubmissionConnector),
+              bind[AssumedReportingConnector].toInstance(mockAssumedReportingConnector),
               bind[UserAnswersService].toInstance(mockUserAnswersService),
               bind[SessionRepository].toInstance(mockSessionRepository)
             )
@@ -226,7 +225,7 @@ class CheckYourAnswersControllerSpec extends SpecBase with SummaryListFluency wi
             status(result) mustEqual SEE_OTHER
             redirectLocation(result).value mustEqual routes.CheckYourAnswersController.onPageLoad(operatorId, reportingPeriod).url
 
-            verify(mockSubmissionConnector).getAssumedReport(eqTo(operatorId), eqTo(reportingPeriod))(using any())
+            verify(mockAssumedReportingConnector).get(eqTo(operatorId), eqTo(reportingPeriod))(using any())
             verify(mockUserAnswersService).fromAssumedReportingSubmission(eqTo(userAnswers.userId), eqTo(submission))
             verify(mockSessionRepository).set(eqTo(userAnswers))
           }
@@ -237,11 +236,11 @@ class CheckYourAnswersControllerSpec extends SpecBase with SummaryListFluency wi
 
         "must redirect to Journey Recovery" in {
           
-          when(mockSubmissionConnector.getAssumedReport(any(), any())(using any())).thenReturn(Future.successful(None))
+          when(mockAssumedReportingConnector.get(any(), any())(using any())).thenReturn(Future.successful(None))
           
           val application = applicationBuilder(userAnswers = None)
             .overrides(
-              bind[SubmissionConnector].toInstance(mockSubmissionConnector),
+              bind[AssumedReportingConnector].toInstance(mockAssumedReportingConnector),
               bind[UserAnswersService].toInstance(mockUserAnswersService),
               bind[SessionRepository].toInstance(mockSessionRepository)
             )
@@ -255,7 +254,7 @@ class CheckYourAnswersControllerSpec extends SpecBase with SummaryListFluency wi
             status(result) mustEqual SEE_OTHER
             redirectLocation(result).value mustEqual baseRoutes.JourneyRecoveryController.onPageLoad().url
 
-            verify(mockSubmissionConnector).getAssumedReport(eqTo(operatorId), eqTo(reportingPeriod))(using any())
+            verify(mockAssumedReportingConnector).get(eqTo(operatorId), eqTo(reportingPeriod))(using any())
             verify(mockUserAnswersService, never()).fromAssumedReportingSubmission(any(), any())
             verify(mockSessionRepository, never()).set(any())
           }

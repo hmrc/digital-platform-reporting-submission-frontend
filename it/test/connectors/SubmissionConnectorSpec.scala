@@ -18,10 +18,8 @@ package connectors
 
 import com.github.tomakehurst.wiremock.client.WireMock.*
 import connectors.SubmissionConnector.*
-import models.operator.TinDetails
-import models.operator.TinType.{Utr, Vrn}
 import models.submission.*
-import models.submission.Submission.State.{Ready, Submitted}
+import models.submission.Submission.State.Ready
 import models.submission.Submission.SubmissionType
 import org.apache.pekko.stream.Materializer
 import org.apache.pekko.stream.scaladsl.Sink
@@ -37,7 +35,7 @@ import play.api.libs.json.Json
 import uk.gov.hmrc.http.test.WireMockSupport
 import uk.gov.hmrc.http.{Authorization, HeaderCarrier, StringContextOps}
 
-import java.time.{Instant, Year}
+import java.time.Instant
 
 class SubmissionConnectorSpec
   extends AnyFreeSpec
@@ -394,7 +392,7 @@ class SubmissionConnectorSpec
   
   "list" - {
     
-    val request = ViewSubmissionsRequest(assumedReporting = true)
+    val request = ViewSubmissionsRequest(assumedReporting = false)
 
     "must return a submission summary when the server returns OK" in {
 
@@ -426,151 +424,6 @@ class SubmissionConnectorSpec
 
       val result = connector.list(request)(using hc).futureValue
       result must not be defined
-    }
-  }
-
-  "submitAssumedReporting" - {
-
-    val assumingOperator = AssumingPlatformOperator(
-      name = "assumingOperator",
-      residentCountry = "US",
-      tinDetails = Seq(
-        TinDetails(
-          tin = "tin3",
-          tinType = Utr,
-          issuedBy = "GB"
-        ),
-        TinDetails(
-          tin = "tin4",
-          tinType = Vrn,
-          issuedBy = "GB"
-        )
-      ),
-      registeredCountry = "GB",
-      address = "address"
-    )
-
-    val request = AssumedReportingSubmissionRequest(
-      operatorId = "operatorId",
-      assumingOperator = assumingOperator,
-      reportingPeriod = Year.of(2024)
-    )
-
-    "must submit the expected data and return the created submission" in {
-
-      val expectedSubmission = Submission(
-        _id = "id",
-        submissionType = SubmissionType.ManualAssumedReport,
-        operatorId = "operatorId",
-        operatorName = "operatorName",
-        assumingOperatorName = Some("assumedOperatorName"),
-        dprsId = "dprsId",
-        state = Submitted(fileName = "test.xml", Year.of(2024)),
-        created = now,
-        updated = now
-      )
-
-      wireMockServer.stubFor(
-        post(urlPathEqualTo("/digital-platform-reporting/submission/assumed/submit"))
-          .withRequestBody(equalToJson(Json.toJson(request).toString))
-          .withHeader("User-Agent", equalTo("app"))
-          .willReturn(ok(Json.toJson(expectedSubmission).toString))
-      )
-
-      val result = connector.submitAssumedReporting(request)(using hc).futureValue
-      result mustEqual expectedSubmission
-    }
-
-    "must return an error when the server response with another status" in {
-
-      wireMockServer.stubFor(
-        post(urlPathEqualTo("/digital-platform-reporting/submission/assumed/submit"))
-          .withRequestBody(equalToJson(Json.toJson(request).toString))
-          .withHeader("User-Agent", equalTo("app"))
-          .willReturn(aResponse().withStatus(INTERNAL_SERVER_ERROR))
-      )
-
-      val result = connector.submitAssumedReporting(request)(using hc).failed.futureValue
-      result mustBe SubmitAssumedReportingFailure
-    }
-  }
-  
-  "getAssumedReport" - {
-    
-    val assumingOperator = AssumingPlatformOperator(
-      name = "assumingOperator",
-      residentCountry = "US",
-      tinDetails = Seq(
-        TinDetails(
-          tin = "tin3",
-          tinType = Utr,
-          issuedBy = "GB"
-        )
-      ),
-      registeredCountry = "GB",
-      address = "address"
-    )
-    
-    val submission = AssumedReportingSubmission("operatorId", "operatorName", assumingOperator, Year.of(2024), false)
-    
-    "must return a submission when the server returns OK" in {
-      
-      wireMockServer.stubFor(
-        get(urlPathEqualTo("/digital-platform-reporting/submission/assumed/operatorId/2024"))
-          .willReturn(ok(Json.toJson(submission).toString))
-      )
-
-      val result = connector.getAssumedReport("operatorId", Year.of(2024))(using hc).futureValue
-      result.value mustEqual submission
-    }
-    
-    "must return None when the server returns NOT_FOUND" in {
-
-      wireMockServer.stubFor(
-        get(urlPathEqualTo("/digital-platform-reporting/submission/assumed/operatorId/2024"))
-          .willReturn(notFound())
-      )
-
-      val result = connector.getAssumedReport("operatorId", Year.of(2024))(using hc).futureValue
-      result must not be defined
-    }
-    
-    "must return a failed future when the server returns an error" in {
-
-      wireMockServer.stubFor(
-        get(urlPathEqualTo("/digital-platform-reporting/submission/assumed/operatorId/2024"))
-          .willReturn(serverError())
-      )
-      
-      val result = connector.getAssumedReport("operatorId", Year.of(2024))(using hc).failed.futureValue
-      result mustBe a[GetAssumedReportFailure.type]
-    }
-  }
-  
-  "deleteAssumedReport" - {
-    
-    "must send a delete request to the backend" in {
-
-      wireMockServer.stubFor(
-        delete(urlPathEqualTo("/digital-platform-reporting/submission/assumed/operatorId/2024"))
-          .willReturn(ok())
-      )
-
-      connector.deleteAssumedReport("operatorId", Year.of(2024))(using hc).futureValue
-    }
-    
-    "must return a failed future when the server returns an error" in {
-
-      wireMockServer.stubFor(
-        delete(urlPathEqualTo("/digital-platform-reporting/submission/assumed/operatorId/2024"))
-          .willReturn(serverError())
-      )
-
-      val result = connector.deleteAssumedReport("operatorId", Year.of(2024))(using hc).failed.futureValue
-      result mustBe a[DeleteAssumedReportFailure]
-      
-      val failure = result.asInstanceOf[DeleteAssumedReportFailure]
-      failure.status mustEqual 500
     }
   }
 }
