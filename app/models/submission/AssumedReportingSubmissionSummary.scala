@@ -43,7 +43,6 @@ final case class AssumedReportingSubmissionSummary(submissionId: String,
   private def updateLink(implicit messages: Messages): Link =
     Link(messages("site.edit"), updateRoutes.CheckYourAnswersController.initialise(operatorId, reportingPeriod).url)
 
-  // TODO: Consider isDeleted when deciding which links to show
   def links(implicit messages: Messages): Seq[Link] = Seq(
     updateLink,
     removeLink

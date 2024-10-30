@@ -355,6 +355,8 @@ viewAssumedReports.platformOperator = Platform operator
 viewAssumedReports.reportingPeriod = Reporting period
 viewAssumedReports.assumingReporter = Assuming platform operator
 viewAssumedReports.action = Action
+viewAssumedReports.return = Return to
+viewAssumedReports.return.link = manage your digital platform reporting
 
 viewSubmissions.title = XML submissions
 viewSubmissions.heading = XML submissions
