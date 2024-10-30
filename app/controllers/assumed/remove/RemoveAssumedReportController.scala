@@ -16,7 +16,7 @@
 
 package controllers.assumed.remove
 
-import connectors.SubmissionConnector
+import connectors.AssumedReportingConnector
 import controllers.AnswerExtractor
 import controllers.actions.{DataRequiredAction, DataRetrievalActionProvider, IdentifierAction}
 import controllers.assumed.routes as assumedRoutes
@@ -39,7 +39,7 @@ class RemoveAssumedReportController @Inject()(override val messagesApi: Messages
                                               requireData: DataRequiredAction,
                                               formProvider: RemoveAssumedReportFormProvider,
                                               view: RemoveAssumedReportView,
-                                              submissionConnector: SubmissionConnector)(implicit ec: ExecutionContext)
+                                              connector: AssumedReportingConnector)(implicit ec: ExecutionContext)
   extends FrontendBaseController with I18nSupport with AnswerExtractor {
 
   private val form = formProvider()
@@ -67,7 +67,7 @@ class RemoveAssumedReportController @Inject()(override val messagesApi: Messages
             },
             answer => 
               if (answer) {
-                submissionConnector.deleteAssumedReport(operatorId, reportingPeriod)
+                connector.delete(operatorId, reportingPeriod)
                   .map(_ => Redirect(routes.AssumedReportRemovedController.onPageLoad(operatorId, reportingPeriod)))
               } else {
                 Future.successful(Redirect(assumedRoutes.ViewAssumedReportsController.onPageLoad()))
