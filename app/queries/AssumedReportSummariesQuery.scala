@@ -16,10 +16,12 @@
 
 package queries
 
-import models.submission.SubmissionSummary
+import models.submission.AssumedReportingSubmissionSummary
 import play.api.libs.json.JsPath
 
-case object AssumedReportSummariesQuery extends Gettable[Seq[SubmissionSummary]] with Settable[Seq[SubmissionSummary]] {
+case object AssumedReportSummariesQuery
+  extends Gettable[Seq[AssumedReportingSubmissionSummary]]
+    with Settable[Seq[AssumedReportingSubmissionSummary]] {
 
   override def path: JsPath = JsPath \ "assumedReportSummaries"
 }

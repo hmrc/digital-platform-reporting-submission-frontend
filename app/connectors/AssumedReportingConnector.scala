@@ -74,7 +74,7 @@ class AssumedReportingConnector @Inject() (
       }
 
   def list(using HeaderCarrier): Future[Seq[AssumedReportingSubmissionSummary]] =
-    httpClient.post(url"$digitalPlatformReportingService/digital-platform-reporting/submission/assumed")
+    httpClient.get(url"$digitalPlatformReportingService/digital-platform-reporting/submission/assumed")
       .execute[HttpResponse]
       .flatMap { response =>
         response.status match {

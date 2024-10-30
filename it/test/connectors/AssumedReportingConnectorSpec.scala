@@ -220,7 +220,7 @@ class AssumedReportingConnectorSpec
       )
       
       wireMockServer.stubFor(
-        post(urlPathEqualTo("/digital-platform-reporting/submission/assumed"))
+        get(urlPathEqualTo("/digital-platform-reporting/submission/assumed"))
           .withHeader("User-Agent", equalTo("app"))
           .willReturn(ok(Json.arr(Json.toJson(submission)).toString))
       )
@@ -232,7 +232,7 @@ class AssumedReportingConnectorSpec
     "must return an empty sequence when the server returns OK with no submissions" in {
 
       wireMockServer.stubFor(
-        post(urlPathEqualTo("/digital-platform-reporting/submission/assumed"))
+        get(urlPathEqualTo("/digital-platform-reporting/submission/assumed"))
           .withHeader("User-Agent", equalTo("app"))
           .willReturn(ok(Json.arr().toString))
       )
@@ -244,7 +244,7 @@ class AssumedReportingConnectorSpec
     "must return a failed future when the server returns an error" in {
 
       wireMockServer.stubFor(
-        post(urlPathEqualTo("/digital-platform-reporting/submission/assumed"))
+        get(urlPathEqualTo("/digital-platform-reporting/submission/assumed"))
           .withHeader("User-Agent", equalTo("app"))
           .willReturn(serverError())
       )

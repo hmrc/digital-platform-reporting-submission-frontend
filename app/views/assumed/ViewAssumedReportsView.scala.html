@@ -15,13 +15,15 @@
  *@
 
 @import controllers.assumed.create.routes
-@import models.submission.SubmissionsSummary
+@import models.submission.AssumedReportingSubmissionSummary
+@import uk.gov.hmrc.govukfrontend.views.html.components.GovukTag
 
 @this(
-        layout: templates.Layout
+        layout: templates.Layout,
+        govukTag: GovukTag
 )
 
-@(maybeSummary: Option[SubmissionsSummary])(implicit request: Request[_], messages: Messages)
+@(summaries: Seq[AssumedReportingSubmissionSummary])(implicit request: Request[_], messages: Messages)
 
 @layout(
     pageTitle = titleNoForm(messages("viewAssumedReports.title")),
@@ -31,65 +33,50 @@
 
     <h1 class="govuk-heading-xl">@messages("viewAssumedReports.heading")</h1>
 
-    @maybeSummary.map { summary =>
-
-        @if(summary.isEmpty) {
-            <p class="govuk-body">@messages("viewAssumedReports.noReports")</p>
-
-            <p class="govuk-body">
-                <a href="@routes.SelectPlatformOperatorController.onPageLoad" class="govuk-link">@messages("viewAssumedReports.newReport.text")</a>
-            </p>
-        } else {
-            <p class="govuk-body govuk-!-margin-bottom-8">
-                <a href="@routes.SelectPlatformOperatorController.onPageLoad" class="govuk-link">@messages("viewAssumedReports.newReport.text")</a>
-            </p>
-
-            <!-- TODO: Decide how to show local submissions -->
-
-            @if(summary.deliveredSubmissions.nonEmpty) {
-
-                <table class="govuk-table">
-                    <thead class="govuk-table__head">
-                        <tr class="govuk-table__row">
-                            <th class="govuk-table__header" scope="col">@messages("viewAssumedReports.submissionDate")</th>
-                            <th class="govuk-table__header" scope="col">@messages("viewAssumedReports.platformOperator")</th>
-                            <th class="govuk-table__header" scope="col">@messages("viewAssumedReports.reportingPeriod")</th>
-                            <th class="govuk-table__header" scope="col">@messages("viewAssumedReports.assumingReporter")</th>
-                            <th class="govuk-table__header" scope="col">@messages("viewAssumedReports.action")</th>
-                        </tr>
-                    </thead>
-                    @summary.deliveredSubmissions.map { submission =>
-                        <tr class="govuk-table__row">
-                            <td class="govuk-table__cell">@shortDate(submission.submissionDateTime)</td>
-                            <td class="govuk-table__cell">@submission.operatorName<br/>@submission.operatorId</td>
-                            <td class="govuk-table__cell">@submission.reportingPeriod</td>
-                            <td class="govuk-table__cell">@submission.assumingReporterName</td>
-                            <td class="govuk-table__cell">
-                                @if(submission.links.size > 1) {
-                                    <ul class="govuk-summary-list__actions-list">
-                                        @submission.links.map { link =>
-                                            <li class="govuk-summary-list__actions-list-item">
-                                                <a href="@link.href" class="govuk-link">@link.text</a>
-                                            </li>
-                                        }
-                                    </ul>
-                                } else {
-                                    @submission.links.map { link =>
-                                        <a href="@link.href" class="govuk-link">@link.text</a>
-                                    }
-                                }
-                            </td>
-                        </tr>
-                    }
-                </table>
-
-            }
-        }
-    }.getOrElse {
+    @if(summaries.isEmpty) {
         <p class="govuk-body">@messages("viewAssumedReports.noReports")</p>
 
-        <p class="govuk-body govuk-!-margin-bottom-8">
+        <p class="govuk-body">
             <a href="@routes.SelectPlatformOperatorController.onPageLoad" class="govuk-link">@messages("viewAssumedReports.newReport.text")</a>
         </p>
+    } else {
+
+        <table class="govuk-table">
+            <thead class="govuk-table__head">
+                <tr class="govuk-table__row">
+                    <th class="govuk-table__header" scope="col">@messages("viewAssumedReports.submissionDate")</th>
+                    <th class="govuk-table__header" scope="col">@messages("viewAssumedReports.platformOperator")</th>
+                    <th class="govuk-table__header" scope="col">@messages("viewAssumedReports.reportingPeriod")</th>
+                    <th class="govuk-table__header" scope="col">@messages("viewAssumedReports.assumingReporter")</th>
+                    <th class="govuk-table__header" scope="col">@messages("viewAssumedReports.action")</th>
+                </tr>
+            </thead>
+
+            @summaries.map { summary =>
+                <tr class="govuk-table__row">
+                    <td class="govuk-table__cell">@shortDate(summary.submissionDateTime)</td>
+                    <td class="govuk-table__cell">@summary.operatorName<br/>@summary.operatorId</td>
+                    <td class="govuk-table__cell">@summary.reportingPeriod</td>
+                    <td class="govuk-table__cell">@summary.assumingReporterName</td>
+                    <td class="govuk-table__cell">
+                        @if(summary.isDeleted) {
+                            @govukTag(TagViewModel(messages("site.deleted")).grey())
+                        } else if(summary.links.size > 1) {
+                            <ul class="govuk-summary-list__actions-list">
+                            @summary.links.map { link =>
+                                <li class="govuk-summary-list__actions-list-item">
+                                    <a href="@link.href" class="govuk-link">@link.text</a>
+                                </li>
+                            }
+                            </ul>
+                        } else {
+                            @summary.links.map { link =>
+                                <a href="@link.href" class="govuk-link">@link.text</a>
+                            }
+                        }
+                    </td>
+                </tr>
+            }
+        </table>
     }
 }

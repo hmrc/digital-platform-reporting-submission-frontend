@@ -4,6 +4,7 @@ site.back = Back
 site.remove = Remove
 site.change = Change
 site.delete = Delete
+site.deleted = Deleted
 site.edit = Edit
 site.no = No
 site.yes = Yes

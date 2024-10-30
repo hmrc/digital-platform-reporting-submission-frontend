@@ -20,7 +20,7 @@ import base.SpecBase
 import connectors.AssumedReportingConnector
 import controllers.assumed.routes as assumedRoutes
 import forms.RemoveAssumedReportFormProvider
-import models.submission.{SubmissionStatus, SubmissionSummary}
+import models.submission.{SubmissionStatus, AssumedReportingSubmissionSummary}
 import org.apache.pekko.Done
 import org.mockito.ArgumentMatchers.{any, eq as eqTo}
 import org.mockito.Mockito
@@ -41,8 +41,8 @@ import scala.concurrent.Future
 class RemoveAssumedReportControllerSpec extends SpecBase with MockitoSugar with BeforeAndAfterEach {
 
   private val now = Instant.now()
-  private val submission1 = SubmissionSummary("submissionId1", "file1", "operatorId", "operatorName", Year.of(2024), now, SubmissionStatus.Success, Some("assuming"), Some("caseId1"))
-  private val submission2 = SubmissionSummary("submissionId2", "file2", "operatorId", "operatorName", Year.of(2025), now, SubmissionStatus.Success, Some("assuming"), Some("caseId2"))
+  private val submission1 = AssumedReportingSubmissionSummary("submissionId1", "file1", "operatorId", "operatorName", Year.of(2024), now, SubmissionStatus.Success, Some("assuming"), Some("caseId1"), isDeleted = false)
+  private val submission2 = AssumedReportingSubmissionSummary("submissionId2", "file2", "operatorId", "operatorName", Year.of(2025), now, SubmissionStatus.Success, Some("assuming"), Some("caseId2"), isDeleted = false)
 
   private val baseAnswers = emptyUserAnswers.set(AssumedReportSummariesQuery, Seq(submission1, submission2)).success.value
 

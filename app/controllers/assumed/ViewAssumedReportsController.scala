@@ -17,10 +17,9 @@
 package controllers.assumed
 
 import cats.implicits.*
-import connectors.SubmissionConnector
+import connectors.AssumedReportingConnector
 import controllers.actions.IdentifierAction
 import models.UserAnswers
-import models.submission.ViewSubmissionsRequest
 import org.apache.pekko.Done
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
@@ -35,25 +34,23 @@ import scala.concurrent.{ExecutionContext, Future}
 class ViewAssumedReportsController @Inject()(override val messagesApi: MessagesApi,
                                              identify: IdentifierAction,
                                              val controllerComponents: MessagesControllerComponents,
-                                             connector: SubmissionConnector,
+                                             connector: AssumedReportingConnector,
                                              sessionRepository: SessionRepository,
                                              view: ViewAssumedReportsView)
                                             (implicit ec: ExecutionContext) extends FrontendBaseController with I18nSupport {
 
   def onPageLoad(): Action[AnyContent] = identify.async {
     implicit request =>
-      connector.list(ViewSubmissionsRequest(assumedReporting = true)).flatMap { response =>
+      connector.list.flatMap { submissions =>
 
-        response.map(x => x.deliveredSubmissions ++ x.localSubmissions).getOrElse(Nil)
-          .groupBy(_.operatorId)
-          .map { (operatorId, submissions) =>
+        submissions.groupBy(_.operatorId).toList
+          .traverse { (operatorId, submissions) =>
             for {
               answers <- Future.fromTry(UserAnswers(request.userId, operatorId).set(AssumedReportSummariesQuery, submissions))
               _       <- sessionRepository.set(answers)
             } yield Done
           }
-          .toList.sequence
-          .map(_ => Ok(view(response)))
+          .map(_ => Ok(view(submissions)))
       }
   }
 }

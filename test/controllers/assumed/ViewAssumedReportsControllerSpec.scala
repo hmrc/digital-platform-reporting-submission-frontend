@@ -17,10 +17,10 @@
 package controllers.assumed
 
 import base.SpecBase
-import connectors.SubmissionConnector
+import connectors.AssumedReportingConnector
 import models.UserAnswers
-import models.submission.{SubmissionStatus, SubmissionSummary, SubmissionsSummary, ViewSubmissionsRequest}
-import org.mockito.ArgumentMatchers.{any, eq as eqTo}
+import models.submission.{SubmissionStatus, AssumedReportingSubmissionSummary}
+import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.{never, times, verify, when}
 import org.mockito.{ArgumentCaptor, Mockito}
 import org.scalatest.BeforeAndAfterEach
@@ -39,7 +39,7 @@ import scala.concurrent.Future
 
 class ViewAssumedReportsControllerSpec extends SpecBase with MockitoSugar with BeforeAndAfterEach {
 
-  private val mockConnector = mock[SubmissionConnector]
+  private val mockConnector = mock[AssumedReportingConnector]
   private val mockRepository = mock[SessionRepository]
 
   override def beforeEach(): Unit = {
@@ -53,7 +53,7 @@ class ViewAssumedReportsControllerSpec extends SpecBase with MockitoSugar with B
 
     "must save submission summaries and return OK and the correct view for a GET when assumed reports exist" in {
 
-      val submissionSummary1 = SubmissionSummary(
+      val submissionSummary1 = AssumedReportingSubmissionSummary(
         submissionId = "submissionId1",
         fileName = "filename",
         operatorId = "operatorId1",
@@ -62,9 +62,10 @@ class ViewAssumedReportsControllerSpec extends SpecBase with MockitoSugar with B
         submissionDateTime = now,
         submissionStatus = SubmissionStatus.Success,
         assumingReporterName = Some("name"),
-        submissionCaseId = Some("reportingPeriod1")
+        submissionCaseId = Some("reportingPeriod1"),
+        isDeleted = false
       )
-      val submissionSummary2 = SubmissionSummary(
+      val submissionSummary2 = AssumedReportingSubmissionSummary(
         submissionId = "submissionId2",
         fileName = "filename2",
         operatorId = "operatorId1",
@@ -73,9 +74,10 @@ class ViewAssumedReportsControllerSpec extends SpecBase with MockitoSugar with B
         submissionDateTime = now,
         submissionStatus = SubmissionStatus.Success,
         assumingReporterName = Some("name"),
-        submissionCaseId = Some("reportingPeriod1")
+        submissionCaseId = Some("reportingPeriod1"),
+        isDeleted = false
       )
-      val submissionSummary3 = SubmissionSummary(
+      val submissionSummary3 = AssumedReportingSubmissionSummary(
         submissionId = "submissionId3",
         fileName = "filename3",
         operatorId = "operatorId2",
@@ -84,16 +86,17 @@ class ViewAssumedReportsControllerSpec extends SpecBase with MockitoSugar with B
         submissionDateTime = now,
         submissionStatus = SubmissionStatus.Success,
         assumingReporterName = Some("name"),
-        submissionCaseId = None
+        submissionCaseId = None,
+        isDeleted = true
       )
-      val summary = SubmissionsSummary(Seq(submissionSummary1, submissionSummary2), Seq(submissionSummary3))
+      val summaries = Seq(submissionSummary1, submissionSummary2, submissionSummary3)
 
-      when(mockConnector.list(any())(using any())).thenReturn(Future.successful(Some(summary)))
+      when(mockConnector.list(using any())).thenReturn(Future.successful(summaries))
       when(mockRepository.set(any())).thenReturn(Future.successful(true))
 
       val application = applicationBuilder(userAnswers = None)
         .overrides(
-          bind[SubmissionConnector].toInstance(mockConnector),
+          bind[AssumedReportingConnector].toInstance(mockConnector),
           bind[SessionRepository].toInstance(mockRepository)
         )
         .build()
@@ -106,11 +109,10 @@ class ViewAssumedReportsControllerSpec extends SpecBase with MockitoSugar with B
         val view = application.injector.instanceOf[ViewAssumedReportsView]
         implicit val msgs: Messages = messages(application)
         val answersCaptor: ArgumentCaptor[UserAnswers] = ArgumentCaptor.forClass(classOf[UserAnswers])
-        val expectedRequest = ViewSubmissionsRequest(assumedReporting = true)
 
         status(result) mustEqual OK
-        contentAsString(result) mustEqual view(Some(summary))(request, implicitly).toString
-        verify(mockConnector, times(1)).list(eqTo(expectedRequest))(using any())
+        contentAsString(result) mustEqual view(summaries)(request, implicitly).toString
+        verify(mockConnector, times(1)).list(using any())
         verify(mockRepository, times(2)).set(answersCaptor.capture())
 
         val savedAnswers = answersCaptor.getAllValues.asScala
@@ -124,11 +126,11 @@ class ViewAssumedReportsControllerSpec extends SpecBase with MockitoSugar with B
 
     "must return OK and the correct view for a GET when no assumed reports exist" in {
 
-      when(mockConnector.list(any())(using any())).thenReturn(Future.successful(None))
+      when(mockConnector.list(using any())).thenReturn(Future.successful(Nil))
 
       val application = applicationBuilder(userAnswers = None)
         .overrides(
-          bind[SubmissionConnector].toInstance(mockConnector),
+          bind[AssumedReportingConnector].toInstance(mockConnector),
           bind[SessionRepository].toInstance(mockRepository)
         )
         .build()
@@ -140,11 +142,10 @@ class ViewAssumedReportsControllerSpec extends SpecBase with MockitoSugar with B
 
         val view = application.injector.instanceOf[ViewAssumedReportsView]
         implicit val msgs: Messages = messages(application)
-        val expectedRequest = ViewSubmissionsRequest(assumedReporting = true)
 
         status(result) mustEqual OK
-        contentAsString(result) mustEqual view(None)(request, implicitly).toString
-        verify(mockConnector, times(1)).list(eqTo(expectedRequest))(using any())
+        contentAsString(result) mustEqual view(Nil)(request, implicitly).toString
+        verify(mockConnector).list(using any())
         verify(mockRepository, never()).set(any())
       }
     }
