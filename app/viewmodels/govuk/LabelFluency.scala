@@ -48,5 +48,8 @@ trait LabelFluency {
 
     def visuallyHidden(): Label =
       withCssClass("govuk-visually-hidden")
+
+    def withSize(size: LabelSize): Label =
+      withCssClass(size.toString)
   }
 }

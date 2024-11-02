@@ -19,9 +19,13 @@ package models.submission
 import controllers.assumed.remove.routes as removeRoutes
 import controllers.assumed.update.routes as updateRoutes
 import models.yearFormat
+import models.submission.SubmissionStatus.*
 import play.api.i18n.Messages
 import play.api.libs.json.{Json, OFormat}
+import uk.gov.hmrc.govukfrontend.views.viewmodels.tag.Tag
 import viewmodels.Link
+import viewmodels.govuk.tag.*
+import viewmodels.implicits.*
 
 import java.time.{Instant, Year}
 
@@ -37,6 +41,12 @@ final case class SubmissionSummary(submissionId: String,
 
   // TODO: Add appropriate links
   def links(implicit messages: Messages): Seq[Link] = Nil
+
+  def statusTag(implicit messages: Messages): Tag = submissionStatus match {
+    case Success  => TagViewModel(messages("viewSubmissions.success")).green()
+    case Pending  => TagViewModel(messages("viewSubmissions.pending")).yellow()
+    case Rejected => TagViewModel(messages("viewSubmissions.rejected")).red()
+  }
 }
 
 object SubmissionSummary {

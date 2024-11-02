@@ -14,14 +14,26 @@
  * limitations under the License.
  *@
 
+@import config.FrontendAppConfig
 @import controllers.submission.routes
-@import models.submission.SubmissionsSummary
+@import models.submission.{SubmissionStatus, SubmissionsSummary}
+@import uk.gov.hmrc.govukfrontend.views.Implicits.RichSelect
+@import uk.gov.hmrc.govukfrontend.views.html.components.{GovukCheckboxes, GovukPagination, GovukSelect, GovukTag}
+@import uk.gov.hmrc.hmrcfrontend.views.viewmodels.accessibleautocomplete.AccessibleAutocomplete
+@import uk.gov.hmrc.govukfrontend.views.viewmodels.select.SelectItem
+@import viewmodels.{LabelSize, LegendSize, ViewSubmissionsViewModel}
 
 @this(
-        layout: templates.Layout
+        layout: templates.Layout,
+        govukButton: GovukButton,
+        govukCheckboxes: GovukCheckboxes,
+        govukSelect: GovukSelect,
+        govukTag: GovukTag,
+        govukPagination: GovukPagination,
+        appConfig: FrontendAppConfig
 )
 
-@(maybeSummary: Option[SubmissionsSummary])(implicit request: Request[_], messages: Messages)
+@(form: Form[_], viewModel: ViewSubmissionsViewModel)(implicit request: Request[_], messages: Messages)
 
 @layout(
     pageTitle = titleNoForm(messages("viewSubmissions.title")),
@@ -31,51 +43,108 @@
 
     <h1 class="govuk-heading-xl">@messages("viewSubmissions.heading")</h1>
 
-    @maybeSummary.map { summary =>
+    @viewModel.maybeSummary.map { summary =>
 
         @if(summary.isEmpty) {
             <p class="govuk-body">@messages("viewSubmissions.noReports")</p>
 
-            <!-- TODO: Add link to add a submission once pages exist -->
+            <p class="govuk-body">
+                <a href="@routes.SelectPlatformOperatorController.onPageLoad" class="govuk-link">@messages("viewSubmissions.addSubmission")</a>
+            </p>
         } else {
-            <!-- TODO: Add link to add a submission once pages exist -->
+            <p class="govuk-body">
+                <a href="@routes.SelectPlatformOperatorController.onPageLoad" class="govuk-link">@messages("viewSubmissions.addSubmission")</a>
+            </p>
 
             <!-- TODO: Decide how to show local submissions -->
 
-            @if(summary.deliveredSubmissions.nonEmpty) {
+            <form method="GET" novalidate action="@routes.ViewSubmissionsController.onPageLoad().url">
 
-                <table class="govuk-table">
-                    <thead class="govuk-table__head">
-                        <tr class="govuk-table__row">
-                            <th class="govuk-table__header" scope="col">@messages("viewSubmissions.status")</th>
-                            <th class="govuk-table__header" scope="col">@messages("viewSubmissions.submissionDate")</th>
-                            <th class="govuk-table__header" scope="col">@messages("viewSubmissions.platformOperator")</th>
-                            <th class="govuk-table__header" scope="col">@messages("viewSubmissions.reportingPeriod")</th>
-                            <th class="govuk-table__header" scope="col">@messages("viewSubmissions.fileName")</th>
-                            <th class="govuk-table__header" scope="col">@messages("viewSubmissions.action")</th>
-                        </tr>
-                    </thead>
-                    @summary.deliveredSubmissions.map { submission =>
-                        <tr class="govuk-table__row">
-                            <td class="govuk-table__cell">@submission.submissionStatus</td> <!-- TODO: Change to a status tag -->
-                            <td class="govuk-table__cell">@shortDate(submission.submissionDateTime)</td>
-                            <td class="govuk-table__cell">@submission.operatorName<br/>@submission.operatorId</td>
-                            <td class="govuk-table__cell">@submission.reportingPeriod</td>
-                            <td class="govuk-table__cell">@submission.fileName</td>
-                            <td class="govuk-table__cell">
+                @govukCheckboxes(
+                    CheckboxesViewModel(
+                        form = form,
+                        name = "statuses",
+                        legend = LegendViewModel(messages("viewSubmissions.filter.statuses")).withSize(LegendSize.Small),
+                        items = SubmissionStatus.checkboxItems
+                    )
+                    .withHint(HintViewModel(messages("viewSubmissions.statuses.hint")))
+                )
+
+                @if(viewModel.platformOperatorSelectItems.nonEmpty) {
+                    @govukSelect(
+                        SelectViewModel(
+                            field = form("operatorId"),
+                            items = viewModel.platformOperatorSelectItems,
+                            label = LabelViewModel(messages("viewSubmissions.filter.operatorId")).withSize(LabelSize.Small)
+                        )
+                        .withCssClass("govuk-input")
+                        .asAccessibleAutocomplete(Some(AccessibleAutocomplete(showAllValues = true)))
+                    )
+                }
+
+                @govukSelect(
+                    SelectViewModel(
+                        field = form("reportingPeriod"),
+                        items = viewModel.reportingPeriodSelectItems,
+                        label = LabelViewModel(messages("viewSubmissions.filter.reportingPeriod")).withSize(LabelSize.Small)
+                    )
+                    .withCssClass("govuk-input")
+                    .withCssClass("narrow-autocomplete")
+                    .asAccessibleAutocomplete(Some(AccessibleAutocomplete(showAllValues = true)))
+                )
+
+                @govukButton(ButtonViewModel(messages("viewSubmissions.applyFilter")))
+
+                @if(summary.deliveredSubmissions.nonEmpty) {
+
+                    <table class="govuk-table">
+                        <thead class="govuk-table__head">
+                            <tr class="govuk-table__row">
+                                <th class="govuk-table__header" scope="col">@messages("viewSubmissions.status")</th>
+                                <th class="govuk-table__header" scope="col">@messages("viewSubmissions.submissionDate")</th>
+                                <th class="govuk-table__header" scope="col">@messages("viewSubmissions.platformOperator")</th>
+                                <th class="govuk-table__header" scope="col">@messages("viewSubmissions.reportingPeriod")</th>
+                                <th class="govuk-table__header" scope="col">@messages("viewSubmissions.fileName")</th>
+                                <th class="govuk-table__header" scope="col">@messages("viewSubmissions.action")</th>
+                            </tr>
+                        </thead>
+                        @summary.deliveredSubmissions.map { submission =>
+                            <tr class="govuk-table__row">
+                                <td class="govuk-table__cell">@govukTag(submission.statusTag)</td>
+                                <td class="govuk-table__cell">@shortDate(submission.submissionDateTime)</td>
+                                <td class="govuk-table__cell">@submission.operatorName <br/>
+                                    @submission.operatorId</td>
+                                <td class="govuk-table__cell">@submission.reportingPeriod</td>
+                                <td class="govuk-table__cell">@submission.fileName</td>
+                                <td class="govuk-table__cell">
                                 @submission.links.map { link =>
                                     <a href="@link.href" class="govuk-link">@link.text</a>
                                 }
-                            </td>
-                        </tr>
-                    }
-                </table>
+                                </td>
+                            </tr>
+                        }
+                    </table>
 
-            }
+                    @viewModel.recordCountInfo.map { recordCountInfo =>
+                      <p class="govuk-body govuk-!-font-weight-bold">@recordCountInfo</p>
+                    }
+
+                    @viewModel.pagination.map { pagination =>
+                        @govukPagination(pagination)
+                    }
+                }
+            </form>
         }
     }.getOrElse {
         <p class="govuk-body">@messages("viewSubmissions.noReports")</p>
 
-        <!-- TODO: Add link to add a submission once pages exist -->
+        <p class="govuk-body">
+            <a href="@routes.SelectPlatformOperatorController.onPageLoad" class="govuk-link">@messages("viewSubmissions.addSubmission")</a>
+        </p>
     }
+
+    <p class="govuk-body govuk-!-margin-top-8 govuk-!-margin-bottom-8">
+        @messages("viewSubmissions.returnTo")
+        <a href="@appConfig.manageHomepageUrl" class="govuk-link">@messages("viewSubmissions.manage.link")</a>
+    </p>
 }

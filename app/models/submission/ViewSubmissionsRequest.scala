@@ -16,12 +16,28 @@
 
 package models.submission
 
+import models.ViewSubmissionsFilter
 import play.api.libs.json.{Json, OWrites}
 
-// TODO: Fields can be added to sort/filter later
-final case class ViewSubmissionsRequest(assumedReporting: Boolean)
+final case class ViewSubmissionsRequest(assumedReporting: Boolean,
+                                        pageNumber: Int,
+                                        sortBy: SortBy,
+                                        sortOrder: SortOrder,
+                                        reportingPeriod: Option[Int],
+                                        operatorId: Option[String],
+                                        statuses: Seq[SubmissionStatus])
 
 object ViewSubmissionsRequest {
   
   implicit lazy val writes: OWrites[ViewSubmissionsRequest] = Json.writes
+
+  def apply(filter: ViewSubmissionsFilter): ViewSubmissionsRequest = ViewSubmissionsRequest(
+    assumedReporting = false,
+    pageNumber       = filter.pageNumber,
+    sortBy           = filter.sortBy,
+    sortOrder        = filter.sortOrder,
+    reportingPeriod  = filter.reportingPeriod.map(_.getValue),
+    operatorId       = filter.operatorId,
+    statuses         = filter.statuses.toSeq
+  )
 }
