@@ -112,7 +112,7 @@ class ViewSubmissionsControllerSpec extends SpecBase with MockitoSugar with Befo
 
         implicit val msgs: Messages = messages(application)
         val view = application.injector.instanceOf[ViewSubmissionsView]
-        val viewModel = ViewSubmissionsViewModel(Some(summary), Seq(platformOperator), defaultFilter, stubClock)
+        val viewModel = ViewSubmissionsViewModel(Some(summary), Seq(platformOperator), defaultFilter, stubClock)(request)
 
         status(result) mustEqual OK
         contentAsString(result) mustEqual view(form, viewModel)(request, implicitly).toString

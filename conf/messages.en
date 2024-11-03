@@ -383,6 +383,9 @@ viewSubmissions.rejected = Failed
 viewSubmissions.recordCountInfo = Showing {0} to {1} of {2} submissions
 viewSubmissions.returnTo = Return to
 viewSubmissions.manage.link = manage your digital platform reporting
+viewSubmissions.reportingPeriod.allValues = All periods
+viewSubmissions.platformOperator.allValues = All operators
+
 
 removeAssumedReport.title = Delete an assumed report
 removeAssumedReport.heading = Delete an assumed report

@@ -43,15 +43,19 @@ class ViewSubmissionsController @Inject()(override val messagesApi: MessagesApi,
                                           formProvider: ViewSubmissionsFormProvider,
                                           clock: Clock)
                                          (implicit ec: ExecutionContext) extends FrontendBaseController with I18nSupport {
-
+  
   def onPageLoad(): Action[AnyContent] = identify.async {
     implicit request =>
       
       val form = formProvider()
-
+      
       form.bindFromRequest().fold(
         errors => Future.successful(Redirect(baseRoutes.JourneyRecoveryController.onPageLoad())), // TODO: Decide what to do here
         filter => {
+          println()
+          println(request)
+          println(filter)
+          println()
           for {
             submissions <- submissionConnector.list(ViewSubmissionsRequest(filter))
             operators   <- platformOperatorConnector.viewPlatformOperators

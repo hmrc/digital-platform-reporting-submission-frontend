@@ -17,12 +17,17 @@
 package viewmodels
 
 import config.Constants.firstLegislativeYear
+import controllers.submission.routes
 import models.ViewSubmissionsFilter
 import models.operator.responses.PlatformOperator
-import models.submission.{SubmissionSummary, SubmissionsSummary}
+import models.submission.SortBy.{ReportingPeriod, SubmissionDate}
+import models.submission.SortOrder.{Ascending, Descending}
+import models.submission.{SortBy, SubmissionsSummary}
 import play.api.i18n.Messages
+import play.api.mvc.Request
 import uk.gov.hmrc.govukfrontend.views.viewmodels.pagination.{Pagination, PaginationItem, PaginationLink}
 import uk.gov.hmrc.govukfrontend.views.viewmodels.select.SelectItem
+import uk.gov.hmrc.http.StringContextOps
 
 import java.time.{Clock, Year}
 
@@ -32,7 +37,10 @@ final case class ViewSubmissionsViewModel(
                                            platformOperatorSelectItems: Seq[SelectItem],
                                            pagination: Option[Pagination],
                                            filter: ViewSubmissionsFilter,
-                                           recordCountInfo: Option[String]
+                                           recordCountInfo: Option[String],
+                                           submissionDateSortLink: String,
+                                           reportingPeriodSortLink: String,
+                                           platformOperatorSortLink: String
                                          )
 
 object ViewSubmissionsViewModel {
@@ -42,28 +50,33 @@ object ViewSubmissionsViewModel {
              operators: Seq[PlatformOperator],
              filter: ViewSubmissionsFilter,
              clock: Clock
-           )(implicit messages: Messages): ViewSubmissionsViewModel =
+           )(implicit request: Request[?], messages: Messages): ViewSubmissionsViewModel =
     ViewSubmissionsViewModel(
       maybeSummary,
       reportingPeriodSelectItems(clock),
       platformOperatorSelectItems(operators),
-      maybeSummary.flatMap(summary => pagination(summary.deliveredSubmissionRecordCount, filter.pageNumber)),
+      maybeSummary.flatMap(summary => pagination(summary.deliveredSubmissionRecordCount, filter)),
       filter,
-      maybeSummary.flatMap(summary => getRecordCountInfo(summary.deliveredSubmissionRecordCount, filter.pageNumber))
+      maybeSummary.flatMap(summary => getRecordCountInfo(summary.deliveredSubmissionRecordCount, filter.pageNumber)),
+      submissionDateSortLink(filter),
+      reportingPeriodSortLink(filter),
+      platformOperatorSortLink(filter)
     )
-  
-  private def getRecordCountInfo(numberOfSubmissions: Int, pageNumber: Int)(implicit messages: Messages): Option[String] =
+
+  private def getRecordCountInfo(numberOfSubmissions: Int, pageNumber: Int)
+                                (implicit messages: Messages): Option[String] =
     if (numberOfSubmissions > 0) {
       val firstRecord = 1 + (pageNumber - 1) * 10
       val lastRecord  = (pageNumber * 10).min(numberOfSubmissions)
-      
+
       Some(messages("viewSubmissions.recordCountInfo", firstRecord, lastRecord, numberOfSubmissions))
     } else {
       None
     }
-  
-  private def reportingPeriodSelectItems(clock: Clock): Seq[SelectItem] = {
-    SelectItem() ::
+
+  private def reportingPeriodSelectItems(clock: Clock)
+                                        (implicit messages: Messages): Seq[SelectItem] = {
+    SelectItem(value = Some("0"), text = messages("viewSubmissions.reportingPeriod.allValues")) ::
       (firstLegislativeYear to Year.now(clock).getValue).map { year =>
         SelectItem(
           value = Some(year.toString),
@@ -72,9 +85,10 @@ object ViewSubmissionsViewModel {
       }.toList
   }
 
-  private def platformOperatorSelectItems(operators: Seq[PlatformOperator]): List[SelectItem] =
+  private def platformOperatorSelectItems(operators: Seq[PlatformOperator])
+                                         (implicit messages: Messages): List[SelectItem] =
     if (operators.size > 1) {
-      SelectItem() ::
+      SelectItem(value = Some("all"), text = messages("viewSubmissions.platformOperator.allValues")) ::
         operators.map { operator =>
           SelectItem(
             value = Some(operator.operatorId),
@@ -84,43 +98,151 @@ object ViewSubmissionsViewModel {
     } else {
       Nil
     }
-    
-  private def pagination(numberOfSubmissions: Int, pageNumber: Int)(implicit messages: Messages): Option[Pagination] = {
+
+  private def pagination(numberOfSubmissions: Int, filter: ViewSubmissionsFilter)
+                        (implicit request: Request[?]): Option[Pagination] =
     if (numberOfSubmissions > 10) {
       val numberOfPages = (numberOfSubmissions + 9) / 10
-      
-      val items =
-        paginationStart(pageNumber) ++
-        paginationCurrentSection(pageNumber, numberOfPages) ++
-        paginationEnd(pageNumber, numberOfPages)
 
-      val nextLink     = if (pageNumber < numberOfPages) Some(PaginationLink(href = "")) else None
-      val previousLink = if(pageNumber > 1)              Some(PaginationLink(href = "")) else None
-      
+      val items =
+        paginationStart(filter) ++
+        paginationCurrentSection(filter, numberOfPages) ++
+        paginationEnd(filter, numberOfPages)
+
+      val nextLink     = if (filter.pageNumber < numberOfPages) Some(PaginationLink(href = paginationHref(filter, filter.pageNumber + 1))) else None
+      val previousLink = if (filter.pageNumber > 1)             Some(PaginationLink(href = paginationHref(filter, filter.pageNumber - 1))) else None
+
       Some(Pagination(items = Some(items), previous = previousLink, next = nextLink))
     } else {
       None
     }
-  }
-  
-  private def paginationStart(pageNumber: Int) = pageNumber match {
-    case x if x <= 2 => Nil
-    case 3           => Seq(PaginationItem(href = "", number = Some("1")))
-    case _           => Seq(PaginationItem(href = "", number = Some("1")), PaginationItem(ellipsis = Some(true)))
-  }
-  
-  private def paginationEnd(pageNumber: Int, numberOfPages: Int) = numberOfPages - pageNumber match {
-    case x if x <= 1 => Nil
-    case 2           => Seq(PaginationItem(href = "", number = Some(numberOfPages.toString)))
-    case _           => Seq(PaginationItem(ellipsis = Some(true)), PaginationItem(href = "", number = Some(numberOfPages.toString)))
-  }
 
-  private def paginationCurrentSection(pageNumber: Int, numberOfPages: Int) = {
+  private def paginationStart(filter: ViewSubmissionsFilter)
+                             (implicit request: Request[?]) =
+    filter.pageNumber match {
+      case x if x <= 2 => Nil
+      case 3           => Seq(PaginationItem(href = paginationHref(filter, 1), number = Some("1")))
+      case _           => Seq(PaginationItem(href = paginationHref(filter, 1), number = Some("1")), PaginationItem(ellipsis = Some(true)))
+    }
 
-    val currentPage  = Some(PaginationItem(href = "", number = Some(pageNumber.toString), current = Some(true)))
-    val previousPage = if (pageNumber > 1)             Some(PaginationItem(href = "", number = Some((pageNumber - 1).toString))) else None
-    val nextPage     = if (pageNumber < numberOfPages) Some(PaginationItem(href = "", number = Some((pageNumber + 1).toString))) else None
+  private def paginationEnd(filter: ViewSubmissionsFilter, numberOfPages: Int)
+                           (implicit request: Request[?]) =
+    numberOfPages - filter.pageNumber match {
+      case x if x <= 1 => Nil
+      case 2           => Seq(PaginationItem(href = paginationHref(filter, numberOfPages), number = Some(numberOfPages.toString)))
+      case _           => Seq(PaginationItem(ellipsis = Some(true)), PaginationItem(href = paginationHref(filter, numberOfPages), number = Some(numberOfPages.toString)))
+    }
+
+  private def paginationCurrentSection(filter: ViewSubmissionsFilter, numberOfPages: Int)
+                                      (implicit request: Request[?]) = {
+
+    val currentPage  = Some(PaginationItem(
+      href    = paginationHref(filter, filter.pageNumber),
+      number  = Some(filter.pageNumber.toString),
+      current = Some(true)
+    ))
+
+    val previousPage = if (filter.pageNumber > 1) {
+      Some(PaginationItem(
+        href   = paginationHref(filter, filter.pageNumber - 1),
+        number = Some((filter.pageNumber - 1).toString)
+      ))
+    } else {
+      None
+    }
+
+    val nextPage = if (filter.pageNumber < numberOfPages) {
+      Some(PaginationItem(
+        href   = paginationHref(filter, filter.pageNumber + 1),
+        number = Some((filter.pageNumber + 1).toString)
+      ))
+    } else {
+      None
+    }
 
     Seq(previousPage, currentPage, nextPage).flatten
   }
+
+  private def paginationHref(filter: ViewSubmissionsFilter, pageNumber: Int)
+                            (implicit request: Request[?]): String = {
+    val sortByQueryParameter = if (filter.sortBy != SubmissionDate) Some("sortBy" -> filter.sortBy.entryName) else None
+    val sortOrderParameter   = if (filter.sortOrder == Ascending)   Some("sortOrder" -> Ascending.entryName)  else None
+    val sortQueryParameters  = Seq(sortByQueryParameter, sortOrderParameter).flatten.toMap
+
+    val queryParameters: Map[String, String] = filterQueryParameters(filter) ++ sortQueryParameters ++ pageNumberQueryParameter(pageNumber)
+
+    buildLink(queryParameters)
+  }
+
+  private def filterQueryParameters(filter: ViewSubmissionsFilter): Map[String, String] = {
+    val reportingPeriodQueryParameter = filter.reportingPeriod.map(period => Map("reportingPeriod" -> period.toString))
+    val operatorIdQueryParameter      = filter.operatorId.map(operatorId => Map("operatorId" -> operatorId))
+    val statusesQueryParameter        = filter.statuses.zipWithIndex.map((status, index) => s"statuses[$index]" -> status.entryName).toMap
+
+    statusesQueryParameter ++
+      reportingPeriodQueryParameter.getOrElse(Map.empty[String, String]) ++
+      operatorIdQueryParameter.getOrElse(Map.empty[String, String])
+  }
+
+  private def pageNumberQueryParameter(pageNumber: Int): Map[String, String] =
+    if (pageNumber > 1) Map("page" -> pageNumber.toString) else Map.empty[String, String]
+
+  private def submissionDateSortLink(filter: ViewSubmissionsFilter)
+                                    (implicit request: Request[?]): String = {
+    val sortByQueryParameter = Map("sortBy" -> SubmissionDate.entryName)
+    val sortOrderQueryParameter = if (filter.sortBy == SubmissionDate && filter.sortOrder == Descending) {
+      Map("sortOrder" -> Ascending.entryName)
+    } else {
+      Map("sortOrder" -> Descending.entryName)
+    }
+
+    val queryParameters =
+      filterQueryParameters(filter) ++
+        sortOrderQueryParameter ++
+        sortByQueryParameter
+
+    buildLink(queryParameters)
+  }
+
+  private def reportingPeriodSortLink(filter: ViewSubmissionsFilter)
+                                     (implicit request: Request[?]): String = {
+    val sortByQueryParameter = Map("sortBy" -> ReportingPeriod.entryName)
+    val sortOrderQueryParameter = if (filter.sortBy == ReportingPeriod && filter.sortOrder == Descending) {
+      Map("sortOrder" -> Ascending.entryName)
+    } else {
+      Map("sortOrder" -> Descending.entryName)
+    }
+
+    val queryParameters =
+      filterQueryParameters(filter) ++
+        sortOrderQueryParameter ++
+        sortByQueryParameter
+
+    buildLink(queryParameters)
+  }
+
+  private def platformOperatorSortLink(filter: ViewSubmissionsFilter)
+                                      (implicit request: Request[?]): String = {
+    val sortByQueryParameter = Map("sortBy" -> SortBy.PlatformOperator.entryName)
+    val sortOrderQueryParameter = if (filter.sortBy == SortBy.PlatformOperator && filter.sortOrder == Descending) {
+      Map("sortOrder" -> Ascending.entryName)
+    } else {
+      Map("sortOrder" -> Descending.entryName)
+    }
+
+    val queryParameters =
+      filterQueryParameters(filter) ++
+        sortOrderQueryParameter ++
+        sortByQueryParameter
+
+    buildLink(queryParameters)
+  }
+
+  private def buildLink(queryParameters: Map[String, String])
+                       (implicit request: Request[?]): String =
+    if (queryParameters.isEmpty) {
+      url"${routes.ViewSubmissionsController.onPageLoad().absoluteURL()}".toString
+    } else {
+      url"${routes.ViewSubmissionsController.onPageLoad().absoluteURL()}?$queryParameters".toString
+    }
 }

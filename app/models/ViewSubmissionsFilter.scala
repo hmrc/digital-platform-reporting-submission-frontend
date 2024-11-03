@@ -24,7 +24,7 @@ final case class ViewSubmissionsFilter(
                                         pageNumber: Int,
                                         sortBy: SortBy,
                                         sortOrder: SortOrder,
-                                        statuses: Set[SubmissionStatus] = Set.empty,
+                                        statuses: Set[SubmissionStatus],
                                         operatorId: Option[String],
                                         reportingPeriod: Option[Year]
                                       )

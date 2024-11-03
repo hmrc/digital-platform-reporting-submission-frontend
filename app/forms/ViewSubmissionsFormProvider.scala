@@ -42,8 +42,14 @@ class ViewSubmissionsFormProvider @Inject() extends Mappings {
         sortBy.getOrElse(SortBy.SubmissionDate),
         sortOrder.getOrElse(SortOrder.Descending),
         statuses.getOrElse(Set.empty),
-        operatorId,
-        reportingPeriod.map(x => Year.of(x))
+        operatorId match {
+          case Some("all") => None
+          case other       => other
+        },
+        reportingPeriod match {
+          case Some(x) if x > 0 => Some(Year.of(x))
+          case _                => None
+        }
       )
     )(filter => Some(
       (

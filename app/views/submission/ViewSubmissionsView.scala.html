@@ -90,7 +90,7 @@
                     )
                     .withCssClass("govuk-input")
                     .withCssClass("narrow-autocomplete")
-                    .asAccessibleAutocomplete(Some(AccessibleAutocomplete(showAllValues = true)))
+                    .asAccessibleAutocomplete(Some(AccessibleAutocomplete(showAllValues = true, defaultValue = None)))
                 )
 
                 @govukButton(ButtonViewModel(messages("viewSubmissions.applyFilter")))
@@ -101,9 +101,15 @@
                         <thead class="govuk-table__head">
                             <tr class="govuk-table__row">
                                 <th class="govuk-table__header" scope="col">@messages("viewSubmissions.status")</th>
-                                <th class="govuk-table__header" scope="col">@messages("viewSubmissions.submissionDate")</th>
-                                <th class="govuk-table__header" scope="col">@messages("viewSubmissions.platformOperator")</th>
-                                <th class="govuk-table__header" scope="col">@messages("viewSubmissions.reportingPeriod")</th>
+                                <th class="govuk-table__header" scope="col">
+                                    <a href="@viewModel.submissionDateSortLink" class="govuk-link--muted govuk-link--no-underline govuk-link--no-visited-state govuk-link-">@messages("viewSubmissions.submissionDate")</a>
+                                </th>
+                                <th class="govuk-table__header" scope="col">
+                                    <a href="@viewModel.platformOperatorSortLink" class="govuk-link--muted govuk-link--no-underline govuk-link--no-visited-state">@messages("viewSubmissions.platformOperator")</a>
+                                </th>
+                                <th class="govuk-table__header" scope="col">
+                                    <a href="@viewModel.reportingPeriodSortLink" class="govuk-link--muted govuk-link--no-underline govuk-link--no-visited-state">@messages("viewSubmissions.reportingPeriod")</a>
+                                </th>
                                 <th class="govuk-table__header" scope="col">@messages("viewSubmissions.fileName")</th>
                                 <th class="govuk-table__header" scope="col">@messages("viewSubmissions.action")</th>
                             </tr>

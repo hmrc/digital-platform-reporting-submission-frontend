@@ -51,6 +51,18 @@ class ViewSubmissionsFormProviderSpec extends StringFieldBehaviours {
       result.hasErrors mustBe false
     }
 
+    "must bind a reporting period of 0 as None" in {
+
+      val result = form.bind(Map("reportingPeriod" -> "0"))
+      result.value.value.reportingPeriod must not be defined
+    }
+
+    "must bind an operator Id of `all` as None" in {
+
+      val result = form.bind(Map("operatorId" -> "all"))
+      result.value.value.operatorId must not be defined
+    }
+
     "must not bind when invalid values are provided" in {
 
       val result = form.bind(Map(
