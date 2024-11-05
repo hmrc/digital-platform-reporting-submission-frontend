@@ -18,7 +18,7 @@
 @import controllers.submission.routes
 @import models.submission.{SubmissionStatus, SubmissionsSummary}
 @import uk.gov.hmrc.govukfrontend.views.Implicits.RichSelect
-@import uk.gov.hmrc.govukfrontend.views.html.components.{GovukCheckboxes, GovukPagination, GovukSelect, GovukTag}
+@import uk.gov.hmrc.govukfrontend.views.html.components.{GovukCheckboxes, GovukPagination, GovukSelect, GovukTag, GovukWarningText}
 @import uk.gov.hmrc.hmrcfrontend.views.viewmodels.accessibleautocomplete.AccessibleAutocomplete
 @import uk.gov.hmrc.govukfrontend.views.viewmodels.select.SelectItem
 @import viewmodels.{LabelSize, LegendSize, ViewSubmissionsViewModel}
@@ -30,7 +30,8 @@
         govukSelect: GovukSelect,
         govukTag: GovukTag,
         govukPagination: GovukPagination,
-        appConfig: FrontendAppConfig
+        appConfig: FrontendAppConfig,
+        govukWarningText: GovukWarningText
 )
 
 @(form: Form[_], viewModel: ViewSubmissionsViewModel)(implicit request: Request[_], messages: Messages)
@@ -45,55 +46,52 @@
 
     @viewModel.maybeSummary.map { summary =>
 
-        @if(summary.isEmpty) {
-            <p class="govuk-body">@messages("viewSubmissions.noReports")</p>
+        <p class="govuk-body">
+            <a href="@routes.SelectPlatformOperatorController.onPageLoad" class="govuk-link">@messages("viewSubmissions.addSubmission")</a>
+        </p>
 
-            <p class="govuk-body">
-                <a href="@routes.SelectPlatformOperatorController.onPageLoad" class="govuk-link">@messages("viewSubmissions.addSubmission")</a>
-            </p>
-        } else {
-            <p class="govuk-body">
-                <a href="@routes.SelectPlatformOperatorController.onPageLoad" class="govuk-link">@messages("viewSubmissions.addSubmission")</a>
-            </p>
+        <!-- TODO: Decide how to show local submissions -->
 
-            <!-- TODO: Decide how to show local submissions -->
+        <form method="GET" novalidate action="@routes.ViewSubmissionsController.onPageLoad().url">
 
-            <form method="GET" novalidate action="@routes.ViewSubmissionsController.onPageLoad().url">
-
-                @govukCheckboxes(
-                    CheckboxesViewModel(
-                        form = form,
-                        name = "statuses",
-                        legend = LegendViewModel(messages("viewSubmissions.filter.statuses")).withSize(LegendSize.Small),
-                        items = SubmissionStatus.checkboxItems
-                    )
-                    .withHint(HintViewModel(messages("viewSubmissions.statuses.hint")))
+            @govukCheckboxes(
+                CheckboxesViewModel(
+                    form = form,
+                    name = "statuses",
+                    legend = LegendViewModel(messages("viewSubmissions.filter.statuses")).withSize(LegendSize.Small),
+                    items = SubmissionStatus.checkboxItems
                 )
+                .withHint(HintViewModel(messages("viewSubmissions.statuses.hint")))
+            )
 
-                @if(viewModel.platformOperatorSelectItems.nonEmpty) {
-                    @govukSelect(
-                        SelectViewModel(
-                            field = form("operatorId"),
-                            items = viewModel.platformOperatorSelectItems,
-                            label = LabelViewModel(messages("viewSubmissions.filter.operatorId")).withSize(LabelSize.Small)
-                        )
-                        .withCssClass("govuk-input")
-                        .asAccessibleAutocomplete(Some(AccessibleAutocomplete(showAllValues = true)))
-                    )
-                }
-
+            @if(viewModel.platformOperatorSelectItems.nonEmpty) {
                 @govukSelect(
                     SelectViewModel(
-                        field = form("reportingPeriod"),
-                        items = viewModel.reportingPeriodSelectItems,
-                        label = LabelViewModel(messages("viewSubmissions.filter.reportingPeriod")).withSize(LabelSize.Small)
+                        field = form("operatorId"),
+                        items = viewModel.platformOperatorSelectItems,
+                        label = LabelViewModel(messages("viewSubmissions.filter.operatorId")).withSize(LabelSize.Small)
                     )
                     .withCssClass("govuk-input")
-                    .withCssClass("narrow-autocomplete")
-                    .asAccessibleAutocomplete(Some(AccessibleAutocomplete(showAllValues = true, defaultValue = None)))
+                    .asAccessibleAutocomplete(Some(AccessibleAutocomplete(showAllValues = true)))
                 )
+            }
 
-                @govukButton(ButtonViewModel(messages("viewSubmissions.applyFilter")))
+            @govukSelect(
+                SelectViewModel(
+                    field = form("reportingPeriod"),
+                    items = viewModel.reportingPeriodSelectItems,
+                    label = LabelViewModel(messages("viewSubmissions.filter.reportingPeriod")).withSize(LabelSize.Small)
+                )
+                .withCssClass("govuk-input")
+                .withCssClass("narrow-autocomplete")
+                .asAccessibleAutocomplete(Some(AccessibleAutocomplete(showAllValues = true, defaultValue = None)))
+            )
+
+            @govukButton(ButtonViewModel(messages("viewSubmissions.applyFilter")))
+
+            @if(summary.isEmpty) {
+                <p class="govuk-body">@messages("viewSubmissions.noMatches")</p>
+            } else {
 
                 @if(summary.deliveredSubmissions.nonEmpty) {
 
@@ -118,15 +116,10 @@
                             <tr class="govuk-table__row">
                                 <td class="govuk-table__cell">@govukTag(submission.statusTag)</td>
                                 <td class="govuk-table__cell">@shortDate(submission.submissionDateTime)</td>
-                                <td class="govuk-table__cell">@submission.operatorName <br/>
-                                    @submission.operatorId</td>
+                                <td class="govuk-table__cell">@submission.operatorName<br/>@submission.operatorId</td>
                                 <td class="govuk-table__cell">@submission.reportingPeriod</td>
                                 <td class="govuk-table__cell">@submission.fileName</td>
-                                <td class="govuk-table__cell">
-                                @submission.links.map { link =>
-                                    <a href="@link.href" class="govuk-link">@link.text</a>
-                                }
-                                </td>
+                                <td class="govuk-table__cell"><a href="@submission.link.href" class="govuk-link">@submission.link.text</a></td>
                             </tr>
                         }
                     </table>

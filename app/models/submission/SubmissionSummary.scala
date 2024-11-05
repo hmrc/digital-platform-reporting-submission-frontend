@@ -16,8 +16,7 @@
 
 package models.submission
 
-import controllers.assumed.remove.routes as removeRoutes
-import controllers.assumed.update.routes as updateRoutes
+import controllers.submission.routes
 import models.yearFormat
 import models.submission.SubmissionStatus.*
 import play.api.i18n.Messages
@@ -39,8 +38,11 @@ final case class SubmissionSummary(submissionId: String,
                                    assumingReporterName: Option[String],
                                    submissionCaseId: Option[String]) {
 
-  // TODO: Add appropriate links
-  def links(implicit messages: Messages): Seq[Link] = Nil
+  def link(implicit messages: Messages): Link = submissionStatus match {
+    case Pending  => Link(messages("viewSubmissions.refreshStatus"), routes.CheckFileController.onPageLoad(operatorId, submissionId).url)
+    case Success  => Link(messages("viewSubmissions.confirmation"), routes.SubmissionConfirmationController.onPageLoad(operatorId, submissionId).url)
+    case Rejected => Link(messages("viewSubmissions.checkErrors"), routes.FileErrorsController.onPageLoad(operatorId, submissionId).url)
+  }
 
   def statusTag(implicit messages: Messages): Tag = submissionStatus match {
     case Success  => TagViewModel(messages("viewSubmissions.success")).green()

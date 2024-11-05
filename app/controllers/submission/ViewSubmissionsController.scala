@@ -51,11 +51,7 @@ class ViewSubmissionsController @Inject()(override val messagesApi: MessagesApi,
       
       form.bindFromRequest().fold(
         errors => Future.successful(Redirect(baseRoutes.JourneyRecoveryController.onPageLoad())), // TODO: Decide what to do here
-        filter => {
-          println()
-          println(request)
-          println(filter)
-          println()
+        filter =>
           for {
             submissions <- submissionConnector.list(ViewSubmissionsRequest(filter))
             operators   <- platformOperatorConnector.viewPlatformOperators
@@ -64,7 +60,6 @@ class ViewSubmissionsController @Inject()(override val messagesApi: MessagesApi,
             
             Ok(view(form.fill(filter), viewModel))
           }
-        }
       )
   }
 }

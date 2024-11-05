@@ -30,10 +30,6 @@ error.title.prefix = Error:
 error.prefix = Error
 error.summary.title = There is a problem
 
-index.title = digital-platform-reporting-submission-frontend
-index.heading = digital-platform-reporting-submission-frontend
-index.guidance = Welcome to your new frontend. Please see the README file for a guide to getting started.
-
 checkYourAnswers.create.title = Check your answers
 checkYourAnswers.create.heading = Check your answers
 checkYourAnswers.create.p1 = By sending this report, you are confirming that the information is correct and complete to the best of your knowledge.
@@ -361,6 +357,7 @@ viewAssumedReports.return.link = manage your digital platform reporting
 viewSubmissions.title = XML submissions
 viewSubmissions.heading = XML submissions
 viewSubmissions.noReports = You have not made any XML submissions.
+viewSubmissions.noMatches = No XML submissions match the filter.
 viewSubmissions.newReport.text = Make a new XML submission
 viewSubmissions.status = Status
 viewSubmissions.submissionDate = Upload date
@@ -385,7 +382,10 @@ viewSubmissions.returnTo = Return to
 viewSubmissions.manage.link = manage your digital platform reporting
 viewSubmissions.reportingPeriod.allValues = All periods
 viewSubmissions.platformOperator.allValues = All operators
-
+viewSubmissions.refreshStatus = Refresh updates
+viewSubmissions.confirmation = Go to confirmation
+viewSubmissions.checkErrors = Check errors
+viewSubmissions.errors = Failed submissions are only viewable for 28 days after upload.
 
 removeAssumedReport.title = Delete an assumed report
 removeAssumedReport.heading = Delete an assumed report
