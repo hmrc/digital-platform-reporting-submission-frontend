@@ -56,7 +56,7 @@ class ViewSubmissionsController @Inject()(override val messagesApi: MessagesApi,
             submissions <- submissionConnector.list(ViewSubmissionsRequest(filter))
             operators   <- platformOperatorConnector.viewPlatformOperators
           } yield {
-            val viewModel = ViewSubmissionsViewModel(submissions, operators.platformOperators, filter, clock)
+            val viewModel = ViewSubmissionsViewModel(submissions, operators.platformOperators, filter, Year.now(clock))
             
             Ok(view(form.fill(filter), viewModel))
           }

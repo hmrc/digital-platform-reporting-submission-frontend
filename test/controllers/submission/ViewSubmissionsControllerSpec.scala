@@ -48,6 +48,7 @@ class ViewSubmissionsControllerSpec extends SpecBase with MockitoSugar with Befo
   private val mockPlatformOperatorConnector = mock[PlatformOperatorConnector]
   private val instant = Instant.now.truncatedTo(ChronoUnit.MILLIS)
   private val stubClock: Clock = Clock.fixed(instant, ZoneId.systemDefault)
+  private val thisYear = Year.now(stubClock)
   private val form = ViewSubmissionsFormProvider()()
 
   override def beforeEach(): Unit = {
@@ -112,7 +113,7 @@ class ViewSubmissionsControllerSpec extends SpecBase with MockitoSugar with Befo
 
         implicit val msgs: Messages = messages(application)
         val view = application.injector.instanceOf[ViewSubmissionsView]
-        val viewModel = ViewSubmissionsViewModel(Some(summary), Seq(platformOperator), defaultFilter, stubClock)(request)
+        val viewModel = ViewSubmissionsViewModel(Some(summary), Seq(platformOperator), defaultFilter, thisYear)(request)
 
         status(result) mustEqual OK
         contentAsString(result) mustEqual view(form, viewModel)(request, implicitly).toString

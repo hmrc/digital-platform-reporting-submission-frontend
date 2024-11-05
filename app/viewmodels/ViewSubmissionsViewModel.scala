@@ -16,7 +16,7 @@
 
 package viewmodels
 
-import config.Constants.firstLegislativeYear
+import config.Constants.{firstLegislativeYear, viewSubmissionsPageSize}
 import controllers.submission.routes
 import models.ViewSubmissionsFilter
 import models.operator.responses.PlatformOperator
@@ -29,7 +29,7 @@ import uk.gov.hmrc.govukfrontend.views.viewmodels.pagination.{Pagination, Pagina
 import uk.gov.hmrc.govukfrontend.views.viewmodels.select.SelectItem
 import uk.gov.hmrc.http.StringContextOps
 
-import java.time.{Clock, Year}
+import java.time.Year
 
 final case class ViewSubmissionsViewModel(
                                            maybeSummary: Option[SubmissionsSummary],
@@ -50,11 +50,11 @@ object ViewSubmissionsViewModel {
              maybeSummary: Option[SubmissionsSummary],
              operators: Seq[PlatformOperator],
              filter: ViewSubmissionsFilter,
-             clock: Clock
+             currentYear: Year
            )(implicit request: Request[?], messages: Messages): ViewSubmissionsViewModel =
     ViewSubmissionsViewModel(
       maybeSummary,
-      reportingPeriodSelectItems(clock),
+      reportingPeriodSelectItems(currentYear),
       platformOperatorSelectItems(operators),
       maybeSummary.flatMap(summary => pagination(summary.deliveredSubmissionRecordCount, filter)),
       filter,
@@ -68,8 +68,8 @@ object ViewSubmissionsViewModel {
   private def getRecordCountInfo(numberOfSubmissions: Int, pageNumber: Int)
                                 (implicit messages: Messages): Option[String] =
     if (numberOfSubmissions > 0) {
-      val firstRecord = 1 + (pageNumber - 1) * 10
-      val lastRecord  = (pageNumber * 10).min(numberOfSubmissions)
+      val firstRecord = 1 + (pageNumber - 1) * viewSubmissionsPageSize
+      val lastRecord  = (pageNumber * viewSubmissionsPageSize).min(numberOfSubmissions)
 
       Some(messages("viewSubmissions.recordCountInfo", firstRecord, lastRecord, numberOfSubmissions))
     } else {
@@ -78,16 +78,16 @@ object ViewSubmissionsViewModel {
     
   private def getTitle(numberOfSubmissions: Int, pageNumber: Int)
                       (implicit messages: Messages): String =
-    if (numberOfSubmissions < 11) {
+    if (numberOfSubmissions < viewSubmissionsPageSize + 1) {
       messages("viewSubmissions.title")
     } else {
       messages("viewSubmissions.title.pages", pageNumber, getNumberOfPages(numberOfSubmissions))
     }
 
-  private def reportingPeriodSelectItems(clock: Clock)
+  private def reportingPeriodSelectItems(currentYear: Year)
                                         (implicit messages: Messages): Seq[SelectItem] = {
     SelectItem(value = Some("0"), text = messages("viewSubmissions.reportingPeriod.allValues")) ::
-      (firstLegislativeYear to Year.now(clock).getValue).map { year =>
+      (firstLegislativeYear to currentYear.getValue).map { year =>
         SelectItem(
           value = Some(year.toString),
           text  = year.toString
@@ -110,11 +110,11 @@ object ViewSubmissionsViewModel {
     }
 
   private def getNumberOfPages(numberOfSubmissions: Int): Int =
-    (numberOfSubmissions + 9) / 10
+    (numberOfSubmissions + (viewSubmissionsPageSize - 1)) / viewSubmissionsPageSize
     
   private def pagination(numberOfSubmissions: Int, filter: ViewSubmissionsFilter)
                         (implicit request: Request[?]): Option[Pagination] =
-    if (numberOfSubmissions > 10) {
+    if (numberOfSubmissions > viewSubmissionsPageSize) {
       val numberOfPages = getNumberOfPages(numberOfSubmissions)
 
       val items =

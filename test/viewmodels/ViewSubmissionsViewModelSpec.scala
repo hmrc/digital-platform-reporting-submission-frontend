@@ -16,6 +16,7 @@
 
 package viewmodels
 
+import config.Constants.viewSubmissionsPageSize
 import controllers.submission.routes
 import models.ViewSubmissionsFilter
 import models.operator.responses.PlatformOperator
@@ -73,8 +74,7 @@ class ViewSubmissionsViewModelSpec extends AnyFreeSpec with Matchers with Option
   )
 
   private val now = Instant.now
-  private val stubClock = Clock.fixed(now, ZoneId.systemDefault)
-  private val today = LocalDate.now(stubClock)
+  private val thisYear = Year.now
   private implicit val msgs: Messages = stubMessages()
   private implicit lazy val request: Request[?] = FakeRequest(routes.ViewSubmissionsController.onPageLoad())
   private lazy val baseUrl = url"${routes.ViewSubmissionsController.onPageLoad().absoluteURL()}".toString
@@ -83,36 +83,36 @@ class ViewSubmissionsViewModelSpec extends AnyFreeSpec with Matchers with Option
 
     "must include a list of reporting period select items from the first legislative year to the current year" in {
 
-      val expectedReportingPeriods = (2024 to today.getYear).map(_.toString)
+      val expectedReportingPeriods = (2024 to thisYear.getValue).map(_.toString)
 
-      val viewModel = ViewSubmissionsViewModel(None, Nil, defaultFilter, stubClock)
+      val viewModel = ViewSubmissionsViewModel(None, Nil, defaultFilter, thisYear)
       val expectedValues = (expectedReportingPeriods :+ "0").sorted
       viewModel.reportingPeriodSelectItems.flatMap(_.value) must contain theSameElementsInOrderAs expectedValues
     }
 
     "must not include platform operator select items when there is only one platform operator" in {
 
-      val viewModel = ViewSubmissionsViewModel(None, Seq(operator1), defaultFilter, stubClock)
+      val viewModel = ViewSubmissionsViewModel(None, Seq(operator1), defaultFilter, thisYear)
       viewModel.platformOperatorSelectItems mustBe empty
     }
 
     "must include platform operator select items when there is more than one platform operator" in {
 
       val operator2 = operator1.copy(operatorId = "operatorId2")
-      val viewModel = ViewSubmissionsViewModel(None, Seq(operator1, operator2), defaultFilter, stubClock)
+      val viewModel = ViewSubmissionsViewModel(None, Seq(operator1, operator2), defaultFilter, thisYear)
       viewModel.platformOperatorSelectItems.flatMap(_.value) must contain theSameElementsInOrderAs Seq("all", "operatorId1", "operatorId2")
     }
 
     "pagination" - {
 
-      val submissions = (1 to 10).map(i => submission.copy(submissionId = i.toString))
-      val oneHundredSubmissionSummary = SubmissionsSummary(submissions, Nil, 100)
+      val submissions = (1 to viewSubmissionsPageSize).map(i => submission.copy(submissionId = i.toString))
+      val submissionSummaryWithTenPages = SubmissionsSummary(submissions, Nil, viewSubmissionsPageSize * 10)
 
-      "must be None when there are 10 or fewer submissions" in {
+      s"must be None when there are $viewSubmissionsPageSize or fewer submissions" in {
 
-        val submissionsSummary = SubmissionsSummary(submissions, Nil, 10)
+        val submissionsSummary = SubmissionsSummary(submissions, Nil, viewSubmissionsPageSize)
 
-        val viewModel = ViewSubmissionsViewModel(Some(submissionsSummary), Nil, defaultFilter, stubClock)
+        val viewModel = ViewSubmissionsViewModel(Some(submissionsSummary), Nil, defaultFilter, thisYear)
         viewModel.pagination must not be defined
       }
 
@@ -120,7 +120,7 @@ class ViewSubmissionsViewModelSpec extends AnyFreeSpec with Matchers with Option
 
         for (page <- 1 to 10) {
           val filter = defaultFilter.copy(pageNumber = page)
-          val viewModel = ViewSubmissionsViewModel(Some(oneHundredSubmissionSummary), Nil, filter, stubClock)
+          val viewModel = ViewSubmissionsViewModel(Some(submissionSummaryWithTenPages), Nil, filter, thisYear)
 
           val pagination = viewModel.pagination.value
           val currentItems = pagination.items.value.filter(_.current.contains(true))
@@ -132,7 +132,7 @@ class ViewSubmissionsViewModelSpec extends AnyFreeSpec with Matchers with Option
       "must not include a `previous` link when the current page is 1" in {
 
         val filter = defaultFilter.copy(pageNumber = 1)
-        val viewModel = ViewSubmissionsViewModel(Some(oneHundredSubmissionSummary), Nil, filter, stubClock)
+        val viewModel = ViewSubmissionsViewModel(Some(submissionSummaryWithTenPages), Nil, filter, thisYear)
 
         val pagination = viewModel.pagination.value
         pagination.previous must not be defined
@@ -142,7 +142,7 @@ class ViewSubmissionsViewModelSpec extends AnyFreeSpec with Matchers with Option
 
         for (page <- 2 to 10) {
           val filter = defaultFilter.copy(pageNumber = page)
-          val viewModel = ViewSubmissionsViewModel(Some(oneHundredSubmissionSummary), Nil, filter, stubClock)
+          val viewModel = ViewSubmissionsViewModel(Some(submissionSummaryWithTenPages), Nil, filter, thisYear)
 
           val pagination = viewModel.pagination.value
           if (page == 2) pagination.previous.value.href mustEqual baseUrl
@@ -153,7 +153,7 @@ class ViewSubmissionsViewModelSpec extends AnyFreeSpec with Matchers with Option
       "must not include a `next` link when the current page is the last page" in {
 
         val filter = defaultFilter.copy(pageNumber = 10)
-        val viewModel = ViewSubmissionsViewModel(Some(oneHundredSubmissionSummary), Nil, filter, stubClock)
+        val viewModel = ViewSubmissionsViewModel(Some(submissionSummaryWithTenPages), Nil, filter, thisYear)
 
         val pagination = viewModel.pagination.value
         pagination.next must not be defined
@@ -163,7 +163,7 @@ class ViewSubmissionsViewModelSpec extends AnyFreeSpec with Matchers with Option
 
         for (page <- 1 to 9) {
           val filter = defaultFilter.copy(pageNumber = page)
-          val viewModel = ViewSubmissionsViewModel(Some(oneHundredSubmissionSummary), Nil, filter, stubClock)
+          val viewModel = ViewSubmissionsViewModel(Some(submissionSummaryWithTenPages), Nil, filter, thisYear)
 
           val pagination = viewModel.pagination.value
           pagination.next.value.href mustEqual s"$baseUrl?page=${page + 1}"
@@ -174,7 +174,7 @@ class ViewSubmissionsViewModelSpec extends AnyFreeSpec with Matchers with Option
 
         for (page <- 4 to 10) {
           val filter = defaultFilter.copy(pageNumber = page)
-          val viewModel = ViewSubmissionsViewModel(Some(oneHundredSubmissionSummary), Nil, filter, stubClock)
+          val viewModel = ViewSubmissionsViewModel(Some(submissionSummaryWithTenPages), Nil, filter, thisYear)
 
           val pagination = viewModel.pagination.value
           val items = pagination.items.value
@@ -192,7 +192,7 @@ class ViewSubmissionsViewModelSpec extends AnyFreeSpec with Matchers with Option
 
         for (page <- 1 to 3) {
           val filter = defaultFilter.copy(pageNumber = page)
-          val viewModel = ViewSubmissionsViewModel(Some(oneHundredSubmissionSummary), Nil, filter, stubClock)
+          val viewModel = ViewSubmissionsViewModel(Some(submissionSummaryWithTenPages), Nil, filter, thisYear)
 
           val pagination = viewModel.pagination.value
           val items = pagination.items.value
@@ -205,7 +205,7 @@ class ViewSubmissionsViewModelSpec extends AnyFreeSpec with Matchers with Option
 
         for (page <- 1 to 7) {
           val filter = defaultFilter.copy(pageNumber = page)
-          val viewModel = ViewSubmissionsViewModel(Some(oneHundredSubmissionSummary), Nil, filter, stubClock)
+          val viewModel = ViewSubmissionsViewModel(Some(submissionSummaryWithTenPages), Nil, filter, thisYear)
 
           val pagination = viewModel.pagination.value
           val itemsReversed = pagination.items.value.reverse
@@ -222,7 +222,7 @@ class ViewSubmissionsViewModelSpec extends AnyFreeSpec with Matchers with Option
 
         for (page <- 8 to 10) {
           val filter = defaultFilter.copy(pageNumber = page)
-          val viewModel = ViewSubmissionsViewModel(Some(oneHundredSubmissionSummary), Nil, filter, stubClock)
+          val viewModel = ViewSubmissionsViewModel(Some(submissionSummaryWithTenPages), Nil, filter, thisYear)
 
           val pagination = viewModel.pagination.value
           val itemsReversed = pagination.items.value.reverse
@@ -233,9 +233,9 @@ class ViewSubmissionsViewModelSpec extends AnyFreeSpec with Matchers with Option
 
       "must include items for all pages when there are only 2 pages" in {
 
-        val submissionsSummary = SubmissionsSummary(submissions, Nil, 20)
+        val submissionsSummary = SubmissionsSummary(submissions, Nil, viewSubmissionsPageSize * 2)
 
-        val viewModel = ViewSubmissionsViewModel(Some(submissionsSummary), Nil, defaultFilter, stubClock)
+        val viewModel = ViewSubmissionsViewModel(Some(submissionsSummary), Nil, defaultFilter, thisYear)
 
         val pagination = viewModel.pagination.value
         val items = pagination.items.value
@@ -248,9 +248,9 @@ class ViewSubmissionsViewModelSpec extends AnyFreeSpec with Matchers with Option
 
       "must include items for all pages when there are 3 pages" in {
 
-        val submissionsSummary = SubmissionsSummary(submissions, Nil, 30)
+        val submissionsSummary = SubmissionsSummary(submissions, Nil, viewSubmissionsPageSize * 3)
 
-        val viewModel = ViewSubmissionsViewModel(Some(submissionsSummary), Nil, defaultFilter, stubClock)
+        val viewModel = ViewSubmissionsViewModel(Some(submissionsSummary), Nil, defaultFilter, thisYear)
 
         val pagination = viewModel.pagination.value
         val items = pagination.items.value
@@ -270,9 +270,9 @@ class ViewSubmissionsViewModelSpec extends AnyFreeSpec with Matchers with Option
           operatorId = Some("operatorId"),
           statuses = Set(Success, Pending)
         )
-        val submissionsSummary = SubmissionsSummary(submissions, Nil, 20)
+        val submissionsSummary = SubmissionsSummary(submissions, Nil, viewSubmissionsPageSize * 2)
 
-        val viewModel = ViewSubmissionsViewModel(Some(submissionsSummary), Nil, filter, stubClock)
+        val viewModel = ViewSubmissionsViewModel(Some(submissionsSummary), Nil, filter, thisYear)
 
         val pagination = viewModel.pagination.value
         val items = pagination.items.value
@@ -302,9 +302,9 @@ class ViewSubmissionsViewModelSpec extends AnyFreeSpec with Matchers with Option
       "must include `Ascending` in pagination links when it is in the filter" in {
 
         val filter = defaultFilter.copy(sortOrder = Ascending)
-        val submissionsSummary = SubmissionsSummary(submissions, Nil, 20)
+        val submissionsSummary = SubmissionsSummary(submissions, Nil, viewSubmissionsPageSize * 2)
 
-        val viewModel = ViewSubmissionsViewModel(Some(submissionsSummary), Nil, filter, stubClock)
+        val viewModel = ViewSubmissionsViewModel(Some(submissionsSummary), Nil, filter, thisYear)
 
         val pagination = viewModel.pagination.value
         val items = pagination.items.value
@@ -314,16 +314,16 @@ class ViewSubmissionsViewModelSpec extends AnyFreeSpec with Matchers with Option
         )
         checkQueryParameters(
           href = items(1).href,
-          expectedParameters = Set("sortOrder" -> Ascending.entryName, "page"       -> "2")
+          expectedParameters = Set("sortOrder" -> Ascending.entryName, "page" -> "2")
         )
       }
 
       "must not include `Descending` in the pagination links when it is in the filter" in {
 
         val filter = defaultFilter.copy(sortOrder = Descending)
-        val submissionsSummary = SubmissionsSummary(submissions, Nil, 20)
+        val submissionsSummary = SubmissionsSummary(submissions, Nil, viewSubmissionsPageSize * 2)
 
-        val viewModel = ViewSubmissionsViewModel(Some(submissionsSummary), Nil, filter, stubClock)
+        val viewModel = ViewSubmissionsViewModel(Some(submissionsSummary), Nil, filter, thisYear)
 
         val pagination = viewModel.pagination.value
         val items = pagination.items.value
@@ -333,16 +333,16 @@ class ViewSubmissionsViewModelSpec extends AnyFreeSpec with Matchers with Option
         )
         checkQueryParameters(
           href = items(1).href,
-          expectedParameters = Set("page"       -> "2")
+          expectedParameters = Set("page" -> "2")
         )
       }
 
       "must include `Reporting period` as the sort option when it is in the filter" in {
 
         val filter = defaultFilter.copy(sortBy = ReportingPeriod)
-        val submissionsSummary = SubmissionsSummary(submissions, Nil, 20)
+        val submissionsSummary = SubmissionsSummary(submissions, Nil, viewSubmissionsPageSize * 2)
 
-        val viewModel = ViewSubmissionsViewModel(Some(submissionsSummary), Nil, filter, stubClock)
+        val viewModel = ViewSubmissionsViewModel(Some(submissionsSummary), Nil, filter, thisYear)
 
         val pagination = viewModel.pagination.value
         val items = pagination.items.value
@@ -352,16 +352,16 @@ class ViewSubmissionsViewModelSpec extends AnyFreeSpec with Matchers with Option
         )
         checkQueryParameters(
           href = items(1).href,
-          expectedParameters = Set("sortBy" -> ReportingPeriod.entryName, "page"       -> "2")
+          expectedParameters = Set("sortBy" -> ReportingPeriod.entryName, "page" -> "2")
         )
       }
 
       "must include `platform operator` as the sort option when it is in the filter" in {
 
         val filter = defaultFilter.copy(sortBy = SortBy.PlatformOperator)
-        val submissionsSummary = SubmissionsSummary(submissions, Nil, 20)
+        val submissionsSummary = SubmissionsSummary(submissions, Nil, viewSubmissionsPageSize * 2)
 
-        val viewModel = ViewSubmissionsViewModel(Some(submissionsSummary), Nil, filter, stubClock)
+        val viewModel = ViewSubmissionsViewModel(Some(submissionsSummary), Nil, filter, thisYear)
 
         val pagination = viewModel.pagination.value
         val items = pagination.items.value
@@ -371,16 +371,16 @@ class ViewSubmissionsViewModelSpec extends AnyFreeSpec with Matchers with Option
         )
         checkQueryParameters(
           href = items(1).href,
-          expectedParameters = Set("sortBy" -> SortBy.PlatformOperator.entryName, "page"       -> "2")
+          expectedParameters = Set("sortBy" -> SortBy.PlatformOperator.entryName, "page" -> "2")
         )
       }
 
       "must not include `Submission date` as the sort option when it is in the filter" in {
 
         val filter = defaultFilter.copy(sortBy = SubmissionDate)
-        val submissionsSummary = SubmissionsSummary(submissions, Nil, 20)
+        val submissionsSummary = SubmissionsSummary(submissions, Nil, viewSubmissionsPageSize * 2)
 
-        val viewModel = ViewSubmissionsViewModel(Some(submissionsSummary), Nil, filter, stubClock)
+        val viewModel = ViewSubmissionsViewModel(Some(submissionsSummary), Nil, filter, thisYear)
 
         val pagination = viewModel.pagination.value
         val items = pagination.items.value
@@ -390,7 +390,7 @@ class ViewSubmissionsViewModelSpec extends AnyFreeSpec with Matchers with Option
         )
         checkQueryParameters(
           href = items(1).href,
-          expectedParameters = Set("page"       -> "2")
+          expectedParameters = Set("page"-> "2")
         )
       }
     }
@@ -405,10 +405,10 @@ class ViewSubmissionsViewModelSpec extends AnyFreeSpec with Matchers with Option
           statuses = Set(Success, Pending),
           pageNumber = 2
         )
-        val submissions = (1 to 10).map(i => submission.copy(submissionId = i.toString))
-        val submissionsSummary = SubmissionsSummary(submissions, Nil, 20)
+        val submissions = (1 to viewSubmissionsPageSize).map(i => submission.copy(submissionId = i.toString))
+        val submissionsSummary = SubmissionsSummary(submissions, Nil, viewSubmissionsPageSize * 2)
 
-        val viewModel = ViewSubmissionsViewModel(Some(submissionsSummary), Nil, filter, stubClock)
+        val viewModel = ViewSubmissionsViewModel(Some(submissionsSummary), Nil, filter, thisYear)
 
         checkQueryParameters(viewModel.submissionDateSortLink, Set(
           "sortBy" -> SubmissionDate.entryName,
@@ -423,10 +423,10 @@ class ViewSubmissionsViewModelSpec extends AnyFreeSpec with Matchers with Option
       "must set sort order to Descending when the filter is currently sorted by submission date ascending" in {
 
         val filter = defaultFilter.copy(sortBy = SubmissionDate, sortOrder = Ascending)
-        val submissions = (1 to 10).map(i => submission.copy(submissionId = i.toString))
-        val submissionsSummary = SubmissionsSummary(submissions, Nil, 20)
+        val submissions = (1 to viewSubmissionsPageSize).map(i => submission.copy(submissionId = i.toString))
+        val submissionsSummary = SubmissionsSummary(submissions, Nil, viewSubmissionsPageSize * 2)
 
-        val viewModel = ViewSubmissionsViewModel(Some(submissionsSummary), Nil, filter, stubClock)
+        val viewModel = ViewSubmissionsViewModel(Some(submissionsSummary), Nil, filter, thisYear)
 
         checkQueryParameters(viewModel.submissionDateSortLink, Set(
           "sortBy" -> SubmissionDate.entryName,
@@ -437,10 +437,10 @@ class ViewSubmissionsViewModelSpec extends AnyFreeSpec with Matchers with Option
       "must set sort order to Descending when the filter is currently sorted by something other than submission date" in {
 
         val filter = defaultFilter.copy(sortBy = ReportingPeriod)
-        val submissions = (1 to 10).map(i => submission.copy(submissionId = i.toString))
-        val submissionsSummary = SubmissionsSummary(submissions, Nil, 20)
+        val submissions = (1 to viewSubmissionsPageSize).map(i => submission.copy(submissionId = i.toString))
+        val submissionsSummary = SubmissionsSummary(submissions, Nil, viewSubmissionsPageSize * 2)
 
-        val viewModel = ViewSubmissionsViewModel(Some(submissionsSummary), Nil, filter, stubClock)
+        val viewModel = ViewSubmissionsViewModel(Some(submissionsSummary), Nil, filter, thisYear)
 
         checkQueryParameters(viewModel.submissionDateSortLink, Set(
           "sortBy" -> SubmissionDate.entryName,
@@ -451,10 +451,10 @@ class ViewSubmissionsViewModelSpec extends AnyFreeSpec with Matchers with Option
       "must set sort order to Ascending when the filter is currently sorted by submission date descending" in {
 
         val filter = defaultFilter.copy(sortBy = SubmissionDate, sortOrder = Descending)
-        val submissions = (1 to 10).map(i => submission.copy(submissionId = i.toString))
-        val submissionsSummary = SubmissionsSummary(submissions, Nil, 20)
+        val submissions = (1 to viewSubmissionsPageSize).map(i => submission.copy(submissionId = i.toString))
+        val submissionsSummary = SubmissionsSummary(submissions, Nil, viewSubmissionsPageSize * 2)
 
-        val viewModel = ViewSubmissionsViewModel(Some(submissionsSummary), Nil, filter, stubClock)
+        val viewModel = ViewSubmissionsViewModel(Some(submissionsSummary), Nil, filter, thisYear)
 
         checkQueryParameters(viewModel.submissionDateSortLink, Set(
           "sortBy" -> SubmissionDate.entryName,
@@ -473,10 +473,10 @@ class ViewSubmissionsViewModelSpec extends AnyFreeSpec with Matchers with Option
           statuses = Set(Success, Pending),
           pageNumber = 2
         )
-        val submissions = (1 to 10).map(i => submission.copy(submissionId = i.toString))
-        val submissionsSummary = SubmissionsSummary(submissions, Nil, 20)
+        val submissions = (1 to viewSubmissionsPageSize).map(i => submission.copy(submissionId = i.toString))
+        val submissionsSummary = SubmissionsSummary(submissions, Nil, viewSubmissionsPageSize * 2)
 
-        val viewModel = ViewSubmissionsViewModel(Some(submissionsSummary), Nil, filter, stubClock)
+        val viewModel = ViewSubmissionsViewModel(Some(submissionsSummary), Nil, filter, thisYear)
 
         checkQueryParameters(viewModel.reportingPeriodSortLink, Set(
           "sortBy" -> ReportingPeriod.entryName,
@@ -491,10 +491,10 @@ class ViewSubmissionsViewModelSpec extends AnyFreeSpec with Matchers with Option
       "must set sort order to Descending when the filter is currently sorted by reporting period ascending" in {
 
         val filter = defaultFilter.copy(sortBy = ReportingPeriod, sortOrder = Ascending)
-        val submissions = (1 to 10).map(i => submission.copy(submissionId = i.toString))
-        val submissionsSummary = SubmissionsSummary(submissions, Nil, 20)
+        val submissions = (1 to viewSubmissionsPageSize).map(i => submission.copy(submissionId = i.toString))
+        val submissionsSummary = SubmissionsSummary(submissions, Nil, viewSubmissionsPageSize * 2)
 
-        val viewModel = ViewSubmissionsViewModel(Some(submissionsSummary), Nil, filter, stubClock)
+        val viewModel = ViewSubmissionsViewModel(Some(submissionsSummary), Nil, filter, thisYear)
 
         checkQueryParameters(viewModel.reportingPeriodSortLink, Set(
           "sortBy" -> ReportingPeriod.entryName,
@@ -505,10 +505,10 @@ class ViewSubmissionsViewModelSpec extends AnyFreeSpec with Matchers with Option
       "must set sort order to Descending when the filter is currently sorted by something other than reporting period" in {
 
         val filter = defaultFilter.copy(sortBy = SubmissionDate, sortOrder = Descending)
-        val submissions = (1 to 10).map(i => submission.copy(submissionId = i.toString))
-        val submissionsSummary = SubmissionsSummary(submissions, Nil, 20)
+        val submissions = (1 to viewSubmissionsPageSize).map(i => submission.copy(submissionId = i.toString))
+        val submissionsSummary = SubmissionsSummary(submissions, Nil, viewSubmissionsPageSize * 2)
 
-        val viewModel = ViewSubmissionsViewModel(Some(submissionsSummary), Nil, filter, stubClock)
+        val viewModel = ViewSubmissionsViewModel(Some(submissionsSummary), Nil, filter, thisYear)
 
         checkQueryParameters(viewModel.reportingPeriodSortLink, Set(
           "sortBy" -> ReportingPeriod.entryName,
@@ -519,10 +519,10 @@ class ViewSubmissionsViewModelSpec extends AnyFreeSpec with Matchers with Option
       "must set sort order to Ascending when the filter is currently sorted by reporting period descending" in {
 
         val filter = defaultFilter.copy(sortBy = ReportingPeriod, sortOrder = Descending)
-        val submissions = (1 to 10).map(i => submission.copy(submissionId = i.toString))
-        val submissionsSummary = SubmissionsSummary(submissions, Nil, 20)
+        val submissions = (1 to viewSubmissionsPageSize).map(i => submission.copy(submissionId = i.toString))
+        val submissionsSummary = SubmissionsSummary(submissions, Nil, viewSubmissionsPageSize * 2)
 
-        val viewModel = ViewSubmissionsViewModel(Some(submissionsSummary), Nil, filter, stubClock)
+        val viewModel = ViewSubmissionsViewModel(Some(submissionsSummary), Nil, filter, thisYear)
 
         checkQueryParameters(viewModel.reportingPeriodSortLink, Set(
           "sortBy" -> ReportingPeriod.entryName,
@@ -541,10 +541,10 @@ class ViewSubmissionsViewModelSpec extends AnyFreeSpec with Matchers with Option
           statuses = Set(Success, Pending),
           pageNumber = 2
         )
-        val submissions = (1 to 10).map(i => submission.copy(submissionId = i.toString))
-        val submissionsSummary = SubmissionsSummary(submissions, Nil, 20)
+        val submissions = (1 to viewSubmissionsPageSize).map(i => submission.copy(submissionId = i.toString))
+        val submissionsSummary = SubmissionsSummary(submissions, Nil, viewSubmissionsPageSize * 2)
 
-        val viewModel = ViewSubmissionsViewModel(Some(submissionsSummary), Nil, filter, stubClock)
+        val viewModel = ViewSubmissionsViewModel(Some(submissionsSummary), Nil, filter, thisYear)
 
         checkQueryParameters(viewModel.platformOperatorSortLink, Set(
           "sortBy" -> SortBy.PlatformOperator.entryName,
@@ -559,10 +559,10 @@ class ViewSubmissionsViewModelSpec extends AnyFreeSpec with Matchers with Option
       "must set sort order to Descending when the filter is currently sorted by platform operator ascending" in {
 
         val filter = defaultFilter.copy(sortBy = SortBy.PlatformOperator, sortOrder = Ascending)
-        val submissions = (1 to 10).map(i => submission.copy(submissionId = i.toString))
-        val submissionsSummary = SubmissionsSummary(submissions, Nil, 20)
+        val submissions = (1 to viewSubmissionsPageSize).map(i => submission.copy(submissionId = i.toString))
+        val submissionsSummary = SubmissionsSummary(submissions, Nil, viewSubmissionsPageSize* 2)
 
-        val viewModel = ViewSubmissionsViewModel(Some(submissionsSummary), Nil, filter, stubClock)
+        val viewModel = ViewSubmissionsViewModel(Some(submissionsSummary), Nil, filter, thisYear)
 
         checkQueryParameters(viewModel.platformOperatorSortLink, Set(
           "sortBy" -> SortBy.PlatformOperator.entryName,
@@ -573,10 +573,10 @@ class ViewSubmissionsViewModelSpec extends AnyFreeSpec with Matchers with Option
       "must set sort order to Descending when the filter is currently sorted by something other than platform operator" in {
 
         val filter = defaultFilter.copy(sortBy = SubmissionDate, sortOrder = Descending)
-        val submissions = (1 to 10).map(i => submission.copy(submissionId = i.toString))
-        val submissionsSummary = SubmissionsSummary(submissions, Nil, 20)
+        val submissions = (1 to viewSubmissionsPageSize).map(i => submission.copy(submissionId = i.toString))
+        val submissionsSummary = SubmissionsSummary(submissions, Nil, viewSubmissionsPageSize * 2)
 
-        val viewModel = ViewSubmissionsViewModel(Some(submissionsSummary), Nil, filter, stubClock)
+        val viewModel = ViewSubmissionsViewModel(Some(submissionsSummary), Nil, filter, thisYear)
 
         checkQueryParameters(viewModel.platformOperatorSortLink, Set(
           "sortBy" -> SortBy.PlatformOperator.entryName,
@@ -587,10 +587,10 @@ class ViewSubmissionsViewModelSpec extends AnyFreeSpec with Matchers with Option
       "must set sort order to Ascending when the filter is currently sorted by platform operator descending" in {
 
         val filter = defaultFilter.copy(sortBy = SortBy.PlatformOperator, sortOrder = Descending)
-        val submissions = (1 to 10).map(i => submission.copy(submissionId = i.toString))
-        val submissionsSummary = SubmissionsSummary(submissions, Nil, 20)
+        val submissions = (1 to viewSubmissionsPageSize).map(i => submission.copy(submissionId = i.toString))
+        val submissionsSummary = SubmissionsSummary(submissions, Nil, viewSubmissionsPageSize * 2)
 
-        val viewModel = ViewSubmissionsViewModel(Some(submissionsSummary), Nil, filter, stubClock)
+        val viewModel = ViewSubmissionsViewModel(Some(submissionsSummary), Nil, filter, thisYear)
 
         checkQueryParameters(viewModel.platformOperatorSortLink, Set(
           "sortBy" -> SortBy.PlatformOperator.entryName,
@@ -602,23 +602,23 @@ class ViewSubmissionsViewModelSpec extends AnyFreeSpec with Matchers with Option
 
   "must not include page number information in the title when there are no submissions" in {
 
-    val viewModel = ViewSubmissionsViewModel(None, Nil, defaultFilter, stubClock)
+    val viewModel = ViewSubmissionsViewModel(None, Nil, defaultFilter, thisYear)
     viewModel.pageTitle mustEqual msgs("viewSubmissions.title")
   }
 
-  "must not include page number information in the title when there are 10 submissions or fewer" in {
+  s"must not include page number information in the title when there are $viewSubmissionsPageSize submissions or fewer" in {
 
-    val submissions = (1 to 10).map(i => submission.copy(submissionId = i.toString))
-    val submissionsSummary = SubmissionsSummary(submissions, Nil, 10)
-    val viewModel = ViewSubmissionsViewModel(Some(submissionsSummary), Nil, defaultFilter, stubClock)
+    val submissions = (1 to viewSubmissionsPageSize).map(i => submission.copy(submissionId = i.toString))
+    val submissionsSummary = SubmissionsSummary(submissions, Nil, viewSubmissionsPageSize)
+    val viewModel = ViewSubmissionsViewModel(Some(submissionsSummary), Nil, defaultFilter, thisYear)
     viewModel.pageTitle mustEqual msgs("viewSubmissions.title")
   }
 
-  "must include page number information in the title when there are 11 submissions or more" in {
+  s"must include page number information in the title when there are ${viewSubmissionsPageSize + 1} submissions or more" in {
 
-    val submissions = (1 to 10).map(i => submission.copy(submissionId = i.toString))
-    val submissionsSummary = SubmissionsSummary(submissions, Nil, 11)
-    val viewModel = ViewSubmissionsViewModel(Some(submissionsSummary), Nil, defaultFilter, stubClock)
+    val submissions = (1 to viewSubmissionsPageSize).map(i => submission.copy(submissionId = i.toString))
+    val submissionsSummary = SubmissionsSummary(submissions, Nil, viewSubmissionsPageSize + 1)
+    val viewModel = ViewSubmissionsViewModel(Some(submissionsSummary), Nil, defaultFilter, thisYear)
     viewModel.pageTitle mustEqual msgs("viewSubmissions.title.pages", 1, 2)
   }
 
