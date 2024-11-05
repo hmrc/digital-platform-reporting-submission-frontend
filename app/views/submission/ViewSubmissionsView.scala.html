@@ -37,7 +37,7 @@
 @(form: Form[_], viewModel: ViewSubmissionsViewModel)(implicit request: Request[_], messages: Messages)
 
 @layout(
-    pageTitle = titleNoForm(messages("viewSubmissions.title")),
+    pageTitle = viewModel.pageTitle,
     showBackLink = false,
     fullWidth = true
 ) {

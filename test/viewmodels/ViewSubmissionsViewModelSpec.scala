@@ -600,6 +600,28 @@ class ViewSubmissionsViewModelSpec extends AnyFreeSpec with Matchers with Option
     }
   }
 
+  "must not include page number information in the title when there are no submissions" in {
+
+    val viewModel = ViewSubmissionsViewModel(None, Nil, defaultFilter, stubClock)
+    viewModel.pageTitle mustEqual msgs("viewSubmissions.title")
+  }
+
+  "must not include page number information in the title when there are 10 submissions or fewer" in {
+
+    val submissions = (1 to 10).map(i => submission.copy(submissionId = i.toString))
+    val submissionsSummary = SubmissionsSummary(submissions, Nil, 10)
+    val viewModel = ViewSubmissionsViewModel(Some(submissionsSummary), Nil, defaultFilter, stubClock)
+    viewModel.pageTitle mustEqual msgs("viewSubmissions.title")
+  }
+
+  "must include page number information in the title when there are 11 submissions or more" in {
+
+    val submissions = (1 to 10).map(i => submission.copy(submissionId = i.toString))
+    val submissionsSummary = SubmissionsSummary(submissions, Nil, 11)
+    val viewModel = ViewSubmissionsViewModel(Some(submissionsSummary), Nil, defaultFilter, stubClock)
+    viewModel.pageTitle mustEqual msgs("viewSubmissions.title.pages", 1, 2)
+  }
+
   private def checkQueryParameters(href: String, expectedParameters: Set[(String, String)]): Unit = {
 
     val query = URI(href).getQuery

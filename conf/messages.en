@@ -355,6 +355,7 @@ viewAssumedReports.return = Return to
 viewAssumedReports.return.link = manage your digital platform reporting
 
 viewSubmissions.title = XML submissions
+viewSubmissions.title.pages = XML submissions (page {0} of {1})
 viewSubmissions.heading = XML submissions
 viewSubmissions.noReports = You have not made any XML submissions.
 viewSubmissions.noMatches = No XML submissions match the filter.

@@ -40,7 +40,8 @@ final case class ViewSubmissionsViewModel(
                                            recordCountInfo: Option[String],
                                            submissionDateSortLink: String,
                                            reportingPeriodSortLink: String,
-                                           platformOperatorSortLink: String
+                                           platformOperatorSortLink: String,
+                                           pageTitle: String
                                          )
 
 object ViewSubmissionsViewModel {
@@ -60,7 +61,8 @@ object ViewSubmissionsViewModel {
       maybeSummary.flatMap(summary => getRecordCountInfo(summary.deliveredSubmissionRecordCount, filter.pageNumber)),
       submissionDateSortLink(filter),
       reportingPeriodSortLink(filter),
-      platformOperatorSortLink(filter)
+      platformOperatorSortLink(filter),
+      getTitle(maybeSummary.map(_.deliveredSubmissionRecordCount).getOrElse(0), filter.pageNumber)
     )
 
   private def getRecordCountInfo(numberOfSubmissions: Int, pageNumber: Int)
@@ -72,6 +74,14 @@ object ViewSubmissionsViewModel {
       Some(messages("viewSubmissions.recordCountInfo", firstRecord, lastRecord, numberOfSubmissions))
     } else {
       None
+    }
+    
+  private def getTitle(numberOfSubmissions: Int, pageNumber: Int)
+                      (implicit messages: Messages): String =
+    if (numberOfSubmissions < 11) {
+      messages("viewSubmissions.title")
+    } else {
+      messages("viewSubmissions.title.pages", pageNumber, getNumberOfPages(numberOfSubmissions))
     }
 
   private def reportingPeriodSelectItems(clock: Clock)
@@ -99,10 +109,13 @@ object ViewSubmissionsViewModel {
       Nil
     }
 
+  private def getNumberOfPages(numberOfSubmissions: Int): Int =
+    (numberOfSubmissions + 9) / 10
+    
   private def pagination(numberOfSubmissions: Int, filter: ViewSubmissionsFilter)
                         (implicit request: Request[?]): Option[Pagination] =
     if (numberOfSubmissions > 10) {
-      val numberOfPages = (numberOfSubmissions + 9) / 10
+      val numberOfPages = getNumberOfPages(numberOfSubmissions)
 
       val items =
         paginationStart(filter) ++
