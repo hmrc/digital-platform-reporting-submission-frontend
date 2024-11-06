@@ -392,14 +392,23 @@ class SubmissionConnectorSpec
   
   "list" - {
     
-    val request = ViewSubmissionsRequest(assumedReporting = false)
+    val request = ViewSubmissionsRequest(
+      assumedReporting = false,
+      pageNumber = 1,
+      sortBy = SortBy.SubmissionDate,
+      sortOrder = SortOrder.Descending,
+      reportingPeriod = None,
+      operatorId = None,
+      statuses = Nil
+    )
 
     "must return a submission summary when the server returns OK" in {
 
-      val submissionsSummary = SubmissionsSummary(Nil, Nil)
+      val submissionsSummary = SubmissionsSummary(Nil, Nil, 0)
       val responsePayload = Json.obj(
         "deliveredSubmissions" -> Json.arr(),
-        "localSubmissions" -> Json.arr()
+        "localSubmissions" -> Json.arr(),
+        "deliveredSubmissionRecordCount" -> 0
       )
 
       wireMockServer.stubFor(

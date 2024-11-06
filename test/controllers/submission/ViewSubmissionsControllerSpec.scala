@@ -17,8 +17,15 @@
 package controllers.submission
 
 import base.SpecBase
-import connectors.SubmissionConnector
+import connectors.{PlatformOperatorConnector, SubmissionConnector}
+import forms.ViewSubmissionsFormProvider
+import models.ViewSubmissionsFilter
+import models.operator.{AddressDetails, ContactDetails}
+import models.operator.responses.{PlatformOperator, ViewPlatformOperatorsResponse}
+import models.submission.SortBy.SubmissionDate
+import models.submission.SortOrder.Descending
 import models.submission.{SubmissionStatus, SubmissionSummary, SubmissionsSummary}
+import models.subscription.OrganisationContact
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.{times, verify, when}
 import org.mockito.{ArgumentCaptor, Mockito}
@@ -28,25 +35,30 @@ import play.api.i18n.Messages
 import play.api.inject.bind
 import play.api.test.FakeRequest
 import play.api.test.Helpers.*
+import viewmodels.ViewSubmissionsViewModel
 import views.html.submission.ViewSubmissionsView
 
-import java.time.{Instant, Year}
+import java.time.temporal.ChronoUnit
+import java.time.{Clock, Instant, Year, ZoneId}
 import scala.concurrent.Future
 
 class ViewSubmissionsControllerSpec extends SpecBase with MockitoSugar with BeforeAndAfterEach {
 
-  private val mockConnector = mock[SubmissionConnector]
+  private val mockSubmissionConnector = mock[SubmissionConnector]
+  private val mockPlatformOperatorConnector = mock[PlatformOperatorConnector]
+  private val instant = Instant.now.truncatedTo(ChronoUnit.MILLIS)
+  private val stubClock: Clock = Clock.fixed(instant, ZoneId.systemDefault)
+  private val thisYear = Year.now(stubClock)
+  private val form = ViewSubmissionsFormProvider()()
 
   override def beforeEach(): Unit = {
-    Mockito.reset(mockConnector)
+    Mockito.reset(mockSubmissionConnector, mockPlatformOperatorConnector)
     super.beforeEach()
   }
 
-  private val now = Instant.now
-
   "ViewSubmissions Controller" - {
 
-    "must return OK and the correct view for a GET when submissions exist" in {
+    "must return OK and the correct view for a GET" in {
 
       val submissionSummary = SubmissionSummary(
         submissionId = "submissionId",
@@ -54,18 +66,43 @@ class ViewSubmissionsControllerSpec extends SpecBase with MockitoSugar with Befo
         operatorId = "operatorId",
         operatorName = "operatorName",
         reportingPeriod = Year.of(2024),
-        submissionDateTime = now,
+        submissionDateTime = instant,
         submissionStatus = SubmissionStatus.Success,
         assumingReporterName = None,
         submissionCaseId = Some("reportingPeriod")
       )
-      val summary = SubmissionsSummary(Seq(submissionSummary), Nil)
+      val summary = SubmissionsSummary(Seq(submissionSummary), Nil, 1)
+      
+      val platformOperator = PlatformOperator(
+        operatorId = "operatorId",
+        operatorName = "operatorName",
+        tinDetails = Nil,
+        businessName = None,
+        tradingName = None,
+        primaryContactDetails = ContactDetails(None, "name", "email"),
+        secondaryContactDetails = None,
+        addressDetails = AddressDetails("line 1", None, None, None, None, Some("GB")),
+        notifications = Nil
+      )
+      val platformOperatorResponse = ViewPlatformOperatorsResponse(Seq(platformOperator))
+      
+      val defaultFilter = ViewSubmissionsFilter(
+        pageNumber = 1,
+        sortBy = SubmissionDate,
+        sortOrder = Descending,
+        statuses = Set.empty,
+        operatorId = None,
+        reportingPeriod = None
+      )
 
-      when(mockConnector.list(any())(using any())).thenReturn(Future.successful(Some(summary)))
+      when(mockSubmissionConnector.list(any())(using any())).thenReturn(Future.successful(Some(summary)))
+      when(mockPlatformOperatorConnector.viewPlatformOperators(any())).thenReturn(Future.successful(platformOperatorResponse))
 
       val application = applicationBuilder(userAnswers = None)
         .overrides(
-          bind[SubmissionConnector].toInstance(mockConnector)
+          bind[SubmissionConnector].toInstance(mockSubmissionConnector),
+          bind[PlatformOperatorConnector].toInstance(mockPlatformOperatorConnector),
+          bind[Clock].toInstance(stubClock)
         )
         .build()
 
@@ -74,34 +111,12 @@ class ViewSubmissionsControllerSpec extends SpecBase with MockitoSugar with Befo
 
         val result = route(application, request).value
 
-        val view = application.injector.instanceOf[ViewSubmissionsView]
         implicit val msgs: Messages = messages(application)
+        val view = application.injector.instanceOf[ViewSubmissionsView]
+        val viewModel = ViewSubmissionsViewModel(Some(summary), Seq(platformOperator), defaultFilter, thisYear)(request)
 
         status(result) mustEqual OK
-        contentAsString(result) mustEqual view(Some(summary))(request, implicitly).toString
-      }
-    }
-
-    "must return OK and the correct view for a GET when no assumed reports exist" in {
-
-      when(mockConnector.list(any())(using any())).thenReturn(Future.successful(None))
-
-      val application = applicationBuilder(userAnswers = None)
-        .overrides(
-          bind[SubmissionConnector].toInstance(mockConnector)
-        )
-        .build()
-
-      running(application) {
-        val request = FakeRequest(routes.ViewSubmissionsController.onPageLoad())
-
-        val result = route(application, request).value
-
-        val view = application.injector.instanceOf[ViewSubmissionsView]
-        implicit val msgs: Messages = messages(application)
-
-        status(result) mustEqual OK
-        contentAsString(result) mustEqual view(None)(request, implicitly).toString
+        contentAsString(result) mustEqual view(form, viewModel)(request, implicitly).toString
       }
     }
   }
