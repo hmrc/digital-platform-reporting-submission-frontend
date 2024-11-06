@@ -178,11 +178,15 @@ object ViewSubmissionsViewModel {
 
   private def paginationHref(filter: ViewSubmissionsFilter, pageNumber: Int)
                             (implicit request: Request[?]): String = {
-    val sortByQueryParameter = if (filter.sortBy != SubmissionDate) Some("sortBy" -> filter.sortBy.entryName) else None
-    val sortOrderParameter   = if (filter.sortOrder == Ascending)   Some("sortOrder" -> Ascending.entryName)  else None
-    val sortQueryParameters  = Seq(sortByQueryParameter, sortOrderParameter).flatten.toMap
+    val sortQueryParameters = Map(
+      "sortBy" -> filter.sortBy.entryName,
+      "sortOrder" -> filter.sortOrder.entryName
+    )
 
-    val queryParameters: Map[String, String] = filterQueryParameters(filter) ++ sortQueryParameters ++ pageNumberQueryParameter(pageNumber)
+    val queryParameters: Map[String, String] =
+      filterQueryParameters(filter) ++
+        sortQueryParameters ++
+        pageNumberQueryParameter(pageNumber)
 
     buildLink(queryParameters)
   }

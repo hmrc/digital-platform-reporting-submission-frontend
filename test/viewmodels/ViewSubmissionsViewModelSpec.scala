@@ -77,7 +77,6 @@ class ViewSubmissionsViewModelSpec extends AnyFreeSpec with Matchers with Option
   private val thisYear = Year.now
   private implicit val msgs: Messages = stubMessages()
   private implicit lazy val request: Request[?] = FakeRequest(routes.ViewSubmissionsController.onPageLoad())
-  private lazy val baseUrl = url"${routes.ViewSubmissionsController.onPageLoad().absoluteURL()}".toString
 
   ".apply" - {
 
@@ -145,8 +144,14 @@ class ViewSubmissionsViewModelSpec extends AnyFreeSpec with Matchers with Option
           val viewModel = ViewSubmissionsViewModel(Some(submissionSummaryWithTenPages), Nil, filter, thisYear)
 
           val pagination = viewModel.pagination.value
-          if (page == 2) pagination.previous.value.href mustEqual baseUrl
-          if (page > 2)  pagination.previous.value.href mustEqual s"$baseUrl?page=${page - 1}"
+          if (page == 2) checkQueryParameters(
+            href = pagination.previous.value.href,
+            expectedParameters = Set("sortOrder" -> Descending.entryName, "sortBy" -> SubmissionDate.entryName)
+          )
+          if (page > 2)  checkQueryParameters(
+            href = pagination.previous.value.href,
+            expectedParameters = Set("sortOrder" -> Descending.entryName, "sortBy" -> SubmissionDate.entryName, "page" -> (page - 1).toString)
+          )
         }
       }
 
@@ -166,7 +171,10 @@ class ViewSubmissionsViewModelSpec extends AnyFreeSpec with Matchers with Option
           val viewModel = ViewSubmissionsViewModel(Some(submissionSummaryWithTenPages), Nil, filter, thisYear)
 
           val pagination = viewModel.pagination.value
-          pagination.next.value.href mustEqual s"$baseUrl?page=${page + 1}"
+          checkQueryParameters(
+            href = pagination.next.value.href,
+            expectedParameters = Set("sortOrder" -> Descending.entryName, "sortBy" -> SubmissionDate.entryName, "page" -> (page + 1).toString)
+          )
         }
       }
 
@@ -179,12 +187,12 @@ class ViewSubmissionsViewModelSpec extends AnyFreeSpec with Matchers with Option
           val pagination = viewModel.pagination.value
           val items = pagination.items.value
           items(0).number.value   mustEqual "1"
-          items(0).href           mustEqual baseUrl
           items(1).ellipsis.value mustEqual true
           items(2).number.value   mustEqual (page - 1).toString
-          items(2).href           mustEqual s"$baseUrl?page=${page - 1}"
           items(3).number.value   mustEqual page.toString
-          items(3).href           mustEqual s"$baseUrl?page=$page"
+          checkQueryParameters(items(0).href, Set("sortOrder" -> Descending.entryName, "sortBy" -> SubmissionDate.entryName))
+          checkQueryParameters(items(2).href, Set("sortOrder" -> Descending.entryName, "sortBy" -> SubmissionDate.entryName, "page" -> (page - 1).toString))
+          checkQueryParameters(items(3).href, Set("sortOrder" -> Descending.entryName, "sortBy" -> SubmissionDate.entryName, "page" -> page.toString))
         }
       }
 
@@ -210,11 +218,12 @@ class ViewSubmissionsViewModelSpec extends AnyFreeSpec with Matchers with Option
           val pagination = viewModel.pagination.value
           val itemsReversed = pagination.items.value.reverse
           itemsReversed(0).number.value   mustEqual "10"
-          itemsReversed(0).href           mustEqual s"$baseUrl?page=10"
           itemsReversed(1).ellipsis.value mustEqual true
           itemsReversed(2).number.value   mustEqual (page + 1).toString
-          itemsReversed(2).href           mustEqual s"$baseUrl?page=${page + 1}"
           itemsReversed(3).number.value   mustEqual page.toString
+
+          checkQueryParameters(itemsReversed(0).href, Set("sortOrder" -> Descending.entryName, "sortBy" -> SubmissionDate.entryName, "page" -> "10"))
+          checkQueryParameters(itemsReversed(2).href, Set("sortOrder" -> Descending.entryName, "sortBy" -> SubmissionDate.entryName, "page" -> (page + 1).toString))
         }
       }
 
@@ -241,9 +250,9 @@ class ViewSubmissionsViewModelSpec extends AnyFreeSpec with Matchers with Option
         val items = pagination.items.value
         items.size mustEqual 2
         items(0).number.value mustEqual "1"
-        items(0).href         mustEqual baseUrl
         items(1).number.value mustEqual "2"
-        items(1).href         mustEqual s"$baseUrl?page=2"
+        checkQueryParameters(items(0).href, Set("sortOrder" -> Descending.entryName, "sortBy" -> SubmissionDate.entryName))
+        checkQueryParameters(items(1).href, Set("sortOrder" -> Descending.entryName, "sortBy" -> SubmissionDate.entryName, "page" -> "2"))
       }
 
       "must include items for all pages when there are 3 pages" in {
@@ -256,11 +265,11 @@ class ViewSubmissionsViewModelSpec extends AnyFreeSpec with Matchers with Option
         val items = pagination.items.value
         items.size mustEqual 3
         items(0).number.value mustEqual "1"
-        items(0).href         mustEqual baseUrl
         items(1).number.value mustEqual "2"
-        items(1).href         mustEqual s"$baseUrl?page=2"
         items(2).number.value mustEqual "3"
-        items(2).href         mustEqual s"$baseUrl?page=3"
+        checkQueryParameters(items(0).href, Set("sortOrder" -> Descending.entryName, "sortBy" -> SubmissionDate.entryName))
+        checkQueryParameters(items(1).href, Set("sortOrder" -> Descending.entryName, "sortBy" -> SubmissionDate.entryName, "page" -> "2"))
+        checkQueryParameters(items(2).href, Set("sortOrder" -> Descending.entryName, "sortBy" -> SubmissionDate.entryName, "page" -> "3"))
       }
 
       "must include reportingPeriod, operatorId and statuses in pagination links when they are in the filter" in {
@@ -283,7 +292,9 @@ class ViewSubmissionsViewModelSpec extends AnyFreeSpec with Matchers with Option
             "reportingPeriod" -> "2024",
             "operatorId"      -> "operatorId",
             "statuses[0]"     -> Success.entryName,
-            "statuses[1]"     -> Pending.entryName
+            "statuses[1]"     -> Pending.entryName,
+            "sortBy"          -> SubmissionDate.entryName,
+            "sortOrder"       -> Descending.entryName
           )
         )
 
@@ -294,7 +305,9 @@ class ViewSubmissionsViewModelSpec extends AnyFreeSpec with Matchers with Option
             "operatorId"      -> "operatorId",
             "statuses[0]"     -> Success.entryName,
             "statuses[1]"     -> Pending.entryName,
-            "page"            -> "2"
+            "page"            -> "2",
+            "sortBy"          -> SubmissionDate.entryName,
+            "sortOrder"       -> Descending.entryName
           )
         )
       }
@@ -310,15 +323,15 @@ class ViewSubmissionsViewModelSpec extends AnyFreeSpec with Matchers with Option
         val items = pagination.items.value
         checkQueryParameters(
           href = items(0).href,
-          expectedParameters = Set("sortOrder" -> Ascending.entryName)
+          expectedParameters = Set("sortOrder" -> Ascending.entryName, "sortBy" -> SubmissionDate.entryName)
         )
         checkQueryParameters(
           href = items(1).href,
-          expectedParameters = Set("sortOrder" -> Ascending.entryName, "page" -> "2")
+          expectedParameters = Set("sortOrder" -> Ascending.entryName, "sortBy" -> SubmissionDate.entryName, "page" -> "2")
         )
       }
 
-      "must not include `Descending` in the pagination links when it is in the filter" in {
+      "must include `Descending` in the pagination links when it is in the filter" in {
 
         val filter = defaultFilter.copy(sortOrder = Descending)
         val submissionsSummary = SubmissionsSummary(submissions, Nil, viewSubmissionsPageSize * 2)
@@ -329,11 +342,11 @@ class ViewSubmissionsViewModelSpec extends AnyFreeSpec with Matchers with Option
         val items = pagination.items.value
         checkQueryParameters(
           href = items(0).href,
-          expectedParameters = Set.empty
+          expectedParameters = Set("sortOrder" -> Descending.entryName, "sortBy" -> SubmissionDate.entryName)
         )
         checkQueryParameters(
           href = items(1).href,
-          expectedParameters = Set("page" -> "2")
+          expectedParameters = Set("sortOrder" -> Descending.entryName, "sortBy" -> SubmissionDate.entryName, "page" -> "2")
         )
       }
 
@@ -348,11 +361,11 @@ class ViewSubmissionsViewModelSpec extends AnyFreeSpec with Matchers with Option
         val items = pagination.items.value
         checkQueryParameters(
           href = items(0).href,
-          expectedParameters = Set("sortBy" -> ReportingPeriod.entryName)
+          expectedParameters = Set("sortBy" -> ReportingPeriod.entryName, "sortOrder" -> Descending.entryName)
         )
         checkQueryParameters(
           href = items(1).href,
-          expectedParameters = Set("sortBy" -> ReportingPeriod.entryName, "page" -> "2")
+          expectedParameters = Set("sortBy" -> ReportingPeriod.entryName, "sortOrder" -> Descending.entryName, "page" -> "2")
         )
       }
 
@@ -367,15 +380,15 @@ class ViewSubmissionsViewModelSpec extends AnyFreeSpec with Matchers with Option
         val items = pagination.items.value
         checkQueryParameters(
           href = items(0).href,
-          expectedParameters = Set("sortBy" -> SortBy.PlatformOperator.entryName)
+          expectedParameters = Set("sortBy" -> SortBy.PlatformOperator.entryName, "sortOrder" -> Descending.entryName)
         )
         checkQueryParameters(
           href = items(1).href,
-          expectedParameters = Set("sortBy" -> SortBy.PlatformOperator.entryName, "page" -> "2")
+          expectedParameters = Set("sortBy" -> SortBy.PlatformOperator.entryName, "sortOrder" -> Descending.entryName, "page" -> "2")
         )
       }
 
-      "must not include `Submission date` as the sort option when it is in the filter" in {
+      "must include `Submission date` as the sort option when it is in the filter" in {
 
         val filter = defaultFilter.copy(sortBy = SubmissionDate)
         val submissionsSummary = SubmissionsSummary(submissions, Nil, viewSubmissionsPageSize * 2)
@@ -386,11 +399,11 @@ class ViewSubmissionsViewModelSpec extends AnyFreeSpec with Matchers with Option
         val items = pagination.items.value
         checkQueryParameters(
           href = items(0).href,
-          expectedParameters = Set.empty
+          expectedParameters = Set("sortBy" -> SubmissionDate.entryName, "sortOrder" -> Descending.entryName)
         )
         checkQueryParameters(
           href = items(1).href,
-          expectedParameters = Set("page"-> "2")
+          expectedParameters = Set("sortBy" -> SubmissionDate.entryName, "sortOrder" -> Descending.entryName, "page"-> "2")
         )
       }
     }
