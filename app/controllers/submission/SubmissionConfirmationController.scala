@@ -18,14 +18,12 @@ package controllers.submission
 
 import config.FrontendAppConfig
 import connectors.SubmissionConnector
-import controllers.AnswerExtractor
 import controllers.actions.*
 import forms.SubmissionConfirmationFormProvider
 import models.submission.Submission
 import models.submission.Submission.State.{Approved, Ready, Rejected, Submitted, UploadFailed, Uploading, Validated}
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents, Result}
-import queries.PlatformOperatorSummaryQuery
 import uk.gov.hmrc.govukfrontend.views.Aliases.{Key, SummaryList, Text, Value}
 import uk.gov.hmrc.govukfrontend.views.viewmodels.summarylist.SummaryListRow
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
@@ -41,15 +39,13 @@ class SubmissionConfirmationController @Inject()(
                                                   appConfig: FrontendAppConfig,
                                                   override val messagesApi: MessagesApi,
                                                   identify: IdentifierAction,
-                                                  getData: DataRetrievalActionProvider,
-                                                  requireData: DataRequiredAction,
                                                   val controllerComponents: MessagesControllerComponents,
                                                   view: SubmissionConfirmationView,
                                                   submissionConnector: SubmissionConnector,
                                                   formProvider: SubmissionConfirmationFormProvider
                                                 )(using ExecutionContext) extends FrontendBaseController with I18nSupport {
 
-  def onPageLoad(operatorId: String, submissionId: String): Action[AnyContent] = (identify andThen getData(operatorId) andThen requireData).async {
+  def onPageLoad(operatorId: String, submissionId: String): Action[AnyContent] = identify.async {
     implicit request =>
       submissionConnector.get(submissionId).flatMap {
         _.map { submission =>
@@ -62,7 +58,7 @@ class SubmissionConfirmationController @Inject()(
       }
   }
 
-  def onSubmit(operatorId: String, submissionId: String): Action[AnyContent] = (identify andThen getData(operatorId) andThen requireData).async {
+  def onSubmit(operatorId: String, submissionId: String): Action[AnyContent] = identify.async {
     implicit request =>
       submissionConnector.get(submissionId).flatMap {
         _.map { submission =>
