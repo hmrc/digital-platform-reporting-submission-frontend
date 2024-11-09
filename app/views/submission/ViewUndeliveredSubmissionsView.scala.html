@@ -55,7 +55,7 @@
             </thead>
             @submissions.map { submission =>
                 <tr class="govuk-table__row">
-                    <td class="govuk-table__cell">@govukTag(TagViewModel(messages("viewUndeliveredSubmissions.pending")).purple())</td>
+                    <td class="govuk-table__cell">@govukTag(submission.statusTag)</td>
                     <td class="govuk-table__cell">@shortDate(submission.submissionDateTime)</td>
                     <td class="govuk-table__cell">@submission.operatorName<br/>@submission.operatorId</td>
                     <td class="govuk-table__cell">@submission.reportingPeriod</td>
@@ -65,8 +65,7 @@
             }
         </table>
     }
-
-
+    
     <p class="govuk-body govuk-!-margin-top-8 govuk-!-margin-bottom-8">
         <a href="@routes.SelectPlatformOperatorController.onPageLoad" class="govuk-link">@messages("viewUndeliveredSubmissions.addSubmission")</a>
     </p>

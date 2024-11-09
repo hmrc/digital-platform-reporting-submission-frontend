@@ -33,12 +33,18 @@ object SubmissionStatus extends PlayEnum[SubmissionStatus] {
   case object Rejected extends SubmissionStatus("REJECTED")
   
   def checkboxItems(implicit messages: Messages): Seq[CheckboxItem] =
-    values.zipWithIndex.map { case (value, index) =>
+    Seq(
       CheckboxItemViewModel(
-        content = Text(messages(s"viewSubmissions.status.${value.entryName}")),
+        content = Text(messages(s"viewSubmissions.status.${Success.entryName}")),
         fieldId = "statuses",
-        index   = index,
-        value   = value.entryName
+        index   = 0,
+        value   = Success.entryName
+      ),
+      CheckboxItemViewModel(
+        content = Text(messages(s"viewSubmissions.status.${Rejected.entryName}")),
+        fieldId = "statuses",
+        index   = 1,
+        value   = Rejected.entryName
       )
-    }
+    )
 }

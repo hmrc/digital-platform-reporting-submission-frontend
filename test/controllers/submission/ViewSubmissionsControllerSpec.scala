@@ -24,6 +24,7 @@ import models.operator.{AddressDetails, ContactDetails}
 import models.operator.responses.{PlatformOperator, ViewPlatformOperatorsResponse}
 import models.submission.SortBy.SubmissionDate
 import models.submission.SortOrder.Descending
+import models.submission.SubmissionStatus.{Rejected, Success}
 import models.submission.{SubmissionStatus, SubmissionSummary, SubmissionsSummary}
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.when
@@ -89,7 +90,7 @@ class ViewSubmissionsControllerSpec extends SpecBase with MockitoSugar with Befo
         pageNumber = 1,
         sortBy = SubmissionDate,
         sortOrder = Descending,
-        statuses = Set.empty,
+        statuses = Set(Success, Rejected),
         operatorId = None,
         reportingPeriod = None
       )

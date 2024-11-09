@@ -18,7 +18,7 @@ package forms
 
 import forms.behaviours.StringFieldBehaviours
 import models.ViewSubmissionsFilter
-import models.submission.SubmissionStatus.{Pending, Success}
+import models.submission.SubmissionStatus.{Rejected, Success}
 import models.submission.{SortBy, SortOrder}
 
 import java.time.Year
@@ -32,7 +32,7 @@ class ViewSubmissionsFormProviderSpec extends StringFieldBehaviours {
     "must bind with default values when no data is provided" in {
       
       val result = form.bind(Map.empty[String, String])
-      result.value.value mustEqual ViewSubmissionsFilter(1, SortBy.SubmissionDate, SortOrder.Descending, Set.empty, None, None)
+      result.value.value mustEqual ViewSubmissionsFilter(1, SortBy.SubmissionDate, SortOrder.Descending, Set(Success, Rejected), None, None)
       result.hasErrors mustBe false
     }
 
@@ -43,11 +43,11 @@ class ViewSubmissionsFormProviderSpec extends StringFieldBehaviours {
         "sortBy" -> SortBy.ReportingPeriod.entryName,
         "sortOrder" -> SortOrder.Ascending.entryName,
         "statuses[0]" -> "SUCCESS",
-        "statuses[1]" -> "PENDING",
+        "statuses[1]" -> "REJECTED",
         "operatorId" -> "foo",
         "reportingPeriod" -> "2024"
       ))
-      result.value.value mustEqual ViewSubmissionsFilter(2, SortBy.ReportingPeriod, SortOrder.Ascending, Set(Success, Pending), Some("foo"), Some(Year.of(2024)))
+      result.value.value mustEqual ViewSubmissionsFilter(2, SortBy.ReportingPeriod, SortOrder.Ascending, Set(Success, Rejected), Some("foo"), Some(Year.of(2024)))
       result.hasErrors mustBe false
     }
 
@@ -75,5 +75,19 @@ class ViewSubmissionsFormProviderSpec extends StringFieldBehaviours {
       result.hasErrors mustBe true
       result.errors.size mustEqual 5
     }
+  }
+
+  "must unbind default values" in {
+
+    val filter = ViewSubmissionsFilter(1, SortBy.SubmissionDate, SortOrder.Descending, Set.empty, None, None)
+    val result = form.fill(filter)
+    result.data mustEqual Map.empty[String, String]
+  }
+
+  "must unbind submission status of Set(Success, Rejected) as the default values" in {
+
+    val filter = ViewSubmissionsFilter(1, SortBy.SubmissionDate, SortOrder.Descending, Set(Success, Rejected), None, None)
+    val result = form.fill(filter)
+    result.data mustEqual Map.empty[String, String]
   }
 }
