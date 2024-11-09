@@ -25,10 +25,9 @@ import models.operator.responses.{PlatformOperator, ViewPlatformOperatorsRespons
 import models.submission.SortBy.SubmissionDate
 import models.submission.SortOrder.Descending
 import models.submission.{SubmissionStatus, SubmissionSummary, SubmissionsSummary}
-import models.subscription.OrganisationContact
 import org.mockito.ArgumentMatchers.any
-import org.mockito.Mockito.{times, verify, when}
-import org.mockito.{ArgumentCaptor, Mockito}
+import org.mockito.Mockito.when
+import org.mockito.Mockito
 import org.scalatest.BeforeAndAfterEach
 import org.scalatestplus.mockito.MockitoSugar
 import play.api.i18n.Messages
@@ -65,13 +64,13 @@ class ViewSubmissionsControllerSpec extends SpecBase with MockitoSugar with Befo
         fileName = "filename",
         operatorId = "operatorId",
         operatorName = "operatorName",
-        reportingPeriod = Year.of(2024),
+        reportingPeriod = thisYear,
         submissionDateTime = instant,
         submissionStatus = SubmissionStatus.Success,
         assumingReporterName = None,
-        submissionCaseId = Some("reportingPeriod")
+        submissionCaseId = Some("caseId")
       )
-      val summary = SubmissionsSummary(Seq(submissionSummary), Nil, 1)
+      val summary = SubmissionsSummary(Seq(submissionSummary), 1, true, 1)
       
       val platformOperator = PlatformOperator(
         operatorId = "operatorId",
@@ -95,7 +94,7 @@ class ViewSubmissionsControllerSpec extends SpecBase with MockitoSugar with Befo
         reportingPeriod = None
       )
 
-      when(mockSubmissionConnector.list(any())(using any())).thenReturn(Future.successful(Some(summary)))
+      when(mockSubmissionConnector.listDeliveredSubmissions(any())(using any())).thenReturn(Future.successful(Some(summary)))
       when(mockPlatformOperatorConnector.viewPlatformOperators(any())).thenReturn(Future.successful(platformOperatorResponse))
 
       val application = applicationBuilder(userAnswers = None)

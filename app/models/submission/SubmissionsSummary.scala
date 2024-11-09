@@ -19,10 +19,11 @@ package models.submission
 import play.api.libs.json.{Json, Reads}
 
 final case class SubmissionsSummary(deliveredSubmissions: Seq[SubmissionSummary],
-                                    localSubmissions: Seq[SubmissionSummary],
-                                    deliveredSubmissionRecordCount: Int) {
+                                    deliveredSubmissionRecordCount: Int,
+                                    deliveredSubmissionsExist: Boolean,
+                                    undeliveredSubmissionCount: Int) {
 
-  lazy val isEmpty: Boolean = deliveredSubmissions.isEmpty && localSubmissions.isEmpty
+  lazy val isEmpty: Boolean = deliveredSubmissions.isEmpty && undeliveredSubmissionCount == 0
   lazy val nonEmpty: Boolean = !isEmpty
 }
 

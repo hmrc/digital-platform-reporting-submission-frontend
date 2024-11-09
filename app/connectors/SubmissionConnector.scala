@@ -30,7 +30,6 @@ import uk.gov.hmrc.http.client.{HttpClientV2, given}
 import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse, StringContextOps}
 
 import javax.inject.{Inject, Singleton}
-import java.time.Year
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
@@ -137,8 +136,8 @@ class SubmissionConnector @Inject() (
         }
       }
       
-  def list(request: ViewSubmissionsRequest)(using HeaderCarrier): Future[Option[SubmissionsSummary]] =
-    httpClient.post(url"$digitalPlatformReportingService/digital-platform-reporting/submission/list")
+  def listDeliveredSubmissions(request: ViewSubmissionsRequest)(using HeaderCarrier): Future[Option[SubmissionsSummary]] =
+    httpClient.post(url"$digitalPlatformReportingService/digital-platform-reporting/submission/delivered/list")
       .withBody(Json.toJson(request))
       .execute[HttpResponse]
       .flatMap { response =>
@@ -146,6 +145,16 @@ class SubmissionConnector @Inject() (
           case OK        => Future.successful(Some(response.json.as[SubmissionsSummary]))
           case NOT_FOUND => Future.successful(None)
           case _         => Future.failed(ViewFailure)
+        }
+      }
+      
+  def listUndeliveredSubmissions(using HeaderCarrier): Future[Seq[SubmissionSummary]] =
+    httpClient.get(url"$digitalPlatformReportingService/digital-platform-reporting/submission/undelivered/list")
+      .execute[HttpResponse]
+      .flatMap { response =>
+        response.status match {
+          case OK => Future.successful(response.json.as[Seq[SubmissionSummary]])
+          case _  => Future.failed(ViewFailure)
         }
       }
 }

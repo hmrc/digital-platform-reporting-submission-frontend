@@ -418,7 +418,7 @@ class SubmissionConnectorSpec
           .willReturn(ok(responsePayload.toString))
       )
 
-      val result = connector.list(request)(using hc).futureValue
+      val result = connector.listDeliveredSubmissions(request)(using hc).futureValue
       result.value mustEqual submissionsSummary
     }
 
@@ -431,7 +431,7 @@ class SubmissionConnectorSpec
           .willReturn(notFound())
       )
 
-      val result = connector.list(request)(using hc).futureValue
+      val result = connector.listDeliveredSubmissions(request)(using hc).futureValue
       result must not be defined
     }
   }
