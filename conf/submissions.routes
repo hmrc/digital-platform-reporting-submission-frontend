@@ -18,8 +18,6 @@ GET         /:operatorId/:submissionId/file-errors/download          controllers
 GET         /view                                                    controllers.submission.ViewSubmissionsController.onPageLoad()
 GET         /view-pending                                            controllers.submission.ViewUndeliveredSubmissionsController.onPageLoad()
 
-GET         /pending                                                 controllers.submission.ViewUndeliveredSubmissionsController.onPageLoad()
-
 GET        /which-platform-operator                                  controllers.submission.SelectPlatformOperatorController.onPageLoad
 POST       /which-platform-operator                                  controllers.submission.SelectPlatformOperatorController.onSubmit
 
