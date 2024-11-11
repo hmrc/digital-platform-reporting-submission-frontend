@@ -229,12 +229,12 @@ class AssumedReportingConnectorSpec
       result mustEqual Seq(submission)
     }
 
-    "must return an empty sequence when the server returns OK with no submissions" in {
+    "must return an empty sequence when the server returns NOT_FOUND" in {
 
       wireMockServer.stubFor(
         get(urlPathEqualTo("/digital-platform-reporting/submission/assumed"))
           .withHeader("User-Agent", equalTo("app"))
-          .willReturn(ok(Json.arr().toString))
+          .willReturn(notFound())
       )
 
       val result = connector.list(using hc).futureValue

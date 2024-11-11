@@ -1,0 +1,77 @@
+@*
+ * Copyright 2024 HM Revenue & Customs
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *@
+
+@import config.FrontendAppConfig
+@import controllers.submission.routes
+@import models.submission.{SubmissionStatus, SubmissionSummary}
+@import uk.gov.hmrc.govukfrontend.views.Implicits.RichSelect
+@import uk.gov.hmrc.govukfrontend.views.html.components.{GovukCheckboxes, GovukPagination, GovukPanel, GovukSelect, GovukTag, GovukWarningText}
+@import uk.gov.hmrc.hmrcfrontend.views.viewmodels.accessibleautocomplete.AccessibleAutocomplete
+@import uk.gov.hmrc.govukfrontend.views.viewmodels.select.SelectItem
+@import viewmodels.{LabelSize, LegendSize, ViewSubmissionsViewModel}
+
+@this(
+        layout: templates.Layout,
+        appConfig: FrontendAppConfig,
+        govukTag: GovukTag
+)
+
+@(submissions: Seq[SubmissionSummary])(implicit request: Request[_], messages: Messages)
+
+@layout(
+    pageTitle = messages("viewUndeliveredSubmissions.title"),
+    showBackLink = false,
+    fullWidth = true
+) {
+
+    <h1 class="govuk-heading-xl">@messages("viewUndeliveredSubmissions.heading")</h1>
+
+    @if(submissions.isEmpty) {
+        <p class="govuk-body">@messages("viewUndeliveredSubmissions.noRecords")</p>
+    } else {
+        <table class="govuk-table">
+            <thead class="govuk-table__head">
+                <tr class="govuk-table__row">
+                    <th class="govuk-table__header" scope="col">@messages("viewUndeliveredSubmissions.status")</th>
+                    <th class="govuk-table__header" scope="col">@messages("viewUndeliveredSubmissions.submissionDate")</th>
+                    <th class="govuk-table__header" scope="col">@messages("viewUndeliveredSubmissions.platformOperator")</th>
+                    <th class="govuk-table__header" scope="col">@messages("viewUndeliveredSubmissions.reportingPeriod")</th>
+                    <th class="govuk-table__header" scope="col">@messages("viewUndeliveredSubmissions.fileName")</th>
+                    <th class="govuk-table__header" scope="col">@messages("viewUndeliveredSubmissions.action")</th>
+                </tr>
+            </thead>
+            @submissions.map { submission =>
+                <tr class="govuk-table__row">
+                    <td class="govuk-table__cell">@govukTag(submission.statusTag)</td>
+                    <td class="govuk-table__cell">@shortDate(submission.submissionDateTime)</td>
+                    <td class="govuk-table__cell">@submission.operatorName<br/>@submission.operatorId</td>
+                    <td class="govuk-table__cell">@submission.reportingPeriod</td>
+                    <td class="govuk-table__cell">@submission.fileName</td>
+                    <td class="govuk-table__cell"><a href="@submission.link.href" class="govuk-link">@submission.link.text</a></td>
+                </tr>
+            }
+        </table>
+    }
+    
+    <p class="govuk-body govuk-!-margin-top-8 govuk-!-margin-bottom-8">
+        <a href="@routes.SelectPlatformOperatorController.onPageLoad" class="govuk-link">@messages("viewUndeliveredSubmissions.addSubmission")</a>
+    </p>
+
+    <p class="govuk-body govuk-!-margin-bottom-8">
+        @messages("viewUndeliveredSubmissions.returnTo")
+        <a href="@appConfig.manageHomepageUrl" class="govuk-link">@messages("viewUndeliveredSubmissions.manage.link")</a>
+    </p>
+}

@@ -16,16 +16,13 @@
 
 package controllers.submission
 
-import config.Constants.firstLegislativeYear
 import connectors.{PlatformOperatorConnector, SubmissionConnector}
 import controllers.actions.IdentifierAction
 import controllers.routes as baseRoutes
 import forms.ViewSubmissionsFormProvider
-import models.operator.responses.PlatformOperator
 import models.submission.ViewSubmissionsRequest
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
-import uk.gov.hmrc.govukfrontend.views.viewmodels.select.SelectItem
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import viewmodels.ViewSubmissionsViewModel
 import views.html.submission.ViewSubmissionsView
@@ -53,7 +50,7 @@ class ViewSubmissionsController @Inject()(override val messagesApi: MessagesApi,
         errors => Future.successful(Redirect(baseRoutes.JourneyRecoveryController.onPageLoad())), // TODO: Decide what to do here
         filter =>
           for {
-            submissions <- submissionConnector.list(ViewSubmissionsRequest(filter))
+            submissions <- submissionConnector.listDeliveredSubmissions(ViewSubmissionsRequest(filter))
             operators   <- platformOperatorConnector.viewPlatformOperators
           } yield {
             val viewModel = ViewSubmissionsViewModel(submissions, operators.platformOperators, filter, Year.now(clock))
