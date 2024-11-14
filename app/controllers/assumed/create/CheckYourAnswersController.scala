@@ -48,6 +48,7 @@ class CheckYourAnswersController @Inject()(
 
       val list = SummaryListViewModel(
         rows = Seq(
+          ReportingPeriodSummary.row(request.userAnswers),
           AssumingOperatorNameSummary.row(request.userAnswers),
           TaxResidentInUkSummary.row(request.userAnswers),
           HasUkTaxIdentifierSummary.row(request.userAnswers),
@@ -57,7 +58,6 @@ class CheckYourAnswersController @Inject()(
           InternationalTaxIdentifierSummary.row(request.userAnswers),
           RegisteredCountrySummary.row(request.userAnswers),
           AddressSummary.row(request.userAnswers),
-          ReportingPeriodSummary.row(request.userAnswers),
         ).flatten
       )
 

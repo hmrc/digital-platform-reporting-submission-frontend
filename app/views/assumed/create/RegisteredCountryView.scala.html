@@ -44,7 +44,7 @@
                 label = LabelViewModel(messages("registeredCountry.heading", assumingOperatorName)).asPageHeading()
             )
             .withCssClass("govuk-input")
-            .asAccessibleAutocomplete(Some(AccessibleAutocomplete(showAllValues = false)))
+            .asAccessibleAutocomplete(Some(AccessibleAutocomplete(showAllValues = true)))
         )
 
         @govukButton(

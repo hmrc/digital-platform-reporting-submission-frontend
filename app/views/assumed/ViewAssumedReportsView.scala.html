@@ -37,15 +37,7 @@
 
     @if(summaries.isEmpty) {
         <p class="govuk-body">@messages("viewAssumedReports.noReports")</p>
-
-        <p class="govuk-body">
-            <a href="@routes.SelectPlatformOperatorController.onPageLoad" class="govuk-link">@messages("viewAssumedReports.newReport.text")</a>
-        </p>
     } else {
-
-        <p class="govuk-body govuk-!-margin-bottom-8">
-            <a href="@routes.SelectPlatformOperatorController.onPageLoad" class="govuk-link">@messages("viewAssumedReports.newReport.text")</a>
-        </p>
 
         <table class="govuk-table">
             <thead class="govuk-table__head">
@@ -85,6 +77,10 @@
             }
         </table>
     }
+
+    <p class="govuk-body govuk-!-margin-top-9">
+        <a href="@routes.SelectPlatformOperatorController.onPageLoad" class="govuk-link">@messages("viewAssumedReports.newReport.text")</a>
+    </p>
 
     <p class="govuk-body">
         @messages("viewAssumedReports.return")

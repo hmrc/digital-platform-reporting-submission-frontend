@@ -17,19 +17,21 @@
 package controllers.assumed.update
 
 import base.SpecBase
-import connectors.SubmissionConnector
-import models.yearFormat
 import models.submission.AssumedReportSummary
-import pages.assumed.update.AssumingOperatorNamePage
+import play.api.i18n.Messages
+import play.api.inject.bind
 import play.api.test.FakeRequest
 import play.api.test.Helpers.*
-import queries.{AssumedReportSummaryQuery, PlatformOperatorNameQuery, ReportingPeriodQuery}
-import viewmodels.PlatformOperatorSummary
+import queries.AssumedReportSummaryQuery
+import viewmodels.checkAnswers.assumed.update.AssumedReportUpdatedSummaryList
 import views.html.assumed.update.SubmissionConfirmationView
 
-import java.time.Year
+import java.time.{Clock, Instant, Year, ZoneId}
 
 class SubmissionConfirmationControllerSpec extends SpecBase {
+
+  private val now = Instant.now()
+  private val fixedClock = Clock.fixed(now, ZoneId.systemDefault())
 
   "SubmissionConfirmation Controller" - {
 
@@ -38,20 +40,27 @@ class SubmissionConfirmationControllerSpec extends SpecBase {
       "must return OK and the correct view" in {
         
         val reportingPeriod = Year.of(2024)
+        val summary = AssumedReportSummary(operatorId, operatorName, "assumingOperator", reportingPeriod)
         val answers =
           emptyUserAnswers
             .copy(reportingPeriod = Some(reportingPeriod))
-            .set(AssumedReportSummaryQuery, AssumedReportSummary(operatorId, operatorName, "assumingOperator", reportingPeriod)).success.value
+            .set(AssumedReportSummaryQuery, summary).success.value
 
-        val application = applicationBuilder(userAnswers = Some(answers)).build()
+        val application =
+          applicationBuilder(userAnswers = Some(answers))
+            .overrides(bind[Clock].toInstance(fixedClock))
+            .build()
         
         running(application) {
+          given Messages = messages(application)
+          
           val request = FakeRequest(routes.SubmissionConfirmationController.onPageLoad(operatorId, reportingPeriod))
           val result = route(application, request).value
           val view = application.injector.instanceOf[SubmissionConfirmationView]
+          val summaryList = AssumedReportUpdatedSummaryList.list(summary, now)
           
           status(result) mustEqual OK
-          contentAsString(result) mustEqual view(operatorId, "assumingOperator", operatorName, Year.of(2024))(request, messages(application)).toString
+          contentAsString(result) mustEqual view(operatorId, summaryList)(request, implicitly).toString
         }
       }
     }
