@@ -188,7 +188,7 @@ class CheckReportingNotificationsControllerSpec extends SpecBase with SummaryLis
         val result = route(application, request).value
 
         status(result) mustEqual SEE_OTHER
-        redirectLocation(result).value mustEqual appConfig.addReportingNotificationUrl(operatorId)
+        redirectLocation(result).value mustEqual appConfig.manageHomepageUrl
       }
     }
   }

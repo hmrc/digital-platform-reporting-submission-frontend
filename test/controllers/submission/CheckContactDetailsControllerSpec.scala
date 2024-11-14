@@ -299,7 +299,7 @@ class CheckContactDetailsControllerSpec extends SpecBase with SummaryListFluency
         val appConfig = application.injector.instanceOf[FrontendAppConfig]
 
         status(result) mustEqual SEE_OTHER
-        redirectLocation(result).value mustEqual appConfig.updateContactDetailsUrl
+        redirectLocation(result).value mustEqual appConfig.manageHomepageUrl
         verify(mockSubmissionConnector, never()).start(any(), any(), any())(using any())
       }
     }
