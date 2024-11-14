@@ -78,8 +78,9 @@ class AssumedReportingConnector @Inject() (
       .execute[HttpResponse]
       .flatMap { response =>
         response.status match {
-          case OK => Future.successful(response.json.as[Seq[AssumedReportingSubmissionSummary]])
-          case _  => Future.failed(ListAssumedReportsFailure)
+          case OK        => Future.successful(response.json.as[Seq[AssumedReportingSubmissionSummary]])
+          case NOT_FOUND => Future.successful(Nil)
+          case _         => Future.failed(ListAssumedReportsFailure)
         }
       }
 }

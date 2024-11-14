@@ -19,4 +19,5 @@ package config
 object Constants {
 
   val firstLegislativeYear: Int = 2024
+  val viewSubmissionsPageSize: Int = 10
 }

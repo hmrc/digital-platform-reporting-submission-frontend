@@ -17,6 +17,10 @@
 package models.submission
 
 import enumeratum.{EnumEntry, PlayEnum}
+import play.api.i18n.Messages
+import uk.gov.hmrc.govukfrontend.views.viewmodels.checkboxes.CheckboxItem
+import uk.gov.hmrc.govukfrontend.views.viewmodels.content.Text
+import viewmodels.govuk.checkbox._
 
 sealed abstract class SubmissionStatus(override val entryName: String) extends EnumEntry
 
@@ -24,7 +28,23 @@ object SubmissionStatus extends PlayEnum[SubmissionStatus] {
 
   override val values: IndexedSeq[SubmissionStatus] = findValues
 
-  case object Pending extends SubmissionStatus("PENDING")
   case object Success extends SubmissionStatus("SUCCESS")
+  case object Pending extends SubmissionStatus("PENDING")
   case object Rejected extends SubmissionStatus("REJECTED")
+  
+  def checkboxItems(implicit messages: Messages): Seq[CheckboxItem] =
+    Seq(
+      CheckboxItemViewModel(
+        content = Text(messages(s"viewSubmissions.status.${Success.entryName}")),
+        fieldId = "statuses",
+        index   = 0,
+        value   = Success.entryName
+      ),
+      CheckboxItemViewModel(
+        content = Text(messages(s"viewSubmissions.status.${Rejected.entryName}")),
+        fieldId = "statuses",
+        index   = 1,
+        value   = Rejected.entryName
+      )
+    )
 }

@@ -392,37 +392,47 @@ class SubmissionConnectorSpec
   
   "list" - {
     
-    val request = ViewSubmissionsRequest(assumedReporting = false)
+    val request = ViewSubmissionsRequest(
+      assumedReporting = false,
+      pageNumber = 1,
+      sortBy = SortBy.SubmissionDate,
+      sortOrder = SortOrder.Descending,
+      reportingPeriod = None,
+      operatorId = None,
+      statuses = Nil
+    )
 
     "must return a submission summary when the server returns OK" in {
 
-      val submissionsSummary = SubmissionsSummary(Nil, Nil)
+      val submissionsSummary = SubmissionsSummary(Nil, 0, false, 1)
       val responsePayload = Json.obj(
         "deliveredSubmissions" -> Json.arr(),
-        "localSubmissions" -> Json.arr()
+        "deliveredSubmissionRecordCount" -> 0,
+        "deliveredSubmissionsExist" -> false,
+        "undeliveredSubmissionCount" -> 1
       )
 
       wireMockServer.stubFor(
-        post(urlPathEqualTo("/digital-platform-reporting/submission/list"))
+        post(urlPathEqualTo("/digital-platform-reporting/submission/delivered/list"))
           .withRequestBody(equalToJson(Json.toJson(request).toString))
           .withHeader("User-Agent", equalTo("app"))
           .willReturn(ok(responsePayload.toString))
       )
 
-      val result = connector.list(request)(using hc).futureValue
+      val result = connector.listDeliveredSubmissions(request)(using hc).futureValue
       result.value mustEqual submissionsSummary
     }
 
     "must return None when the server returns NOT_FOUND" in {
 
       wireMockServer.stubFor(
-        post(urlPathEqualTo("/digital-platform-reporting/submission/list"))
+        post(urlPathEqualTo("/digital-platform-reporting/submission/delivered/list"))
           .withRequestBody(equalToJson(Json.toJson(request).toString))
           .withHeader("User-Agent", equalTo("app"))
           .willReturn(notFound())
       )
 
-      val result = connector.list(request)(using hc).futureValue
+      val result = connector.listDeliveredSubmissions(request)(using hc).futureValue
       result must not be defined
     }
   }

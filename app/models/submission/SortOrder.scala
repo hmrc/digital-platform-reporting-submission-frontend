@@ -16,18 +16,14 @@
 
 package models.submission
 
-import play.api.libs.json.{Json, Reads}
+import enumeratum.{EnumEntry, PlayEnum}
 
-final case class SubmissionsSummary(deliveredSubmissions: Seq[SubmissionSummary],
-                                    deliveredSubmissionRecordCount: Int,
-                                    deliveredSubmissionsExist: Boolean,
-                                    undeliveredSubmissionCount: Int) {
+sealed abstract class SortOrder(override val entryName: String) extends EnumEntry
 
-  lazy val isEmpty: Boolean = deliveredSubmissions.isEmpty && undeliveredSubmissionCount == 0
-  lazy val nonEmpty: Boolean = !isEmpty
-}
+object SortOrder extends PlayEnum[SortOrder] {
 
-object SubmissionsSummary {
+  override val values: IndexedSeq[SortOrder] = findValues
 
-  implicit lazy val reads: Reads[SubmissionsSummary] = Json.reads
+  case object Ascending extends SortOrder("ASC")
+  case object Descending extends SortOrder("DSC")
 }
