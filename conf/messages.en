@@ -102,9 +102,11 @@ sendFile.operatorName = Platform Operator name
 sendFile.operatorId = Platform Operator ID
 sendFile.reportingPeriod = Reportable period
 
-checkFile.title = Your file has been successfully sent, but we need more time to check it
-checkFile.heading = Your file has been successfully sent, but we need more time to check it
+checkFile.title = Your file has been received, but we need more time to check it
+checkFile.heading = Your file has been received, but we need more time to check it
 checkFile.fileName = File name
+checkFile.autoCheck = Result of automatic checks
+checkFile.pending = PENDING
 checkFile.p1 = Select “Refresh for updates” to see if the automatic checks have been completed.
 checkFile.p2 = You can leave this page. Once the checks have been completed, the results will be visible on the submission list page.
 checkFile.button = Refresh for updates
@@ -113,7 +115,8 @@ checkFile.return = Return to manage your digital platform reporting
 
 submissionConfirmation.title = File successfully sent
 submissionConfirmation.heading = File successfully sent
-submissionConfirmation.p1 = We will contact you if we have any questions about your reports.
+submissionConfirmation.p1 = We have sent a confirmation email to {0} and {1}.
+submissionConfirmation.p2 = We will contact you if we have any questions about your reports.
 submissionConfirmation.return = Return to manage your digital platform reporting
 submissionConfirmation.fileName = File name
 submissionConfirmation.operatorName = Platform operator name
@@ -140,9 +143,9 @@ fileErrors.tsv.detail = Detail
 fileErrors.tsv.docRef = DocRef
 
 chrn.checkYourAnswersLabel = HMRC Charity Reference (CHRN)
-
+utr.checkYourAnswersLabel = Unique Taxpayer Reference (UTR)
 crn.checkYourAnswersLabel = Company Registration Number (CRN)
-
+vrn.checkYourAnswersLabel = VAT Registration Number (VRN)
 empref.checkYourAnswersLabel = Employer PAYE Reference (EMPREF)
 
 hasUkTaxIdentifier.title = Does the platform operator have a UK tax identification number?
@@ -227,15 +230,17 @@ ukTaxIdentifiers.checkAnswers.vrn = VRN
 ukTaxIdentifiers.checkAnswers.empref = EMPREF
 ukTaxIdentifiers.checkAnswers.chrn = CHRN
 
-submission.selectPlatformOperator.title = Which UK platform operator do you want to make a submission for?
-submission.selectPlatformOperator.heading = Which UK platform operator do you want to make a submission for?
-submission.selectPlatformOperator.error.required = Select which UK platform operator you want to make a submission for
+
+
+submission.selectPlatformOperator.title = Which Platform Operator do you want to make a submission for?
+submission.selectPlatformOperator.heading = Which Platform Operator do you want to make a submission for?
+submission.selectPlatformOperator.error.required = Select which Platform Operator do you want to make a submission for
 submission.selectPlatformOperator.p1 = You can also
 submission.selectPlatformOperator.p1.link.text = add a new platform operator
 submission.selectPlatformOperator.item.text = {0}
 submission.selectPlatformOperator.item.hint = {0}
 submission.selectPlatformOperator.single.title = You are about to make a submission
-submission.selectPlatformOperator.single.heading = You are about to make a submission for {0}
+submission.selectPlatformOperator.single.heading = You are about to make a submission for {0}{1}
 submission.selectPlatformOperator.single.p1 = If this is not correct, you can
 submission.selectPlatformOperator.single.link.text = add a new platform operator
 

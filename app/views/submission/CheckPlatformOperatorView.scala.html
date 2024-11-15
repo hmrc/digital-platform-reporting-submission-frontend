@@ -46,11 +46,11 @@
 
             <h2 class="govuk-heading-m">@messages("checkPlatformOperator.contactDetails")</h2>
 
-            <h3 class="govuk-heading-s">@messages("checkPlatformOperator.primaryContact")</h3>
+            <h3 class="govuk-heading-s">@messages("checkPlatformOperator.firstContact")</h3>
 
             @govukSummaryList(primaryContactList)
 
-            <h3 class="govuk-heading-s">@messages("checkPlatformOperator.secondaryContact")</h3>
+            <h3 class="govuk-heading-s">@messages("checkPlatformOperator.secondContact")</h3>
 
             @govukSummaryList(secondaryContact)
         }.getOrElse {
