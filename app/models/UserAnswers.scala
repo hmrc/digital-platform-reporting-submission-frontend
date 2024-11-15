@@ -17,9 +17,13 @@
 package models
 
 import cats.data.{EitherNec, NonEmptyChain}
-import play.api.libs.json.*
+import play.api.libs.json._
 import queries.{Gettable, Query, Settable}
+import uk.gov.hmrc.crypto.{Decrypter, Encrypter}
+import uk.gov.hmrc.crypto.Sensitive.SensitiveString
 import uk.gov.hmrc.mongo.play.json.formats.MongoJavatimeFormats
+import play.api.libs.functional.syntax.toFunctionalBuilderOps
+import uk.gov.hmrc.crypto.json.JsonEncryption
 
 import java.time.{Instant, Year}
 import scala.util.{Failure, Success, Try}
@@ -72,6 +76,33 @@ final case class UserAnswers(
 }
 
 object UserAnswers {
+
+  def encryptedFormat(implicit crypto: Encrypter & Decrypter): OFormat[UserAnswers] = {
+    implicit val sensitiveFormat: Format[SensitiveString] =
+      JsonEncryption.sensitiveEncrypterDecrypter(SensitiveString.apply)
+
+    val encryptedReads: Reads[UserAnswers] =
+      (
+        (__ \ "userId").read[String] and
+          (__ \ "operatorId").read[String] and
+          (__ \ "reportingPeriod").readNullable[Year] and
+          (__ \ "data").read[SensitiveString] and
+          (__ \ "lastUpdated").read(MongoJavatimeFormats.instantFormat)
+        )((userId, operatorId, reportingPeriod, data, lastUpdated) =>
+        UserAnswers(userId, operatorId, reportingPeriod, Json.parse(data.decryptedValue).as[JsObject], lastUpdated)
+      )
+
+    val encryptedWrites: OWrites[UserAnswers] =
+      (
+        (__ \ "userId").write[String] and
+          (__ \ "operatorId").write[String] and
+          (__ \ "reportingPeriod").writeNullable[Year] and
+          (__ \ "data").write[SensitiveString] and
+          (__ \ "lastUpdated").write(MongoJavatimeFormats.instantFormat)
+        )(ua => (ua.userId, ua.operatorId, ua.reportingPeriod, SensitiveString(Json.stringify(ua.data)), ua.lastUpdated))
+
+    OFormat(encryptedReads, encryptedWrites)
+  }
 
   val reads: Reads[UserAnswers] = {
 

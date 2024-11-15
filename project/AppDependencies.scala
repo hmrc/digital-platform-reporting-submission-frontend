@@ -12,7 +12,8 @@ object AppDependencies {
     "uk.gov.hmrc.mongo" %% "hmrc-mongo-play-30"            % hmrcMongoVersion,
     "com.beachape"      %% "enumeratum-play"               % "1.8.0",
     "org.apache.pekko"  %% "pekko-connectors-csv"          % "1.0.2",
-    "org.typelevel"     %% "cats-core"                     % "2.12.0"
+    "org.typelevel"     %% "cats-core"                     % "2.12.0",
+    "uk.gov.hmrc"       %% "crypto-json-play-30"           % "8.1.0",
   )
 
   val test = Seq(
