@@ -19,8 +19,11 @@ package controllers.assumed.create
 import com.google.inject.Inject
 import connectors.AssumedReportingConnector
 import controllers.actions.*
+import models.UserAnswers
+import models.submission.AssumedReportSummary
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
+import queries.AssumedReportSummaryQuery
 import repositories.SessionRepository
 import services.UserAnswersService
 import services.UserAnswersService.BuildAssumedReportingSubmissionFailure
@@ -73,8 +76,11 @@ class CheckYourAnswersController @Inject()(
         .merge
         .flatMap { submissionRequest =>
           for {
-            submission <- connector.submit(submissionRequest)
-            _          <- sessionRepository.clear(request.userId, operatorId, None)
+            submission   <- connector.submit(submissionRequest)
+            summary      <- AssumedReportSummary(request.userAnswers).map(Future.successful).getOrElse(Future.failed(Exception("unable to build an assumed report summary")))
+            emptyAnswers = UserAnswers(request.userId, operatorId, None)
+            answers      <- Future.fromTry(emptyAnswers.set(AssumedReportSummaryQuery, summary))
+            _            <- sessionRepository.set(answers)
           } yield Redirect(routes.SubmissionConfirmationController.onPageLoad(operatorId, submission._id))
         }
   }
