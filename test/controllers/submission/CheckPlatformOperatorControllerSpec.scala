@@ -193,7 +193,7 @@ class CheckPlatformOperatorControllerSpec extends SpecBase with SummaryListFluen
         val result = route(application, request).value
 
         status(result) mustEqual SEE_OTHER
-        redirectLocation(result).value mustEqual appConfig.updateOperatorUrl(operatorId)
+        redirectLocation(result).value mustEqual appConfig.manageHomepageUrl
       }
     }
   }

@@ -41,7 +41,7 @@ class SubmissionConnector @Inject() (
   private val digitalPlatformReportingService: Service =
     configuration.get[Service]("microservice.services.digital-platform-reporting")
 
-  def start(operatorId: String, operatorName: String, id: Option[String])(using HeaderCarrier): Future[Submission] =
+  def  start(operatorId: String, operatorName: String, id: Option[String])(using HeaderCarrier): Future[Submission] =
     httpClient.put(url"$digitalPlatformReportingService/digital-platform-reporting/submission/start")
       .transform(_.withQueryStringParameters(Seq(id.map(id => "id" -> id)).flatten*))
       .withBody(Json.toJson(StartSubmissionRequest(operatorId, operatorName)))

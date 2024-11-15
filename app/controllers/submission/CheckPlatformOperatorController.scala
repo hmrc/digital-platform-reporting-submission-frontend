@@ -82,7 +82,7 @@ class CheckPlatformOperatorController @Inject()(
         answer => if(answer) {
           Future.successful(Redirect(routes.CheckReportingNotificationsController.onSubmit(operatorId)))
         } else {
-          Future.successful(Redirect(appConfig.updateOperatorUrl(operatorId)))
+          Future.successful(Redirect(appConfig.manageHomepageUrl))
         }
       )
   }

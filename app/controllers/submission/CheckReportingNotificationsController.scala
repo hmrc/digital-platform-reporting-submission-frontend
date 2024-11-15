@@ -68,7 +68,7 @@ class CheckReportingNotificationsController @Inject()(
         answer => if (answer) {
           Future.successful(Redirect(routes.CheckContactDetailsController.onPageLoad(operatorId)))
         } else {
-          Future.successful(Redirect(appConfig.addReportingNotificationUrl(operatorId)))
+          Future.successful(Redirect(appConfig.manageHomepageUrl))
         }
       )
   }
