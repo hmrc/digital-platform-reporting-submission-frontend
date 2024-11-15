@@ -283,8 +283,8 @@ taxResidencyCountry.checkYourAnswersLabel = What country is {0} tax resident in?
 taxResidentInUk.checkYourAnswersLabel = Is {0} tax resident in the UK?
 tradingName.checkYourAnswersLabel = Trading name
 ukTaxIdentifiers.checkYourAnswersLabel = What types of tax identification number?
-utrSummary = Unique Taxpayer Reference (UTR)
-vrnSummary = VAT Registration Number (VAT)
+utr.checkYourAnswersLabel = Unique Taxpayer Reference (UTR)
+vrn.checkYourAnswersLabel = VAT Registration Number (VAT)
 
 assumed.start.title = Make an assumed report to tell HMRC when another platform operator will report for you
 assumed.start.heading = Make an assumed report to tell HMRC when another platform operator will report for you
