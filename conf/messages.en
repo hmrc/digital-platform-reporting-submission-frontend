@@ -434,7 +434,7 @@ assumedReportRemoved.button = Back to view assumed reports
 
 submissionsExist.title = There is a problem with the report you are trying to make
 submissionsExist.heading = There is a problem with the report you are trying to make
-submissionsExist.p1 = You cannot make an assumed report for {0} for {1}. This is because you have already submitted XML report for them for {1}.
+submissionsExist.p1 = You cannot make an assumed report for {0} for {1}. This is because you have already submitted XML reports for them for {1}.
 submissionsExist.p2 = You can tell HMRC if another platform operator will report for you by submitting this as an XML file instead.
 submissionsExist.viewSubmissions = View the submissions you have made for {0}
 submissionsExist.manage = Return to manage your digital platform reporting

@@ -17,23 +17,29 @@
 package controllers.assumed.create
 
 import base.SpecBase
+import connectors.SubmissionConnector
 import controllers.routes as baseRoutes
 import forms.ReportingPeriodFormProvider
-import models.{NormalMode, yearFormat}
-import org.mockito.ArgumentMatchers.any
-import org.mockito.Mockito.when
+import models.submission.SubmissionStatus.{Pending, Success}
+import models.submission.*
+import models.{NormalMode, UserAnswers, yearFormat}
+import org.mockito.ArgumentCaptor
+import org.mockito.ArgumentMatchers.{any, eq as eqTo}
+import org.mockito.Mockito.{reset, verify, when}
+import org.scalatest.BeforeAndAfterEach
 import org.scalatestplus.mockito.MockitoSugar
 import pages.assumed.create.ReportingPeriodPage
 import play.api.inject.bind
 import play.api.test.FakeRequest
 import play.api.test.Helpers.*
+import queries.SubmissionsExistQuery
 import repositories.SessionRepository
 import views.html.assumed.create.ReportingPeriodView
 
 import java.time.{Clock, Instant, Year, ZoneId}
 import scala.concurrent.Future
 
-class ReportingPeriodControllerSpec extends SpecBase with MockitoSugar {
+class ReportingPeriodControllerSpec extends SpecBase with MockitoSugar with BeforeAndAfterEach {
 
   private val instant = Instant.now()
   private val stubClock: Clock = Clock.fixed(instant, ZoneId.systemDefault)
@@ -44,6 +50,14 @@ class ReportingPeriodControllerSpec extends SpecBase with MockitoSugar {
   private val validAnswer = Year.of(2024)
 
   private lazy val reportingPeriodRoute = routes.ReportingPeriodController.onPageLoad(NormalMode, operatorId).url
+
+  private val mockConnector = mock[SubmissionConnector]
+  private val mockSessionRepository = mock[SessionRepository]
+
+  override def beforeEach(): Unit = {
+    reset(mockConnector, mockSessionRepository)
+    super.beforeEach()
+  }
 
   "ReportingPeriod Controller" - {
 
@@ -81,29 +95,158 @@ class ReportingPeriodControllerSpec extends SpecBase with MockitoSugar {
       }
     }
 
-    "must redirect to the next page when valid data is submitted" in {
+    "must record whether any XML submissions exist for this PO and year, then redirect to the next page when valid data is submitted" - {
 
-      val mockSessionRepository = mock[SessionRepository]
+      val expectedViewSubmissionsRequest = ViewSubmissionsRequest(
+        assumedReporting = false,
+        pageNumber = 1,
+        sortBy = SortBy.SubmissionDate,
+        sortOrder = SortOrder.Descending,
+        reportingPeriod = Some(validAnswer.getValue),
+        operatorId = Some(operatorId),
+        statuses = SubmissionStatus.values
+      )
+      
+      "when there are no XML submissions" in {
 
-      when(mockSessionRepository.set(any())).thenReturn(Future.successful(true))
+        when(mockSessionRepository.set(any())).thenReturn(Future.successful(true))
+        when(mockConnector.listDeliveredSubmissions(any())(using any())).thenReturn(Future.successful(None))
+        when(mockConnector.listUndeliveredSubmissions(using any())).thenReturn(Future.successful(Nil))
 
-      val application =
-        applicationBuilder(userAnswers = Some(emptyUserAnswers))
-          .overrides(
-            bind[SessionRepository].toInstance(mockSessionRepository)
-          )
-          .build()
+        val application =
+          applicationBuilder(userAnswers = Some(emptyUserAnswers))
+            .overrides(
+              bind[SessionRepository].toInstance(mockSessionRepository),
+              bind[SubmissionConnector].toInstance(mockConnector)
+            )
+            .build()
 
-      running(application) {
-        val request =
-          FakeRequest(POST, reportingPeriodRoute)
-            .withFormUrlEncodedBody(("value", validAnswer.toString))
+        running(application) {
+          val request =
+            FakeRequest(POST, reportingPeriodRoute)
+              .withFormUrlEncodedBody(("value", validAnswer.toString))
+          
+          val answersCaptor: ArgumentCaptor[UserAnswers] = ArgumentCaptor.forClass(classOf[UserAnswers])
+          val answers =
+            emptyUserAnswers
+              .set(ReportingPeriodPage, validAnswer).success.value
+              .set(SubmissionsExistQuery, false).success.value
 
-        val result = route(application, request).value
-        val answers = emptyUserAnswers.set(ReportingPeriodPage, validAnswer).success.value
+          val result = route(application, request).value
 
-        status(result) mustEqual SEE_OTHER
-        redirectLocation(result).value mustEqual ReportingPeriodPage.nextPage(NormalMode, answers).url
+          status(result) mustEqual SEE_OTHER
+          redirectLocation(result).value mustEqual ReportingPeriodPage.nextPage(NormalMode, answers).url
+          verify(mockConnector).listDeliveredSubmissions(eqTo(expectedViewSubmissionsRequest))(using(any()))
+          verify(mockConnector).listUndeliveredSubmissions(using any())
+          verify(mockSessionRepository).set(answersCaptor.capture())
+
+          val savedAnswers = answersCaptor.getValue
+          savedAnswers.get(SubmissionsExistQuery).value mustEqual false
+          savedAnswers.get(ReportingPeriodPage).value mustEqual validAnswer
+        }
+      }
+
+      "when there are delivered XML submissions" in {
+
+        val deliveredSubmission = SubmissionSummary(
+          submissionId = "submissionId",
+          fileName = "filename",
+          operatorId = operatorId,
+          operatorName = operatorName,
+          reportingPeriod = validAnswer,
+          submissionDateTime = instant,
+          submissionStatus = Success,
+          assumingReporterName = None,
+          submissionCaseId = Some("caseId")
+        )
+        val submissionsSummary = SubmissionsSummary(Seq(deliveredSubmission), 1, true, 0)
+
+        when(mockSessionRepository.set(any())).thenReturn(Future.successful(true))
+        when(mockConnector.listDeliveredSubmissions(any())(using any())).thenReturn(Future.successful(Some(submissionsSummary)))
+        when(mockConnector.listUndeliveredSubmissions(using any())).thenReturn(Future.successful(Nil))
+
+        val application =
+          applicationBuilder(userAnswers = Some(emptyUserAnswers))
+            .overrides(
+              bind[SessionRepository].toInstance(mockSessionRepository),
+              bind[SubmissionConnector].toInstance(mockConnector)
+            )
+            .build()
+
+        running(application) {
+          val request =
+            FakeRequest(POST, reportingPeriodRoute)
+              .withFormUrlEncodedBody(("value", validAnswer.toString))
+
+          val answersCaptor: ArgumentCaptor[UserAnswers] = ArgumentCaptor.forClass(classOf[UserAnswers])
+          val answers =
+            emptyUserAnswers
+              .set(ReportingPeriodPage, validAnswer).success.value
+              .set(SubmissionsExistQuery, true).success.value
+
+          val result = route(application, request).value
+
+          status(result) mustEqual SEE_OTHER
+          redirectLocation(result).value mustEqual ReportingPeriodPage.nextPage(NormalMode, answers).url
+          verify(mockConnector).listDeliveredSubmissions(eqTo(expectedViewSubmissionsRequest))(using (any()))
+          verify(mockConnector).listUndeliveredSubmissions(using any())
+          verify(mockSessionRepository).set(answersCaptor.capture())
+          
+          val savedAnswers = answersCaptor.getValue
+          savedAnswers.get(SubmissionsExistQuery).value mustEqual true
+          savedAnswers.get(ReportingPeriodPage).value mustEqual validAnswer
+        }
+      }
+
+      "when there are undelivered XML submissions" in {
+
+        val undeliveredSubmission = SubmissionSummary(
+          submissionId = "submissionId",
+          fileName = "filename",
+          operatorId = operatorId,
+          operatorName = operatorName,
+          reportingPeriod = validAnswer,
+          submissionDateTime = instant,
+          submissionStatus = Pending,
+          assumingReporterName = None,
+          submissionCaseId = Some("caseId")
+        )
+
+        when(mockSessionRepository.set(any())).thenReturn(Future.successful(true))
+        when(mockConnector.listDeliveredSubmissions(any())(using any())).thenReturn(Future.successful(None))
+        when(mockConnector.listUndeliveredSubmissions(using any())).thenReturn(Future.successful(Seq(undeliveredSubmission)))
+
+        val application =
+          applicationBuilder(userAnswers = Some(emptyUserAnswers))
+            .overrides(
+              bind[SessionRepository].toInstance(mockSessionRepository),
+              bind[SubmissionConnector].toInstance(mockConnector)
+            )
+            .build()
+
+        running(application) {
+          val request =
+            FakeRequest(POST, reportingPeriodRoute)
+              .withFormUrlEncodedBody(("value", validAnswer.toString))
+
+          val answersCaptor: ArgumentCaptor[UserAnswers] = ArgumentCaptor.forClass(classOf[UserAnswers])
+          val answers =
+            emptyUserAnswers
+              .set(ReportingPeriodPage, validAnswer).success.value
+              .set(SubmissionsExistQuery, true).success.value
+
+          val result = route(application, request).value
+
+          status(result) mustEqual SEE_OTHER
+          redirectLocation(result).value mustEqual ReportingPeriodPage.nextPage(NormalMode, answers).url
+          verify(mockConnector).listDeliveredSubmissions(eqTo(expectedViewSubmissionsRequest))(using (any()))
+          verify(mockConnector).listUndeliveredSubmissions(using any())
+          verify(mockSessionRepository).set(answersCaptor.capture())
+
+          val savedAnswers = answersCaptor.getValue
+          savedAnswers.get(SubmissionsExistQuery).value mustEqual true
+          savedAnswers.get(ReportingPeriodPage).value mustEqual validAnswer
+        }
       }
     }
 

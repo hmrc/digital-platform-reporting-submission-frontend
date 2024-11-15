@@ -17,9 +17,11 @@
 package pages.assumed.create
 
 import controllers.assumed.create.routes
+import controllers.routes as baseRoutes
 import models.{NormalMode, UserAnswers}
 import play.api.libs.json.JsPath
 import play.api.mvc.Call
+import queries.SubmissionsExistQuery
 
 import java.time.Year
 
@@ -29,6 +31,10 @@ case object ReportingPeriodPage extends AssumedReportingQuestionPage[Year] {
 
   override def toString: String = "reportingPeriod"
 
-  override protected def nextPageNormalMode(answers: UserAnswers): Call =
-    routes.AssumingOperatorNameController.onPageLoad(NormalMode, answers.operatorId)
+  override protected def nextPageNormalMode(answers: UserAnswers): Call = {
+    answers.get(SubmissionsExistQuery).map {
+      case true  => routes.SubmissionsExistController.onPageLoad(answers.operatorId)
+      case false => routes.AssumingOperatorNameController.onPageLoad(NormalMode, answers.operatorId)
+    }.getOrElse(baseRoutes.JourneyRecoveryController.onPageLoad())
+  }
 }
