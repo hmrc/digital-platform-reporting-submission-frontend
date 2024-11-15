@@ -34,9 +34,10 @@ import pages.assumed.create.AssumingOperatorNamePage
 import play.api.inject.bind
 import play.api.test.FakeRequest
 import play.api.test.Helpers.*
-import queries.{AssumedReportSummaryQuery, PlatformOperatorNameQuery, ReportingPeriodQuery}
+import queries.{AssumedReportSummaryQuery, PlatformOperatorSummaryQuery, ReportingPeriodQuery}
 import repositories.SessionRepository
 import services.UserAnswersService
+import viewmodels.PlatformOperatorSummary
 import viewmodels.govuk.SummaryListFluency
 import views.html.assumed.create.CheckYourAnswersView
 
@@ -120,7 +121,7 @@ class CheckYourAnswersControllerSpec extends SpecBase with SummaryListFluency wi
         val answers =
           emptyUserAnswers
             .set(AssumingOperatorNamePage, "assumingOperatorName").success.value
-            .set(PlatformOperatorNameQuery, "operatorName").success.value
+            .set(PlatformOperatorSummaryQuery, PlatformOperatorSummary("operatorId", "operatorName", true)).success.value
             .set(ReportingPeriodQuery, Year.of(2024)).success.value
 
         val application = applicationBuilder(userAnswers = Some(answers))
@@ -140,7 +141,7 @@ class CheckYourAnswersControllerSpec extends SpecBase with SummaryListFluency wi
           val result = route(application, request).value
 
           status(result) mustEqual SEE_OTHER
-          redirectLocation(result).value mustEqual routes.SubmissionConfirmationController.onPageLoad(operatorId, "submissionId").url
+          redirectLocation(result).value mustEqual routes.SubmissionConfirmationController.onPageLoad(operatorId, Year.of(2024)).url
         }
 
         verify(mockUserAnswersService).toAssumedReportingSubmission(eqTo(answers))
@@ -150,9 +151,10 @@ class CheckYourAnswersControllerSpec extends SpecBase with SummaryListFluency wi
         verify(mockSessionRepository, times(1)).set(answersCaptor.capture())
 
         val finalAnswers = answersCaptor.getValue
+        finalAnswers.reportingPeriod.value                mustEqual Year.of(2024)
         finalAnswers.get(AssumedReportSummaryQuery).value mustEqual AssumedReportSummary(operatorId, operatorName, "assumingOperatorName", Year.of(2024))
         finalAnswers.get(ReportingPeriodQuery)            must not be defined
-        finalAnswers.get(PlatformOperatorNameQuery)       must not be defined
+        finalAnswers.get(PlatformOperatorSummaryQuery)    must not be defined
         finalAnswers.get(AssumingOperatorNamePage)        must not be defined
       }
 

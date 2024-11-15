@@ -16,7 +16,6 @@
 
 @import controllers.assumed.create.routes as createRoutes
 @import config.FrontendAppConfig
-@import models.submission.AssumedReportSummary
 @import java.time.Year
 
 @this(
@@ -36,14 +35,14 @@
     </div>
 
     @govukSummaryList(summaryList)
-    
-    <h2 class="govuk-heading-m"></h2>
+
+    <h2 class="govuk-heading-m">@messages("assumedReportingConfirmation.next")</h2>
 
     <p class="govuk-body">
         @messages("assumedReportingConfirmation.youCan")
         <a class="govuk-link" href="@createRoutes.SelectPlatformOperatorController.onPageLoad">@messages("assumedReportingConfirmation.makeAnother")</a>.
     </p>
-    
+
     <p class="govuk-body">
         @messages("assumedReportingConfirmation.returnTo")
         <a class="govuk-link" href="@appConfig.manageHomepageUrl">@messages("assumedReportingConfirmation.return")</a>.

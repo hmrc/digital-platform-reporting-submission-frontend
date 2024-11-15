@@ -76,12 +76,12 @@ class CheckYourAnswersController @Inject()(
         .merge
         .flatMap { submissionRequest =>
           for {
-            submission   <- connector.submit(submissionRequest)
+            _            <- connector.submit(submissionRequest)
             summary      <- AssumedReportSummary(request.userAnswers).map(Future.successful).getOrElse(Future.failed(Exception("unable to build an assumed report summary")))
-            emptyAnswers = UserAnswers(request.userId, operatorId, None)
+            emptyAnswers = UserAnswers(request.userId, operatorId, Some(summary.reportingPeriod))
             answers      <- Future.fromTry(emptyAnswers.set(AssumedReportSummaryQuery, summary))
             _            <- sessionRepository.set(answers)
-          } yield Redirect(routes.SubmissionConfirmationController.onPageLoad(operatorId, submission._id))
+          } yield Redirect(routes.SubmissionConfirmationController.onPageLoad(operatorId, summary.reportingPeriod))
         }
   }
 }

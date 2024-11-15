@@ -17,47 +17,33 @@
 package controllers.assumed.create
 
 import com.google.inject.Inject
-import connectors.SubmissionConnector
+import controllers.AnswerExtractor
 import controllers.actions.*
-import models.submission.Submission
-import models.submission.Submission.State.{Approved, Rejected, Submitted}
 import play.api.i18n.{I18nSupport, MessagesApi}
-import play.api.mvc.{Action, AnyContent, MessagesControllerComponents, Result}
+import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
+import queries.AssumedReportSummaryQuery
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
+import viewmodels.checkAnswers.assumed.create.AssumedReportCreatedSummary
 import views.html.assumed.create.SubmissionConfirmationView
 
-import scala.concurrent.{ExecutionContext, Future}
+import java.time.{Clock, Year}
 
 class SubmissionConfirmationController @Inject()(
                                             override val messagesApi: MessagesApi,
                                             identify: IdentifierAction,
+                                            getData: DataRetrievalActionProvider,
+                                            requireData: DataRequiredAction,
                                             val controllerComponents: MessagesControllerComponents,
                                             view: SubmissionConfirmationView,
-                                            submissionConnector: SubmissionConnector
-                                          )(using ExecutionContext) extends FrontendBaseController with I18nSupport {
+                                            clock: Clock
+                                          )
+  extends FrontendBaseController with I18nSupport with AnswerExtractor {
 
-  def onPageLoad(operatorId: String, submissionId: String): Action[AnyContent] = identify.async {
-    implicit request =>
-      submissionConnector.get(submissionId).flatMap {
-        _.map { submission =>
-          handleSubmission(submission) { case _: Submitted | _: Approved | _: Rejected =>
-
-            val reportingPeriod = submission.state match {
-              case state: Submitted => state.reportingPeriod
-              case state: Approved => state.reportingPeriod
-              case state: Rejected => state.reportingPeriod
-            }
-
-            Future.successful(Ok(view(operatorId, submission.assumingOperatorName.get, submission.operatorName, reportingPeriod))) // TODO remove get
-          }
-        }.getOrElse {
-          Future.successful(Redirect(controllers.routes.JourneyRecoveryController.onPageLoad()))
-        }
+  def onPageLoad(operatorId: String, reportingPeriod: Year): Action[AnyContent] =
+    (identify andThen getData(operatorId, Some(reportingPeriod)) andThen requireData) { implicit request =>
+      getAnswer(AssumedReportSummaryQuery) { assumedReport =>
+        val summaryList = AssumedReportCreatedSummary.list(assumedReport, clock.instant())
+        Ok(view(operatorId, summaryList))
       }
   }
-
-  private def handleSubmission(submission: Submission)(f: PartialFunction[Submission.State, Future[Result]]): Future[Result] =
-    f.lift(submission.state).getOrElse {
-      Future.successful(Redirect(controllers.routes.JourneyRecoveryController.onPageLoad()))
-    }
 }
