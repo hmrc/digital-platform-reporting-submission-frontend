@@ -179,7 +179,7 @@ class CheckYourAnswersControllerSpec extends SpecBase with SummaryListFluency wi
         }
 
         verify(mockAssumedReportingConnector, never()).submit(any())(using any())
-        verify(mockSessionRepository, never()).clear(any(), any(), any())
+        verify(mockSessionRepository, never()).set(any())
       }
     }
 

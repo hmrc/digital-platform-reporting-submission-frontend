@@ -21,7 +21,7 @@ import org.scalatest.{OptionValues, TryValues}
 import org.scalatest.freespec.AnyFreeSpec
 import org.scalatest.matchers.must.Matchers
 import pages.assumed.update.AssumingOperatorNamePage
-import queries.{PlatformOperatorNameQuery, ReportingPeriodQuery}
+import queries.{PlatformOperatorNameQuery, PlatformOperatorSummaryQuery, ReportingPeriodQuery}
 import viewmodels.PlatformOperatorSummary
 
 import java.time.Year
@@ -31,17 +31,30 @@ class AssumedReportSummarySpec extends AnyFreeSpec with Matchers with TryValues 
   "apply" - {
     
     val emptyAnswers = UserAnswers("id", "operatorId", None)
-    
-    "must return a summary when all required answers are present" in {
-      
+
+    "must return a summary when all required answers, including PO name, are present" in {
+
       val answers =
         emptyAnswers
           .set(AssumingOperatorNamePage, "assumingOperator").success.value
           .set(PlatformOperatorNameQuery, "operatorName").success.value
           .set(ReportingPeriodQuery, Year.of(2024)).success.value
-      
+
       val expectedSummary = AssumedReportSummary("operatorId", "operatorName", "assumingOperator", Year.of(2024))
-      
+
+      AssumedReportSummary(answers).value mustEqual expectedSummary
+    }
+
+    "must return a summary when all required answers, including PO summary, are present" in {
+
+      val answers =
+        emptyAnswers
+          .set(AssumingOperatorNamePage, "assumingOperator").success.value
+          .set(PlatformOperatorSummaryQuery, PlatformOperatorSummary("operatorId", "operatorName", true)).success.value
+          .set(ReportingPeriodQuery, Year.of(2024)).success.value
+
+      val expectedSummary = AssumedReportSummary("operatorId", "operatorName", "assumingOperator", Year.of(2024))
+
       AssumedReportSummary(answers).value mustEqual expectedSummary
     }
     

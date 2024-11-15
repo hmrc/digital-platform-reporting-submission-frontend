@@ -19,8 +19,11 @@ package controllers.assumed.create
 import com.google.inject.Inject
 import connectors.AssumedReportingConnector
 import controllers.actions.*
+import models.UserAnswers
+import models.submission.AssumedReportSummary
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
+import queries.AssumedReportSummaryQuery
 import repositories.SessionRepository
 import services.UserAnswersService
 import services.UserAnswersService.BuildAssumedReportingSubmissionFailure
@@ -48,6 +51,7 @@ class CheckYourAnswersController @Inject()(
 
       val list = SummaryListViewModel(
         rows = Seq(
+          ReportingPeriodSummary.row(request.userAnswers),
           AssumingOperatorNameSummary.row(request.userAnswers),
           TaxResidentInUkSummary.row(request.userAnswers),
           HasUkTaxIdentifierSummary.row(request.userAnswers),
@@ -57,7 +61,6 @@ class CheckYourAnswersController @Inject()(
           InternationalTaxIdentifierSummary.row(request.userAnswers),
           RegisteredCountrySummary.row(request.userAnswers),
           AddressSummary.row(request.userAnswers),
-          ReportingPeriodSummary.row(request.userAnswers),
         ).flatten
       )
 
@@ -73,9 +76,12 @@ class CheckYourAnswersController @Inject()(
         .merge
         .flatMap { submissionRequest =>
           for {
-            submission <- connector.submit(submissionRequest)
-            _          <- sessionRepository.clear(request.userId, operatorId, None)
-          } yield Redirect(routes.SubmissionConfirmationController.onPageLoad(operatorId, submission._id))
+            _            <- connector.submit(submissionRequest)
+            summary      <- AssumedReportSummary(request.userAnswers).map(Future.successful).getOrElse(Future.failed(Exception("unable to build an assumed report summary")))
+            emptyAnswers = UserAnswers(request.userId, operatorId, Some(summary.reportingPeriod))
+            answers      <- Future.fromTry(emptyAnswers.set(AssumedReportSummaryQuery, summary))
+            _            <- sessionRepository.set(answers)
+          } yield Redirect(routes.SubmissionConfirmationController.onPageLoad(operatorId, summary.reportingPeriod))
         }
   }
 }
