@@ -16,7 +16,7 @@
 
 package models.upscan
 
-import models.upscan.UpscanCallbackRequest.FailureReason.Rejected
+import models.upscan.UpscanCallbackRequest.UpscanFailureReason.Rejected
 import models.upscan.UpscanCallbackRequest.{ErrorDetails, UploadDetails}
 import org.scalatest.freespec.AnyFreeSpec
 import org.scalatest.matchers.must.Matchers

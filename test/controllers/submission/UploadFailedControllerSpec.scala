@@ -20,7 +20,8 @@ import base.SpecBase
 import connectors.SubmissionConnector
 import models.submission.Submission
 import models.submission.Submission.State.{Approved, Ready, Rejected, Submitted, UploadFailed, Uploading, Validated}
-import models.submission.Submission.SubmissionType
+import models.submission.Submission.UploadFailureReason.*
+import models.submission.Submission.{SubmissionType, UploadFailureReason}
 import models.upscan.UpscanInitiateResponse.UploadRequest
 import org.apache.pekko.Done
 import org.mockito.ArgumentMatchers.{any, eq as eqTo}
@@ -53,7 +54,8 @@ class UploadFailedControllerSpec extends SpecBase with MockitoSugar with BeforeA
 
   private val readyGen: Gen[Ready.type] = Gen.const(Ready)
   private val uploadingGen: Gen[Uploading.type] = Gen.const(Uploading)
-  private val uploadFailedGen: Gen[UploadFailed] = Gen.asciiPrintableStr.map(UploadFailed.apply)
+  private val uploadFailureReasonGen: Gen[UploadFailureReason] = Gen.oneOf(NotXml, SchemaValidationError, PlatformOperatorIdMissing, ReportingPeriodInvalid)
+  private val uploadFailedGen: Gen[UploadFailed] = uploadFailureReasonGen.map(reason => UploadFailed(reason))
 
   "UploadFailed Controller" - {
 
@@ -77,7 +79,7 @@ class UploadFailedControllerSpec extends SpecBase with MockitoSugar with BeforeA
             operatorId = "operatorId",
             operatorName = "operatorName",
             assumingOperatorName = None,
-            state = UploadFailed("reason"),
+            state = UploadFailed(SchemaValidationError),
             created = now,
             updated = now
           )
@@ -96,7 +98,7 @@ class UploadFailedControllerSpec extends SpecBase with MockitoSugar with BeforeA
             val view = application.injector.instanceOf[UploadFailedView]
 
             status(result) mustEqual OK
-            contentAsString(result) mustEqual view(uploadRequest, "reason")(request, messages(application)).toString
+            contentAsString(result) mustEqual view(uploadRequest, SchemaValidationError)(request, messages(application)).toString
           }
 
           verify(mockSubmissionConnector).get(eqTo("id"))(using any())
@@ -416,7 +418,7 @@ class UploadFailedControllerSpec extends SpecBase with MockitoSugar with BeforeA
             }
 
             verify(mockSubmissionConnector).get(eqTo("id"))(using any())
-            verify(mockSubmissionConnector).uploadFailed("dprsId", "id", "EntityTooLarge")
+            verify(mockSubmissionConnector).uploadFailed("dprsId", "id", UploadFailureReason.EntityTooLarge)
           }
         }
 
@@ -455,7 +457,7 @@ class UploadFailedControllerSpec extends SpecBase with MockitoSugar with BeforeA
             }
 
             verify(mockSubmissionConnector).get(eqTo("id"))(using any())
-            verify(mockSubmissionConnector).uploadFailed("dprsId", "id", "unknown")
+            verify(mockSubmissionConnector).uploadFailed("dprsId", "id", UnknownFailure)
           }
         }
 
@@ -494,7 +496,7 @@ class UploadFailedControllerSpec extends SpecBase with MockitoSugar with BeforeA
             }
 
             verify(mockSubmissionConnector).get(eqTo("id"))(using any())
-            verify(mockSubmissionConnector).uploadFailed("dprsId", "id", "unknown")
+            verify(mockSubmissionConnector).uploadFailed("dprsId", "id", UnknownFailure)
           }
         }
       }

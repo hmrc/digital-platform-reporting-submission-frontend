@@ -18,8 +18,9 @@ package controllers.internal
 
 import base.SpecBase
 import connectors.SubmissionConnector
+import models.submission.Submission.UploadFailureReason.UpscanError
 import models.submission.UploadSuccessRequest
-import models.upscan.UpscanCallbackRequest.FailureReason.Rejected
+import models.upscan.UpscanCallbackRequest.UpscanFailureReason.Rejected
 import models.upscan.UpscanCallbackRequest.{ErrorDetails, UploadDetails}
 import models.upscan.{UpscanCallbackRequest, UpscanJourney}
 import org.apache.pekko.Done
@@ -145,7 +146,7 @@ class UpscanCallbackControllerSpec extends SpecBase with BeforeAndAfterEach {
             status(result) mustEqual OK
 
             verify(mockUpscanJourneyRepository).getByUploadId("uploadId")
-            verify(mockSubmissionConector).uploadFailed("dprsId", "submissionId", "REJECTED")
+            verify(mockSubmissionConector).uploadFailed("dprsId", "submissionId", UpscanError(Rejected))
           }
         }
       }

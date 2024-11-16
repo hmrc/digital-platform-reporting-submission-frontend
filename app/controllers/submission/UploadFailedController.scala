@@ -20,6 +20,7 @@ import connectors.SubmissionConnector
 import controllers.actions.*
 import models.submission.Submission
 import models.submission.Submission.State.{Approved, Ready, Rejected, Submitted, UploadFailed, Uploading, Validated}
+import models.submission.Submission.UploadFailureReason
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents, Result}
 import services.UpscanService
@@ -56,14 +57,18 @@ class UploadFailedController @Inject()(
       }
   }
 
-  private val knownErrors: Set[String] = Set("EntityTooLarge", "EntityTooSmall", "InvalidArgument")
+  private val knownErrors: Map[String, UploadFailureReason] = Map(
+    "EntityTooLarge"  -> UploadFailureReason.EntityTooLarge,
+    "EntityTooSmall"  -> UploadFailureReason.EntityTooSmall,
+    "InvalidArgument" -> UploadFailureReason.InvalidArgument
+  )
 
   def onRedirect(operatorId: String, submissionId: String, errorCode: Option[String]): Action[AnyContent] = (identify andThen getData(operatorId) andThen requireData).async { implicit request =>
     submissionConnector.get(submissionId).flatMap {
       _.map { submission =>
         handleSubmission(operatorId, submission) {
           case Ready | Uploading | _: UploadFailed =>
-            submissionConnector.uploadFailed(request.dprsId, submissionId, errorCode.filter(knownErrors.contains).getOrElse("unknown")).map { _ =>
+            submissionConnector.uploadFailed(request.dprsId, submissionId, errorCode.flatMap(knownErrors.get).getOrElse(UploadFailureReason.UnknownFailure)).map { _ =>
               Redirect(routes.UploadFailedController.onPageLoad(operatorId, submissionId))
             }
         }

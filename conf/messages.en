@@ -90,6 +90,9 @@ uploadFailed.error.QUARANTINE = The selected file contains a virus
 uploadFailed.error.REJECTED = Something has gone wrong with your file upload
 uploadFailed.error.UNKNOWN = Something has gone wrong with your file upload
 uploadFailed.error.DUPLICATE = Something has gone wrong with your file upload
+uploadFailed.error.assumedReport.exists = An assumed report ha already been created for this platform operator
+uploadFailed.error.assumedReport.exists.p1 = Delete the existing assumed report to submit XML files for this platform operator.
+uploadFailed.error.assumedReport.exists.viewAssumedReports = View the the assumed reports you have made for {0}
 
 sendFile.title = Check your file details are correct
 sendFile.heading = Check your file details are correct

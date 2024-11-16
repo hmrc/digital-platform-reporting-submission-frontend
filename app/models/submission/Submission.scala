@@ -17,6 +17,7 @@
 package models.submission
 
 import models.submission.Submission.SubmissionType
+import models.upscan.UpscanCallbackRequest.UpscanFailureReason
 import play.api.libs.json.*
 
 import java.net.URL
@@ -62,20 +63,53 @@ object Submission {
     }
   }
 
+  sealed trait UploadFailureReason
+
+  object UploadFailureReason {
+
+    case object NotXml extends UploadFailureReason
+    case object SchemaValidationError extends UploadFailureReason
+    case object ManualAssumedReportExists extends UploadFailureReason
+    case object PlatformOperatorIdMissing extends UploadFailureReason
+    final case class PlatformOperatorIdMismatch(expectedId: String, actualId: String) extends UploadFailureReason
+    case object ReportingPeriodInvalid extends UploadFailureReason
+    final case class UpscanError(failureReason: UpscanFailureReason) extends UploadFailureReason
+    case object EntityTooLarge extends UploadFailureReason
+    case object EntityTooSmall extends UploadFailureReason
+    case object InvalidArgument extends UploadFailureReason
+    case object UnknownFailure extends UploadFailureReason
+    
+    private given OFormat[NotXml.type] = singletonOFormat(NotXml)
+    private given OFormat[SchemaValidationError.type] = singletonOFormat(SchemaValidationError)
+    private given OFormat[ManualAssumedReportExists.type] = singletonOFormat(ManualAssumedReportExists)
+    private given OFormat[PlatformOperatorIdMissing.type] = singletonOFormat(PlatformOperatorIdMissing)
+    private given OFormat[PlatformOperatorIdMismatch] = Json.format
+    private given OFormat[ReportingPeriodInvalid.type] = singletonOFormat(ReportingPeriodInvalid)
+    private given OFormat[UpscanError] = Json.format
+    private given OFormat[EntityTooSmall.type] = singletonOFormat(EntityTooSmall)
+    private given OFormat[EntityTooLarge.type] = singletonOFormat(EntityTooLarge)
+    private given OFormat[InvalidArgument.type] = singletonOFormat(InvalidArgument)
+    private given OFormat[UnknownFailure.type] = singletonOFormat(UnknownFailure)
+    
+    private given JsonConfiguration = JsonConfiguration(
+      discriminator = "type",
+      typeNaming = _.split("\\.").last
+    )
+
+    given OFormat[UploadFailureReason] = Json.format
+  }
+  
   sealed trait State extends Product with Serializable
 
   object State {
 
     case object Ready extends State
     case object Uploading extends State
-    final case class UploadFailed(reason: String) extends State
+    final case class UploadFailed(reason: UploadFailureReason) extends State
     final case class Validated(downloadUrl: URL, reportingPeriod: Year, fileName: String, checksum: String, size: Long) extends State
     final case class Submitted(fileName: String, reportingPeriod: Year) extends State
     final case class Approved(fileName: String, reportingPeriod: Year) extends State
     final case class Rejected(fileName: String, reportingPeriod: Year) extends State
-
-    private def singletonOFormat[A](a: A): OFormat[A] =
-      OFormat(Reads.pure(a), OWrites[A](_ => Json.obj()))
 
     private given OFormat[Ready.type] = singletonOFormat(Ready)
     private given OFormat[UploadFailed] = Json.format
@@ -94,4 +128,7 @@ object Submission {
   }
 
   given OFormat[Submission] = Json.format
+
+  private def singletonOFormat[A](a: A): OFormat[A] =
+    OFormat(Reads.pure(a), OWrites[A](_ => Json.obj()))
 }

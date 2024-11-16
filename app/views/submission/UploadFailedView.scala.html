@@ -14,6 +14,7 @@
  * limitations under the License.
  *@
 
+@import models.submission.Submission.UploadFailureReason
 @import models.upscan.UpscanInitiateResponse.UploadRequest
 @import uk.gov.hmrc.govukfrontend.views.html.components.GovukFileUpload
 @import uk.gov.hmrc.govukfrontend.views.html.components.GovukErrorSummary
@@ -27,7 +28,7 @@
         govukErrorSummary: GovukErrorSummary
 )
 
-@(uploadRequest: UploadRequest, error: String)(implicit request: Request[_], messages: Messages)
+@(uploadRequest: UploadRequest, error: UploadFailureReason)(implicit request: Request[_], messages: Messages)
 
 @layout(pageTitle = titleNoForm(messages("uploadFailed.title")), showBackLink = false) {
 
