@@ -20,7 +20,8 @@ import base.SpecBase
 import connectors.SubmissionConnector
 import models.submission.Submission
 import models.submission.Submission.State.{Approved, Ready, Rejected, Submitted, UploadFailed, Uploading, Validated}
-import models.submission.Submission.SubmissionType
+import models.submission.Submission.UploadFailureReason.*
+import models.submission.Submission.{SubmissionType, UploadFailureReason}
 import models.upscan.UpscanInitiateResponse.UploadRequest
 import org.apache.pekko.Done
 import org.mockito.ArgumentMatchers.{any, eq as eqTo}
@@ -32,8 +33,10 @@ import org.scalatestplus.mockito.MockitoSugar
 import play.api.inject.bind
 import play.api.test.FakeRequest
 import play.api.test.Helpers.*
+import queries.PlatformOperatorSummaryQuery
 import services.UpscanService
 import uk.gov.hmrc.http.StringContextOps
+import viewmodels.PlatformOperatorSummary
 import views.html.submission.UploadFailedView
 
 import java.time.{Instant, Year}
@@ -53,7 +56,11 @@ class UploadFailedControllerSpec extends SpecBase with MockitoSugar with BeforeA
 
   private val readyGen: Gen[Ready.type] = Gen.const(Ready)
   private val uploadingGen: Gen[Uploading.type] = Gen.const(Uploading)
-  private val uploadFailedGen: Gen[UploadFailed] = Gen.asciiPrintableStr.map(UploadFailed.apply)
+  private val uploadFailureReasonGen: Gen[UploadFailureReason] = Gen.oneOf(NotXml, SchemaValidationError, PlatformOperatorIdMissing, ReportingPeriodInvalid)
+  private val uploadFailedGen: Gen[UploadFailed] = uploadFailureReasonGen.map(reason => UploadFailed(reason))
+  
+  private val operatorSummary = PlatformOperatorSummary(operatorId, "operatorName", true)
+  private val baseAnswers = emptyUserAnswers.set(PlatformOperatorSummaryQuery, operatorSummary).success.value
 
   "UploadFailed Controller" - {
 
@@ -63,7 +70,7 @@ class UploadFailedControllerSpec extends SpecBase with MockitoSugar with BeforeA
 
         "must return OK and the correct view for a GET" in {
 
-          val application = applicationBuilder(userAnswers = Some(emptyUserAnswers))
+          val application = applicationBuilder(userAnswers = Some(baseAnswers))
             .overrides(
               bind[SubmissionConnector].toInstance(mockSubmissionConnector),
               bind[UpscanService].toInstance(mockUpscanService)
@@ -77,7 +84,7 @@ class UploadFailedControllerSpec extends SpecBase with MockitoSugar with BeforeA
             operatorId = "operatorId",
             operatorName = "operatorName",
             assumingOperatorName = None,
-            state = UploadFailed("reason"),
+            state = UploadFailed(SchemaValidationError),
             created = now,
             updated = now
           )
@@ -96,7 +103,7 @@ class UploadFailedControllerSpec extends SpecBase with MockitoSugar with BeforeA
             val view = application.injector.instanceOf[UploadFailedView]
 
             status(result) mustEqual OK
-            contentAsString(result) mustEqual view(uploadRequest, "reason")(request, messages(application)).toString
+            contentAsString(result) mustEqual view(uploadRequest, SchemaValidationError, operatorSummary)(request, messages(application)).toString
           }
 
           verify(mockSubmissionConnector).get(eqTo("id"))(using any())
@@ -108,7 +115,7 @@ class UploadFailedControllerSpec extends SpecBase with MockitoSugar with BeforeA
 
         "must redirect to the journey recovery page" in {
 
-          val application = applicationBuilder(userAnswers = Some(emptyUserAnswers))
+          val application = applicationBuilder(userAnswers = Some(baseAnswers))
             .overrides(
               bind[SubmissionConnector].toInstance(mockSubmissionConnector)
             )
@@ -130,7 +137,7 @@ class UploadFailedControllerSpec extends SpecBase with MockitoSugar with BeforeA
 
         "must redirect to the upload page" in {
 
-          val application = applicationBuilder(userAnswers = Some(emptyUserAnswers))
+          val application = applicationBuilder(userAnswers = Some(baseAnswers))
             .overrides(
               bind[SubmissionConnector].toInstance(mockSubmissionConnector),
               bind[UpscanService].toInstance(mockUpscanService)
@@ -167,7 +174,7 @@ class UploadFailedControllerSpec extends SpecBase with MockitoSugar with BeforeA
 
         "must redirect to the uploading page" in {
 
-          val application = applicationBuilder(userAnswers = Some(emptyUserAnswers))
+          val application = applicationBuilder(userAnswers = Some(baseAnswers))
             .overrides(
               bind[SubmissionConnector].toInstance(mockSubmissionConnector),
               bind[UpscanService].toInstance(mockUpscanService)
@@ -204,7 +211,7 @@ class UploadFailedControllerSpec extends SpecBase with MockitoSugar with BeforeA
 
         "must redirect to the send file page" in {
 
-          val application = applicationBuilder(userAnswers = Some(emptyUserAnswers))
+          val application = applicationBuilder(userAnswers = Some(baseAnswers))
             .overrides(
               bind[SubmissionConnector].toInstance(mockSubmissionConnector),
               bind[UpscanService].toInstance(mockUpscanService)
@@ -247,7 +254,7 @@ class UploadFailedControllerSpec extends SpecBase with MockitoSugar with BeforeA
 
         "must redirect to the checking file page" in {
 
-          val application = applicationBuilder(userAnswers = Some(emptyUserAnswers))
+          val application = applicationBuilder(userAnswers = Some(baseAnswers))
             .overrides(
               bind[SubmissionConnector].toInstance(mockSubmissionConnector),
               bind[UpscanService].toInstance(mockUpscanService)
@@ -284,7 +291,7 @@ class UploadFailedControllerSpec extends SpecBase with MockitoSugar with BeforeA
 
         "must redirect to the file passed page" in {
 
-          val application = applicationBuilder(userAnswers = Some(emptyUserAnswers))
+          val application = applicationBuilder(userAnswers = Some(baseAnswers))
             .overrides(
               bind[SubmissionConnector].toInstance(mockSubmissionConnector),
               bind[UpscanService].toInstance(mockUpscanService)
@@ -321,7 +328,7 @@ class UploadFailedControllerSpec extends SpecBase with MockitoSugar with BeforeA
 
         "must redirect to the file failed page" in {
 
-          val application = applicationBuilder(userAnswers = Some(emptyUserAnswers))
+          val application = applicationBuilder(userAnswers = Some(baseAnswers))
             .overrides(
               bind[SubmissionConnector].toInstance(mockSubmissionConnector),
               bind[UpscanService].toInstance(mockUpscanService)
@@ -416,7 +423,7 @@ class UploadFailedControllerSpec extends SpecBase with MockitoSugar with BeforeA
             }
 
             verify(mockSubmissionConnector).get(eqTo("id"))(using any())
-            verify(mockSubmissionConnector).uploadFailed("dprsId", "id", "EntityTooLarge")
+            verify(mockSubmissionConnector).uploadFailed("dprsId", "id", UploadFailureReason.EntityTooLarge)
           }
         }
 
@@ -455,7 +462,7 @@ class UploadFailedControllerSpec extends SpecBase with MockitoSugar with BeforeA
             }
 
             verify(mockSubmissionConnector).get(eqTo("id"))(using any())
-            verify(mockSubmissionConnector).uploadFailed("dprsId", "id", "unknown")
+            verify(mockSubmissionConnector).uploadFailed("dprsId", "id", UnknownFailure)
           }
         }
 
@@ -494,7 +501,7 @@ class UploadFailedControllerSpec extends SpecBase with MockitoSugar with BeforeA
             }
 
             verify(mockSubmissionConnector).get(eqTo("id"))(using any())
-            verify(mockSubmissionConnector).uploadFailed("dprsId", "id", "unknown")
+            verify(mockSubmissionConnector).uploadFailed("dprsId", "id", UnknownFailure)
           }
         }
       }

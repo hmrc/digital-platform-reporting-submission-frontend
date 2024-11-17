@@ -50,20 +50,20 @@ object UpscanCallbackRequest {
                                 )
 
   final case class ErrorDetails(
-                                 failureReason: FailureReason,
+                                 failureReason: UpscanFailureReason,
                                  message: String
                                )
 
-  sealed trait FailureReason extends EnumEntry with Uppercase
+  sealed trait UpscanFailureReason extends EnumEntry with Uppercase
 
-  object FailureReason extends PlayEnum[FailureReason] {
+  object UpscanFailureReason extends PlayEnum[UpscanFailureReason] {
 
-    override lazy val values: IndexedSeq[FailureReason] = findValues
+    override lazy val values: IndexedSeq[UpscanFailureReason] = findValues
 
-    case object Quarantine extends FailureReason
-    case object Rejected extends FailureReason
-    case object Unknown extends FailureReason
-    case object Duplicate extends FailureReason
+    case object Quarantine extends UpscanFailureReason
+    case object Rejected extends UpscanFailureReason
+    case object Unknown extends UpscanFailureReason
+    case object Duplicate extends UpscanFailureReason
   }
 
   given OFormat[UploadDetails] = Json.format

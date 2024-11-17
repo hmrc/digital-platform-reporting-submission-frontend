@@ -21,6 +21,7 @@ import connectors.SubmissionConnector
 import models.submission.Submission
 import models.submission.Submission.State.{Approved, Ready, Rejected, Submitted, UploadFailed, Uploading, Validated}
 import models.submission.Submission.SubmissionType
+import models.submission.Submission.UploadFailureReason.SchemaValidationError
 import models.upscan.UpscanInitiateResponse.UploadRequest
 import org.mockito.ArgumentMatchers.{any, eq as eqTo}
 import org.mockito.Mockito
@@ -180,7 +181,7 @@ class UploadControllerSpec extends SpecBase with MockitoSugar with BeforeAndAfte
             operatorId = "operatorId",
             operatorName = "operatorName",
             assumingOperatorName = None,
-            state = UploadFailed("reason"),
+            state = UploadFailed(SchemaValidationError),
             created = now,
             updated = now
           )
@@ -508,7 +509,7 @@ class UploadControllerSpec extends SpecBase with MockitoSugar with BeforeAndAfte
             operatorId = "operatorId",
             operatorName = "operatorName",
             assumingOperatorName = None,
-            state = UploadFailed("reason"),
+            state = UploadFailed(SchemaValidationError),
             created = now,
             updated = now
           )

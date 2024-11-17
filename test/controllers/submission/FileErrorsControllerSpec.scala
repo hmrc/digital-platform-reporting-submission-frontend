@@ -21,6 +21,7 @@ import connectors.SubmissionConnector
 import models.submission.{CadxValidationError, Submission}
 import models.submission.Submission.State.{Approved, Ready, Rejected, Submitted, UploadFailed, Uploading, Validated}
 import models.submission.Submission.SubmissionType
+import models.submission.Submission.UploadFailureReason.SchemaValidationError
 import org.apache.pekko.stream.Materializer
 import org.apache.pekko.stream.scaladsl.Source
 import org.mockito.ArgumentMatchers.{any, eq as eqTo}
@@ -200,7 +201,7 @@ class FileErrorsControllerSpec extends SpecBase with MockitoSugar with BeforeAnd
               operatorId = "operatorId",
               operatorName = "operatorName",
               assumingOperatorName = None,
-              state = UploadFailed("reason"),
+              state = UploadFailed(SchemaValidationError),
               created = now,
               updated = now
             )
@@ -516,7 +517,7 @@ class FileErrorsControllerSpec extends SpecBase with MockitoSugar with BeforeAnd
               operatorId = "operatorId",
               operatorName = "operatorName",
               assumingOperatorName = None,
-              state = UploadFailed("reason"),
+              state = UploadFailed(SchemaValidationError),
               created = now,
               updated = now
             )
