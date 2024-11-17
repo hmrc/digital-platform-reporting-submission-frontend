@@ -63,21 +63,23 @@ object Submission {
     }
   }
 
-  sealed trait UploadFailureReason
+  sealed trait UploadFailureReason {
+    val errorMessageKey: String
+  }
 
   object UploadFailureReason {
 
-    case object NotXml extends UploadFailureReason
-    case object SchemaValidationError extends UploadFailureReason
-    case object ManualAssumedReportExists extends UploadFailureReason
-    case object PlatformOperatorIdMissing extends UploadFailureReason
-    final case class PlatformOperatorIdMismatch(expectedId: String, actualId: String) extends UploadFailureReason
-    case object ReportingPeriodInvalid extends UploadFailureReason
-    final case class UpscanError(failureReason: UpscanFailureReason) extends UploadFailureReason
-    case object EntityTooLarge extends UploadFailureReason
-    case object EntityTooSmall extends UploadFailureReason
-    case object InvalidArgument extends UploadFailureReason
-    case object UnknownFailure extends UploadFailureReason
+    case object NotXml extends UploadFailureReason { val errorMessageKey = "uploadFailed.error.NotXml" }
+    case object SchemaValidationError extends UploadFailureReason { val errorMessageKey = "uploadFailed.error.SchemaValidationError" }
+    case object ManualAssumedReportExists extends UploadFailureReason { val errorMessageKey = "uploadFailed.error.ManualAssumedReportExists" }
+    case object PlatformOperatorIdMissing extends UploadFailureReason { val errorMessageKey = "uploadFailed.error.PlatformOperatorIdMissing" }
+    final case class PlatformOperatorIdMismatch(expectedId: String, actualId: String) extends UploadFailureReason { val errorMessageKey = "uploadFailed.error.PlatformOperatorIdMismatch" }
+    case object ReportingPeriodInvalid extends UploadFailureReason { val errorMessageKey = "uploadFailed.error.ReportingPeriodInvalid" }
+    final case class UpscanError(failureReason: UpscanFailureReason) extends UploadFailureReason { val errorMessageKey = s"uploadFailed.error.${failureReason.entryName}" }
+    case object EntityTooLarge extends UploadFailureReason { val errorMessageKey = "uploadFailed.error.EntityTooLarge" }
+    case object EntityTooSmall extends UploadFailureReason { val errorMessageKey = "uploadFailed.error.EntityTooSmall" }
+    case object InvalidArgument extends UploadFailureReason { val errorMessageKey = "uploadFailed.error.InvalidArgument" }
+    case object UnknownFailure extends UploadFailureReason { val errorMessageKey = "uploadFailed.error.UnknownFailure" }
     
     private given OFormat[NotXml.type] = singletonOFormat(NotXml)
     private given OFormat[SchemaValidationError.type] = singletonOFormat(SchemaValidationError)

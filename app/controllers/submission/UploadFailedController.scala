@@ -17,12 +17,14 @@
 package controllers.submission
 
 import connectors.SubmissionConnector
+import controllers.AnswerExtractor
 import controllers.actions.*
 import models.submission.Submission
 import models.submission.Submission.State.{Approved, Ready, Rejected, Submitted, UploadFailed, Uploading, Validated}
 import models.submission.Submission.UploadFailureReason
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents, Result}
+import queries.PlatformOperatorSummaryQuery
 import services.UpscanService
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import views.html.submission.UploadFailedView
@@ -39,24 +41,27 @@ class UploadFailedController @Inject()(
                                        view: UploadFailedView,
                                        submissionConnector: SubmissionConnector,
                                        upscanService: UpscanService
-                                     )(using ExecutionContext) extends FrontendBaseController with I18nSupport {
+                                     )(using ExecutionContext)
+  extends FrontendBaseController with I18nSupport with AnswerExtractor {
 
   def onPageLoad(operatorId: String, submissionId: String): Action[AnyContent] = (identify andThen getData(operatorId) andThen requireData).async {
     implicit request =>
-      submissionConnector.get(submissionId).flatMap {
-        _.map { submission =>
-          handleSubmission(operatorId, submission) {
-            case UploadFailed(error) =>
-              upscanService.initiate(operatorId, request.dprsId, submissionId).map { uploadRequest =>
-                Ok(view(uploadRequest, error))
-              }
+      getAnswerAsync(PlatformOperatorSummaryQuery) { operator =>
+        submissionConnector.get(submissionId).flatMap {
+          _.map { submission =>
+            handleSubmission(operatorId, submission) {
+              case UploadFailed(error) =>
+                upscanService.initiate(operatorId, request.dprsId, submissionId).map { uploadRequest =>
+                  Ok(view(uploadRequest, error, operator))
+                }
+            }
+          }.getOrElse {
+            Future.successful(Redirect(controllers.routes.JourneyRecoveryController.onPageLoad()))
           }
-        }.getOrElse {
-          Future.successful(Redirect(controllers.routes.JourneyRecoveryController.onPageLoad()))
         }
       }
   }
-
+  
   private val knownErrors: Map[String, UploadFailureReason] = Map(
     "EntityTooLarge"  -> UploadFailureReason.EntityTooLarge,
     "EntityTooSmall"  -> UploadFailureReason.EntityTooSmall,

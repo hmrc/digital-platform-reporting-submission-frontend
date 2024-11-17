@@ -14,12 +14,14 @@
  * limitations under the License.
  *@
 
+@import controllers.assumed.routes as assumedRoutes
 @import models.submission.Submission.UploadFailureReason
 @import models.upscan.UpscanInitiateResponse.UploadRequest
 @import uk.gov.hmrc.govukfrontend.views.html.components.GovukFileUpload
 @import uk.gov.hmrc.govukfrontend.views.html.components.GovukErrorSummary
 @import uk.gov.hmrc.govukfrontend.views.viewmodels.errorsummary.ErrorSummary
 @import uk.gov.hmrc.govukfrontend.views.viewmodels.errormessage.ErrorMessage
+@import viewmodels.PlatformOperatorSummary
 
 @this(
         layout: templates.Layout,
@@ -28,7 +30,7 @@
         govukErrorSummary: GovukErrorSummary
 )
 
-@(uploadRequest: UploadRequest, error: UploadFailureReason)(implicit request: Request[_], messages: Messages)
+@(uploadRequest: UploadRequest, error: UploadFailureReason, operator: PlatformOperatorSummary)(implicit request: Request[_], messages: Messages)
 
 @layout(pageTitle = titleNoForm(messages("uploadFailed.title")), showBackLink = false) {
 
@@ -36,7 +38,7 @@
 
   <form action="@uploadRequest.href" method="post" enctype="multipart/form-data">
 
-    @govukErrorSummary(ErrorSummaryViewModel.withoutForm(Map("file-input" -> messages(s"uploadFailed.error.$error"))))
+    @govukErrorSummary(ErrorSummaryViewModel.withoutForm(Map("file-input" -> messages(error.errorMessageKey))))
 
     @for(field <- uploadRequest.fields) {
       <input type="hidden" name="@field._1" value="@field._2"/>
@@ -52,7 +54,7 @@
         content = messages("uploadFailed.heading")
       ),
       errorMessage = Some(ErrorMessage(
-        content = messages(s"uploadFailed.error.$error"),
+        content = messages(error.errorMessageKey),
         visuallyHiddenText = Some(messages("error.message.prefix"))
       )),
       attributes = Map("accept" -> ".xml")
@@ -65,4 +67,12 @@
       .preventingDoubleClick()
     )
   </form>
+
+    @if(error == UploadFailureReason.ManualAssumedReportExists) {
+        <p class="govuk-body">@messages("uploadFailed.error.ManualAssumedReportExists.p1")</p>
+
+        <p class="govuk-body">
+            <a href="@assumedRoutes.ViewAssumedReportsController.onPageLoad().url" class="govuk-link">@messages("uploadFailed.error.ManualAssumedReportExists.viewAssumedReports", operator.operatorName)</a>
+        </p>
+    }
 }
