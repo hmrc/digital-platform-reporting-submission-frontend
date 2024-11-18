@@ -53,6 +53,8 @@ class FrontendAppConfig @Inject() (configuration: Configuration) {
 
   val cacheTtl: Long = configuration.get[Int]("mongodb.timeToLiveInSeconds")
 
+  val dataEncryptionEnabled: Boolean = configuration.get[Boolean]("features.use-encryption")
+
   private val operatorFrontendUrl: String = configuration.get[String]("microservice.services.digital-platform-reporting-operator-frontend.baseUrl")
   val addOperatorUrl: String = s"$operatorFrontendUrl/platform-operator/add-platform-operator/start"
   def updateOperatorUrl(operatorId: String) = s"$operatorFrontendUrl/platform-operator/$operatorId/check-your-answers"
