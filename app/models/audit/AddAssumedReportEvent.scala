@@ -64,7 +64,6 @@ object AddAssumedReportEvent {
         "digitalPlatformReportingId" -> o.dprsId,
         "reportingPeriod" -> o.submission.reportingPeriod.toString,
         "assumingPlatformOperatorName" -> o.submission.assumingOperator.name,
-        "countryOfTaxResidence" -> o.submission.assumingOperator.residentCountry,
         "registeredAddress" -> o.submission.assumingOperator.address,
         "outcome" -> Json.obj(
           "isSuccessful" -> (o.statusCode == 200),
