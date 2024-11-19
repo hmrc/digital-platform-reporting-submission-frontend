@@ -58,7 +58,7 @@ class AddAssumedReportEventSpec extends AnyFreeSpec with Matchers {
         )
       )
       
-      val event = AddAssumedReportEvent(dprsId, operatorName, submission, successfulStatusCode, processedAt, conversationId)
+      val event = AddAssumedReportEvent(dprsId, operatorName, submission, successfulStatusCode, processedAt, Some(conversationId))
       val expectedJson = Json.obj(
         "platformOperator" -> operatorName,
         "platformOperatorId" -> operatorId,
@@ -83,7 +83,7 @@ class AddAssumedReportEventSpec extends AnyFreeSpec with Matchers {
     
     "for a UK tax resident assuming operator without a tax identifier" in {
 
-      val event = AddAssumedReportEvent(dprsId, operatorName, baseSubmission, errorStatusCode, processedAt, conversationId)
+      val event = AddAssumedReportEvent(dprsId, operatorName, baseSubmission, errorStatusCode, processedAt, None)
       val expectedJson = Json.obj(
         "platformOperator" -> operatorName,
         "platformOperatorId" -> operatorId,
@@ -97,7 +97,6 @@ class AddAssumedReportEventSpec extends AnyFreeSpec with Matchers {
         "outcome" -> Json.obj(
           "isSuccessful" -> false,
           "statusCode" -> errorStatusCode,
-          "conversationId" -> conversationId,
           "processedAt" -> processedAt
         )
       )
@@ -114,7 +113,7 @@ class AddAssumedReportEventSpec extends AnyFreeSpec with Matchers {
         )
       )
 
-      val event = AddAssumedReportEvent(dprsId, operatorName, submission, successfulStatusCode, processedAt, conversationId)
+      val event = AddAssumedReportEvent(dprsId, operatorName, submission, successfulStatusCode, processedAt, Some(conversationId))
       val expectedJson = Json.obj(
         "platformOperator" -> operatorName,
         "platformOperatorId" -> operatorId,
@@ -145,7 +144,7 @@ class AddAssumedReportEventSpec extends AnyFreeSpec with Matchers {
         )
       )
 
-      val event = AddAssumedReportEvent(dprsId, operatorName, submission, successfulStatusCode, processedAt, conversationId)
+      val event = AddAssumedReportEvent(dprsId, operatorName, submission, successfulStatusCode, processedAt, Some(conversationId))
       val expectedJson = Json.obj(
         "platformOperator" -> operatorName,
         "platformOperatorId" -> operatorId,

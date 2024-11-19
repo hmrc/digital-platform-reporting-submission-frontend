@@ -27,7 +27,7 @@ final case class AddAssumedReportEvent(
                                         submission: AssumedReportingSubmissionRequest,
                                         statusCode: Int,
                                         processedAt: Instant,
-                                        conversationId: String
+                                        conversationId: Option[String]
                                       ) extends AuditEvent {
 
   override def auditType: String = "AddAssumedReport"
@@ -58,6 +58,11 @@ object AddAssumedReportEvent {
           }.getOrElse(Json.obj())
       }
       
+      val conversationIdJson =
+        o.conversationId
+          .map(id => Json.obj("conversationId" -> id))
+          .getOrElse(Json.obj())
+      
       Json.obj(
         "platformOperator" -> o.operatorName,
         "platformOperatorId" -> o.submission.operatorId,
@@ -65,12 +70,11 @@ object AddAssumedReportEvent {
         "reportingPeriod" -> o.submission.reportingPeriod.toString,
         "assumingPlatformOperatorName" -> o.submission.assumingOperator.name,
         "registeredAddress" -> o.submission.assumingOperator.address,
-        "outcome" -> Json.obj(
+        "outcome" -> (Json.obj(
           "isSuccessful" -> (o.statusCode == 200),
           "statusCode" -> o.statusCode,
-          "conversationId" -> o.conversationId,
           "processedAt" -> o.processedAt
-        )
+        ) ++ conversationIdJson)
       ) ++ taxIdentifierJson
     }
   }

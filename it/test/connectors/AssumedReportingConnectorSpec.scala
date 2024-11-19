@@ -119,7 +119,7 @@ class AssumedReportingConnectorSpec
       )
 
       val result = connector.submit(request)(using hc).failed.futureValue
-      result mustBe SubmitAssumedReportingFailure
+      result mustEqual SubmitAssumedReportingFailure(500)
     }
   }
 
