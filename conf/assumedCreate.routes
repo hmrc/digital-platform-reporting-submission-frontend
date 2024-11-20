@@ -54,7 +54,7 @@ POST       /:operatorId/change-uk-tin                           controllers.assu
 GET        /:operatorId/check-your-answers                      controllers.assumed.create.CheckYourAnswersController.onPageLoad(operatorId: String)
 POST       /:operatorId/check-your-answers                      controllers.assumed.create.CheckYourAnswersController.onSubmit(operatorId: String)
 
-GET        /:operatorId/:submissionId/confirmation-page         controllers.assumed.create.SubmissionConfirmationController.onPageLoad(operatorId: String, submissionId: String)
+GET        /:operatorId/:reportingPeriod/confirmation-page         controllers.assumed.create.SubmissionConfirmationController.onPageLoad(operatorId: String, reportingPeriod: Year)
 
 GET        /which-platform-operator                             controllers.assumed.create.SelectPlatformOperatorController.onPageLoad
 POST       /which-platform-operator                             controllers.assumed.create.SelectPlatformOperatorController.onSubmit
@@ -69,3 +69,5 @@ GET        /:operatorId/check-contact-details                   controllers.assu
 POST       /:operatorId/check-contact-details                   controllers.assumed.create.CheckContactDetailsController.onSubmit(operatorId: String)
 
 GET        /:operatorId/no-reporting-notification               controllers.assumed.create.ReportingNotificationRequiredController.onPageLoad(operatorId: String)
+
+GET        /:operatorId/submissions-exist                       controllers.assumed.create.SubmissionsExistController.onPageLoad(operatorId: String)

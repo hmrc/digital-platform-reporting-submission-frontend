@@ -19,6 +19,7 @@ package connectors
 import config.Service
 import connectors.SubmissionConnector.*
 import models.submission.*
+import models.submission.Submission.UploadFailureReason
 import org.apache.pekko.stream.Materializer
 import org.apache.pekko.stream.scaladsl.{JsonFraming, Source}
 import org.apache.pekko.{Done, NotUsed}
@@ -41,7 +42,7 @@ class SubmissionConnector @Inject() (
   private val digitalPlatformReportingService: Service =
     configuration.get[Service]("microservice.services.digital-platform-reporting")
 
-  def start(operatorId: String, operatorName: String, id: Option[String])(using HeaderCarrier): Future[Submission] =
+  def  start(operatorId: String, operatorName: String, id: Option[String])(using HeaderCarrier): Future[Submission] =
     httpClient.put(url"$digitalPlatformReportingService/digital-platform-reporting/submission/start")
       .transform(_.withQueryStringParameters(Seq(id.map(id => "id" -> id)).flatten*))
       .withBody(Json.toJson(StartSubmissionRequest(operatorId, operatorName)))
@@ -94,7 +95,7 @@ class SubmissionConnector @Inject() (
         }
       }
 
-  def uploadFailed(dprsId: String, id: String, reason: String): Future[Done] =
+  def uploadFailed(dprsId: String, id: String, reason: UploadFailureReason): Future[Done] =
     httpClient.post(url"$digitalPlatformReportingService/digital-platform-reporting/submission/$id/upload-failed")(HeaderCarrier())
       .withBody(Json.toJson(UploadFailedRequest(dprsId, reason)))
       .execute[HttpResponse]

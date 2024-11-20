@@ -74,7 +74,7 @@ class CheckContactDetailsController @Inject()(
               Redirect(routes.UploadController.onPageLoad(operatorId, submission._id))
             }
           } else {
-            Future.successful(Redirect(appConfig.updateContactDetailsUrl))
+            Future.successful(Redirect(appConfig.manageHomepageUrl))
           }
         )
       }

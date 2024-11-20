@@ -16,34 +16,32 @@
 
 package controllers.assumed.create
 
-import com.google.inject.Inject
 import controllers.AnswerExtractor
-import controllers.actions.*
+import controllers.actions.{DataRequiredAction, DataRetrievalActionProvider, IdentifierAction}
+import pages.assumed.create.ReportingPeriodPage
+import models.yearFormat
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
-import queries.AssumedReportSummaryQuery
+import queries.PlatformOperatorSummaryQuery
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
-import viewmodels.checkAnswers.assumed.create.AssumedReportCreatedSummary
-import views.html.assumed.create.SubmissionConfirmationView
+import viewmodels.PlatformOperatorSummary
+import views.html.assumed.create.SubmissionsExistView
 
-import java.time.{Clock, Year}
+import javax.inject.Inject
 
-class SubmissionConfirmationController @Inject()(
+class SubmissionsExistController @Inject()(
                                             override val messagesApi: MessagesApi,
                                             identify: IdentifierAction,
                                             getData: DataRetrievalActionProvider,
                                             requireData: DataRequiredAction,
                                             val controllerComponents: MessagesControllerComponents,
-                                            view: SubmissionConfirmationView,
-                                            clock: Clock
+                                            view: SubmissionsExistView
                                           )
   extends FrontendBaseController with I18nSupport with AnswerExtractor {
 
-  def onPageLoad(operatorId: String, reportingPeriod: Year): Action[AnyContent] =
-    (identify andThen getData(operatorId, Some(reportingPeriod)) andThen requireData) { implicit request =>
-      getAnswer(AssumedReportSummaryQuery) { assumedReport =>
-        val summaryList = AssumedReportCreatedSummary.list(assumedReport, clock.instant())
-        Ok(view(operatorId, summaryList))
-      }
+  def onPageLoad(operatorId: String): Action[AnyContent] = (identify andThen getData(operatorId) andThen requireData) { implicit request =>
+    getAnswers(PlatformOperatorSummaryQuery, ReportingPeriodPage) { case (platformOperator, reportingPeriod) =>
+      Ok(view(platformOperator, reportingPeriod))
+    }
   }
 }

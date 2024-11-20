@@ -14,29 +14,37 @@
  * limitations under the License.
  *@
 
+@import controllers.assumed.create.routes as createRoutes
 @import config.FrontendAppConfig
 @import java.time.Year
 
 @this(
         layout: templates.Layout,
-        appConfig: FrontendAppConfig
+        appConfig: FrontendAppConfig,
+        govukSummaryList: GovukSummaryList
 )
 
-@(operatorId: String, assumingOperatorName: String, operatorName: String, reportingPeriod: Year)(implicit request: Request[_], messages: Messages)
+@(operatorId: String, summaryList: SummaryList)(implicit request: Request[_], messages: Messages)
 
 @layout(pageTitle = titleNoForm(messages("assumedReportingConfirmation.title")), showBackLink = false) {
 
-  <div class="govuk-panel govuk-panel--confirmation govuk-!-margin-bottom-8">
-    <h1 class="govuk-panel__title">
-      @messages("assumedReportingConfirmation.heading")
-    </h1>
-  </div>
+    <div class="govuk-panel govuk-panel--confirmation govuk-!-margin-bottom-8">
+        <h1 class="govuk-panel__title">
+        @messages("assumedReportingConfirmation.heading")
+        </h1>
+    </div>
 
-  <p class="govuk-body govuk-!-margin-bottom-8">@messages("assumedReportingConfirmation.p1", assumingOperatorName, operatorName, reportingPeriod)</p>
+    @govukSummaryList(summaryList)
 
-  <p class="govuk-body">
-    <a class="govuk-button" data-module="govuk-button" role="button" draggable="false" href="@appConfig.manageHomepageUrl">
-      @messages("assumedReportingConfirmation.return")
-    </a>
-  </p>
+    <h2 class="govuk-heading-m">@messages("assumedReportingConfirmation.next")</h2>
+
+    <p class="govuk-body">
+        @messages("assumedReportingConfirmation.youCan")
+        <a class="govuk-link" href="@createRoutes.SelectPlatformOperatorController.onPageLoad">@messages("assumedReportingConfirmation.makeAnother")</a>.
+    </p>
+
+    <p class="govuk-body">
+        @messages("assumedReportingConfirmation.returnTo")
+        <a class="govuk-link" href="@appConfig.manageHomepageUrl">@messages("assumedReportingConfirmation.return")</a>.
+    </p>
 }

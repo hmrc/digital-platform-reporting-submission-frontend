@@ -17,6 +17,7 @@
 package controllers.internal
 
 import connectors.SubmissionConnector
+import models.submission.Submission.UploadFailureReason.UpscanError
 import models.submission.UploadSuccessRequest
 import models.upscan.UpscanCallbackRequest
 import play.api.Logging
@@ -51,7 +52,7 @@ class UpscanCallbackController @Inject() (
             submissionConnector.uploadSuccess(journey.submissionId, uploadSuccessRequest)
               .map(_ => Ok)
           case failed: UpscanCallbackRequest.Failed =>
-            submissionConnector.uploadFailed(journey.dprsId, journey.submissionId, failed.failureDetails.failureReason.entryName)
+            submissionConnector.uploadFailed(journey.dprsId, journey.submissionId, UpscanError(failed.failureDetails.failureReason))
               .map(_ => Ok)
         }
       }.getOrElse {

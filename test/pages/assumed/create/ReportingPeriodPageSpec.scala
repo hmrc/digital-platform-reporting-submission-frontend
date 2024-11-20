@@ -18,10 +18,12 @@ package pages.assumed.create
 
 import controllers.assumed.create.routes
 import models.{CheckMode, NormalMode, UserAnswers}
+import org.scalatest.{OptionValues, TryValues}
 import org.scalatest.freespec.AnyFreeSpec
 import org.scalatest.matchers.must.Matchers
+import queries.SubmissionsExistQuery
 
-class ReportingPeriodPageSpec extends AnyFreeSpec with Matchers {
+class ReportingPeriodPageSpec extends AnyFreeSpec with Matchers with TryValues with OptionValues {
 
   ".nextPage" - {
 
@@ -29,9 +31,16 @@ class ReportingPeriodPageSpec extends AnyFreeSpec with Matchers {
 
     "in Normal mode" - {
 
-      "must go to Assuming Operator Name" in {
+      "must go to Assuming Operator Name when no submissions exist" in {
 
-        ReportingPeriodPage.nextPage(NormalMode, emptyAnswers) mustEqual routes.AssumingOperatorNameController.onPageLoad(NormalMode, "operatorId")
+        val answers = emptyAnswers.set(SubmissionsExistQuery, false).success.value
+        ReportingPeriodPage.nextPage(NormalMode, answers) mustEqual routes.AssumingOperatorNameController.onPageLoad(NormalMode, "operatorId")
+      }
+
+      "must go to Submissions Exist when submissions exist" in {
+
+        val answers = emptyAnswers.set(SubmissionsExistQuery, true).success.value
+        ReportingPeriodPage.nextPage(NormalMode, answers) mustEqual routes.SubmissionsExistController.onPageLoad("operatorId")
       }
     }
 

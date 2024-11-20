@@ -14,14 +14,11 @@
  * limitations under the License.
  */
 
-package models.submission
+package queries
 
-import models.submission.Submission.UploadFailureReason
-import play.api.libs.json.{Json, OFormat}
+import play.api.libs.json.JsPath
 
-final case class UploadFailedRequest(dprsId: String, reason: UploadFailureReason)
+case object SubmissionsExistQuery extends Gettable[Boolean] with Settable[Boolean] {
 
-object UploadFailedRequest {
-
-  given OFormat[UploadFailedRequest] = Json.format
+  override def path: JsPath = JsPath \ "submissionsExist"
 }

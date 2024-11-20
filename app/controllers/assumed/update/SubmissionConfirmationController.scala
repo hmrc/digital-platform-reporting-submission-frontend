@@ -23,9 +23,10 @@ import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents, Result}
 import queries.AssumedReportSummaryQuery
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
+import viewmodels.checkAnswers.assumed.update.AssumedReportUpdatedSummaryList
 import views.html.assumed.update.SubmissionConfirmationView
 
-import java.time.Year
+import java.time.{Clock, Year}
 
 class SubmissionConfirmationController @Inject()(
                                             override val messagesApi: MessagesApi,
@@ -33,14 +34,16 @@ class SubmissionConfirmationController @Inject()(
                                             getData: DataRetrievalActionProvider,
                                             requireData: DataRequiredAction,
                                             val controllerComponents: MessagesControllerComponents,
-                                            view: SubmissionConfirmationView
+                                            view: SubmissionConfirmationView,
+                                            clock: Clock
                                           )
   extends FrontendBaseController with I18nSupport with AnswerExtractor {
 
   def onPageLoad(operatorId: String, reportingPeriod: Year): Action[AnyContent] =
     (identify andThen getData(operatorId, Some(reportingPeriod)) andThen requireData) { implicit request =>
       getAnswer(AssumedReportSummaryQuery) { assumedReport =>
-        Ok(view(operatorId, assumedReport.assumingOperatorName, assumedReport.operatorName, reportingPeriod))
+        val summaryList = AssumedReportUpdatedSummaryList.list(assumedReport, clock.instant())
+        Ok(view(operatorId, summaryList))
       }
     }
 }

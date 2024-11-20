@@ -47,19 +47,7 @@ class SubmissionConfirmationController @Inject()(
                                                   platformOperatorConnector: PlatformOperatorConnector,
                                                   formProvider: SubmissionConfirmationFormProvider
                                                 )(using ExecutionContext) extends FrontendBaseController with I18nSupport {
-
-/*  def onPageLoad(operatorId: String, submissionId: String): Action[AnyContent] = identify.async {
-    implicit request =>
-        submissionConnector.get(submissionId).flatMap {
-          _.map { submission =>
-            handleSubmission(operatorId, submission) { case state: Approved =>
-              Future.successful(Ok(view(formProvider(submission.operatorName), operatorId, submission.operatorName, submissionId, getSummaryList(state.fileName, submission, state, submission.updated, request.dprsId))))
-            }
-          }.getOrElse {
-            Future.successful(Redirect(controllers.routes.JourneyRecoveryController.onPageLoad()))
-          }
-        }
-  }  */
+  
     def onPageLoad(operatorId: String, submissionId: String): Action[AnyContent] = identify.async {
       implicit request =>
         val contactDetails = for {

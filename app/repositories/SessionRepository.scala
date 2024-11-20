@@ -26,6 +26,7 @@ import uk.gov.hmrc.mongo.MongoComponent
 import uk.gov.hmrc.mongo.play.json.{Codecs, PlayMongoRepository}
 import uk.gov.hmrc.mongo.play.json.formats.MongoJavatimeFormats
 import uk.gov.hmrc.play.http.logging.Mdc
+import uk.gov.hmrc.crypto.{Decrypter, Encrypter}
 
 import java.time.{Clock, Instant, Year}
 import java.util.concurrent.TimeUnit
@@ -37,11 +38,11 @@ class SessionRepository @Inject()(
                                    mongoComponent: MongoComponent,
                                    appConfig: FrontendAppConfig,
                                    clock: Clock
-                                 )(implicit ec: ExecutionContext)
+                                 )(implicit ec: ExecutionContext, crypto: Encrypter & Decrypter)
   extends PlayMongoRepository[UserAnswers](
     collectionName = "user-answers",
     mongoComponent = mongoComponent,
-    domainFormat   = UserAnswers.format,
+    domainFormat   = if (appConfig.dataEncryptionEnabled) UserAnswers.encryptedFormat else UserAnswers.format,
     indexes        = Seq(
       IndexModel(
         Indexes.ascending("userId", "operatorId", "reportingPeriod"),

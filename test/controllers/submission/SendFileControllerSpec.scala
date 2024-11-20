@@ -21,6 +21,7 @@ import connectors.SubmissionConnector
 import models.submission.Submission
 import models.submission.Submission.State.{Approved, Ready, Rejected, Submitted, UploadFailed, Uploading, Validated}
 import models.submission.Submission.SubmissionType
+import models.submission.Submission.UploadFailureReason.SchemaValidationError
 import org.apache.pekko.Done
 import org.mockito.ArgumentMatchers.{any, eq as eqTo}
 import org.mockito.Mockito
@@ -236,7 +237,7 @@ class SendFileControllerSpec extends SpecBase with MockitoSugar with BeforeAndAf
               operatorId = "operatorId",
               operatorName = "operatorName",
               assumingOperatorName = None,
-              state = UploadFailed("reason"),
+              state = UploadFailed(SchemaValidationError),
               created = now,
               updated = now
             )
@@ -549,7 +550,7 @@ class SendFileControllerSpec extends SpecBase with MockitoSugar with BeforeAndAf
               operatorId = "operatorId",
               operatorName = "operatorName",
               assumingOperatorName = None,
-              state = UploadFailed("reason"),
+              state = UploadFailed(SchemaValidationError),
               created = now,
               updated = now
             )

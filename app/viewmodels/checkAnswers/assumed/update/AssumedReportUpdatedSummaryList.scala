@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-package viewmodels.checkAnswers.assumed.remove
+package viewmodels.checkAnswers.assumed.update
 
-import models.submission.AssumedReportingSubmissionSummary
+import models.submission.AssumedReportSummary
 import play.api.i18n.Messages
 import play.twirl.api.HtmlFormat
 import uk.gov.hmrc.govukfrontend.views.viewmodels.summarylist.SummaryList
@@ -26,31 +26,29 @@ import viewmodels.implicits.*
 
 import java.time.Instant
 
-object AssumedReportRemovedSummaryList {
+object AssumedReportUpdatedSummaryList {
 
-  def list(summary: AssumedReportingSubmissionSummary, removed: Instant)(implicit messages: Messages): SummaryList =
+  def list(summary: AssumedReportSummary, updated: Instant)(implicit messages: Messages): SummaryList =
     SummaryList(rows = Seq(
-      Some(SummaryListRowViewModel(
+      SummaryListRowViewModel(
         key = messages("assumedReportSummary.platformOperator"),
         value = ValueViewModel(HtmlFormat.escape(summary.operatorName).toString)
-      )),
-      Some(SummaryListRowViewModel(
+      ),
+      SummaryListRowViewModel(
         key = messages("assumedReportSummary.platformOperatorId"),
         value = ValueViewModel(HtmlFormat.escape(summary.operatorId).toString)
-      )),
-      Some(SummaryListRowViewModel(
+      ),
+      SummaryListRowViewModel(
         key = messages("assumedReportSummary.reportingPeriod"),
         value = ValueViewModel(summary.reportingPeriod.toString)
-      )),
-      summary.assumingReporterName.map { name =>
-        SummaryListRowViewModel(
-          key = messages("assumedReportSummary.assumingOperator"),
-          value = ValueViewModel(HtmlFormat.escape(name).toString)
-        )
-      },
-      Some(SummaryListRowViewModel(
-        key = messages("assumedReportSummary.removedAt"),
-        value = ValueViewModel(DateTimeFormats.formatInstant(removed, DateTimeFormats.fullDateTimeFormatter))
-      ))
-    ).flatten)
+      ),
+      SummaryListRowViewModel(
+        key = messages("assumedReportSummary.assumingOperator"),
+        value = ValueViewModel(HtmlFormat.escape(summary.assumingOperatorName).toString)
+      ),
+      SummaryListRowViewModel(
+        key = messages("assumedReportSummary.updatedAt"),
+        value = ValueViewModel(DateTimeFormats.formatInstant(updated, DateTimeFormats.fullDateTimeFormatter))
+      )
+    ))
 }

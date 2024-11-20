@@ -20,7 +20,7 @@ import java.time.Year
 import models.{UserAnswers, yearFormat}
 import pages.assumed.update.AssumingOperatorNamePage
 import play.api.libs.json.{Json, OFormat}
-import queries.{PlatformOperatorNameQuery, ReportingPeriodQuery}
+import queries.{PlatformOperatorNameQuery, PlatformOperatorSummaryQuery, ReportingPeriodQuery}
 
 final case class AssumedReportSummary(operatorId: String,
                                       operatorName: String,
@@ -34,7 +34,7 @@ object AssumedReportSummary {
   def apply(answers: UserAnswers): Option[AssumedReportSummary] =
     for {
       assumingOperatorName <- answers.get(AssumingOperatorNamePage)
-      operatorName         <- answers.get(PlatformOperatorNameQuery)
+      operatorName         <- answers.get(PlatformOperatorNameQuery).orElse(answers.get(PlatformOperatorSummaryQuery).map(_.operatorName))
       reportingPeriod      <- answers.get(ReportingPeriodQuery)
     } yield AssumedReportSummary(answers.operatorId, operatorName, assumingOperatorName, reportingPeriod)
 }

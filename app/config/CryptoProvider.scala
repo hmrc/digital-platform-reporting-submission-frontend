@@ -14,14 +14,16 @@
  * limitations under the License.
  */
 
-package models.submission
+package config
 
-import models.submission.Submission.UploadFailureReason
-import play.api.libs.json.{Json, OFormat}
+import play.api.Configuration
+import uk.gov.hmrc.crypto.{Decrypter, Encrypter, SymmetricCryptoFactory}
 
-final case class UploadFailedRequest(dprsId: String, reason: UploadFailureReason)
+import javax.inject.{Inject, Provider, Singleton}
 
-object UploadFailedRequest {
+@Singleton
+class CryptoProvider @Inject()(configuration: Configuration) extends Provider[Encrypter & Decrypter] {
 
-  given OFormat[UploadFailedRequest] = Json.format
+  override def get(): Encrypter & Decrypter =
+    SymmetricCryptoFactory.aesGcmCryptoFromConfig("crypto", configuration.underlying)
 }

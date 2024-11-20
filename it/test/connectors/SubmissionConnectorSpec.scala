@@ -20,7 +20,7 @@ import com.github.tomakehurst.wiremock.client.WireMock.*
 import connectors.SubmissionConnector.*
 import models.submission.*
 import models.submission.Submission.State.Ready
-import models.submission.Submission.SubmissionType
+import models.submission.Submission.{SubmissionType, UploadFailureReason}
 import org.apache.pekko.stream.Materializer
 import org.apache.pekko.stream.scaladsl.Sink
 import org.scalatest.OptionValues
@@ -288,14 +288,14 @@ class SubmissionConnectorSpec
       wireMockServer.stubFor(
         post(urlPathEqualTo("/digital-platform-reporting/submission/id/upload-failed"))
           .withHeader("User-Agent", equalTo("app"))
-          .withRequestBody(equalToJson(Json.toJson(UploadFailedRequest("dprsId", "reason")).toString))
+          .withRequestBody(equalToJson(Json.toJson(UploadFailedRequest("dprsId", UploadFailureReason.EntityTooSmall)).toString))
           .willReturn(
             aResponse()
               .withStatus(OK)
           )
       )
 
-      connector.uploadFailed("dprsId", "id", "reason").futureValue
+      connector.uploadFailed("dprsId", "id", UploadFailureReason.EntityTooSmall).futureValue
     }
 
     "must return a failure when the service returns another status" in {
@@ -303,14 +303,14 @@ class SubmissionConnectorSpec
       wireMockServer.stubFor(
         post(urlPathEqualTo("/digital-platform-reporting/submission/id/upload-failed"))
           .withHeader("User-Agent", equalTo("app"))
-          .withRequestBody(equalToJson(Json.toJson(UploadFailedRequest("dprsId", "reason")).toString))
+          .withRequestBody(equalToJson(Json.toJson(UploadFailedRequest("dprsId", UploadFailureReason.EntityTooSmall)).toString))
           .willReturn(
             aResponse()
               .withStatus(INTERNAL_SERVER_ERROR)
           )
       )
 
-      val result = connector.uploadFailed("dprsId", "id", "reason").failed.futureValue
+      val result = connector.uploadFailed("dprsId", "id",UploadFailureReason.EntityTooSmall).failed.futureValue
       result mustBe a[UploadFailedFailure]
     }
   }

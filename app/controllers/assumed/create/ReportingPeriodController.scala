@@ -16,14 +16,17 @@
 
 package controllers.assumed.create
 
+import connectors.SubmissionConnector
 import controllers.AnswerExtractor
 import controllers.actions.*
 import forms.ReportingPeriodFormProvider
+import models.submission.{SortBy, SortOrder, SubmissionStatus, ViewSubmissionsRequest}
 import models.{Mode, yearFormat}
 import pages.assumed.create.ReportingPeriodPage
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import repositories.SessionRepository
+import queries.SubmissionsExistQuery
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import views.html.assumed.create.ReportingPeriodView
 
@@ -31,15 +34,16 @@ import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
 class ReportingPeriodController @Inject()(
-                                        override val messagesApi: MessagesApi,
-                                        sessionRepository: SessionRepository,
-                                        identify: IdentifierAction,
-                                        getData: DataRetrievalActionProvider,
-                                        requireData: DataRequiredAction,
-                                        formProvider: ReportingPeriodFormProvider,
-                                        val controllerComponents: MessagesControllerComponents,
-                                        view: ReportingPeriodView
-                                      )(implicit ec: ExecutionContext)
+                                           override val messagesApi: MessagesApi,
+                                           sessionRepository: SessionRepository,
+                                           identify: IdentifierAction,
+                                           getData: DataRetrievalActionProvider,
+                                           requireData: DataRequiredAction,
+                                           formProvider: ReportingPeriodFormProvider,
+                                           val controllerComponents: MessagesControllerComponents,
+                                           view: ReportingPeriodView,
+                                           connector: SubmissionConnector
+                                         )(implicit ec: ExecutionContext)
   extends FrontendBaseController with I18nSupport with AnswerExtractor {
 
   def onPageLoad(mode: Mode, operatorId: String): Action[AnyContent] = (identify andThen getData(operatorId) andThen requireData) { implicit request =>
@@ -59,14 +63,30 @@ class ReportingPeriodController @Inject()(
     val form = formProvider()
 
     form.bindFromRequest().fold(
-      formWithErrors =>
-        Future.successful(BadRequest(view(formWithErrors, mode, operatorId))),
-
-      value =>
+      formWithErrors => Future.successful(BadRequest(view(formWithErrors, mode, operatorId))),
+      reportingPeriod => {
+        
+        val viewSubmissionsRequest = ViewSubmissionsRequest(
+          assumedReporting = false,
+          pageNumber = 1,
+          sortBy = SortBy.SubmissionDate,
+          sortOrder = SortOrder.Descending,
+          reportingPeriod = Some(reportingPeriod.getValue),
+          operatorId = Some(operatorId),
+          statuses = SubmissionStatus.values
+        )
+        
         for {
-          updatedAnswers <- Future.fromTry(request.userAnswers.set(ReportingPeriodPage, value))
-          _              <- sessionRepository.set(updatedAnswers)
+          deliveredSubmissions   <- connector.listDeliveredSubmissions(viewSubmissionsRequest)
+          undeliveredSubmissions <- connector.listUndeliveredSubmissions
+          submissionsExist       = deliveredSubmissions.nonEmpty || undeliveredSubmissions.nonEmpty
+          updatedAnswers         <- Future.fromTry(request.userAnswers
+                                                    .set(ReportingPeriodPage, reportingPeriod)
+                                                    .flatMap(_.set(SubmissionsExistQuery, submissionsExist))
+                                                  )
+          _ <- sessionRepository.set(updatedAnswers)
         } yield Redirect(ReportingPeriodPage.nextPage(mode, updatedAnswers))
+      }
     )
   }
 }

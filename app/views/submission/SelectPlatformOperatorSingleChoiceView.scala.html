@@ -33,7 +33,7 @@
 
     @formHelper(action = routes.SelectPlatformOperatorController.onSubmit) {
 
-        <h1 class="govuk-heading-xl">@messages("submission.selectPlatformOperator.single.heading", businessName, s"(ID $operatorId)")</h1>
+        <h1 class="govuk-heading-xl">@messages("submission.selectPlatformOperator.single.heading", businessName, operatorId)</h1>
 
         <p class="govuk-body">
             @messages("submission.selectPlatformOperator.single.p1")

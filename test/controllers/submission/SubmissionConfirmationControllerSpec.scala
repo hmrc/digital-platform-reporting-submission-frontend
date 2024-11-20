@@ -19,10 +19,13 @@ package controllers.submission
 import base.SpecBase
 import connectors.{PlatformOperatorConnector, SubmissionConnector, SubscriptionConnector}
 import forms.SubmissionConfirmationFormProvider
+import models.operator.responses.PlatformOperator
+import models.operator.{AddressDetails, ContactDetails}
 import models.submission.Submission
 import models.submission.Submission.State.{Approved, Ready, Rejected, Submitted, UploadFailed, Uploading, Validated}
 import models.submission.Submission.SubmissionType
-import models.subscription.IndividualContact
+import models.submission.Submission.UploadFailureReason.SchemaValidationError
+import models.subscription.*
 import org.mockito.ArgumentMatchers.{any, eq as eqTo}
 import org.mockito.Mockito
 import org.mockito.Mockito.{never, verify, when}
@@ -36,9 +39,7 @@ import uk.gov.hmrc.govukfrontend.views.Aliases.{Key, SummaryList, Text, Value}
 import uk.gov.hmrc.govukfrontend.views.viewmodels.summarylist.SummaryListRow
 import uk.gov.hmrc.http.StringContextOps
 import views.html.submission.SubmissionConfirmationView
-import models.subscription._
-import models.operator.responses.PlatformOperator
-import models.operator.{AddressDetails, ContactDetails}
+
 import java.time.{Instant, LocalDateTime, Year, ZoneOffset}
 import scala.concurrent.Future
 
@@ -276,7 +277,7 @@ class SubmissionConfirmationControllerSpec extends SpecBase with MockitoSugar wi
               operatorId = "operatorId",
               operatorName = operatorName,
               assumingOperatorName = None,
-              state = UploadFailed("reason"),
+              state = UploadFailed(SchemaValidationError),
               created = now,
               updated = now
             )
