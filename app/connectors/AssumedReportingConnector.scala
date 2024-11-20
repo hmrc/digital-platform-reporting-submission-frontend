@@ -47,8 +47,8 @@ class AssumedReportingConnector @Inject() (
       .execute[HttpResponse]
       .flatMap { response =>
         response.status match {
-          case OK => Future.successful(response.json.as[Submission])
-          case _ => Future.failed(SubmitAssumedReportingFailure)
+          case OK     => Future.successful(response.json.as[Submission])
+          case status => Future.failed(SubmitAssumedReportingFailure(status))
         }
       }
 
@@ -87,10 +87,13 @@ class AssumedReportingConnector @Inject() (
 
 object AssumedReportingConnector {
   
-  case object SubmitAssumedReportingFailure extends Throwable
+  final case class SubmitAssumedReportingFailure(status: Int) extends Throwable
+  
   case object GetAssumedReportFailure extends Throwable
+  
   final case class DeleteAssumedReportFailure(status: Int) extends Throwable {
     override def getMessage: String = s"Unexpected status code $status received when trying to delete an assumed report"
   }
+  
   case object ListAssumedReportsFailure extends Throwable
 }

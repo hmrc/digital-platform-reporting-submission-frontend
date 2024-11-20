@@ -18,9 +18,11 @@ package controllers.assumed.remove
 
 import base.SpecBase
 import connectors.AssumedReportingConnector
+import connectors.AssumedReportingConnector.DeleteAssumedReportFailure
 import controllers.assumed.routes as assumedRoutes
 import forms.RemoveAssumedReportFormProvider
-import models.submission.{SubmissionStatus, AssumedReportingSubmissionSummary}
+import models.audit.DeleteAssumedReportEvent
+import models.submission.{AssumedReportingSubmissionSummary, SubmissionStatus}
 import org.apache.pekko.Done
 import org.mockito.ArgumentMatchers.{any, eq as eqTo}
 import org.mockito.Mockito
@@ -32,15 +34,17 @@ import play.api.inject.bind
 import play.api.test.FakeRequest
 import play.api.test.Helpers.*
 import queries.AssumedReportSummariesQuery
+import services.AuditService
 import viewmodels.checkAnswers.assumed.remove.AssumedReportSummaryList
 import views.html.assumed.remove.RemoveAssumedReportView
 
-import java.time.{Instant, Year}
+import java.time.{Clock, Instant, Year, ZoneId}
 import scala.concurrent.Future
 
 class RemoveAssumedReportControllerSpec extends SpecBase with MockitoSugar with BeforeAndAfterEach {
 
   private val now = Instant.now()
+  private val stubClock: Clock = Clock.fixed(now, ZoneId.systemDefault)
   private val submission1 = AssumedReportingSubmissionSummary("submissionId1", "file1", "operatorId", "operatorName", Year.of(2024), now, SubmissionStatus.Success, Some("assuming"), Some("caseId1"), isDeleted = false)
   private val submission2 = AssumedReportingSubmissionSummary("submissionId2", "file2", "operatorId", "operatorName", Year.of(2025), now, SubmissionStatus.Success, Some("assuming"), Some("caseId2"), isDeleted = false)
 
@@ -49,9 +53,10 @@ class RemoveAssumedReportControllerSpec extends SpecBase with MockitoSugar with 
   private val form = RemoveAssumedReportFormProvider()()
 
   private val mockConnector = mock[AssumedReportingConnector]
+  private val mockAuditService = mock[AuditService]
 
   override def beforeEach(): Unit = {
-    Mockito.reset(mockConnector)
+    Mockito.reset(mockConnector, mockAuditService)
     super.beforeEach()
   }
 
@@ -94,13 +99,19 @@ class RemoveAssumedReportControllerSpec extends SpecBase with MockitoSugar with 
 
     "for a POST" - {
 
-      "must delete the submission and redirect to Assumed Report Removed when the answer is yes" in {
+      "must delete the submission, send an audit event, and redirect to Assumed Report Removed when the answer is yes" in {
 
         when(mockConnector.delete(any(), any())(using any())).thenReturn(Future.successful(Done))
 
+        val expectedAuditEvent = DeleteAssumedReportEvent("dprsId", operatorId, operatorName, "submissionId1", OK, now)
+        
         val application =
           applicationBuilder(userAnswers = Some(baseAnswers))
-            .overrides(bind[AssumedReportingConnector].toInstance(mockConnector))
+            .overrides(
+              bind[AssumedReportingConnector].toInstance(mockConnector),
+              bind[AuditService].toInstance(mockAuditService),
+              bind[Clock].toInstance(stubClock)
+            )
             .build()
 
         running(application) {
@@ -113,14 +124,19 @@ class RemoveAssumedReportControllerSpec extends SpecBase with MockitoSugar with 
           status(result) mustEqual SEE_OTHER
           redirectLocation(result).value mustEqual routes.AssumedReportRemovedController.onPageLoad("operatorId", Year.of(2024)).url
           verify(mockConnector).delete(eqTo("operatorId"), eqTo(Year.of(2024)))(using any())
+          verify(mockAuditService).audit(eqTo(expectedAuditEvent))(using any(), any())
         }
       }
 
-      "must not delete the submission and redirect to View Submissions when the answer is no" in {
+      "must not delete the submission, or audit the event, and redirect to View Submissions when the answer is no" in {
 
         val application =
           applicationBuilder(userAnswers = Some(baseAnswers))
-            .overrides(bind[AssumedReportingConnector].toInstance(mockConnector))
+            .overrides(
+              bind[AssumedReportingConnector].toInstance(mockConnector),
+              bind[AuditService].toInstance(mockAuditService),
+              bind[Clock].toInstance(stubClock)
+            )
             .build()
 
         running(application) {
@@ -133,6 +149,7 @@ class RemoveAssumedReportControllerSpec extends SpecBase with MockitoSugar with 
           status(result) mustEqual SEE_OTHER
           redirectLocation(result).value mustEqual assumedRoutes.ViewAssumedReportsController.onPageLoad().url
           verify(mockConnector, never()).delete(any(), any())(using any())
+          verify(mockAuditService, never()).audit(any())(using any(), any())
         }
       }
 
@@ -155,6 +172,33 @@ class RemoveAssumedReportControllerSpec extends SpecBase with MockitoSugar with 
 
           status(result) mustEqual BAD_REQUEST
           contentAsString(result) mustEqual view(boundForm, summaryList, "operatorId", Year.of(2024))(request, implicitly).toString
+        }
+      }
+      
+      "must audit the event with an appropriate error status when submitting the deletion fails" in {
+
+        when(mockConnector.delete(any(), any())(using any())).thenReturn(Future.failed(DeleteAssumedReportFailure(INTERNAL_SERVER_ERROR)))
+
+        val expectedAuditEvent = DeleteAssumedReportEvent("dprsId", operatorId, operatorName, "submissionId1", INTERNAL_SERVER_ERROR, now)
+
+        val application =
+          applicationBuilder(userAnswers = Some(baseAnswers))
+            .overrides(
+              bind[AssumedReportingConnector].toInstance(mockConnector),
+              bind[AuditService].toInstance(mockAuditService),
+              bind[Clock].toInstance(stubClock)
+            )
+            .build()
+
+        running(application) {
+          val request =
+            FakeRequest(routes.RemoveAssumedReportController.onSubmit("operatorId", Year.of(2024)))
+              .withFormUrlEncodedBody("value" -> "true")
+
+          route(application, request).value.failed.futureValue
+
+          verify(mockConnector).delete(eqTo("operatorId"), eqTo(Year.of(2024)))(using any())
+          verify(mockAuditService).audit(eqTo(expectedAuditEvent))(using any(), any())
         }
       }
     }

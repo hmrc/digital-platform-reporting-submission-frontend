@@ -26,7 +26,7 @@ import org.scalatest.matchers.must.Matchers
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
 import pages.assumed.create.*
 import pages.assumed.update as updatePages
-import queries.{PlatformOperatorNameQuery, ReportingPeriodQuery}
+import queries.{AssumedReportingSubmissionQuery, PlatformOperatorNameQuery, ReportingPeriodQuery}
 
 import java.time.Year
 
@@ -194,6 +194,7 @@ class UserAnswersServiceSpec
       result.userId                                             mustEqual userId
       result.operatorId                                         mustEqual "operatorId"
       result.reportingPeriod.value                              mustEqual Year.of(2024)
+      result.get(AssumedReportingSubmissionQuery).value         mustEqual submission
       result.get(ReportingPeriodQuery).value                    mustEqual Year.of(2024)
       result.get(PlatformOperatorNameQuery).value               mustEqual "operatorName"
       result.get(updatePages.AssumingOperatorNamePage).value    mustEqual "assumingOperator"
@@ -228,6 +229,7 @@ class UserAnswersServiceSpec
       result.userId                                             mustEqual userId
       result.operatorId                                         mustEqual "operatorId"
       result.reportingPeriod.value                              mustEqual Year.of(2024)
+      result.get(AssumedReportingSubmissionQuery).value         mustEqual submission
       result.get(ReportingPeriodQuery).value                    mustEqual Year.of(2024)
       result.get(PlatformOperatorNameQuery).value               mustEqual "operatorName"
       result.get(updatePages.AssumingOperatorNamePage).value    mustEqual "assumingOperator"
@@ -268,6 +270,7 @@ class UserAnswersServiceSpec
       result.userId                                                   mustEqual userId
       result.operatorId                                               mustEqual "operatorId"
       result.reportingPeriod.value                                    mustEqual Year.of(2024)
+      result.get(AssumedReportingSubmissionQuery).value               mustEqual submission
       result.get(ReportingPeriodQuery).value                          mustEqual Year.of(2024)
       result.get(PlatformOperatorNameQuery).value                     mustEqual "operatorName"
       result.get(updatePages.AssumingOperatorNamePage).value          mustEqual "assumingOperator"
@@ -302,6 +305,7 @@ class UserAnswersServiceSpec
       result.userId                                                   mustEqual userId
       result.operatorId                                               mustEqual "operatorId"
       result.reportingPeriod.value                                    mustEqual Year.of(2024)
+      result.get(AssumedReportingSubmissionQuery).value               mustEqual submission
       result.get(ReportingPeriodQuery).value                          mustEqual Year.of(2024)
       result.get(PlatformOperatorNameQuery).value                     mustEqual "operatorName"
       result.get(updatePages.AssumingOperatorNamePage).value          mustEqual "assumingOperator"

@@ -25,7 +25,7 @@ import models.submission.{AssumedReportingSubmission, AssumedReportingSubmission
 import pages.assumed.create.*
 import pages.assumed.update as updatePages
 import play.api.libs.json.Writes
-import queries.{PlatformOperatorNameQuery, Query, ReportingPeriodQuery, Settable}
+import queries.{AssumedReportingSubmissionQuery, PlatformOperatorNameQuery, Query, ReportingPeriodQuery, Settable}
 import services.UserAnswersService.InvalidCountryCodeFailure
 
 import java.time.Year
@@ -43,6 +43,7 @@ class UserAnswersService @Inject() () {
       _ <- setTaxDetails(submission.assumingOperator)
       _ <- setRegisteredCountry(submission.assumingOperator)
       _ <- set(updatePages.AddressPage, submission.assumingOperator.address)
+      _ <- set(AssumedReportingSubmissionQuery, submission)
     } yield ()
 
     transformation.runS(UserAnswers(userId, submission.operatorId, Some(submission.reportingPeriod)))

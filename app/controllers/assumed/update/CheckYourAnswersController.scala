@@ -19,14 +19,16 @@ package controllers.assumed.update
 import com.google.inject.Inject
 import connectors.AssumedReportingConnector
 import controllers.actions.*
-import controllers.routes as baseRoutes
+import controllers.{AnswerExtractor, routes as baseRoutes}
 import models.UserAnswers
-import models.submission.AssumedReportSummary
+import models.audit.UpdateAssumedReportEvent
+import models.requests.DataRequest
+import models.submission.{AssumedReportSummary, AssumedReportingSubmission, AssumedReportingSubmissionRequest}
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
-import queries.AssumedReportSummaryQuery
+import queries.{AssumedReportSummaryQuery, AssumedReportingSubmissionQuery}
 import repositories.SessionRepository
-import services.UserAnswersService
+import services.{AuditService, UserAnswersService}
 import services.UserAnswersService.BuildAssumedReportingSubmissionFailure
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import viewmodels.checkAnswers.assumed.update.*
@@ -45,8 +47,10 @@ class CheckYourAnswersController @Inject()(
                                             view: CheckYourAnswersView,
                                             userAnswersService: UserAnswersService,
                                             connector: AssumedReportingConnector,
-                                            sessionRepository: SessionRepository
-                                          )(using ExecutionContext) extends FrontendBaseController with I18nSupport {
+                                            sessionRepository: SessionRepository,
+                                            auditService: AuditService
+                                          )(using ExecutionContext)
+  extends FrontendBaseController with I18nSupport with AnswerExtractor {
 
   def onPageLoad(operatorId: String, reportingPeriod: Year): Action[AnyContent] =
     (identify andThen getData(operatorId, Some(reportingPeriod)) andThen requireData) {
@@ -72,9 +76,9 @@ class CheckYourAnswersController @Inject()(
     }
 
   def onSubmit(operatorId: String, reportingPeriod: Year): Action[AnyContent] =
-    (identify andThen getData(operatorId, Some(reportingPeriod)) andThen requireData).async {
-      implicit request =>
-  
+    (identify andThen getData(operatorId, Some(reportingPeriod)) andThen requireData).async { implicit request =>
+      getAnswerAsync(AssumedReportingSubmissionQuery) { originalSubmission =>
+
         userAnswersService.toAssumedReportingSubmission(request.userAnswers)
           .map(Future.successful)
           .left.map(errors => Future.failed(BuildAssumedReportingSubmissionFailure(errors)))
@@ -82,14 +86,16 @@ class CheckYourAnswersController @Inject()(
           .flatMap { submissionRequest =>
             for {
               submission   <- connector.submit(submissionRequest)
+              _            = audit(originalSubmission, submissionRequest)
               summary      <- AssumedReportSummary(request.userAnswers).map(Future.successful).getOrElse(Future.failed(Exception("unable to build an assumed report summary")))
               emptyAnswers = UserAnswers(request.userId, operatorId, Some(reportingPeriod))
               answers      <- Future.fromTry(emptyAnswers.set(AssumedReportSummaryQuery, summary))
               _            <- sessionRepository.set(answers)
             } yield Redirect(routes.SubmissionConfirmationController.onPageLoad(operatorId, reportingPeriod))
           }
+      }
     }
-
+    
   def initialise(operatorId: String, reportingPeriod: Year): Action[AnyContent] = identify.async {
     implicit request =>
       connector.get(operatorId, reportingPeriod)
@@ -99,5 +105,12 @@ class CheckYourAnswersController @Inject()(
             _           <- sessionRepository.set(userAnswers)
           } yield Redirect(routes.CheckYourAnswersController.onPageLoad(operatorId, reportingPeriod))
         }.getOrElse(Future.successful(Redirect(baseRoutes.JourneyRecoveryController.onPageLoad()))))
+  }
+  
+  private def audit(original: AssumedReportingSubmission, updated: AssumedReportingSubmissionRequest)
+                   (using request: DataRequest[AnyContent]): Unit = {
+    val auditEvent = UpdateAssumedReportEvent(original, updated)
+
+    auditService.audit(auditEvent)
   }
 }

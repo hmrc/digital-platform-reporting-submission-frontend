@@ -20,6 +20,7 @@ import base.SpecBase
 import cats.data.NonEmptyChain
 import connectors.AssumedReportingConnector
 import controllers.routes as baseRoutes
+import models.audit.UpdateAssumedReportEvent
 import models.{UserAnswers, yearFormat}
 import models.submission.Submission.State.Submitted
 import models.submission.Submission.SubmissionType
@@ -34,13 +35,13 @@ import pages.assumed.update.AssumingOperatorNamePage
 import play.api.inject.bind
 import play.api.test.FakeRequest
 import play.api.test.Helpers.*
-import queries.{AssumedReportSummaryQuery, PlatformOperatorNameQuery, ReportingPeriodQuery}
+import queries.{AssumedReportSummaryQuery, AssumedReportingSubmissionQuery, PlatformOperatorNameQuery, ReportingPeriodQuery}
 import repositories.SessionRepository
-import services.UserAnswersService
+import services.{AuditService, UserAnswersService}
 import viewmodels.govuk.SummaryListFluency
 import views.html.assumed.update.CheckYourAnswersView
 
-import java.time.{Instant, Year}
+import java.time.{Clock, Instant, Year, ZoneId}
 import scala.concurrent.Future
 import scala.util.Success
 
@@ -51,12 +52,14 @@ class CheckYourAnswersControllerSpec extends SpecBase with SummaryListFluency wi
   private val mockAssumedReportingConnector: AssumedReportingConnector = mock[AssumedReportingConnector]
   private val mockUserAnswersService: UserAnswersService = mock[UserAnswersService]
   private val mockSessionRepository: SessionRepository = mock[SessionRepository]
+  private val mockAuditService: AuditService = mock[AuditService]
 
   private val now: Instant = Instant.now()
+  private val stubClock: Clock = Clock.fixed(now, ZoneId.systemDefault)
 
   override def beforeEach(): Unit = {
     super.beforeEach()
-    Mockito.reset(mockAssumedReportingConnector, mockUserAnswersService, mockSessionRepository)
+    Mockito.reset(mockAssumedReportingConnector, mockUserAnswersService, mockSessionRepository, mockAuditService)
   }
 
   "Check Your Answers Controller" - {
@@ -94,8 +97,16 @@ class CheckYourAnswersControllerSpec extends SpecBase with SummaryListFluency wi
 
     "for a POST" - {
 
-      "must submit an assumed reporting submission request, replace user answers with a summary, and redirect to the next page" in {
+      "must submit an assumed reporting submission request, audit the event, replace user answers with a summary, and redirect to the next page" in {
 
+        val originalSubmission = AssumedReportingSubmission(
+          operatorId = "operatorId",
+          operatorName = "operatorName",
+          assumingOperator = AssumingPlatformOperator("name", "GB", Nil, "GB", "address"),
+          reportingPeriod = Year.of(2024),
+          isDeleted = false
+        )
+        
         val assumedReportingSubmissionRequest = AssumedReportingSubmissionRequest(
           operatorId = "operatorId",
           assumingOperator = AssumingPlatformOperator(
@@ -125,12 +136,15 @@ class CheckYourAnswersControllerSpec extends SpecBase with SummaryListFluency wi
             .set(AssumingOperatorNamePage, "assumingOperatorName").success.value
             .set(PlatformOperatorNameQuery, "operatorName").success.value
             .set(ReportingPeriodQuery, Year.of(2024)).success.value
+            .set(AssumedReportingSubmissionQuery, originalSubmission).success.value
 
         val application = applicationBuilder(userAnswers = Some(answers))
           .overrides(
             bind[AssumedReportingConnector].toInstance(mockAssumedReportingConnector),
             bind[UserAnswersService].toInstance(mockUserAnswersService),
-            bind[SessionRepository].toInstance(mockSessionRepository)
+            bind[SessionRepository].toInstance(mockSessionRepository),
+            bind[AuditService].toInstance(mockAuditService),
+            bind[Clock].toInstance(stubClock)
           )
           .build()
 
@@ -145,9 +159,11 @@ class CheckYourAnswersControllerSpec extends SpecBase with SummaryListFluency wi
           status(result) mustEqual SEE_OTHER
           redirectLocation(result).value mustEqual routes.SubmissionConfirmationController.onPageLoad(operatorId, reportingPeriod).url
         }
+        val expectedAuditEvent = UpdateAssumedReportEvent(originalSubmission, assumedReportingSubmissionRequest)
 
         verify(mockUserAnswersService).toAssumedReportingSubmission(eqTo(answers))
         verify(mockAssumedReportingConnector).submit(eqTo(assumedReportingSubmissionRequest))(using any())
+        verify(mockAuditService).audit(eqTo(expectedAuditEvent))(using any(), any())
 
         val answersCaptor: ArgumentCaptor[UserAnswers] = ArgumentCaptor.forClass(classOf[UserAnswers])
         verify(mockSessionRepository, times(1)).set(answersCaptor.capture())
@@ -161,7 +177,22 @@ class CheckYourAnswersControllerSpec extends SpecBase with SummaryListFluency wi
 
       "must fail if a request cannot be created from the user answers" in {
 
-        val application = applicationBuilder(userAnswers = Some(baseAnswers))
+        val originalSubmission = AssumedReportingSubmission(
+          operatorId = "operatorId",
+          operatorName = "operatorName",
+          assumingOperator = AssumingPlatformOperator("name", "GB", Nil, "GB", "address"),
+          reportingPeriod = Year.of(2024),
+          isDeleted = false
+        )
+        
+        val answers =
+          baseAnswers
+            .set(AssumingOperatorNamePage, "assumingOperatorName").success.value
+            .set(PlatformOperatorNameQuery, "operatorName").success.value
+            .set(ReportingPeriodQuery, Year.of(2024)).success.value
+            .set(AssumedReportingSubmissionQuery, originalSubmission).success.value
+            
+        val application = applicationBuilder(userAnswers = Some(answers))
           .overrides(
             bind[AssumedReportingConnector].toInstance(mockAssumedReportingConnector),
             bind[UserAnswersService].toInstance(mockUserAnswersService),
