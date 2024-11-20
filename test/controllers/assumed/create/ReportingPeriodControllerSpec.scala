@@ -107,7 +107,7 @@ class ReportingPeriodControllerSpec extends SpecBase with MockitoSugar with Befo
         statuses = SubmissionStatus.values
       )
       
-      "when there are no XML submissions" in {
+      "when there are no XML submissions at all for this user" in {
 
         when(mockSessionRepository.set(any())).thenReturn(Future.successful(true))
         when(mockConnector.listDeliveredSubmissions(any())(using any())).thenReturn(Future.successful(None))
@@ -146,7 +146,7 @@ class ReportingPeriodControllerSpec extends SpecBase with MockitoSugar with Befo
         }
       }
 
-      "when there are delivered XML submissions" in {
+      "when there are delivered XML submissions for this operator and reporting period" in {
 
         val deliveredSubmission = SubmissionSummary(
           submissionId = "submissionId",
@@ -191,14 +191,14 @@ class ReportingPeriodControllerSpec extends SpecBase with MockitoSugar with Befo
           verify(mockConnector).listDeliveredSubmissions(eqTo(expectedViewSubmissionsRequest))(using (any()))
           verify(mockConnector).listUndeliveredSubmissions(using any())
           verify(mockSessionRepository).set(answersCaptor.capture())
-          
+
           val savedAnswers = answersCaptor.getValue
           savedAnswers.get(SubmissionsExistQuery).value mustEqual true
           savedAnswers.get(ReportingPeriodPage).value mustEqual validAnswer
         }
       }
 
-      "when there are undelivered XML submissions" in {
+      "when there are undelivered XML submissions for this operator and reporting period" in {
 
         val undeliveredSubmission = SubmissionSummary(
           submissionId = "submissionId",
@@ -245,6 +245,69 @@ class ReportingPeriodControllerSpec extends SpecBase with MockitoSugar with Befo
 
           val savedAnswers = answersCaptor.getValue
           savedAnswers.get(SubmissionsExistQuery).value mustEqual true
+          savedAnswers.get(ReportingPeriodPage).value mustEqual validAnswer
+        }
+      }
+
+      "when there are delivered XML submissions, but they are for a different operator or reporting period" in {
+
+        val deliveredSubmission1 = SubmissionSummary(
+          submissionId = "submissionId",
+          fileName = "filename",
+          operatorId = "different operator id",
+          operatorName = operatorName,
+          reportingPeriod = validAnswer,
+          submissionDateTime = instant,
+          submissionStatus = Success,
+          assumingReporterName = None,
+          submissionCaseId = Some("caseId")
+        )
+        val deliveredSubmission2 = SubmissionSummary(
+          submissionId = "submissionId",
+          fileName = "filename",
+          operatorId = operatorId,
+          operatorName = operatorName,
+          reportingPeriod = validAnswer.plusYears(1),
+          submissionDateTime = instant,
+          submissionStatus = Success,
+          assumingReporterName = None,
+          submissionCaseId = Some("caseId")
+        )
+        val submissionsSummary = SubmissionsSummary(Seq(deliveredSubmission1, deliveredSubmission2), 0, true, 0)
+
+        when(mockSessionRepository.set(any())).thenReturn(Future.successful(true))
+        when(mockConnector.listDeliveredSubmissions(any())(using any())).thenReturn(Future.successful(Some(submissionsSummary)))
+        when(mockConnector.listUndeliveredSubmissions(using any())).thenReturn(Future.successful(Nil))
+
+        val application =
+          applicationBuilder(userAnswers = Some(emptyUserAnswers))
+            .overrides(
+              bind[SessionRepository].toInstance(mockSessionRepository),
+              bind[SubmissionConnector].toInstance(mockConnector)
+            )
+            .build()
+
+        running(application) {
+          val request =
+            FakeRequest(POST, reportingPeriodRoute)
+              .withFormUrlEncodedBody(("value", validAnswer.toString))
+
+          val answersCaptor: ArgumentCaptor[UserAnswers] = ArgumentCaptor.forClass(classOf[UserAnswers])
+          val answers =
+            emptyUserAnswers
+              .set(ReportingPeriodPage, validAnswer).success.value
+              .set(SubmissionsExistQuery, false).success.value
+
+          val result = route(application, request).value
+
+          status(result) mustEqual SEE_OTHER
+          redirectLocation(result).value mustEqual ReportingPeriodPage.nextPage(NormalMode, answers).url
+          verify(mockConnector).listDeliveredSubmissions(eqTo(expectedViewSubmissionsRequest))(using (any()))
+          verify(mockConnector).listUndeliveredSubmissions(using any())
+          verify(mockSessionRepository).set(answersCaptor.capture())
+
+          val savedAnswers = answersCaptor.getValue
+          savedAnswers.get(SubmissionsExistQuery).value mustEqual false
           savedAnswers.get(ReportingPeriodPage).value mustEqual validAnswer
         }
       }

@@ -79,7 +79,7 @@ class ReportingPeriodController @Inject()(
         for {
           deliveredSubmissions   <- connector.listDeliveredSubmissions(viewSubmissionsRequest)
           undeliveredSubmissions <- connector.listUndeliveredSubmissions
-          submissionsExist       = deliveredSubmissions.nonEmpty || undeliveredSubmissions.nonEmpty
+          submissionsExist       = deliveredSubmissions.exists(_.deliveredSubmissionRecordCount > 0) || undeliveredSubmissions.nonEmpty
           updatedAnswers         <- Future.fromTry(request.userAnswers
                                                     .set(ReportingPeriodPage, reportingPeriod)
                                                     .flatMap(_.set(SubmissionsExistQuery, submissionsExist))
