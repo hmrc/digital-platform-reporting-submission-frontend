@@ -18,6 +18,7 @@
 @import uk.gov.hmrc.govukfrontend.views.html.components.GovukSummaryList
 @import viewmodels.LegendSize
 @import config.FrontendAppConfig
+@import controllers.submission.routes
 
 @this(
         appConfig: FrontendAppConfig,
@@ -29,11 +30,9 @@
         formHelper: FormWithCSRF
 )
 
-@(form: Form[_], operatorId: String, operatorName: String, submissionId: String, summaryList: SummaryList)(implicit request: Request[_], messages: Messages)
+@(form: Form[_], operatorId: String, operatorName: String, submissionId: String, summaryList: SummaryList, emails:Seq[String])(implicit request: Request[_], messages: Messages)
 
 @layout(pageTitle = titleNoForm(messages("submissionConfirmation.title")), showBackLink = false) {
-
-  @formHelper(action = controllers.submission.routes.SubmissionConfirmationController.onSubmit(operatorId, submissionId), Symbol("autoComplete") -> "off") {
 
     @if(form.errors.nonEmpty) {
       @govukErrorSummary(ErrorSummaryViewModel(form))
@@ -46,22 +45,21 @@
     </div>
 
     @govukSummaryList(summaryList)
-    <p class="govuk-body govuk-!-margin-bottom-8">@messages("submissionConfirmation.p1")</p>
-    <p class="govuk-body govuk-!-margin-bottom-8">@messages("submissionConfirmation.p2")</p>
 
-    @govukRadios(
-      RadiosViewModel.yesNo(
-        field = form("value"),
-        legend = LegendViewModel(messages("submissionConfirmation.question", operatorName)).withSize(LegendSize.Medium)
-      )
-    )
-
-    @govukButton(
-      ButtonViewModel(messages("site.continue"))
-    )
+    @if(emails.size == 1) {
+        <p class="govuk-body govuk-!-margin-bottom-4">@messages("submissionConfirmation.p1.singular", emails(0))</p>
+    } else {
+        <p class="govuk-body govuk-!-margin-bottom-4">@messages("submissionConfirmation.p1.plural", emails(0), emails(1))</p>
+    }
+    <h2 class="govuk-heading-m">@messages("submissionConfirmation.h2")</h2>
+    <p class="govuk-body govuk-!-margin-bottom-4">@messages("submissionConfirmation.p2")</p>
+    <p class="govuk-body">
+      @messages("submissionConfirmation.p3")
+      <a href="@routes.StartController.onPageLoad(operatorId)" class="govuk-link">@messages("submissionConfirmation.p3.link.text")</a>.
+    </p>
 
     <p class="govuk-body">
       <a class="govuk-link" href="@appConfig.manageHomepageUrl">@messages("submissionConfirmation.return")</a>
     </p>
-  }
+
 }
