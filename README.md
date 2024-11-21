@@ -3,8 +3,7 @@
 
 The Reporting Rules for Digital Platforms is a new international tax policy that has been designed by the Organisation for Economic Cooperation and Development (OECD) with the input of many tax jurisdictions around the world. The policy was designed in response to concerns many tax jurisdictions raised that the ‘Gig Economy’ may not be taxed fairly or transparently enough and presented risks to the revenue to most tax jurisdictions. This policy also sits alongside the EU’s equivalent policy called Directive of Administrative Cooperation 7 or DAC7 which was implement by EU members on January 23.
 
-This frontend microservice enables users to manage various tasks related to operators, notifications, and submissions. Key functionalities include:
-
+This frontend microservice allows users to submit reports containing seller data to HMRC in a predefined XML schema format. HMRC validates these reports before exchanging the information with other jurisdictions. Key features include:
 Submit the seller information required for reporting obligations.
 * Submit the reports containing seller data to HMRC (following a defined schema in XML format), which HMRC will then validate and then exchange with other jurisdictions
 * Submit the required seller data to HMRC via a file upload mechanism (following a defined schema in XML format) or complete an assumed reporting submission
