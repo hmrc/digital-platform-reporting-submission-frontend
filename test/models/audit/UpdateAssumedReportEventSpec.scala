@@ -121,12 +121,12 @@ class UpdateAssumedReportEventSpec extends AnyFreeSpec with Matchers {
 
       val expectedJson = Json.obj(
         "from" -> Json.obj(
-          "ukTaxResident" -> true,
+          "isUkTaxResident" -> true,
           "countryOfTaxResidence" -> "GB",
           "hasUkTaxIdentificationNumber" -> false
         ),
         "to" -> Json.obj(
-          "ukTaxResident" -> false,
+          "isUkTaxResident" -> false,
           "countryOfTaxResidence" -> "US",
           "hasInternationalTaxIdentificationNumber" -> false
         )
@@ -201,12 +201,12 @@ class UpdateAssumedReportEventSpec extends AnyFreeSpec with Matchers {
 
       val expectedJson = Json.obj(
         "from" -> Json.obj(
-          "ukTaxResident" -> false,
+          "isUkTaxResident" -> false,
           "countryOfTaxResidence" -> "US",
           "hasInternationalTaxIdentificationNumber" -> false
         ),
         "to" -> Json.obj(
-          "ukTaxResident" -> true,
+          "isUkTaxResident" -> true,
           "countryOfTaxResidence" -> "GB",
           "hasUkTaxIdentificationNumber" -> false
         )

@@ -50,7 +50,7 @@ object UpdateAssumedReportEvent {
     val taxIdentifierJson = assumingOperator.residentCountry match {
       case "GB" =>
         Json.obj(
-          "ukTaxResident" -> true,
+          "isUkTaxResident" -> true,
           "countryOfTaxResidence" -> "GB",
           "hasUkTaxIdentificationNumber" -> assumingOperator.tinDetails.nonEmpty
         ) ++ assumingOperator.tinDetails.headOption.map { tin =>
@@ -59,7 +59,7 @@ object UpdateAssumedReportEvent {
 
       case country =>
         Json.obj(
-          "ukTaxResident" -> false,
+          "isUkTaxResident" -> false,
           "countryOfTaxResidence" -> country,
           "hasInternationalTaxIdentificationNumber" -> assumingOperator.tinDetails.nonEmpty
         ) ++ assumingOperator.tinDetails.headOption.map { tin =>
