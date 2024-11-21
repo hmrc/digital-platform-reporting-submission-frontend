@@ -134,12 +134,14 @@ submissionConfirmation.question = Do you want to submit another file for {0}?
 
 fileErrors.title = There is a problem with your file
 fileErrors.heading = There is a problem with your file
-fileErrors.p1 = We cannot accept the file {0} because it does not meet the DPR business rules.
+fileErrors.p1 = We cannot accept the file {0} because it does not meet the digital platform reporting business rules.
 fileErrors.h2 = What you can do next
 fileErrors.point1 = Download the error report below.
 fileErrors.point2 = View the errors in the report.
-fileErrors.point3 = Refer to the DPRS technical guidance for XML files and update your file.
-fileErrors.point4 = Submit the updated file.
+fileErrors.point3.text = Refer to the schema and supporting documents (opens in new tab)
+fileErrors.point3.href = https://www.gov.uk/government/publications/digital-platform-reporting-xml-schema-and-supporting-documents
+fileErrors.point4 = Submit the updated file
+fileErrors.warning = This error report will only be available for 28 days.
 fileErrors.button = Download error report
 fileErrors.return = Return to manage your digital platform reporting
 
