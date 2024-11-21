@@ -17,7 +17,7 @@
 package controllers.submission
 
 import config.FrontendAppConfig
-import connectors.{PlatformOperatorConnector, SubmissionConnector, SubscriptionConnector}
+import connectors.SubmissionConnector
 import controllers.actions.*
 import forms.SubmissionConfirmationFormProvider
 import models.submission.Submission
@@ -30,8 +30,7 @@ import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import utils.DateTimeFormats
 import viewmodels.PlatformOperatorSummary
 import views.html.submission.SubmissionConfirmationView
-import models.subscription._
-import models.operator.responses.PlatformOperator
+
 import java.time.Instant
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
@@ -43,34 +42,21 @@ class SubmissionConfirmationController @Inject()(
                                                   val controllerComponents: MessagesControllerComponents,
                                                   view: SubmissionConfirmationView,
                                                   submissionConnector: SubmissionConnector,
-                                                  subscriptionConnector: SubscriptionConnector,
-                                                  platformOperatorConnector: PlatformOperatorConnector,
                                                   formProvider: SubmissionConfirmationFormProvider
                                                 )(using ExecutionContext) extends FrontendBaseController with I18nSupport {
-  
-    def onPageLoad(operatorId: String, submissionId: String): Action[AnyContent] = identify.async {
-      implicit request =>
-        val contactDetails = for {
-          subscriptionInfo <- subscriptionConnector.getSubscription
-          operator <- platformOperatorConnector.viewPlatformOperator(operatorId)
-        } yield {
-          Seq(subscriptionInfo.primaryContact match {
-            case individualContact: IndividualContact => individualContact.email
-            case organisationContact: OrganisationContact => organisationContact.email
-          },
-          operator.primaryContactDetails.emailAddress).distinct
+
+  def onPageLoad(operatorId: String, submissionId: String): Action[AnyContent] = identify.async {
+    implicit request =>
+      submissionConnector.get(submissionId).flatMap {
+        _.map { submission =>
+          handleSubmission(operatorId, submission) { case state: Approved =>
+            Future.successful(Ok(view(formProvider(submission.operatorName), operatorId, submission.operatorName, submissionId, getSummaryList(state.fileName, submission, state, submission.updated, request.dprsId))))
+          }
+        }.getOrElse {
+          Future.successful(Redirect(controllers.routes.JourneyRecoveryController.onPageLoad()))
         }
-        contactDetails.flatMap {
-          emails =>
-            submissionConnector.get(submissionId).flatMap {
-              case Some(submission) =>
-                handleSubmission(operatorId, submission) { case state: Approved =>
-                  Future.successful(Ok(view(formProvider(submission.operatorName), operatorId, submission.operatorName, submissionId, getSummaryList(state.fileName, submission, state, submission.updated, request.dprsId),emails)))
-                }
-              case _ => Future.successful(Redirect(controllers.routes.JourneyRecoveryController.onPageLoad()))
-            }
-        }
-    }
+      }
+  }
   
   private def getSummaryList(fileName: String, submission: Submission, state: Approved, checksCompleted: Instant, dprsId: String)(using Messages): SummaryList =
     SummaryList(

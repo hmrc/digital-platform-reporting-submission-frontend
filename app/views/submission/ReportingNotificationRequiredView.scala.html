@@ -24,11 +24,11 @@
 @(operatorId: String, operatorName: String)(implicit request: Request[_], messages: Messages)
 
 @layout(
-	pageTitle = titleNoForm(messages("reportingNotificationRequired.title")),
+	pageTitle = titleNoForm(messages("reportingNotificationRequired.submission.title")),
 	showBackLink = true
 ) {
 
-	<h1 class="govuk-heading-xl">@messages("reportingNotificationRequired.heading", operatorName)</h1>
+        <h1 class="govuk-heading-xl">@messages("reportingNotificationRequired.submission.heading", operatorName)</h1>
 
 	<div class="govuk-form-group">
 		<a href="@appConfig.addReportingNotificationUrl(operatorId)" class="govuk-button">@messages("site.continue")</a>

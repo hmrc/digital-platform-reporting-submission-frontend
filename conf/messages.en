@@ -118,8 +118,6 @@ checkFile.return = Return to manage your digital platform reporting
 
 submissionConfirmation.title = File successfully sent
 submissionConfirmation.heading = File successfully sent
-submissionConfirmation.p1.singular = We have sent a confirmation email to {0}.
-submissionConfirmation.p1.plural = We have sent a confirmation email to {0} and {1}.
 submissionConfirmation.p2 = We will contact you if we have any questions about your reports.
 submissionConfirmation.h2 = What happens next
 submissionConfirmation.p3 = You can
@@ -241,13 +239,13 @@ ukTaxIdentifiers.checkAnswers.chrn = CHRN
 
 submission.selectPlatformOperator.title = Which platform operator do you want to make a submission for?
 submission.selectPlatformOperator.heading = Which platform operator do you want to make a submission for?
-submission.selectPlatformOperator.error.required = Select which platform operator do you want to make a submission for
+submission.selectPlatformOperator.error.required = Select which platform operator you want to make a submission for
 submission.selectPlatformOperator.p1 = You can also
 submission.selectPlatformOperator.p1.link.text = add a new platform operator
 submission.selectPlatformOperator.item.text = {0}
 submission.selectPlatformOperator.item.hint = {0}
 submission.selectPlatformOperator.single.title = You are about to make a submission
-submission.selectPlatformOperator.single.heading = You are about to make a submission for {0} (platform operator ID: {1})
+submission.selectPlatformOperator.single.heading = You are about to make a submission for {0} (ID    {1})
 submission.selectPlatformOperator.single.p1 = If this is not correct, you can
 submission.selectPlatformOperator.single.link.text = add a new platform operator
 
@@ -323,7 +321,9 @@ assumedReportingConfirmation.youCan = You can
 assumedReportingConfirmation.makeAnother = make another assumed report
 
 reportingNotificationRequired.title = You must add a reporting notification before making an assumed report
-reportingNotificationRequired.heading = You must add a reporting notification for {0} before making a submission
+reportingNotificationRequired.heading = You must add a reporting notification for {0} before making an assumed report
+reportingNotificationRequired.submission.title = You must add a reporting notification before making a submission
+reportingNotificationRequired.submission.heading = You must add a reporting notification for {0} before making a submission
 
 checkReportingNotifications.title.single = Check the reporting notification for this platform operator
 checkReportingNotifications.title.plural = Check the reporting notifications for this platform operator

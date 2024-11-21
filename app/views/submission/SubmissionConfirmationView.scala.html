@@ -30,7 +30,7 @@
         formHelper: FormWithCSRF
 )
 
-@(form: Form[_], operatorId: String, operatorName: String, submissionId: String, summaryList: SummaryList, emails:Seq[String])(implicit request: Request[_], messages: Messages)
+@(form: Form[_], operatorId: String, operatorName: String, submissionId: String, summaryList: SummaryList)(implicit request: Request[_], messages: Messages)
 
 @layout(pageTitle = titleNoForm(messages("submissionConfirmation.title")), showBackLink = false) {
 
@@ -45,12 +45,6 @@
     </div>
 
     @govukSummaryList(summaryList)
-
-    @if(emails.size == 1) {
-        <p class="govuk-body govuk-!-margin-bottom-4">@messages("submissionConfirmation.p1.singular", emails(0))</p>
-    } else {
-        <p class="govuk-body govuk-!-margin-bottom-4">@messages("submissionConfirmation.p1.plural", emails(0), emails(1))</p>
-    }
     <h2 class="govuk-heading-m">@messages("submissionConfirmation.h2")</h2>
     <p class="govuk-body govuk-!-margin-bottom-4">@messages("submissionConfirmation.p2")</p>
     <p class="govuk-body">

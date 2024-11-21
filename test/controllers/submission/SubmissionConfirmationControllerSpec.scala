@@ -115,7 +115,6 @@ class SubmissionConfirmationControllerSpec extends SpecBase with MockitoSugar wi
             val form = application.injector.instanceOf[SubmissionConfirmationFormProvider].apply(operatorName)
 
             given Messages = messages(application)
-            val emailList = Seq("tax1@team.com", "tax2@team.com")
             val expectedSummaryList = {
               SummaryList(
                 rows = Seq(
@@ -147,7 +146,7 @@ class SubmissionConfirmationControllerSpec extends SpecBase with MockitoSugar wi
               )
             }
             status(result) mustEqual OK
-            contentAsString(result) mustEqual view(form, operatorId, operatorName, "id", expectedSummaryList, emailList)(request, messages(application)).toString
+            contentAsString(result) mustEqual view(form, operatorId, operatorName, "id", expectedSummaryList)(request, messages(application)).toString
           }
 
           verify(mockSubmissionConnector).get(eqTo("id"))(using any())
