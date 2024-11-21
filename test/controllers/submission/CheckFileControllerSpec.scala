@@ -87,7 +87,11 @@ class CheckFileControllerSpec extends SpecBase with MockitoSugar with BeforeAndA
                 SummaryListRow(
                   key = Key(content = Text(Messages("checkFile.fileName"))),
                   value = Value(content = Text("test.xml")),
-                )
+                ),
+                SummaryListRow(
+                  key = Key(content = Text(Messages("checkFile.autoCheck"))),
+                  value = Value(content = Text(Messages("checkFile.pending"))),
+                  )
               )
             )
 

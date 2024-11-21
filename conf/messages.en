@@ -57,8 +57,8 @@ unauthorised.heading = You can’t access this service with this account
 startPage.title = Make a new submission
 startPage.heading = Make a new submission
 startPage.p1 = In the next few screens you can submit an XML file containing the information of sellers using your platform.
-startPage.p2.1 = Your file must comply with the XML schema rules. When you submit your data it will be processed to make sure it fits with the schema. You can refer to the
-startPage.p2.link = schema and supporting documents (opens in new tab)
+startPage.p2.1 = Your file must comply with the XML schema rules. When you submit your data it will be processed to make sure it fits with the schema. You can
+startPage.p2.link = refer to the schema and supporting documents (opens in new tab)
 startPage.p2.2 = for guidance.
 startPage.p3 = The maximum file size is 100MB.
 startPage.p4 = Doing a file submission takes around 10 minutes, but it may take longer for your file to process in the background once submitted. A large file may take up to 2 days to process.
@@ -101,14 +101,16 @@ sendFile.p2 = By sending this file, you are confirming that the information is c
 sendFile.confirmAndSend = Confirm and send
 sendFile.uploadedFile = Uploaded file
 sendFile.uploadedFile.change = the uploaded file
-sendFile.operatorName = Platform Operator name
-sendFile.operatorId = Platform Operator ID
+sendFile.operatorName = Platform operator name
+sendFile.operatorId = Platform operator ID
 sendFile.reportingPeriod = Reportable period
 
-checkFile.title = Your file has been successfully sent, but we need more time to check it
-checkFile.heading = Your file has been successfully sent, but we need more time to check it
+checkFile.title = Your file has been received, but we need more time to check it
+checkFile.heading = Your file has been received, but we need more time to check it
 checkFile.fileName = File name
-checkFile.p1 = Select “Refresh for updates” to see if the automatic checks have been completed.
+checkFile.autoCheck = Result of automatic checks
+checkFile.pending = Pending
+checkFile.p1 = Select ‘Refresh for updates’ to see if the automatic checks have been completed.
 checkFile.p2 = You can leave this page. Once the checks have been completed, the results will be visible on the submission list page.
 checkFile.button = Refresh for updates
 checkFile.anotherSubmission = Make another submission for {0}
@@ -116,7 +118,10 @@ checkFile.return = Return to manage your digital platform reporting
 
 submissionConfirmation.title = File successfully sent
 submissionConfirmation.heading = File successfully sent
-submissionConfirmation.p1 = We will contact you if we have any questions about your reports.
+submissionConfirmation.p2 = We will contact you if we have any questions about your reports.
+submissionConfirmation.h2 = What happens next
+submissionConfirmation.p3 = You can
+submissionConfirmation.p3.link.text = submit another report
 submissionConfirmation.return = Return to manage your digital platform reporting
 submissionConfirmation.fileName = File name
 submissionConfirmation.operatorName = Platform operator name
@@ -143,9 +148,9 @@ fileErrors.tsv.detail = Detail
 fileErrors.tsv.docRef = DocRef
 
 chrn.checkYourAnswersLabel = HMRC Charity Reference (CHRN)
-
+utr.checkYourAnswersLabel = Unique Taxpayer Reference (UTR)
 crn.checkYourAnswersLabel = Company Registration Number (CRN)
-
+vrn.checkYourAnswersLabel = VAT Registration Number (VRN)
 empref.checkYourAnswersLabel = Employer PAYE Reference (EMPREF)
 
 hasUkTaxIdentifier.title = Does the platform operator have a UK tax identification number?
@@ -231,15 +236,16 @@ ukTaxIdentifiers.checkAnswers.vrn = VRN
 ukTaxIdentifiers.checkAnswers.empref = EMPREF
 ukTaxIdentifiers.checkAnswers.chrn = CHRN
 
+
 submission.selectPlatformOperator.title = Which platform operator do you want to make a submission for?
 submission.selectPlatformOperator.heading = Which platform operator do you want to make a submission for?
-submission.selectPlatformOperator.error.required = Select which  platform operator you want to make a submission for
+submission.selectPlatformOperator.error.required = Select which platform operator you want to make a submission for
 submission.selectPlatformOperator.p1 = You can also
 submission.selectPlatformOperator.p1.link.text = add a new platform operator
 submission.selectPlatformOperator.item.text = {0}
 submission.selectPlatformOperator.item.hint = {0}
 submission.selectPlatformOperator.single.title = You are about to make a submission
-submission.selectPlatformOperator.single.heading = You are about to make a submission for {0} (platform operator ID: {1})
+submission.selectPlatformOperator.single.heading = You are about to make a submission for {0} (ID    {1})
 submission.selectPlatformOperator.single.p1 = If this is not correct, you can
 submission.selectPlatformOperator.single.link.text = add a new platform operator
 
@@ -321,6 +327,8 @@ assumedReportingConfirmation.makeAnother = make another assumed report
 
 reportingNotificationRequired.title = You must add a reporting notification before making an assumed report
 reportingNotificationRequired.heading = You must add a reporting notification for {0} before making an assumed report
+reportingNotificationRequired.submission.title = You must add a reporting notification before making a submission
+reportingNotificationRequired.submission.heading = You must add a reporting notification for {0} before making a submission
 
 checkReportingNotifications.title.single = Check the reporting notification for this platform operator
 checkReportingNotifications.title.plural = Check the reporting notifications for this platform operator
@@ -330,10 +338,12 @@ checkReportingNotifications.legend = Is this information correct?
 checkReportingNotifications.error.required = Select yes if this information is correct
 checkReportingNotifications.dateAdded = Date added
 checkReportingNotifications.notificationType = Reporting notification
+checkReportingNotifications.notificationType.rpo = Reporting platform operator
+checkReportingNotifications.notificationType.epo = Excluded platform operator
 checkReportingNotifications.reportingPeriod = Reporting period
 checkReportingNotifications.dueDiligence = Due diligence
-checkReportingNotifications.dueDiligence.extendedDueDiligence = Extended
-checkReportingNotifications.dueDiligence.activeSellerDueDiligence = Active seller
+checkReportingNotifications.dueDiligence.extendedDueDiligence = Extended time limits for due diligence on existing sellers
+checkReportingNotifications.dueDiligence.activeSellerDueDiligence = Active seller due diligence
 checkReportingNotifications.dueDiligence.noDueDiligence = No
 checkReportingNotifications.dueDiligence.notApplicable = N/A
 

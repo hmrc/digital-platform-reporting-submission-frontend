@@ -59,9 +59,13 @@ class CheckFileController @Inject()(
         SummaryListRow(
           key = Key(content = Text(Messages("checkFile.fileName"))),
           value = Value(content = Text(fileName)),
+        ),
+          SummaryListRow(
+          key = Key(content = Text(Messages("checkFile.autoCheck"))),
+          value = Value(content = Text(Messages("checkFile.pending")),
         )
       )
-    )
+    ))
 
   private def handleSubmission(operatorId: String, submission: Submission)(f: PartialFunction[Submission.State, Future[Result]]): Future[Result] =
     f.lift(submission.state).getOrElse {

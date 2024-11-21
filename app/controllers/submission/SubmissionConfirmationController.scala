@@ -57,29 +57,7 @@ class SubmissionConfirmationController @Inject()(
         }
       }
   }
-
-  def onSubmit(operatorId: String, submissionId: String): Action[AnyContent] = identify.async {
-    implicit request =>
-      submissionConnector.get(submissionId).flatMap {
-        _.map { submission =>
-          handleSubmission(operatorId, submission) { case state: Approved =>
-            formProvider(submission.operatorName).bindFromRequest().fold(
-              errors =>
-                Future.successful(BadRequest(view(errors, operatorId, submission.operatorName, submissionId, getSummaryList(state.fileName, submission, state, submission.updated, request.dprsId)))),
-              addAnother =>
-                if (addAnother) {
-                  Future.successful(Redirect(routes.StartController.onPageLoad(operatorId)))
-                } else {
-                  Future.successful(Redirect(appConfig.manageHomepageUrl))
-                }
-            )
-          }
-        }.getOrElse {
-          Future.successful(Redirect(controllers.routes.JourneyRecoveryController.onPageLoad()))
-        }
-      }
-  }
-
+  
   private def getSummaryList(fileName: String, submission: Submission, state: Approved, checksCompleted: Instant, dprsId: String)(using Messages): SummaryList =
     SummaryList(
       rows = Seq(

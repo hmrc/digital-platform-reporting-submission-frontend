@@ -27,7 +27,7 @@ object PrimaryContactPhoneSummary {
   def row(operator: PlatformOperator)(implicit messages: Messages): Option[SummaryListRow] = {
     operator.primaryContactDetails.phoneNumber.map { phone =>
       SummaryListRowViewModel(
-        key = "primaryContactName.checkYourAnswersLabel",
+        key = "primaryContactPhone.checkYourAnswersLabel",
         value = ValueViewModel(phone),
         actions = Nil
       )

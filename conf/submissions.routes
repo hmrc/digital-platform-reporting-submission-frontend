@@ -11,7 +11,6 @@ GET         /:operatorId/:submissionId/send-file                     controllers
 POST        /:operatorId/:submissionId/send-file                     controllers.submission.SendFileController.onSubmit(operatorId: String, submissionId: String)
 GET         /:operatorId/:submissionId/check-file                    controllers.submission.CheckFileController.onPageLoad(operatorId: String, submissionId: String)
 GET         /:operatorId/:submissionId/confirmation                  controllers.submission.SubmissionConfirmationController.onPageLoad(operatorId: String, submissionId: String)
-POST        /:operatorId/:submissionId/confirmation                  controllers.submission.SubmissionConfirmationController.onSubmit(operatorId: String, submissionId: String)
 GET         /:operatorId/:submissionId/file-errors                   controllers.submission.FileErrorsController.onPageLoad(operatorId: String, submissionId: String)
 GET         /:operatorId/:submissionId/file-errors/download          controllers.submission.FileErrorsController.listErrors(operatorId: String, submissionId: String)
 
