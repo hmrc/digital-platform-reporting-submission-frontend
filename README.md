@@ -5,7 +5,7 @@ The Reporting Rules for Digital Platforms is a new international tax policy that
 
 This frontend microservice enables users to manage various tasks related to operators, notifications, and submissions. Key functionalities include:
 
-Adding, viewing, and removing Platform Operators for which reports are being submitted.
+Submit the seller information required for reporting obligations.
 * Submit the reports containing seller data to HMRC (following a defined schema in XML format), which HMRC will then validate and then exchange with other jurisdictions
 * Submit the required seller data to HMRC via a file upload mechanism (following a defined schema in XML format) or complete an assumed reporting submission
 
