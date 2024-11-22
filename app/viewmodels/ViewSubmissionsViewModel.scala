@@ -39,7 +39,9 @@ final case class ViewSubmissionsViewModel(
                                            filter: ViewSubmissionsFilter,
                                            recordCountInfo: Option[String],
                                            submissionDateSortLink: String,
+                                           submissionDateSortIcon: String,
                                            reportingPeriodSortLink: String,
+                                           reportingPeriodSortIcon: String,
                                            pageTitle: String
                                          )
 
@@ -59,7 +61,9 @@ object ViewSubmissionsViewModel {
       filter,
       maybeSummary.flatMap(summary => getRecordCountInfo(summary.deliveredSubmissionRecordCount, filter.pageNumber)),
       submissionDateSortLink(filter),
+      getSubmissionDateSortingIcon(filter),
       reportingPeriodSortLink(filter),
+      getReportingYearSortingIcon(filter),
       getTitle(maybeSummary.map(_.deliveredSubmissionRecordCount).getOrElse(0), filter.pageNumber)
     )
 
@@ -241,4 +245,26 @@ object ViewSubmissionsViewModel {
     } else {
       url"${routes.ViewSubmissionsController.onPageLoad().absoluteURL()}?$queryParameters".toString
     }
+
+  private def getReportingYearSortingIcon(filter: ViewSubmissionsFilter): String = {
+    if (filter.sortBy.entryName.equals("REPORTINGYEAR")) {
+      filter.sortOrder.entryName match {
+        case "ASC" => "\u25b2"
+        case "DSC" => "\u25bc"
+      }
+    } else {
+      "\u25bc\u25b2"
+    }
+  }
+
+  private def getSubmissionDateSortingIcon(filter: ViewSubmissionsFilter): String = {
+    if (filter.sortBy.entryName.equals("SUBMISSIONDATE")) {
+      filter.sortOrder.entryName match {
+        case "ASC" => "\u25b2"
+        case "DSC" => "\u25bc"
+      }
+    } else {
+      "\u25bc\u25b2"
+    }
+  }
 }
