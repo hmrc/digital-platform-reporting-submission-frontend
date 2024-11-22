@@ -421,7 +421,7 @@ class ViewSubmissionsViewModelSpec extends AnyFreeSpec with Matchers with Option
 
         val viewModel = ViewSubmissionsViewModel(Some(submissionsSummary), Nil, filter, thisYear)
 
-        checkQueryParameters(viewModel.submissionDateSortLink, Set(
+        checkQueryParameters(viewModel.submissionDateSort.href, Set(
           "sortBy" -> SubmissionDate.entryName,
           "sortOrder" -> Ascending.entryName,
           "reportingPeriod" -> "2024",
@@ -440,7 +440,7 @@ class ViewSubmissionsViewModelSpec extends AnyFreeSpec with Matchers with Option
 
         viewModel.submissionDateSortIcon must equal ("\u25b2")
 
-        checkQueryParameters(viewModel.submissionDateSortLink, Set(
+        checkQueryParameters(viewModel.submissionDateSort.href, Set(
           "sortBy" -> SubmissionDate.entryName,
           "sortOrder" -> Descending.entryName
         ))
@@ -456,7 +456,7 @@ class ViewSubmissionsViewModelSpec extends AnyFreeSpec with Matchers with Option
 
         viewModel.submissionDateSortIcon must equal ("\u25bc\u25b2")
 
-        checkQueryParameters(viewModel.submissionDateSortLink, Set(
+        checkQueryParameters(viewModel.submissionDateSort.href, Set(
           "sortBy" -> SubmissionDate.entryName,
           "sortOrder" -> Descending.entryName
         ))
@@ -472,7 +472,7 @@ class ViewSubmissionsViewModelSpec extends AnyFreeSpec with Matchers with Option
 
         viewModel.submissionDateSortIcon must equal("\u25bc")
 
-        checkQueryParameters(viewModel.submissionDateSortLink, Set(
+        checkQueryParameters(viewModel.submissionDateSort.href, Set(
           "sortBy" -> SubmissionDate.entryName,
           "sortOrder" -> Ascending.entryName
         ))
@@ -494,7 +494,7 @@ class ViewSubmissionsViewModelSpec extends AnyFreeSpec with Matchers with Option
 
         val viewModel = ViewSubmissionsViewModel(Some(submissionsSummary), Nil, filter, thisYear)
 
-        checkQueryParameters(viewModel.reportingPeriodSortLink, Set(
+        checkQueryParameters(viewModel.reportingPeriodSort.href, Set(
           "sortBy" -> ReportingPeriod.entryName,
           "sortOrder" -> Descending.entryName,
           "reportingPeriod" -> "2024",
@@ -513,7 +513,7 @@ class ViewSubmissionsViewModelSpec extends AnyFreeSpec with Matchers with Option
 
         viewModel.reportingPeriodSortIcon must equal("\u25b2")
 
-        checkQueryParameters(viewModel.reportingPeriodSortLink, Set(
+        checkQueryParameters(viewModel.reportingPeriodSort.href, Set(
           "sortBy" -> ReportingPeriod.entryName,
           "sortOrder" -> Descending.entryName
         ))
@@ -529,7 +529,7 @@ class ViewSubmissionsViewModelSpec extends AnyFreeSpec with Matchers with Option
 
         viewModel.reportingPeriodSortIcon must equal("\u25bc\u25b2")
 
-        checkQueryParameters(viewModel.reportingPeriodSortLink, Set(
+        checkQueryParameters(viewModel.reportingPeriodSort.href, Set(
           "sortBy" -> ReportingPeriod.entryName,
           "sortOrder" -> Descending.entryName
         ))
@@ -545,7 +545,7 @@ class ViewSubmissionsViewModelSpec extends AnyFreeSpec with Matchers with Option
 
         viewModel.reportingPeriodSortIcon must equal("\u25bc")
 
-        checkQueryParameters(viewModel.reportingPeriodSortLink, Set(
+        checkQueryParameters(viewModel.reportingPeriodSort.href, Set(
           "sortBy" -> ReportingPeriod.entryName,
           "sortOrder" -> Ascending.entryName
         ))

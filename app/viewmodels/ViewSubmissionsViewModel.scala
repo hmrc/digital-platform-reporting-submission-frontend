@@ -38,9 +38,9 @@ final case class ViewSubmissionsViewModel(
                                            pagination: Option[Pagination],
                                            filter: ViewSubmissionsFilter,
                                            recordCountInfo: Option[String],
-                                           submissionDateSortLink: String,
+                                           submissionDateSort: Link,
                                            submissionDateSortIcon: String,
-                                           reportingPeriodSortLink: String,
+                                           reportingPeriodSort: Link,
                                            reportingPeriodSortIcon: String,
                                            pageTitle: String
                                          )
@@ -60,9 +60,9 @@ object ViewSubmissionsViewModel {
       maybeSummary.flatMap(summary => pagination(summary.deliveredSubmissionRecordCount, filter)),
       filter,
       maybeSummary.flatMap(summary => getRecordCountInfo(summary.deliveredSubmissionRecordCount, filter.pageNumber)),
-      submissionDateSortLink(filter),
+      Link(messages("viewSubmissions.submissionDate"),submissionDateSortLink(filter)),
       sortingIconFor(filter, SubmissionDate),
-      reportingPeriodSortLink(filter),
+      Link(messages("viewSubmissions.reportingPeriod"),reportingPeriodSortLink(filter)),
       sortingIconFor(filter, ReportingPeriod),
       getTitle(maybeSummary.map(_.deliveredSubmissionRecordCount).getOrElse(0), filter.pageNumber)
     )
