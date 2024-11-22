@@ -116,13 +116,19 @@
                             <tr class="govuk-table__row">
                                 <th class="govuk-table__header" scope="col">@messages("viewSubmissions.status")</th>
                                 <th class="govuk-table__header" scope="col">
-                                    <a href="@viewModel.submissionDateSortLink" class="govuk-link--muted govuk-link--no-underline govuk-link--no-visited-state govuk-link-">@messages("viewSubmissions.submissionDate")</a>
+                                    <a href="@viewModel.submissionDateSortLink" class="govuk-link--muted govuk-link--no-underline govuk-link--no-visited-state govuk-link-">@messages("viewSubmissions.submissionDate")
+                                        @if(viewModel.filter.sortBy.entryName.equals("SUBMISSIONDATE")){
+                                            @if(viewModel.filter.sortOrder.entryName.equals("ASC")){&#x25b2;} else {&#x25bc;}
+                                        } else {&#x25bc;&#x25b2;}
+                                    </a>
                                 </th>
+                                <th class="govuk-table__header" scope="col">@messages("viewSubmissions.platformOperator")</th>
                                 <th class="govuk-table__header" scope="col">
-                                    <a href="@viewModel.platformOperatorSortLink" class="govuk-link--muted govuk-link--no-underline govuk-link--no-visited-state">@messages("viewSubmissions.platformOperator")</a>
-                                </th>
-                                <th class="govuk-table__header" scope="col">
-                                    <a href="@viewModel.reportingPeriodSortLink" class="govuk-link--muted govuk-link--no-underline govuk-link--no-visited-state">@messages("viewSubmissions.reportingPeriod")</a>
+                                    <a href="@viewModel.reportingPeriodSortLink" class="govuk-link--muted govuk-link--no-underline govuk-link--no-visited-state">@messages("viewSubmissions.reportingPeriod")
+                                        @if(viewModel.filter.sortBy.entryName.equals("REPORTINGYEAR")){
+                                            @if(viewModel.filter.sortOrder.entryName.equals("ASC")){&#x25b2;} else {&#x25bc;}
+                                        } else {&#x25bc;&#x25b2;}
+                                    </a>
                                 </th>
                                 <th class="govuk-table__header" scope="col">@messages("viewSubmissions.fileName")</th>
                                 <th class="govuk-table__header" scope="col">@messages("viewSubmissions.action")</th>

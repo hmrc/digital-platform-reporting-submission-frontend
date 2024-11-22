@@ -40,7 +40,6 @@ final case class ViewSubmissionsViewModel(
                                            recordCountInfo: Option[String],
                                            submissionDateSortLink: String,
                                            reportingPeriodSortLink: String,
-                                           platformOperatorSortLink: String,
                                            pageTitle: String
                                          )
 
@@ -61,7 +60,6 @@ object ViewSubmissionsViewModel {
       maybeSummary.flatMap(summary => getRecordCountInfo(summary.deliveredSubmissionRecordCount, filter.pageNumber)),
       submissionDateSortLink(filter),
       reportingPeriodSortLink(filter),
-      platformOperatorSortLink(filter),
       getTitle(maybeSummary.map(_.deliveredSubmissionRecordCount).getOrElse(0), filter.pageNumber)
     )
 
@@ -193,12 +191,10 @@ object ViewSubmissionsViewModel {
 
   private def filterQueryParameters(filter: ViewSubmissionsFilter): Map[String, String] = {
     val reportingPeriodQueryParameter = filter.reportingPeriod.map(period => Map("reportingPeriod" -> period.toString))
-    val operatorIdQueryParameter      = filter.operatorId.map(operatorId => Map("operatorId" -> operatorId))
     val statusesQueryParameter        = filter.statuses.zipWithIndex.map((status, index) => s"statuses[$index]" -> status.entryName).toMap
 
     statusesQueryParameter ++
-      reportingPeriodQueryParameter.getOrElse(Map.empty[String, String]) ++
-      operatorIdQueryParameter.getOrElse(Map.empty[String, String])
+      reportingPeriodQueryParameter.getOrElse(Map.empty[String, String])
   }
 
   private def pageNumberQueryParameter(pageNumber: Int): Map[String, String] =
@@ -225,23 +221,6 @@ object ViewSubmissionsViewModel {
                                      (implicit request: Request[?]): String = {
     val sortByQueryParameter = Map("sortBy" -> ReportingPeriod.entryName)
     val sortOrderQueryParameter = if (filter.sortBy == ReportingPeriod && filter.sortOrder == Descending) {
-      Map("sortOrder" -> Ascending.entryName)
-    } else {
-      Map("sortOrder" -> Descending.entryName)
-    }
-
-    val queryParameters =
-      filterQueryParameters(filter) ++
-        sortOrderQueryParameter ++
-        sortByQueryParameter
-
-    buildLink(queryParameters)
-  }
-
-  private def platformOperatorSortLink(filter: ViewSubmissionsFilter)
-                                      (implicit request: Request[?]): String = {
-    val sortByQueryParameter = Map("sortBy" -> SortBy.PlatformOperator.entryName)
-    val sortOrderQueryParameter = if (filter.sortBy == SortBy.PlatformOperator && filter.sortOrder == Descending) {
       Map("sortOrder" -> Ascending.entryName)
     } else {
       Map("sortOrder" -> Descending.entryName)
