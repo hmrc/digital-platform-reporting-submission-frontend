@@ -39,12 +39,14 @@ final case class ViewSubmissionsViewModel(
                                            filter: ViewSubmissionsFilter,
                                            recordCountInfo: Option[String],
                                            submissionDateSortLink: String,
+                                           submissionDateSortIcon: String,
                                            reportingPeriodSortLink: String,
+                                           reportingPeriodSortIcon: String,
                                            pageTitle: String
                                          )
 
 object ViewSubmissionsViewModel {
-  
+
   def apply(
              maybeSummary: Option[SubmissionsSummary],
              operators: Seq[PlatformOperator],
@@ -59,7 +61,9 @@ object ViewSubmissionsViewModel {
       filter,
       maybeSummary.flatMap(summary => getRecordCountInfo(summary.deliveredSubmissionRecordCount, filter.pageNumber)),
       submissionDateSortLink(filter),
+      sortingIconFor(filter, SubmissionDate),
       reportingPeriodSortLink(filter),
+      sortingIconFor(filter, ReportingPeriod),
       getTitle(maybeSummary.map(_.deliveredSubmissionRecordCount).getOrElse(0), filter.pageNumber)
     )
 
@@ -109,7 +113,7 @@ object ViewSubmissionsViewModel {
 
   private def getNumberOfPages(numberOfSubmissions: Int): Int =
     (numberOfSubmissions + (viewSubmissionsPageSize - 1)) / viewSubmissionsPageSize
-    
+
   private def pagination(numberOfSubmissions: Int, filter: ViewSubmissionsFilter)
                         (implicit request: Request[?]): Option[Pagination] =
     if (numberOfSubmissions > viewSubmissionsPageSize) {
@@ -141,7 +145,10 @@ object ViewSubmissionsViewModel {
     numberOfPages - filter.pageNumber match {
       case x if x <= 1 => Nil
       case 2           => Seq(PaginationItem(href = paginationHref(filter, numberOfPages), number = Some(numberOfPages.toString)))
-      case _           => Seq(PaginationItem(ellipsis = Some(true)), PaginationItem(href = paginationHref(filter, numberOfPages), number = Some(numberOfPages.toString)))
+      case _           => Seq(
+        PaginationItem(ellipsis = Some(true)),
+        PaginationItem(href = paginationHref(filter, numberOfPages), number = Some(numberOfPages.toString))
+      )
     }
 
   private def paginationCurrentSection(filter: ViewSubmissionsFilter, numberOfPages: Int)
@@ -241,4 +248,15 @@ object ViewSubmissionsViewModel {
     } else {
       url"${routes.ViewSubmissionsController.onPageLoad().absoluteURL()}?$queryParameters".toString
     }
+
+  private def sortingIconFor(filter: ViewSubmissionsFilter, sortBy: SortBy): String = {
+    if (filter.sortBy.entryName.equals(sortBy.entryName)) {
+      filter.sortOrder.entryName match {
+        case "ASC" => "\u25b2"
+        case "DSC" => "\u25bc"
+      }
+    } else {
+      "\u25bc\u25b2"
+    }
+  }
 }

@@ -408,7 +408,7 @@ class ViewSubmissionsViewModelSpec extends AnyFreeSpec with Matchers with Option
 
     "submission date sort link must set sort order to Submission Date" - {
 
-      "must include reporting period, operator id and statuses, but not page number, when they are in the filter" in {
+      "must include reporting period and statuses, but not page number, when they are in the filter" in {
 
         val filter = defaultFilter.copy(
           reportingPeriod = Some(Year.of(2024)),
@@ -438,6 +438,8 @@ class ViewSubmissionsViewModelSpec extends AnyFreeSpec with Matchers with Option
 
         val viewModel = ViewSubmissionsViewModel(Some(submissionsSummary), Nil, filter, thisYear)
 
+        viewModel.submissionDateSortIcon must equal ("\u25b2")
+
         checkQueryParameters(viewModel.submissionDateSortLink, Set(
           "sortBy" -> SubmissionDate.entryName,
           "sortOrder" -> Descending.entryName
@@ -451,6 +453,8 @@ class ViewSubmissionsViewModelSpec extends AnyFreeSpec with Matchers with Option
         val submissionsSummary = SubmissionsSummary(submissions, viewSubmissionsPageSize * 2, true, 0)
 
         val viewModel = ViewSubmissionsViewModel(Some(submissionsSummary), Nil, filter, thisYear)
+
+        viewModel.submissionDateSortIcon must equal ("\u25bc\u25b2")
 
         checkQueryParameters(viewModel.submissionDateSortLink, Set(
           "sortBy" -> SubmissionDate.entryName,
@@ -466,6 +470,8 @@ class ViewSubmissionsViewModelSpec extends AnyFreeSpec with Matchers with Option
 
         val viewModel = ViewSubmissionsViewModel(Some(submissionsSummary), Nil, filter, thisYear)
 
+        viewModel.submissionDateSortIcon must equal("\u25bc")
+
         checkQueryParameters(viewModel.submissionDateSortLink, Set(
           "sortBy" -> SubmissionDate.entryName,
           "sortOrder" -> Ascending.entryName
@@ -475,7 +481,7 @@ class ViewSubmissionsViewModelSpec extends AnyFreeSpec with Matchers with Option
 
     "reporting period sort link must set sort by to Reporting Period" - {
 
-      "and must include reporting period, operator id and statuses, but not page number, when they are in the filter" in {
+      "and must include reporting period and statuses, but not page number, when they are in the filter" in {
 
         val filter = defaultFilter.copy(
           reportingPeriod = Some(Year.of(2024)),
@@ -505,6 +511,8 @@ class ViewSubmissionsViewModelSpec extends AnyFreeSpec with Matchers with Option
 
         val viewModel = ViewSubmissionsViewModel(Some(submissionsSummary), Nil, filter, thisYear)
 
+        viewModel.reportingPeriodSortIcon must equal("\u25b2")
+
         checkQueryParameters(viewModel.reportingPeriodSortLink, Set(
           "sortBy" -> ReportingPeriod.entryName,
           "sortOrder" -> Descending.entryName
@@ -519,6 +527,8 @@ class ViewSubmissionsViewModelSpec extends AnyFreeSpec with Matchers with Option
 
         val viewModel = ViewSubmissionsViewModel(Some(submissionsSummary), Nil, filter, thisYear)
 
+        viewModel.reportingPeriodSortIcon must equal("\u25bc\u25b2")
+
         checkQueryParameters(viewModel.reportingPeriodSortLink, Set(
           "sortBy" -> ReportingPeriod.entryName,
           "sortOrder" -> Descending.entryName
@@ -532,6 +542,8 @@ class ViewSubmissionsViewModelSpec extends AnyFreeSpec with Matchers with Option
         val submissionsSummary = SubmissionsSummary(submissions, viewSubmissionsPageSize * 2, true, 0)
 
         val viewModel = ViewSubmissionsViewModel(Some(submissionsSummary), Nil, filter, thisYear)
+
+        viewModel.reportingPeriodSortIcon must equal("\u25bc")
 
         checkQueryParameters(viewModel.reportingPeriodSortLink, Set(
           "sortBy" -> ReportingPeriod.entryName,
