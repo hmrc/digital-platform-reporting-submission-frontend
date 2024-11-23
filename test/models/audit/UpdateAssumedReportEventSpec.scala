@@ -27,6 +27,7 @@ import java.time.Year
 
 class UpdateAssumedReportEventSpec extends AnyFreeSpec with Matchers {
 
+  private val dprsId = "dprsId"
   private val operatorId = "operatorId"
   private val operatorName = "operatorName"
   private val reportingPeriod = Year.of(2024)
@@ -50,6 +51,9 @@ class UpdateAssumedReportEventSpec extends AnyFreeSpec with Matchers {
       val updated = AssumedReportingSubmissionRequest(operatorId, newAssumingOperator, reportingPeriod)
       
       val expectedJson = Json.obj(
+        "digitalPlatformReportingId" -> dprsId,
+        "platformOperatorId" -> operatorId,
+        "platformOperator" -> operatorName,
         "from" -> Json.obj(
           "assumingPlatformOperatorName" -> "name",
           "registeredAddress" -> "address"
@@ -60,7 +64,7 @@ class UpdateAssumedReportEventSpec extends AnyFreeSpec with Matchers {
         )
       )
       
-      val event = UpdateAssumedReportEvent(original, updated)
+      val event = UpdateAssumedReportEvent(dprsId, original, updated)
       
       Json.toJson(event) mustEqual expectedJson
     }
@@ -74,6 +78,9 @@ class UpdateAssumedReportEventSpec extends AnyFreeSpec with Matchers {
       val updated = AssumedReportingSubmissionRequest(operatorId, newAssumingOperator, reportingPeriod)
 
       val expectedJson = Json.obj(
+        "digitalPlatformReportingId" -> dprsId,
+        "platformOperatorId" -> operatorId,
+        "platformOperator" -> operatorName,
         "from" -> Json.obj(
           "hasUkTaxIdentificationNumber" -> false
         ),
@@ -83,7 +90,7 @@ class UpdateAssumedReportEventSpec extends AnyFreeSpec with Matchers {
         )
       )
 
-      val event = UpdateAssumedReportEvent(original, updated)
+      val event = UpdateAssumedReportEvent(dprsId, original, updated)
 
       Json.toJson(event) mustEqual expectedJson
     }
@@ -97,6 +104,9 @@ class UpdateAssumedReportEventSpec extends AnyFreeSpec with Matchers {
       val updated = AssumedReportingSubmissionRequest(operatorId, baseAssumingOperator, reportingPeriod)
 
       val expectedJson = Json.obj(
+        "digitalPlatformReportingId" -> dprsId,
+        "platformOperatorId" -> operatorId,
+        "platformOperator" -> operatorName,
         "from" -> Json.obj(
           "hasUkTaxIdentificationNumber" -> true,
           "ukTaxIdentificationNumber" -> "tin"
@@ -106,7 +116,7 @@ class UpdateAssumedReportEventSpec extends AnyFreeSpec with Matchers {
         )
       )
 
-      val event = UpdateAssumedReportEvent(original, updated)
+      val event = UpdateAssumedReportEvent(dprsId, original, updated)
 
       Json.toJson(event) mustEqual expectedJson
     }
@@ -120,6 +130,9 @@ class UpdateAssumedReportEventSpec extends AnyFreeSpec with Matchers {
       val updated = AssumedReportingSubmissionRequest(operatorId, newAssumingOperator, reportingPeriod)
 
       val expectedJson = Json.obj(
+        "digitalPlatformReportingId" -> dprsId,
+        "platformOperatorId" -> operatorId,
+        "platformOperator" -> operatorName,
         "from" -> Json.obj(
           "isUkTaxResident" -> true,
           "countryOfTaxResidence" -> "GB",
@@ -132,7 +145,7 @@ class UpdateAssumedReportEventSpec extends AnyFreeSpec with Matchers {
         )
       )
 
-      val event = UpdateAssumedReportEvent(original, updated)
+      val event = UpdateAssumedReportEvent(dprsId, original, updated)
 
       Json.toJson(event) mustEqual expectedJson
     }
@@ -150,6 +163,9 @@ class UpdateAssumedReportEventSpec extends AnyFreeSpec with Matchers {
       val updated = AssumedReportingSubmissionRequest(operatorId, newAssumingOperator, reportingPeriod)
 
       val expectedJson = Json.obj(
+        "digitalPlatformReportingId" -> dprsId,
+        "platformOperatorId" -> operatorId,
+        "platformOperator" -> operatorName,
         "from" -> Json.obj(
           "hasInternationalTaxIdentificationNumber" -> false
         ),
@@ -159,7 +175,7 @@ class UpdateAssumedReportEventSpec extends AnyFreeSpec with Matchers {
         )
       )
 
-      val event = UpdateAssumedReportEvent(original, updated)
+      val event = UpdateAssumedReportEvent(dprsId, original, updated)
 
       Json.toJson(event) mustEqual expectedJson
     }
@@ -177,6 +193,9 @@ class UpdateAssumedReportEventSpec extends AnyFreeSpec with Matchers {
       val updated = AssumedReportingSubmissionRequest(operatorId, newAssumingOperator, reportingPeriod)
 
       val expectedJson = Json.obj(
+        "digitalPlatformReportingId" -> dprsId,
+        "platformOperatorId" -> operatorId,
+        "platformOperator" -> operatorName,
         "from" -> Json.obj(
           "hasInternationalTaxIdentificationNumber" -> true,
           "internationalTaxIdentificationNumber" -> "tin"
@@ -186,7 +205,7 @@ class UpdateAssumedReportEventSpec extends AnyFreeSpec with Matchers {
         )
       )
 
-      val event = UpdateAssumedReportEvent(original, updated)
+      val event = UpdateAssumedReportEvent(dprsId, original, updated)
 
       Json.toJson(event) mustEqual expectedJson
     }
@@ -200,6 +219,9 @@ class UpdateAssumedReportEventSpec extends AnyFreeSpec with Matchers {
       val updated = AssumedReportingSubmissionRequest(operatorId, baseAssumingOperator, reportingPeriod)
 
       val expectedJson = Json.obj(
+        "digitalPlatformReportingId" -> dprsId,
+        "platformOperatorId" -> operatorId,
+        "platformOperator" -> operatorName,
         "from" -> Json.obj(
           "isUkTaxResident" -> false,
           "countryOfTaxResidence" -> "US",
@@ -212,7 +234,7 @@ class UpdateAssumedReportEventSpec extends AnyFreeSpec with Matchers {
         )
       )
 
-      val event = UpdateAssumedReportEvent(original, updated)
+      val event = UpdateAssumedReportEvent(dprsId, original, updated)
 
       Json.toJson(event) mustEqual expectedJson
     }

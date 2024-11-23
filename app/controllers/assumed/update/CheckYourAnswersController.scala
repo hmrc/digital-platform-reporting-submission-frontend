@@ -30,6 +30,7 @@ import queries.{AssumedReportSummaryQuery, AssumedReportingSubmissionQuery}
 import repositories.SessionRepository
 import services.{AuditService, UserAnswersService}
 import services.UserAnswersService.BuildAssumedReportingSubmissionFailure
+import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import viewmodels.checkAnswers.assumed.update.*
 import viewmodels.govuk.summarylist.*
@@ -109,8 +110,7 @@ class CheckYourAnswersController @Inject()(
   
   private def audit(original: AssumedReportingSubmission, updated: AssumedReportingSubmissionRequest)
                    (using request: DataRequest[AnyContent]): Unit = {
-    val auditEvent = UpdateAssumedReportEvent(original, updated)
-
+    val auditEvent = UpdateAssumedReportEvent(request.dprsId, original, updated)
     auditService.audit(auditEvent)
   }
 }

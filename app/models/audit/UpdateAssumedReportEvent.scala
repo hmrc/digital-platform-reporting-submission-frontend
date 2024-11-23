@@ -20,6 +20,7 @@ import models.submission.{AssumedReportingSubmission, AssumedReportingSubmission
 import play.api.libs.json.{JsObject, Json, OWrites}
 
 final case class UpdateAssumedReportEvent(
+                                           dprsId: String,
                                            original: AssumedReportingSubmission,
                                            updated: AssumedReportingSubmissionRequest
                                          ) extends AuditEvent {
@@ -28,23 +29,26 @@ final case class UpdateAssumedReportEvent(
 }
 
 object UpdateAssumedReportEvent {
-  
+
   given OWrites[UpdateAssumedReportEvent] = new OWrites[UpdateAssumedReportEvent] {
     override def writes(o: UpdateAssumedReportEvent): JsObject = {
-      
+
       val originalJson = toJson(o.original.assumingOperator)
-      val updatedJson  = toJson(o.updated.assumingOperator)
+      val updatedJson = toJson(o.updated.assumingOperator)
 
       val changedFieldsInOriginal = JsObject(originalJson.fieldSet.diff(updatedJson.fieldSet).toSeq)
-      val changedFieldsInUpdated  = JsObject(updatedJson.fieldSet.diff(originalJson.fieldSet).toSeq)
-      
+      val changedFieldsInUpdated = JsObject(updatedJson.fieldSet.diff(originalJson.fieldSet).toSeq)
+
       Json.obj(
+        "digitalPlatformReportingId" -> o.dprsId,
+        "platformOperatorId" -> o.original.operatorId,
+        "platformOperator" -> o.original.operatorName,
         "from" -> changedFieldsInOriginal,
-        "to"   -> changedFieldsInUpdated
+        "to" -> changedFieldsInUpdated
       )
     }
   }
-  
+
   private def toJson(assumingOperator: AssumingPlatformOperator): JsObject = {
 
     val taxIdentifierJson = assumingOperator.residentCountry match {
