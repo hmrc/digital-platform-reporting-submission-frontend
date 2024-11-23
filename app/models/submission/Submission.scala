@@ -17,6 +17,7 @@
 package models.submission
 
 import models.submission.Submission.SubmissionType
+import models.submission.Submission.UploadFailureReason.SchemaValidationError
 import models.upscan.UpscanCallbackRequest.UpscanFailureReason
 import play.api.libs.json.*
 
@@ -70,7 +71,7 @@ object Submission {
   object UploadFailureReason {
 
     case object NotXml extends UploadFailureReason { val errorMessageKey = "uploadFailed.error.NotXml" }
-    case object SchemaValidationError extends UploadFailureReason { val errorMessageKey = "uploadFailed.error.SchemaValidationError" }
+    final case class SchemaValidationError(errors: Seq[SchemaValidationError.Error]) extends UploadFailureReason { val errorMessageKey = "uploadFailed.error.SchemaValidationError" }
     case object ManualAssumedReportExists extends UploadFailureReason { val errorMessageKey = "uploadFailed.error.ManualAssumedReportExists" }
     case object PlatformOperatorIdMissing extends UploadFailureReason { val errorMessageKey = "uploadFailed.error.PlatformOperatorIdMissing" }
     final case class PlatformOperatorIdMismatch(expectedId: String, actualId: String) extends UploadFailureReason { val errorMessageKey = "uploadFailed.error.PlatformOperatorIdMismatch" }
@@ -80,7 +81,20 @@ object Submission {
     case object EntityTooSmall extends UploadFailureReason { val errorMessageKey = "uploadFailed.error.EntityTooSmall" }
     case object InvalidArgument extends UploadFailureReason { val errorMessageKey = "uploadFailed.error.InvalidArgument" }
     case object UnknownFailure extends UploadFailureReason { val errorMessageKey = "uploadFailed.error.UnknownFailure" }
-    
+
+    object SchemaValidationError {
+
+      final case class Error(line: Int, col: Int, message: String)
+
+      given OFormat[Error] = Json.format
+
+      given OFormat[SchemaValidationError] = {
+        val reads = (__ \ "errors").readWithDefault(Seq.empty[Error]).map(SchemaValidationError(_))
+        val writes = Json.writes[SchemaValidationError]
+        OFormat(reads, writes)
+      }
+    }
+
     private given OFormat[NotXml.type] = singletonOFormat(NotXml)
     private given OFormat[SchemaValidationError.type] = singletonOFormat(SchemaValidationError)
     private given OFormat[ManualAssumedReportExists.type] = singletonOFormat(ManualAssumedReportExists)
