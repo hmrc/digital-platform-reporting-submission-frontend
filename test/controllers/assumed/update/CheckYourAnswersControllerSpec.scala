@@ -62,6 +62,8 @@ class CheckYourAnswersControllerSpec extends SpecBase with SummaryListFluency wi
     Mockito.reset(mockAssumedReportingConnector, mockUserAnswersService, mockSessionRepository, mockAuditService)
   }
 
+  private val dprsId = "dprsId"
+
   "Check Your Answers Controller" - {
 
     "must return OK and the correct view for a GET" in {
@@ -100,15 +102,15 @@ class CheckYourAnswersControllerSpec extends SpecBase with SummaryListFluency wi
       "must submit an assumed reporting submission request, audit the event, replace user answers with a summary, and redirect to the next page" in {
 
         val originalSubmission = AssumedReportingSubmission(
-          operatorId = "operatorId",
-          operatorName = "operatorName",
+          operatorId = operatorId,
+          operatorName = operatorName,
           assumingOperator = AssumingPlatformOperator("name", "GB", Nil, "GB", "address"),
           reportingPeriod = Year.of(2024),
           isDeleted = false
         )
         
         val assumedReportingSubmissionRequest = AssumedReportingSubmissionRequest(
-          operatorId = "operatorId",
+          operatorId = operatorId,
           assumingOperator = AssumingPlatformOperator(
             name = "assumingOperator",
             residentCountry = "GB",
@@ -122,8 +124,8 @@ class CheckYourAnswersControllerSpec extends SpecBase with SummaryListFluency wi
         val submission = Submission(
           _id = "submissionId",
           submissionType = SubmissionType.ManualAssumedReport,
-          dprsId = "dprsId",
-          operatorId = "operatorId",
+          dprsId = dprsId,
+          operatorId = operatorId,
           operatorName = operatorName,
           assumingOperatorName = Some("assumingOperatorName"),
           state = Submitted(fileName = "test.xml", Year.of(2024)),
@@ -134,7 +136,7 @@ class CheckYourAnswersControllerSpec extends SpecBase with SummaryListFluency wi
         val answers =
           baseAnswers
             .set(AssumingOperatorNamePage, "assumingOperatorName").success.value
-            .set(PlatformOperatorNameQuery, "operatorName").success.value
+            .set(PlatformOperatorNameQuery, operatorName).success.value
             .set(ReportingPeriodQuery, Year.of(2024)).success.value
             .set(AssumedReportingSubmissionQuery, originalSubmission).success.value
 
@@ -159,7 +161,7 @@ class CheckYourAnswersControllerSpec extends SpecBase with SummaryListFluency wi
           status(result) mustEqual SEE_OTHER
           redirectLocation(result).value mustEqual routes.SubmissionConfirmationController.onPageLoad(operatorId, reportingPeriod).url
         }
-        val expectedAuditEvent = UpdateAssumedReportEvent(originalSubmission, assumedReportingSubmissionRequest)
+        val expectedAuditEvent = UpdateAssumedReportEvent(dprsId, originalSubmission, assumedReportingSubmissionRequest)
 
         verify(mockUserAnswersService).toAssumedReportingSubmission(eqTo(answers))
         verify(mockAssumedReportingConnector).submit(eqTo(assumedReportingSubmissionRequest))(using any())
@@ -178,8 +180,8 @@ class CheckYourAnswersControllerSpec extends SpecBase with SummaryListFluency wi
       "must fail if a request cannot be created from the user answers" in {
 
         val originalSubmission = AssumedReportingSubmission(
-          operatorId = "operatorId",
-          operatorName = "operatorName",
+          operatorId = operatorId,
+          operatorName = operatorName,
           assumingOperator = AssumingPlatformOperator("name", "GB", Nil, "GB", "address"),
           reportingPeriod = Year.of(2024),
           isDeleted = false
@@ -188,7 +190,7 @@ class CheckYourAnswersControllerSpec extends SpecBase with SummaryListFluency wi
         val answers =
           baseAnswers
             .set(AssumingOperatorNamePage, "assumingOperatorName").success.value
-            .set(PlatformOperatorNameQuery, "operatorName").success.value
+            .set(PlatformOperatorNameQuery, operatorName).success.value
             .set(ReportingPeriodQuery, Year.of(2024)).success.value
             .set(AssumedReportingSubmissionQuery, originalSubmission).success.value
             
@@ -221,8 +223,8 @@ class CheckYourAnswersControllerSpec extends SpecBase with SummaryListFluency wi
         "must create and save user answers, then redirect to CYA onPageLoad" in {
 
           val submission = AssumedReportingSubmission(
-            operatorId = "operatorId",
-            operatorName = "operatorName",
+            operatorId = operatorId,
+            operatorName = operatorName,
             assumingOperator = AssumingPlatformOperator(
               name = "assumingOperator",
               residentCountry = "not a country",
