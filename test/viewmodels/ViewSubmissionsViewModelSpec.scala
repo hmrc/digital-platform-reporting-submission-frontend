@@ -290,6 +290,7 @@ class ViewSubmissionsViewModelSpec extends AnyFreeSpec with Matchers with Option
           href = items(0).href,
           expectedParameters = Set(
             "reportingPeriod" -> "2024",
+            "operatorId"      -> "operatorId",
             "statuses[0]"     -> Success.entryName,
             "statuses[1]"     -> Pending.entryName,
             "sortBy"          -> SubmissionDate.entryName,
@@ -301,6 +302,7 @@ class ViewSubmissionsViewModelSpec extends AnyFreeSpec with Matchers with Option
           href = items(1).href,
           expectedParameters = Set(
             "reportingPeriod" -> "2024",
+            "operatorId"      -> "operatorId",
             "statuses[0]"     -> Success.entryName,
             "statuses[1]"     -> Pending.entryName,
             "page"            -> "2",
@@ -423,6 +425,7 @@ class ViewSubmissionsViewModelSpec extends AnyFreeSpec with Matchers with Option
 
         checkQueryParameters(viewModel.submissionDateSort.href, Set(
           "sortBy" -> SubmissionDate.entryName,
+          "operatorId"      -> "operatorId",
           "sortOrder" -> Ascending.entryName,
           "reportingPeriod" -> "2024",
           "statuses[0]" -> Success.entryName,
@@ -496,6 +499,7 @@ class ViewSubmissionsViewModelSpec extends AnyFreeSpec with Matchers with Option
 
         checkQueryParameters(viewModel.reportingPeriodSort.href, Set(
           "sortBy" -> ReportingPeriod.entryName,
+          "operatorId"      -> "operatorId",
           "sortOrder" -> Descending.entryName,
           "reportingPeriod" -> "2024",
           "statuses[0]" -> Success.entryName,
