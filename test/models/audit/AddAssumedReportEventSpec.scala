@@ -16,6 +16,7 @@
 
 package models.audit
 
+import models.Country
 import models.operator.{TinDetails, TinType}
 import models.submission.{AssumedReportingSubmissionRequest, AssumingPlatformOperator}
 import org.scalatest.freespec.AnyFreeSpec
@@ -42,9 +43,9 @@ class AddAssumedReportEventSpec extends AnyFreeSpec with Matchers {
       operatorId = operatorId,
       assumingOperator = AssumingPlatformOperator(
         name = assumingOperatorName,
-        residentCountry = "GB",
+        residentCountry = Country.gb,
         tinDetails = Nil,
-        registeredCountry = "GB",
+        registeredCountry = Country.gb,
         address = address
       ),
       reportingPeriod = Year.of(2024)
@@ -64,9 +65,9 @@ class AddAssumedReportEventSpec extends AnyFreeSpec with Matchers {
         "platformOperatorId" -> operatorId,
         "digitalPlatformReportingId" -> dprsId,
         "reportingPeriod" -> "2024",
-        "assumingPlatformOperatorName" -> assumingOperatorName,
+        "assumingPlatformOperator" -> assumingOperatorName,
         "isUkTaxResident" -> true,
-        "countryOfTaxResidence" -> "GB",
+        "countryOfTaxResidence" -> "United Kingdom",
         "hasUkTaxIdentificationNumber" -> true,
         "ukTaxIdentificationNumber" -> "tin",
         "registeredAddress" -> address,
@@ -89,9 +90,9 @@ class AddAssumedReportEventSpec extends AnyFreeSpec with Matchers {
         "platformOperatorId" -> operatorId,
         "digitalPlatformReportingId" -> dprsId,
         "reportingPeriod" -> "2024",
-        "assumingPlatformOperatorName" -> assumingOperatorName,
+        "assumingPlatformOperator" -> assumingOperatorName,
         "isUkTaxResident" -> true,
-        "countryOfTaxResidence" -> "GB",
+        "countryOfTaxResidence" -> "United Kingdom",
         "hasUkTaxIdentificationNumber" -> false,
         "registeredAddress" -> address,
         "outcome" -> Json.obj(
@@ -108,7 +109,7 @@ class AddAssumedReportEventSpec extends AnyFreeSpec with Matchers {
       
       val submission = baseSubmission.copy(
         assumingOperator = baseSubmission.assumingOperator.copy(
-          residentCountry = "US",
+          residentCountry = Country("US", "United States"),
           tinDetails = Seq(TinDetails("tin", TinType.Other, "US"))
         )
       )
@@ -119,9 +120,9 @@ class AddAssumedReportEventSpec extends AnyFreeSpec with Matchers {
         "platformOperatorId" -> operatorId,
         "digitalPlatformReportingId" -> dprsId,
         "reportingPeriod" -> "2024",
-        "assumingPlatformOperatorName" -> assumingOperatorName,
+        "assumingPlatformOperator" -> assumingOperatorName,
         "isUkTaxResident" -> false,
-        "countryOfTaxResidence" -> "US",
+        "countryOfTaxResidence" -> "United States",
         "hasInternationalTaxIdentificationNumber" -> true,
         "internationalTaxIdentificationNumber" -> "tin",
         "registeredAddress" -> address,
@@ -140,7 +141,7 @@ class AddAssumedReportEventSpec extends AnyFreeSpec with Matchers {
 
       val submission = baseSubmission.copy(
         assumingOperator = baseSubmission.assumingOperator.copy(
-          residentCountry = "US"
+          residentCountry = Country("US", "United States")
         )
       )
 
@@ -150,9 +151,9 @@ class AddAssumedReportEventSpec extends AnyFreeSpec with Matchers {
         "platformOperatorId" -> operatorId,
         "digitalPlatformReportingId" -> dprsId,
         "reportingPeriod" -> "2024",
-        "assumingPlatformOperatorName" -> assumingOperatorName,
+        "assumingPlatformOperator" -> assumingOperatorName,
         "isUkTaxResident" -> false,
-        "countryOfTaxResidence" -> "US",
+        "countryOfTaxResidence" -> "United States",
         "hasInternationalTaxIdentificationNumber" -> false,
         "registeredAddress" -> address,
         "outcome" -> Json.obj(

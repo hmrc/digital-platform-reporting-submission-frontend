@@ -17,17 +17,43 @@
 package models.submission
 
 import models.operator.TinDetails
-import play.api.libs.json.{Json, OFormat}
+import models.Country
+import models.Country.allCountries
+import play.api.libs.functional.syntax.*
+import play.api.libs.json.*
 
 final case class AssumingPlatformOperator(
                                            name: String,
-                                           residentCountry: String,
+                                           residentCountry: Country,
                                            tinDetails: Seq[TinDetails],
-                                           registeredCountry: String,
+                                           registeredCountry: Country,
                                            address: String
                                          )
 
 object AssumingPlatformOperator {
 
-  given OFormat[AssumingPlatformOperator] = Json.format
+  private given Reads[Country] =
+    JsPath.read[String].flatMap { countryCode =>
+      allCountries.find(_.code == countryCode)
+        .map(Reads.pure)
+        .getOrElse(Reads.failed("Unrecognised country code"))
+    }
+  
+  private lazy val reads: Reads[AssumingPlatformOperator] = (
+    (__ \ "name").read[String] and
+    (__ \ "residentCountry").read[Country] and
+    (__ \ "tinDetails").read[Seq[TinDetails]] and
+    (__ \ "registeredCountry").read[Country] and
+    (__ \ "address").read[String]
+  )(AssumingPlatformOperator.apply)
+
+  private lazy val writes: OWrites[AssumingPlatformOperator] = (
+    (__ \ "name").write[String] and
+    (__ \ "residentCountry").write[String] and
+    (__ \ "tinDetails").write[Seq[TinDetails]] and
+    (__ \ "registeredCountry").write[String] and
+    (__ \ "address").write[String]
+  )(operator => (operator.name, operator.residentCountry.code, operator.tinDetails, operator.registeredCountry.code, operator.address))
+
+  given OFormat[AssumingPlatformOperator] = OFormat(reads, writes)
 }

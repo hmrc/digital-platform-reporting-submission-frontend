@@ -17,6 +17,7 @@
 package models.audit
 
 import models.submission.{AssumedReportingSubmission, AssumedReportingSubmissionRequest, AssumingPlatformOperator}
+import models.Country.ukCountries
 import play.api.libs.json.{JsObject, Json, OWrites}
 
 final case class UpdateAssumedReportEvent(
@@ -52,10 +53,10 @@ object UpdateAssumedReportEvent {
   private def toJson(assumingOperator: AssumingPlatformOperator): JsObject = {
 
     val taxIdentifierJson = assumingOperator.residentCountry match {
-      case "GB" =>
+      case country if ukCountries.contains(country) =>
         Json.obj(
           "isUkTaxResident" -> true,
-          "countryOfTaxResidence" -> "GB",
+          "countryOfTaxResidence" -> country.name,
           "hasUkTaxIdentificationNumber" -> assumingOperator.tinDetails.nonEmpty
         ) ++ assumingOperator.tinDetails.headOption.map { tin =>
           Json.obj("ukTaxIdentificationNumber" -> tin.tin)
@@ -64,7 +65,7 @@ object UpdateAssumedReportEvent {
       case country =>
         Json.obj(
           "isUkTaxResident" -> false,
-          "countryOfTaxResidence" -> country,
+          "countryOfTaxResidence" -> country.name,
           "hasInternationalTaxIdentificationNumber" -> assumingOperator.tinDetails.nonEmpty
         ) ++ assumingOperator.tinDetails.headOption.map { tin =>
           Json.obj("internationalTaxIdentificationNumber" -> tin.tin)
@@ -72,7 +73,7 @@ object UpdateAssumedReportEvent {
     }
 
     Json.obj(
-      "assumingPlatformOperatorName" -> assumingOperator.name,
+      "assumingPlatformOperator" -> assumingOperator.name,
       "registeredAddress" -> assumingOperator.address
     ) ++ taxIdentifierJson
   }

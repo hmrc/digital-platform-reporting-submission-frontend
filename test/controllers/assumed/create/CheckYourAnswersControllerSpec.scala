@@ -22,7 +22,7 @@ import connectors.AssumedReportingConnector
 import connectors.AssumedReportingConnector.SubmitAssumedReportingFailure
 import controllers.routes as baseRoutes
 import models.audit.AddAssumedReportEvent
-import models.{UserAnswers, yearFormat}
+import models.{Country, UserAnswers, yearFormat}
 import models.submission.Submission.State.Submitted
 import models.submission.Submission.SubmissionType
 import models.submission.{AssumedReportSummary, AssumedReportingSubmissionRequest, AssumingPlatformOperator, Submission}
@@ -102,9 +102,9 @@ class CheckYourAnswersControllerSpec extends SpecBase with SummaryListFluency wi
           operatorId = "operatorId",
           assumingOperator = AssumingPlatformOperator(
             name = "assumingOperator",
-            residentCountry = "GB",
+            residentCountry = Country.gb,
             tinDetails = Seq.empty,
-            registeredCountry = "GB",
+            registeredCountry = Country.gb,
             address = "address"
           ),
           reportingPeriod = Year.of(2024)
@@ -198,9 +198,9 @@ class CheckYourAnswersControllerSpec extends SpecBase with SummaryListFluency wi
           operatorId = "operatorId",
           assumingOperator = AssumingPlatformOperator(
             name = "assumingOperator",
-            residentCountry = "GB",
+            residentCountry = Country.gb,
             tinDetails = Seq.empty,
-            registeredCountry = "GB",
+            registeredCountry = Country.gb,
             address = "address"
           ),
           reportingPeriod = Year.of(2024)

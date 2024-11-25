@@ -48,7 +48,7 @@ class UserAnswersServiceSpec
         operatorId = "operatorId",
         assumingOperator = AssumingPlatformOperator(
           name = "assumingOperator",
-          residentCountry = "GB",
+          residentCountry = Country.gb,
           tinDetails = Seq(
             TinDetails(
               tin = "tin1",
@@ -56,7 +56,7 @@ class UserAnswersServiceSpec
               issuedBy = "GB"
             )
           ),
-          registeredCountry = "US",
+          registeredCountry = Country("US", "United States"),
           address = "address"
         ),
         reportingPeriod = Year.of(2024)
@@ -81,9 +81,9 @@ class UserAnswersServiceSpec
         operatorId = "operatorId",
         assumingOperator = AssumingPlatformOperator(
           name = "assumingOperator",
-          residentCountry = "GB",
+          residentCountry = Country.gb,
           tinDetails = Seq.empty,
-          registeredCountry = "US",
+          registeredCountry = Country("US", "United States"),
           address = "address"
         ),
         reportingPeriod = Year.of(2024)
@@ -94,7 +94,7 @@ class UserAnswersServiceSpec
         .set(ReportingPeriodPage, Year.of(2024)).success.value
         .set(TaxResidentInUkPage, true).success.value
         .set(HasUkTaxIdentifierPage, false).success.value
-        .set(RegisteredCountryPage, Country("US", "UnitedStates")).success.value
+        .set(RegisteredCountryPage, Country("US", "United States")).success.value
         .set(AddressPage, "address").success.value
 
       val result = userAnswersService.toAssumedReportingSubmission(answers).value
@@ -107,7 +107,7 @@ class UserAnswersServiceSpec
         operatorId = "operatorId",
         assumingOperator = AssumingPlatformOperator(
           name = "assumingOperator",
-          residentCountry = "US",
+          residentCountry = Country("US", "United States"),
           tinDetails = Seq(
             TinDetails(
               tin = "tin",
@@ -115,7 +115,7 @@ class UserAnswersServiceSpec
               issuedBy = "US"
             )
           ),
-          registeredCountry = "GB",
+          registeredCountry = Country.gb,
           address = "address"
         ),
         reportingPeriod = Year.of(2024)
@@ -141,9 +141,9 @@ class UserAnswersServiceSpec
         operatorId = "operatorId",
         assumingOperator = AssumingPlatformOperator(
           name = "assumingOperator",
-          residentCountry = "US",
+          residentCountry = Country("US", "United States"),
           tinDetails = Seq.empty,
-          registeredCountry = "GB",
+          registeredCountry = Country.gb,
           address = "address"
         ),
         reportingPeriod = Year.of(2024)
@@ -174,7 +174,7 @@ class UserAnswersServiceSpec
         operatorName = "operatorName",
         assumingOperator = AssumingPlatformOperator(
           name = "assumingOperator",
-          residentCountry = "GB",
+          residentCountry = Country.gb,
           tinDetails = Seq(
             TinDetails(
               tin = "tin1",
@@ -182,7 +182,7 @@ class UserAnswersServiceSpec
               issuedBy = "GB"
             )
           ),
-          registeredCountry = "US",
+          registeredCountry = Country("US", "United States"),
           address = "address"
         ),
         reportingPeriod = Year.of(2024),
@@ -215,9 +215,9 @@ class UserAnswersServiceSpec
         operatorName = "operatorName",
         assumingOperator = AssumingPlatformOperator(
           name = "assumingOperator",
-          residentCountry = "GB",
+          residentCountry = Country.gb,
           tinDetails = Seq.empty,
-          registeredCountry = "US",
+          registeredCountry = Country("US", "United States"),
           address = "address"
         ),
         reportingPeriod = Year.of(2024),
@@ -250,7 +250,7 @@ class UserAnswersServiceSpec
         operatorName = "operatorName",
         assumingOperator = AssumingPlatformOperator(
           name = "assumingOperator",
-          residentCountry = "US",
+          residentCountry = Country("US", "United States"),
           tinDetails = Seq(
             TinDetails(
               tin = "tin",
@@ -258,7 +258,7 @@ class UserAnswersServiceSpec
               issuedBy = "US"
             )
           ),
-          registeredCountry = "GB",
+          registeredCountry = Country.gb,
           address = "address"
         ),
         reportingPeriod = Year.of(2024),
@@ -291,9 +291,9 @@ class UserAnswersServiceSpec
         operatorName = "operatorName",
         assumingOperator = AssumingPlatformOperator(
           name = "assumingOperator",
-          residentCountry = "US",
+          residentCountry = Country("US", "United States"),
           tinDetails = Seq.empty,
-          registeredCountry = "GB",
+          registeredCountry = Country.gb,
           address = "address"
         ),
         reportingPeriod = Year.of(2024),
@@ -317,46 +317,6 @@ class UserAnswersServiceSpec
       result.get(updatePages.InternationalTaxIdentifierPage)          must not be defined
       result.get(updatePages.HasUkTaxIdentifierPage)                  must not be defined
       result.get(updatePages.UkTaxIdentifierPage)                     must not be defined
-    }
-
-    "must fail when registered country is not a valid country code" in {
-
-      val submission = AssumedReportingSubmission(
-        operatorId = "operatorId",
-        operatorName = "operatorName",
-        assumingOperator = AssumingPlatformOperator(
-          name = "assumingOperator",
-          residentCountry = "US",
-          tinDetails = Seq.empty,
-          registeredCountry = "not a country",
-          address = "address"
-        ),
-        reportingPeriod = Year.of(2024),
-        isDeleted = false
-      )
-
-      val result = userAnswersService.fromAssumedReportingSubmission(userId, submission)
-      result.isFailure mustEqual true
-    }
-
-    "must fail when resident country is not a valid country code" in {
-
-      val submission = AssumedReportingSubmission(
-        operatorId = "operatorId",
-        operatorName = "operatorName",
-        assumingOperator = AssumingPlatformOperator(
-          name = "assumingOperator",
-          residentCountry = "not a country",
-          tinDetails = Seq.empty,
-          registeredCountry = "GB",
-          address = "address"
-        ),
-        reportingPeriod = Year.of(2024),
-        isDeleted = false
-      )
-
-      val result = userAnswersService.fromAssumedReportingSubmission(userId, submission)
-      result.isFailure mustEqual true
     }
   }
 }

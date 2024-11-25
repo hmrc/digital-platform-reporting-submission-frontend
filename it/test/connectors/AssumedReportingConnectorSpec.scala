@@ -18,6 +18,7 @@ package connectors
 
 import com.github.tomakehurst.wiremock.client.WireMock.*
 import connectors.AssumedReportingConnector.*
+import models.Country
 import models.operator.TinDetails
 import models.operator.TinType.{Utr, Vrn}
 import models.submission.*
@@ -61,7 +62,7 @@ class AssumedReportingConnectorSpec
 
     val assumingOperator = AssumingPlatformOperator(
       name = "assumingOperator",
-      residentCountry = "US",
+      residentCountry = Country("US", "United States"),
       tinDetails = Seq(
         TinDetails(
           tin = "tin3",
@@ -74,7 +75,7 @@ class AssumedReportingConnectorSpec
           issuedBy = "GB"
         )
       ),
-      registeredCountry = "GB",
+      registeredCountry = Country.gb,
       address = "address"
     )
 
@@ -127,7 +128,7 @@ class AssumedReportingConnectorSpec
 
     val assumingOperator = AssumingPlatformOperator(
       name = "assumingOperator",
-      residentCountry = "US",
+      residentCountry = Country("US", "United States"),
       tinDetails = Seq(
         TinDetails(
           tin = "tin3",
@@ -135,7 +136,7 @@ class AssumedReportingConnectorSpec
           issuedBy = "GB"
         )
       ),
-      registeredCountry = "GB",
+      registeredCountry = Country.gb,
       address = "address"
     )
 
