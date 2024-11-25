@@ -290,7 +290,6 @@ class ViewSubmissionsViewModelSpec extends AnyFreeSpec with Matchers with Option
           href = items(0).href,
           expectedParameters = Set(
             "reportingPeriod" -> "2024",
-            "operatorId"      -> "operatorId",
             "statuses[0]"     -> Success.entryName,
             "statuses[1]"     -> Pending.entryName,
             "sortBy"          -> SubmissionDate.entryName,
@@ -302,7 +301,6 @@ class ViewSubmissionsViewModelSpec extends AnyFreeSpec with Matchers with Option
           href = items(1).href,
           expectedParameters = Set(
             "reportingPeriod" -> "2024",
-            "operatorId"      -> "operatorId",
             "statuses[0]"     -> Success.entryName,
             "statuses[1]"     -> Pending.entryName,
             "page"            -> "2",
@@ -410,7 +408,7 @@ class ViewSubmissionsViewModelSpec extends AnyFreeSpec with Matchers with Option
 
     "submission date sort link must set sort order to Submission Date" - {
 
-      "must include reporting period, operator id and statuses, but not page number, when they are in the filter" in {
+      "must include reporting period and statuses, but not page number, when they are in the filter" in {
 
         val filter = defaultFilter.copy(
           reportingPeriod = Some(Year.of(2024)),
@@ -423,11 +421,10 @@ class ViewSubmissionsViewModelSpec extends AnyFreeSpec with Matchers with Option
 
         val viewModel = ViewSubmissionsViewModel(Some(submissionsSummary), Nil, filter, thisYear)
 
-        checkQueryParameters(viewModel.submissionDateSortLink, Set(
+        checkQueryParameters(viewModel.submissionDateSort.href, Set(
           "sortBy" -> SubmissionDate.entryName,
           "sortOrder" -> Ascending.entryName,
           "reportingPeriod" -> "2024",
-          "operatorId" -> "operatorId",
           "statuses[0]" -> Success.entryName,
           "statuses[1]" -> Pending.entryName
         ))
@@ -441,7 +438,9 @@ class ViewSubmissionsViewModelSpec extends AnyFreeSpec with Matchers with Option
 
         val viewModel = ViewSubmissionsViewModel(Some(submissionsSummary), Nil, filter, thisYear)
 
-        checkQueryParameters(viewModel.submissionDateSortLink, Set(
+        viewModel.submissionDateSortIcon must equal ("\u25b2")
+
+        checkQueryParameters(viewModel.submissionDateSort.href, Set(
           "sortBy" -> SubmissionDate.entryName,
           "sortOrder" -> Descending.entryName
         ))
@@ -455,7 +454,9 @@ class ViewSubmissionsViewModelSpec extends AnyFreeSpec with Matchers with Option
 
         val viewModel = ViewSubmissionsViewModel(Some(submissionsSummary), Nil, filter, thisYear)
 
-        checkQueryParameters(viewModel.submissionDateSortLink, Set(
+        viewModel.submissionDateSortIcon must equal ("\u25bc\u25b2")
+
+        checkQueryParameters(viewModel.submissionDateSort.href, Set(
           "sortBy" -> SubmissionDate.entryName,
           "sortOrder" -> Descending.entryName
         ))
@@ -469,7 +470,9 @@ class ViewSubmissionsViewModelSpec extends AnyFreeSpec with Matchers with Option
 
         val viewModel = ViewSubmissionsViewModel(Some(submissionsSummary), Nil, filter, thisYear)
 
-        checkQueryParameters(viewModel.submissionDateSortLink, Set(
+        viewModel.submissionDateSortIcon must equal("\u25bc")
+
+        checkQueryParameters(viewModel.submissionDateSort.href, Set(
           "sortBy" -> SubmissionDate.entryName,
           "sortOrder" -> Ascending.entryName
         ))
@@ -478,7 +481,7 @@ class ViewSubmissionsViewModelSpec extends AnyFreeSpec with Matchers with Option
 
     "reporting period sort link must set sort by to Reporting Period" - {
 
-      "and must include reporting period, operator id and statuses, but not page number, when they are in the filter" in {
+      "and must include reporting period and statuses, but not page number, when they are in the filter" in {
 
         val filter = defaultFilter.copy(
           reportingPeriod = Some(Year.of(2024)),
@@ -491,11 +494,10 @@ class ViewSubmissionsViewModelSpec extends AnyFreeSpec with Matchers with Option
 
         val viewModel = ViewSubmissionsViewModel(Some(submissionsSummary), Nil, filter, thisYear)
 
-        checkQueryParameters(viewModel.reportingPeriodSortLink, Set(
+        checkQueryParameters(viewModel.reportingPeriodSort.href, Set(
           "sortBy" -> ReportingPeriod.entryName,
           "sortOrder" -> Descending.entryName,
           "reportingPeriod" -> "2024",
-          "operatorId" -> "operatorId",
           "statuses[0]" -> Success.entryName,
           "statuses[1]" -> Pending.entryName
         ))
@@ -509,7 +511,9 @@ class ViewSubmissionsViewModelSpec extends AnyFreeSpec with Matchers with Option
 
         val viewModel = ViewSubmissionsViewModel(Some(submissionsSummary), Nil, filter, thisYear)
 
-        checkQueryParameters(viewModel.reportingPeriodSortLink, Set(
+        viewModel.reportingPeriodSortIcon must equal("\u25b2")
+
+        checkQueryParameters(viewModel.reportingPeriodSort.href, Set(
           "sortBy" -> ReportingPeriod.entryName,
           "sortOrder" -> Descending.entryName
         ))
@@ -523,7 +527,9 @@ class ViewSubmissionsViewModelSpec extends AnyFreeSpec with Matchers with Option
 
         val viewModel = ViewSubmissionsViewModel(Some(submissionsSummary), Nil, filter, thisYear)
 
-        checkQueryParameters(viewModel.reportingPeriodSortLink, Set(
+        viewModel.reportingPeriodSortIcon must equal("\u25bc\u25b2")
+
+        checkQueryParameters(viewModel.reportingPeriodSort.href, Set(
           "sortBy" -> ReportingPeriod.entryName,
           "sortOrder" -> Descending.entryName
         ))
@@ -537,76 +543,10 @@ class ViewSubmissionsViewModelSpec extends AnyFreeSpec with Matchers with Option
 
         val viewModel = ViewSubmissionsViewModel(Some(submissionsSummary), Nil, filter, thisYear)
 
-        checkQueryParameters(viewModel.reportingPeriodSortLink, Set(
+        viewModel.reportingPeriodSortIcon must equal("\u25bc")
+
+        checkQueryParameters(viewModel.reportingPeriodSort.href, Set(
           "sortBy" -> ReportingPeriod.entryName,
-          "sortOrder" -> Ascending.entryName
-        ))
-      }
-    }
-
-    "platform operator sort link must set sort by to Platform Operator" - {
-
-      "and must include reporting period, operator id and statuses, but not page number, when they are in the filter" in {
-
-        val filter = defaultFilter.copy(
-          reportingPeriod = Some(Year.of(2024)),
-          operatorId = Some("operatorId"),
-          statuses = Set(Success, Pending),
-          pageNumber = 2
-        )
-        val submissions = (1 to viewSubmissionsPageSize).map(i => submission.copy(submissionId = i.toString))
-        val submissionsSummary = SubmissionsSummary(submissions, viewSubmissionsPageSize * 2, true, 0)
-
-        val viewModel = ViewSubmissionsViewModel(Some(submissionsSummary), Nil, filter, thisYear)
-
-        checkQueryParameters(viewModel.platformOperatorSortLink, Set(
-          "sortBy" -> SortBy.PlatformOperator.entryName,
-          "sortOrder" -> Descending.entryName,
-          "reportingPeriod" -> "2024",
-          "operatorId" -> "operatorId",
-          "statuses[0]" -> Success.entryName,
-          "statuses[1]" -> Pending.entryName
-        ))
-      }
-
-      "must set sort order to Descending when the filter is currently sorted by platform operator ascending" in {
-
-        val filter = defaultFilter.copy(sortBy = SortBy.PlatformOperator, sortOrder = Ascending)
-        val submissions = (1 to viewSubmissionsPageSize).map(i => submission.copy(submissionId = i.toString))
-        val submissionsSummary = SubmissionsSummary(submissions, viewSubmissionsPageSize* 2, true, 0)
-
-        val viewModel = ViewSubmissionsViewModel(Some(submissionsSummary), Nil, filter, thisYear)
-
-        checkQueryParameters(viewModel.platformOperatorSortLink, Set(
-          "sortBy" -> SortBy.PlatformOperator.entryName,
-          "sortOrder" -> Descending.entryName
-        ))
-      }
-
-      "must set sort order to Descending when the filter is currently sorted by something other than platform operator" in {
-
-        val filter = defaultFilter.copy(sortBy = SubmissionDate, sortOrder = Descending)
-        val submissions = (1 to viewSubmissionsPageSize).map(i => submission.copy(submissionId = i.toString))
-        val submissionsSummary = SubmissionsSummary(submissions, viewSubmissionsPageSize * 2, true, 0)
-
-        val viewModel = ViewSubmissionsViewModel(Some(submissionsSummary), Nil, filter, thisYear)
-
-        checkQueryParameters(viewModel.platformOperatorSortLink, Set(
-          "sortBy" -> SortBy.PlatformOperator.entryName,
-          "sortOrder" -> Descending.entryName
-        ))
-      }
-
-      "must set sort order to Ascending when the filter is currently sorted by platform operator descending" in {
-
-        val filter = defaultFilter.copy(sortBy = SortBy.PlatformOperator, sortOrder = Descending)
-        val submissions = (1 to viewSubmissionsPageSize).map(i => submission.copy(submissionId = i.toString))
-        val submissionsSummary = SubmissionsSummary(submissions, viewSubmissionsPageSize * 2, true, 0)
-
-        val viewModel = ViewSubmissionsViewModel(Some(submissionsSummary), Nil, filter, thisYear)
-
-        checkQueryParameters(viewModel.platformOperatorSortLink, Set(
-          "sortBy" -> SortBy.PlatformOperator.entryName,
           "sortOrder" -> Ascending.entryName
         ))
       }

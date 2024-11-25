@@ -38,14 +38,15 @@ final case class ViewSubmissionsViewModel(
                                            pagination: Option[Pagination],
                                            filter: ViewSubmissionsFilter,
                                            recordCountInfo: Option[String],
-                                           submissionDateSortLink: String,
-                                           reportingPeriodSortLink: String,
-                                           platformOperatorSortLink: String,
+                                           submissionDateSort: Link,
+                                           submissionDateSortIcon: String,
+                                           reportingPeriodSort: Link,
+                                           reportingPeriodSortIcon: String,
                                            pageTitle: String
                                          )
 
 object ViewSubmissionsViewModel {
-  
+
   def apply(
              maybeSummary: Option[SubmissionsSummary],
              operators: Seq[PlatformOperator],
@@ -59,9 +60,10 @@ object ViewSubmissionsViewModel {
       maybeSummary.flatMap(summary => pagination(summary.deliveredSubmissionRecordCount, filter)),
       filter,
       maybeSummary.flatMap(summary => getRecordCountInfo(summary.deliveredSubmissionRecordCount, filter.pageNumber)),
-      submissionDateSortLink(filter),
-      reportingPeriodSortLink(filter),
-      platformOperatorSortLink(filter),
+      Link(messages("viewSubmissions.submissionDate"),submissionDateSortLink(filter)),
+      sortingIconFor(filter, SubmissionDate),
+      Link(messages("viewSubmissions.reportingPeriod"),reportingPeriodSortLink(filter)),
+      sortingIconFor(filter, ReportingPeriod),
       getTitle(maybeSummary.map(_.deliveredSubmissionRecordCount).getOrElse(0), filter.pageNumber)
     )
 
@@ -111,7 +113,7 @@ object ViewSubmissionsViewModel {
 
   private def getNumberOfPages(numberOfSubmissions: Int): Int =
     (numberOfSubmissions + (viewSubmissionsPageSize - 1)) / viewSubmissionsPageSize
-    
+
   private def pagination(numberOfSubmissions: Int, filter: ViewSubmissionsFilter)
                         (implicit request: Request[?]): Option[Pagination] =
     if (numberOfSubmissions > viewSubmissionsPageSize) {
@@ -143,7 +145,10 @@ object ViewSubmissionsViewModel {
     numberOfPages - filter.pageNumber match {
       case x if x <= 1 => Nil
       case 2           => Seq(PaginationItem(href = paginationHref(filter, numberOfPages), number = Some(numberOfPages.toString)))
-      case _           => Seq(PaginationItem(ellipsis = Some(true)), PaginationItem(href = paginationHref(filter, numberOfPages), number = Some(numberOfPages.toString)))
+      case _           => Seq(
+        PaginationItem(ellipsis = Some(true)),
+        PaginationItem(href = paginationHref(filter, numberOfPages), number = Some(numberOfPages.toString))
+      )
     }
 
   private def paginationCurrentSection(filter: ViewSubmissionsFilter, numberOfPages: Int)
@@ -193,12 +198,10 @@ object ViewSubmissionsViewModel {
 
   private def filterQueryParameters(filter: ViewSubmissionsFilter): Map[String, String] = {
     val reportingPeriodQueryParameter = filter.reportingPeriod.map(period => Map("reportingPeriod" -> period.toString))
-    val operatorIdQueryParameter      = filter.operatorId.map(operatorId => Map("operatorId" -> operatorId))
     val statusesQueryParameter        = filter.statuses.zipWithIndex.map((status, index) => s"statuses[$index]" -> status.entryName).toMap
 
     statusesQueryParameter ++
-      reportingPeriodQueryParameter.getOrElse(Map.empty[String, String]) ++
-      operatorIdQueryParameter.getOrElse(Map.empty[String, String])
+      reportingPeriodQueryParameter.getOrElse(Map.empty[String, String])
   }
 
   private def pageNumberQueryParameter(pageNumber: Int): Map[String, String] =
@@ -238,23 +241,6 @@ object ViewSubmissionsViewModel {
     buildLink(queryParameters)
   }
 
-  private def platformOperatorSortLink(filter: ViewSubmissionsFilter)
-                                      (implicit request: Request[?]): String = {
-    val sortByQueryParameter = Map("sortBy" -> SortBy.PlatformOperator.entryName)
-    val sortOrderQueryParameter = if (filter.sortBy == SortBy.PlatformOperator && filter.sortOrder == Descending) {
-      Map("sortOrder" -> Ascending.entryName)
-    } else {
-      Map("sortOrder" -> Descending.entryName)
-    }
-
-    val queryParameters =
-      filterQueryParameters(filter) ++
-        sortOrderQueryParameter ++
-        sortByQueryParameter
-
-    buildLink(queryParameters)
-  }
-
   private def buildLink(queryParameters: Map[String, String])
                        (implicit request: Request[?]): String =
     if (queryParameters.isEmpty) {
@@ -262,4 +248,15 @@ object ViewSubmissionsViewModel {
     } else {
       url"${routes.ViewSubmissionsController.onPageLoad().absoluteURL()}?$queryParameters".toString
     }
+
+  private def sortingIconFor(filter: ViewSubmissionsFilter, sortBy: SortBy): String = {
+    if (filter.sortBy.entryName.equals(sortBy.entryName)) {
+      filter.sortOrder.entryName match {
+        case "ASC" => "\u25b2"
+        case "DSC" => "\u25bc"
+      }
+    } else {
+      "\u25bc\u25b2"
+    }
+  }
 }
