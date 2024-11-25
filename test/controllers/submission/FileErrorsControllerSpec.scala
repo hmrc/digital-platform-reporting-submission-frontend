@@ -201,7 +201,7 @@ class FileErrorsControllerSpec extends SpecBase with MockitoSugar with BeforeAnd
               operatorId = "operatorId",
               operatorName = "operatorName",
               assumingOperatorName = None,
-              state = UploadFailed(SchemaValidationError),
+              state = UploadFailed(SchemaValidationError, None),
               created = now,
               updated = now
             )
@@ -517,7 +517,7 @@ class FileErrorsControllerSpec extends SpecBase with MockitoSugar with BeforeAnd
               operatorId = "operatorId",
               operatorName = "operatorName",
               assumingOperatorName = None,
-              state = UploadFailed(SchemaValidationError),
+              state = UploadFailed(SchemaValidationError, None),
               created = now,
               updated = now
             )

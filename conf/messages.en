@@ -73,6 +73,15 @@ uploading.title = Upload an XML file
 uploading.heading = Upload an XML file
 uploading.body = We will automatically check the formatting of the file and send you to another page once completed.
 
+uploadFailed.schemafailure.title = There is a problem with the data in your file
+uploadFailed.schemafailure.heading = There is a problem with the data in your file
+uploadFailed.schemafailure.p1.1 = We cannot accept the file {0} because it does not meet the digital platform reporting schema rules.
+uploadFailed.schemafailure.p1.2 = You can check your file against the schema by
+uploadFailed.schemafailure.p1.2.link.text = referring to the XML schema and supporting documents (opens in new tab)
+uploadFailed.schemafailure.p1.3 = We are unable to display a break down of the schema errors in this service. If you are using a third party software to create your reports, you can use it to check for schema errors.
+uploadFailed.schemafailure.p1.4 = Upload a different file
+uploadFailed.schemafailure.p1.5 = Return to manage your digital platform reporting
+
 uploadFailed.title = Upload an XML file
 uploadFailed.heading = Upload an XML file
 uploadFailed.body = We will automatically check the formatting of the file and send you to another page once completed.

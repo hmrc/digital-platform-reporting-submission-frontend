@@ -37,7 +37,7 @@ import queries.PlatformOperatorSummaryQuery
 import services.UpscanService
 import uk.gov.hmrc.http.StringContextOps
 import viewmodels.PlatformOperatorSummary
-import views.html.submission.UploadFailedView
+import views.html.submission.{SchemaFailureView, UploadFailedView}
 
 import java.time.{Instant, Year}
 import scala.concurrent.Future
@@ -57,8 +57,8 @@ class UploadFailedControllerSpec extends SpecBase with MockitoSugar with BeforeA
   private val readyGen: Gen[Ready.type] = Gen.const(Ready)
   private val uploadingGen: Gen[Uploading.type] = Gen.const(Uploading)
   private val uploadFailureReasonGen: Gen[UploadFailureReason] = Gen.oneOf(NotXml, SchemaValidationError, PlatformOperatorIdMissing, ReportingPeriodInvalid)
-  private val uploadFailedGen: Gen[UploadFailed] = uploadFailureReasonGen.map(reason => UploadFailed(reason))
-  
+  private val uploadFailedGen: Gen[UploadFailed] = uploadFailureReasonGen.map(reason => UploadFailed(reason, None))
+
   private val operatorSummary = PlatformOperatorSummary(operatorId, "operatorName", true)
   private val baseAnswers = emptyUserAnswers.set(PlatformOperatorSummaryQuery, operatorSummary).success.value
 
@@ -67,15 +67,11 @@ class UploadFailedControllerSpec extends SpecBase with MockitoSugar with BeforeA
     "onPageLoad" - {
 
       "when there is a submission in an upload failed state for the given id" - {
-
         "must return OK and the correct view for a GET" in {
-
-          val application = applicationBuilder(userAnswers = Some(baseAnswers))
-            .overrides(
-              bind[SubmissionConnector].toInstance(mockSubmissionConnector),
-              bind[UpscanService].toInstance(mockUpscanService)
-            )
-            .build()
+          val application = applicationBuilder(userAnswers = Some(baseAnswers)).overrides(
+            bind[SubmissionConnector].toInstance(mockSubmissionConnector),
+            bind[UpscanService].toInstance(mockUpscanService)
+          ).build()
 
           val submission = Submission(
             _id = "id",
@@ -84,7 +80,7 @@ class UploadFailedControllerSpec extends SpecBase with MockitoSugar with BeforeA
             operatorId = "operatorId",
             operatorName = "operatorName",
             assumingOperatorName = None,
-            state = UploadFailed(SchemaValidationError),
+            state = UploadFailed(NotXml, Some("some-file-name")),
             created = now,
             updated = now
           )
@@ -103,11 +99,91 @@ class UploadFailedControllerSpec extends SpecBase with MockitoSugar with BeforeA
             val view = application.injector.instanceOf[UploadFailedView]
 
             status(result) mustEqual OK
-            contentAsString(result) mustEqual view(uploadRequest, SchemaValidationError, operatorSummary)(request, messages(application)).toString
+            contentAsString(result) mustEqual view(uploadRequest, NotXml, operatorSummary)(request, messages(application))
+              .toString
           }
 
           verify(mockSubmissionConnector).get(eqTo("id"))(using any())
           verify(mockUpscanService).initiate(eqTo(operatorId), eqTo("dprsId"), eqTo("id"))(using any())
+        }
+
+        "must return OK and the correct view for a GET when SchemaValidationError" in {
+          val application = applicationBuilder(userAnswers = Some(baseAnswers)).overrides(
+            bind[SubmissionConnector].toInstance(mockSubmissionConnector),
+            bind[UpscanService].toInstance(mockUpscanService)
+          ).build()
+
+          val submission = Submission(
+            _id = "id",
+            submissionType = SubmissionType.Xml,
+            dprsId = "dprsId",
+            operatorId = "operatorId",
+            operatorName = "operatorName",
+            assumingOperatorName = None,
+            state = UploadFailed(SchemaValidationError, Some("some-file-name")),
+            created = now,
+            updated = now
+          )
+
+          val uploadRequest = UploadRequest(
+            href = "href",
+            fields = Map.empty
+          )
+
+          when(mockSubmissionConnector.get(any())(using any())).thenReturn(Future.successful(Some(submission)))
+          when(mockUpscanService.initiate(any(), any(), any())(using any())).thenReturn(Future.successful(uploadRequest))
+
+          running(application) {
+            val request = FakeRequest(GET, routes.UploadFailedController.onPageLoad(operatorId, "id").url)
+            val result = route(application, request).value
+            val view = application.injector.instanceOf[SchemaFailureView]
+
+            status(result) mustEqual OK
+            val uploadDifferentFileUrl = routes.UploadController.onRedirect(submission.operatorId, "id").url
+            contentAsString(result) mustEqual view(uploadDifferentFileUrl, "some-file-name")(request, messages(application))
+              .toString
+          }
+
+          verify(mockSubmissionConnector).get(eqTo("id"))(using any())
+          verify(mockUpscanService, never()).initiate(any(), any(), any())(using any())
+        }
+
+        "must redirect to JourneyRecoveryController for a GET when SchemaValidationError with file name None" in {
+          val application = applicationBuilder(userAnswers = Some(baseAnswers)).overrides(
+            bind[SubmissionConnector].toInstance(mockSubmissionConnector),
+            bind[UpscanService].toInstance(mockUpscanService)
+          ).build()
+
+          val submission = Submission(
+            _id = "id",
+            submissionType = SubmissionType.Xml,
+            dprsId = "dprsId",
+            operatorId = "operatorId",
+            operatorName = "operatorName",
+            assumingOperatorName = None,
+            state = UploadFailed(SchemaValidationError, None),
+            created = now,
+            updated = now
+          )
+
+          val uploadRequest = UploadRequest(
+            href = "href",
+            fields = Map.empty
+          )
+
+          when(mockSubmissionConnector.get(any())(using any())).thenReturn(Future.successful(Some(submission)))
+          when(mockUpscanService.initiate(any(), any(), any())(using any())).thenReturn(Future.successful(uploadRequest))
+
+          running(application) {
+            val request = FakeRequest(GET, routes.UploadFailedController.onPageLoad(operatorId, "id").url)
+            val result = route(application, request).value
+
+            status(result) mustEqual SEE_OTHER
+            redirectLocation(result).value mustEqual controllers.routes.JourneyRecoveryController.onPageLoad().url
+          }
+
+          verify(mockSubmissionConnector).get(eqTo("id"))(using any())
+          verify(mockUpscanService, never()).initiate(any(), any(), any())(using any())
         }
       }
 

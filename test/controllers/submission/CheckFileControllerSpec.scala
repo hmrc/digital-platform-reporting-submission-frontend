@@ -217,7 +217,7 @@ class CheckFileControllerSpec extends SpecBase with MockitoSugar with BeforeAndA
               operatorId = "operatorId",
               operatorName = "operatorName",
               assumingOperatorName = None,
-              state = UploadFailed(SchemaValidationError),
+              state = UploadFailed(SchemaValidationError, None),
               created = now,
               updated = now
             )

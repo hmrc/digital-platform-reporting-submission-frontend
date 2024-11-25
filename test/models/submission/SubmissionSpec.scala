@@ -114,7 +114,7 @@ class SubmissionSpec extends AnyFreeSpec with Matchers {
       operatorId = "operatorId",
       operatorName = "operatorName",
       assumingOperatorName = None,
-      state = UploadFailed(SchemaValidationError),
+      state = UploadFailed(SchemaValidationError, None),
       created = created,
       updated = updated
     )
