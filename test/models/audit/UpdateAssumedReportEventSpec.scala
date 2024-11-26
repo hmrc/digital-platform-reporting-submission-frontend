@@ -16,6 +16,7 @@
 
 package models.audit
 
+import models.Country
 import models.operator.TinDetails
 import models.operator.TinType.Other
 import models.submission.{AssumedReportingSubmission, AssumedReportingSubmissionRequest, AssumingPlatformOperator}
@@ -33,9 +34,9 @@ class UpdateAssumedReportEventSpec extends AnyFreeSpec with Matchers {
   private val reportingPeriod = Year.of(2024)
   private val baseAssumingOperator = AssumingPlatformOperator(
     name = "name",
-    residentCountry = "GB",
+    residentCountry = Country.gb,
     tinDetails = Nil,
-    registeredCountry = "GB",
+    registeredCountry = Country.gb,
     address = "address"
   )
   
@@ -55,11 +56,11 @@ class UpdateAssumedReportEventSpec extends AnyFreeSpec with Matchers {
         "platformOperatorId" -> operatorId,
         "platformOperator" -> operatorName,
         "from" -> Json.obj(
-          "assumingPlatformOperatorName" -> "name",
+          "assumingPlatformOperator" -> "name",
           "registeredAddress" -> "address"
         ),
         "to" -> Json.obj(
-          "assumingPlatformOperatorName" -> "new name",
+          "assumingPlatformOperator" -> "new name",
           "registeredAddress" -> "new address"
         )
       )
@@ -125,7 +126,7 @@ class UpdateAssumedReportEventSpec extends AnyFreeSpec with Matchers {
 
       val original = AssumedReportingSubmission(operatorId, operatorName, baseAssumingOperator, reportingPeriod, false)
       val newAssumingOperator = baseAssumingOperator.copy(
-        residentCountry = "US"
+        residentCountry = Country("US", "United States")
       )
       val updated = AssumedReportingSubmissionRequest(operatorId, newAssumingOperator, reportingPeriod)
 
@@ -135,12 +136,12 @@ class UpdateAssumedReportEventSpec extends AnyFreeSpec with Matchers {
         "platformOperator" -> operatorName,
         "from" -> Json.obj(
           "isUkTaxResident" -> true,
-          "countryOfTaxResidence" -> "GB",
+          "countryOfTaxResidence" -> "United Kingdom",
           "hasUkTaxIdentificationNumber" -> false
         ),
         "to" -> Json.obj(
           "isUkTaxResident" -> false,
-          "countryOfTaxResidence" -> "US",
+          "countryOfTaxResidence" -> "United States",
           "hasInternationalTaxIdentificationNumber" -> false
         )
       )
@@ -153,10 +154,10 @@ class UpdateAssumedReportEventSpec extends AnyFreeSpec with Matchers {
     "when an international tax identifier has been added" in {
       
       val oldAssumingOperator = baseAssumingOperator.copy(
-        residentCountry = "US"
+        residentCountry = Country("US", "United States")
       )
       val newAssumingOperator = baseAssumingOperator.copy(
-        residentCountry = "US",
+        residentCountry = Country("US", "United States"),
         tinDetails = Seq(TinDetails("tin", Other, "US"))
       )
       val original = AssumedReportingSubmission(operatorId, operatorName, oldAssumingOperator, reportingPeriod, false)
@@ -183,11 +184,11 @@ class UpdateAssumedReportEventSpec extends AnyFreeSpec with Matchers {
     "when an international tax identifier has been removed" in {
 
       val oldAssumingOperator = baseAssumingOperator.copy(
-        residentCountry = "US",
+        residentCountry = Country("US", "United States"),
         tinDetails = Seq(TinDetails("tin", Other, "US"))
       )
       val newAssumingOperator = baseAssumingOperator.copy(
-        residentCountry = "US"
+        residentCountry = Country("US", "United States")
       )
       val original = AssumedReportingSubmission(operatorId, operatorName, oldAssumingOperator, reportingPeriod, false)
       val updated = AssumedReportingSubmissionRequest(operatorId, newAssumingOperator, reportingPeriod)
@@ -213,7 +214,7 @@ class UpdateAssumedReportEventSpec extends AnyFreeSpec with Matchers {
     "when the assuming operator has changed from being internationally tax resident to UK tax resident" in {
       
       val oldAssumingOperator = baseAssumingOperator.copy(
-        residentCountry = "US"
+        residentCountry = Country("US", "United States")
       )
       val original = AssumedReportingSubmission(operatorId, operatorName, oldAssumingOperator, reportingPeriod, false)
       val updated = AssumedReportingSubmissionRequest(operatorId, baseAssumingOperator, reportingPeriod)
@@ -224,12 +225,12 @@ class UpdateAssumedReportEventSpec extends AnyFreeSpec with Matchers {
         "platformOperator" -> operatorName,
         "from" -> Json.obj(
           "isUkTaxResident" -> false,
-          "countryOfTaxResidence" -> "US",
+          "countryOfTaxResidence" -> "United States",
           "hasInternationalTaxIdentificationNumber" -> false
         ),
         "to" -> Json.obj(
           "isUkTaxResident" -> true,
-          "countryOfTaxResidence" -> "GB",
+          "countryOfTaxResidence" -> "United Kingdom",
           "hasUkTaxIdentificationNumber" -> false
         )
       )

@@ -21,7 +21,7 @@ import cats.data.NonEmptyChain
 import connectors.AssumedReportingConnector
 import controllers.routes as baseRoutes
 import models.audit.UpdateAssumedReportEvent
-import models.{UserAnswers, yearFormat}
+import models.{Country, UserAnswers, yearFormat}
 import models.submission.Submission.State.Submitted
 import models.submission.Submission.SubmissionType
 import models.submission.{AssumedReportSummary, AssumedReportingSubmission, AssumedReportingSubmissionRequest, AssumingPlatformOperator, Submission}
@@ -104,7 +104,7 @@ class CheckYourAnswersControllerSpec extends SpecBase with SummaryListFluency wi
         val originalSubmission = AssumedReportingSubmission(
           operatorId = operatorId,
           operatorName = operatorName,
-          assumingOperator = AssumingPlatformOperator("name", "GB", Nil, "GB", "address"),
+          assumingOperator = AssumingPlatformOperator("name", Country.gb, Nil, Country.gb, "address"),
           reportingPeriod = Year.of(2024),
           isDeleted = false
         )
@@ -113,9 +113,9 @@ class CheckYourAnswersControllerSpec extends SpecBase with SummaryListFluency wi
           operatorId = operatorId,
           assumingOperator = AssumingPlatformOperator(
             name = "assumingOperator",
-            residentCountry = "GB",
+            residentCountry = Country.gb,
             tinDetails = Seq.empty,
-            registeredCountry = "GB",
+            registeredCountry = Country.gb,
             address = "address"
           ),
           reportingPeriod = Year.of(2024)
@@ -182,7 +182,7 @@ class CheckYourAnswersControllerSpec extends SpecBase with SummaryListFluency wi
         val originalSubmission = AssumedReportingSubmission(
           operatorId = operatorId,
           operatorName = operatorName,
-          assumingOperator = AssumingPlatformOperator("name", "GB", Nil, "GB", "address"),
+          assumingOperator = AssumingPlatformOperator("name", Country.gb, Nil, Country.gb, "address"),
           reportingPeriod = Year.of(2024),
           isDeleted = false
         )
@@ -227,9 +227,9 @@ class CheckYourAnswersControllerSpec extends SpecBase with SummaryListFluency wi
             operatorName = operatorName,
             assumingOperator = AssumingPlatformOperator(
               name = "assumingOperator",
-              residentCountry = "not a country",
+              residentCountry = Country.gb,
               tinDetails = Seq.empty,
-              registeredCountry = "GB",
+              registeredCountry = Country.gb,
               address = "address"
             ),
             reportingPeriod = Year.of(2024),

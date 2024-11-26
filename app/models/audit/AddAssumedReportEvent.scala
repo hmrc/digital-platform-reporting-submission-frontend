@@ -17,6 +17,7 @@
 package models.audit
 
 import models.submission.AssumedReportingSubmissionRequest
+import models.Country.ukCountries
 import play.api.libs.json.{Json, JsObject, OWrites}
 
 import java.time.Instant
@@ -39,10 +40,10 @@ object AddAssumedReportEvent {
     override def writes(o: AddAssumedReportEvent): JsObject = {
       
       val taxIdentifierJson = o.submission.assumingOperator.residentCountry match {
-        case "GB" =>
+        case country if ukCountries.contains(country) =>
           Json.obj(
             "isUkTaxResident" -> true,
-            "countryOfTaxResidence" -> "GB",
+            "countryOfTaxResidence" -> country.name,
             "hasUkTaxIdentificationNumber" -> o.submission.assumingOperator.tinDetails.nonEmpty
           ) ++ o.submission.assumingOperator.tinDetails.headOption.map { tin =>
             Json.obj("ukTaxIdentificationNumber" -> tin.tin)
@@ -51,7 +52,7 @@ object AddAssumedReportEvent {
         case country =>
           Json.obj(
             "isUkTaxResident" -> false,
-            "countryOfTaxResidence" -> country,
+            "countryOfTaxResidence" -> country.name,
             "hasInternationalTaxIdentificationNumber" -> o.submission.assumingOperator.tinDetails.nonEmpty
           ) ++ o.submission.assumingOperator.tinDetails.headOption.map { tin =>
             Json.obj("internationalTaxIdentificationNumber" -> tin.tin)
@@ -68,7 +69,7 @@ object AddAssumedReportEvent {
         "platformOperatorId" -> o.submission.operatorId,
         "digitalPlatformReportingId" -> o.dprsId,
         "reportingPeriod" -> o.submission.reportingPeriod.toString,
-        "assumingPlatformOperatorName" -> o.submission.assumingOperator.name,
+        "assumingPlatformOperator" -> o.submission.assumingOperator.name,
         "registeredAddress" -> o.submission.assumingOperator.address,
         "outcome" -> (Json.obj(
           "isSuccessful" -> (o.statusCode == 200),

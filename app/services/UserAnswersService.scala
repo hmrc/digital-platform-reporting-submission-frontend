@@ -26,10 +26,8 @@ import pages.assumed.create.*
 import pages.assumed.update as updatePages
 import play.api.libs.json.Writes
 import queries.{AssumedReportingSubmissionQuery, PlatformOperatorNameQuery, Query, ReportingPeriodQuery, Settable}
-import services.UserAnswersService.InvalidCountryCodeFailure
 
-import java.time.Year
-import scala.util.{Failure, Try}
+import scala.util.Try
 
 @Singleton
 class UserAnswersService @Inject() () {
@@ -41,7 +39,7 @@ class UserAnswersService @Inject() () {
       _ <- set(ReportingPeriodQuery, submission.reportingPeriod)
       _ <- set(updatePages.AssumingOperatorNamePage, submission.assumingOperator.name)
       _ <- setTaxDetails(submission.assumingOperator)
-      _ <- setRegisteredCountry(submission.assumingOperator)
+      _ <- set(updatePages.RegisteredCountryPage, submission.assumingOperator.registeredCountry)
       _ <- set(updatePages.AddressPage, submission.assumingOperator.address)
       _ <- set(AssumedReportingSubmissionQuery, submission)
     } yield ()
@@ -52,24 +50,12 @@ class UserAnswersService @Inject() () {
   private def set[A](settable: Settable[A], value: A)(implicit writes: Writes[A]): StateT[Try, UserAnswers, Unit] =
     StateT.modifyF[Try, UserAnswers](_.set(settable, value))
 
-  private def setRegisteredCountry(assumingOperator: AssumingPlatformOperator): StateT[Try, UserAnswers, Unit] =
-    Country.allCountries
-      .find(_.code == assumingOperator.registeredCountry)
-      .map(country => set(updatePages.RegisteredCountryPage, country))
-      .getOrElse(StateT.modifyF[Try, UserAnswers](_ => Failure(InvalidCountryCodeFailure(assumingOperator.registeredCountry))))
-
-  private def setResidentCountry(assumingOperator: AssumingPlatformOperator): StateT[Try, UserAnswers, Unit] =
-    Country.allCountries
-      .find(_.code == assumingOperator.residentCountry)
-      .map(country => set(updatePages.TaxResidencyCountryPage, country))
-      .getOrElse(StateT.modifyF[Try, UserAnswers](_ => Failure(InvalidCountryCodeFailure(assumingOperator.registeredCountry))))
-
   private def setTaxDetails(assumingOperator: AssumingPlatformOperator): StateT[Try, UserAnswers, Unit] =
-    if (ukCountryCodes.contains(assumingOperator.residentCountry)) {
+    if (Country.ukCountries.contains(assumingOperator.residentCountry)) {
       setUkTaxDetails(assumingOperator)
     } else {
       for {
-        _ <- setResidentCountry(assumingOperator)
+        _ <- set(updatePages.TaxResidencyCountryPage, assumingOperator.residentCountry)
         _ <- setInternationalTaxDetails(assumingOperator)
       } yield ()
     }
@@ -125,16 +111,16 @@ class UserAnswersService @Inject() () {
       answers.getEither(AssumingOperatorNamePage),
       getResidentialCountry(answers),
       getTinDetails(answers),
-      answers.getEither(RegisteredCountryPage).map(_.code),
+      answers.getEither(RegisteredCountryPage),
       answers.getEither(AddressPage)
     ).parMapN(AssumingPlatformOperator.apply)
 
-  private def getResidentialCountry(answers: UserAnswers): EitherNec[Query, String] =
+  private def getResidentialCountry(answers: UserAnswers): EitherNec[Query, Country] =
     answers.getEither(TaxResidentInUkPage).flatMap {
       case true =>
-        "GB".rightNec
+        Country.gb.rightNec
       case false =>
-        answers.getEither(TaxResidencyCountryPage).map(_.code)
+        answers.getEither(TaxResidencyCountryPage)
     }
 
   private def getTinDetails(answers: UserAnswers): EitherNec[Query, Seq[TinDetails]] =
@@ -156,7 +142,7 @@ class UserAnswersService @Inject() () {
       Seq(TinDetails(
         tin = value,
         tinType = TinType.Other,
-        issuedBy = "GB"
+        issuedBy = Country.gb.code
       ))
     }
 
