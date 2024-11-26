@@ -22,26 +22,27 @@ import controllers.actions.*
 import models.submission.Submission
 import models.submission.Submission.State.{Approved, Ready, Rejected, Submitted, UploadFailed, Uploading, Validated}
 import models.submission.Submission.UploadFailureReason
+import models.submission.Submission.UploadFailureReason.SchemaValidationError
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents, Result}
 import queries.PlatformOperatorSummaryQuery
 import services.UpscanService
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
-import views.html.submission.UploadFailedView
+import views.html.submission.{SchemaFailureView, UploadFailedView}
 
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
-class UploadFailedController @Inject()(
-                                       override val messagesApi: MessagesApi,
+class UploadFailedController @Inject()(override val messagesApi: MessagesApi,
                                        identify: IdentifierAction,
                                        getData: DataRetrievalActionProvider,
                                        requireData: DataRequiredAction,
                                        val controllerComponents: MessagesControllerComponents,
                                        view: UploadFailedView,
+                                       schemaFailureView: SchemaFailureView,
                                        submissionConnector: SubmissionConnector,
-                                       upscanService: UpscanService
-                                     )(using ExecutionContext)
+                                       upscanService: UpscanService)
+                                      (using ExecutionContext)
   extends FrontendBaseController with I18nSupport with AnswerExtractor {
 
   def onPageLoad(operatorId: String, submissionId: String): Action[AnyContent] = (identify andThen getData(operatorId) andThen requireData).async {
@@ -49,11 +50,17 @@ class UploadFailedController @Inject()(
       getAnswerAsync(PlatformOperatorSummaryQuery) { operator =>
         submissionConnector.get(submissionId).flatMap {
           _.map { submission =>
-            handleSubmission(operatorId, submission) {
-              case UploadFailed(error) =>
+            handleSubmission(operatorId, submission) { case state: UploadFailed =>
+              if (state.reason == SchemaValidationError) {
+                state.fileName.map { fileName =>
+                  val uploadDifferentFileUrl = routes.UploadController.onRedirect(submission.operatorId, submissionId).url
+                  Future.successful(Ok(schemaFailureView(uploadDifferentFileUrl, fileName)))
+                }.getOrElse(Future.successful(Redirect(controllers.routes.JourneyRecoveryController.onPageLoad())))
+              } else {
                 upscanService.initiate(operatorId, request.dprsId, submissionId).map { uploadRequest =>
-                  Ok(view(uploadRequest, error, operator))
+                  Ok(view(uploadRequest, state.reason, operator))
                 }
+              }
             }
           }.getOrElse {
             Future.successful(Redirect(controllers.routes.JourneyRecoveryController.onPageLoad()))
@@ -61,10 +68,10 @@ class UploadFailedController @Inject()(
         }
       }
   }
-  
+
   private val knownErrors: Map[String, UploadFailureReason] = Map(
-    "EntityTooLarge"  -> UploadFailureReason.EntityTooLarge,
-    "EntityTooSmall"  -> UploadFailureReason.EntityTooSmall,
+    "EntityTooLarge" -> UploadFailureReason.EntityTooLarge,
+    "EntityTooSmall" -> UploadFailureReason.EntityTooSmall,
     "InvalidArgument" -> UploadFailureReason.InvalidArgument
   )
 

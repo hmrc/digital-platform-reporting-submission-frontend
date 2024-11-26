@@ -181,7 +181,7 @@ class UploadControllerSpec extends SpecBase with MockitoSugar with BeforeAndAfte
             operatorId = "operatorId",
             operatorName = "operatorName",
             assumingOperatorName = None,
-            state = UploadFailed(SchemaValidationError),
+            state = UploadFailed(SchemaValidationError, None),
             created = now,
             updated = now
           )
@@ -492,9 +492,7 @@ class UploadControllerSpec extends SpecBase with MockitoSugar with BeforeAndAfte
       }
 
       "when the submission is in an upload failed state" - {
-
-        "must redirect to the upload failed page" in {
-
+        "must redirect to the send file page" in {
           val application = applicationBuilder(userAnswers = Some(emptyUserAnswers))
             .overrides(
               bind[SubmissionConnector].toInstance(mockSubmissionConnector),
@@ -509,22 +507,24 @@ class UploadControllerSpec extends SpecBase with MockitoSugar with BeforeAndAfte
             operatorId = "operatorId",
             operatorName = "operatorName",
             assumingOperatorName = None,
-            state = UploadFailed(SchemaValidationError),
+            state = UploadFailed(SchemaValidationError, None),
             created = now,
             updated = now
           )
 
           when(mockSubmissionConnector.get(any())(using any())).thenReturn(Future.successful(Some(submission)))
+          when(mockSubmissionConnector.start(any(), any(), any())(using any())).thenReturn(Future.successful(submission))
 
           running(application) {
             val request = FakeRequest(GET, routes.UploadController.onRedirect(operatorId, "id").url)
             val result = route(application, request).value
 
             status(result) mustEqual SEE_OTHER
-            redirectLocation(result).value mustEqual routes.UploadFailedController.onPageLoad(operatorId, "id").url
+            redirectLocation(result).value mustEqual routes.UploadController.onPageLoad(operatorId, "id").url
           }
 
           verify(mockSubmissionConnector).get(eqTo("id"))(using any())
+          verify(mockSubmissionConnector).start(eqTo("operatorId"), eqTo("operatorName"), eqTo(Some("id")))(using any())
           verify(mockUpscanService, never()).initiate(any(), any(), any())(using any())
         }
       }
