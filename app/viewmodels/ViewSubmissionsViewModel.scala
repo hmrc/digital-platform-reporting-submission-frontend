@@ -24,7 +24,6 @@ import models.submission.SortBy.{ReportingPeriod, SubmissionDate}
 import models.submission.SortOrder.{Ascending, Descending}
 import models.submission.{SortBy, SubmissionsSummary}
 import play.api.i18n.Messages
-import play.api.mvc.Request
 import uk.gov.hmrc.govukfrontend.views.viewmodels.pagination.{Pagination, PaginationItem, PaginationLink}
 import uk.gov.hmrc.govukfrontend.views.viewmodels.select.SelectItem
 import uk.gov.hmrc.http.StringContextOps
@@ -51,18 +50,19 @@ object ViewSubmissionsViewModel {
              maybeSummary: Option[SubmissionsSummary],
              operators: Seq[PlatformOperator],
              filter: ViewSubmissionsFilter,
-             currentYear: Year
-           )(implicit request: Request[?], messages: Messages): ViewSubmissionsViewModel =
+             currentYear: Year,
+             baseUrl: String,
+           )(implicit messages: Messages): ViewSubmissionsViewModel =
     ViewSubmissionsViewModel(
       maybeSummary,
       reportingPeriodSelectItems(currentYear),
       platformOperatorSelectItems(operators),
-      maybeSummary.flatMap(summary => pagination(summary.deliveredSubmissionRecordCount, filter)),
+      maybeSummary.flatMap(summary => pagination(summary.deliveredSubmissionRecordCount, filter, baseUrl)),
       filter,
       maybeSummary.flatMap(summary => getRecordCountInfo(summary.deliveredSubmissionRecordCount, filter.pageNumber)),
-      Link(messages("viewSubmissions.submissionDate"),submissionDateSortLink(filter)),
+      Link(messages("viewSubmissions.submissionDate"), submissionDateSortLink(filter, baseUrl)),
       sortingIconFor(filter, SubmissionDate),
-      Link(messages("viewSubmissions.reportingPeriod"),reportingPeriodSortLink(filter)),
+      Link(messages("viewSubmissions.reportingPeriod"), reportingPeriodSortLink(filter, baseUrl)),
       sortingIconFor(filter, ReportingPeriod),
       getTitle(maybeSummary.map(_.deliveredSubmissionRecordCount).getOrElse(0), filter.pageNumber)
     )
@@ -114,55 +114,51 @@ object ViewSubmissionsViewModel {
   private def getNumberOfPages(numberOfSubmissions: Int): Int =
     (numberOfSubmissions + (viewSubmissionsPageSize - 1)) / viewSubmissionsPageSize
 
-  private def pagination(numberOfSubmissions: Int, filter: ViewSubmissionsFilter)
-                        (implicit request: Request[?]): Option[Pagination] =
+  private def pagination(numberOfSubmissions: Int, filter: ViewSubmissionsFilter, baseUrl: String): Option[Pagination] =
     if (numberOfSubmissions > viewSubmissionsPageSize) {
       val numberOfPages = getNumberOfPages(numberOfSubmissions)
-
+            
       val items =
-        paginationStart(filter) ++
-        paginationCurrentSection(filter, numberOfPages) ++
-        paginationEnd(filter, numberOfPages)
+        paginationStart(filter, baseUrl) ++
+        paginationCurrentSection(filter, numberOfPages, baseUrl) ++
+        paginationEnd(filter, numberOfPages, baseUrl)
 
-      val nextLink     = if (filter.pageNumber < numberOfPages) Some(PaginationLink(href = paginationHref(filter, filter.pageNumber + 1))) else None
-      val previousLink = if (filter.pageNumber > 1)             Some(PaginationLink(href = paginationHref(filter, filter.pageNumber - 1))) else None
+      val nextLink     = if (filter.pageNumber < numberOfPages) Some(PaginationLink(href = paginationHref(filter, filter.pageNumber + 1, baseUrl))) else None
+      val previousLink = if (filter.pageNumber > 1)             Some(PaginationLink(href = paginationHref(filter, filter.pageNumber - 1, baseUrl))) else None
 
       Some(Pagination(items = Some(items), previous = previousLink, next = nextLink))
     } else {
       None
     }
 
-  private def paginationStart(filter: ViewSubmissionsFilter)
-                             (implicit request: Request[?]) =
+  private def paginationStart(filter: ViewSubmissionsFilter, baseUrl: String) =
     filter.pageNumber match {
       case x if x <= 2 => Nil
-      case 3           => Seq(PaginationItem(href = paginationHref(filter, 1), number = Some("1")))
-      case _           => Seq(PaginationItem(href = paginationHref(filter, 1), number = Some("1")), PaginationItem(ellipsis = Some(true)))
+      case 3           => Seq(PaginationItem(href = paginationHref(filter, 1, baseUrl), number = Some("1")))
+      case _           => Seq(PaginationItem(href = paginationHref(filter, 1, baseUrl), number = Some("1")), PaginationItem(ellipsis = Some(true)))
     }
 
-  private def paginationEnd(filter: ViewSubmissionsFilter, numberOfPages: Int)
-                           (implicit request: Request[?]) =
+  private def paginationEnd(filter: ViewSubmissionsFilter, numberOfPages: Int, baseUrl: String) =
     numberOfPages - filter.pageNumber match {
       case x if x <= 1 => Nil
-      case 2           => Seq(PaginationItem(href = paginationHref(filter, numberOfPages), number = Some(numberOfPages.toString)))
+      case 2           => Seq(PaginationItem(href = paginationHref(filter, numberOfPages, baseUrl), number = Some(numberOfPages.toString)))
       case _           => Seq(
         PaginationItem(ellipsis = Some(true)),
-        PaginationItem(href = paginationHref(filter, numberOfPages), number = Some(numberOfPages.toString))
+        PaginationItem(href = paginationHref(filter, numberOfPages, baseUrl), number = Some(numberOfPages.toString))
       )
     }
 
-  private def paginationCurrentSection(filter: ViewSubmissionsFilter, numberOfPages: Int)
-                                      (implicit request: Request[?]) = {
+  private def paginationCurrentSection(filter: ViewSubmissionsFilter, numberOfPages: Int, baseUrl: String) = {
 
     val currentPage  = Some(PaginationItem(
-      href    = paginationHref(filter, filter.pageNumber),
+      href    = paginationHref(filter, filter.pageNumber, baseUrl),
       number  = Some(filter.pageNumber.toString),
       current = Some(true)
     ))
 
     val previousPage = if (filter.pageNumber > 1) {
       Some(PaginationItem(
-        href   = paginationHref(filter, filter.pageNumber - 1),
+        href   = paginationHref(filter, filter.pageNumber - 1, baseUrl),
         number = Some((filter.pageNumber - 1).toString)
       ))
     } else {
@@ -171,7 +167,7 @@ object ViewSubmissionsViewModel {
 
     val nextPage = if (filter.pageNumber < numberOfPages) {
       Some(PaginationItem(
-        href   = paginationHref(filter, filter.pageNumber + 1),
+        href   = paginationHref(filter, filter.pageNumber + 1, baseUrl),
         number = Some((filter.pageNumber + 1).toString)
       ))
     } else {
@@ -181,8 +177,7 @@ object ViewSubmissionsViewModel {
     Seq(previousPage, currentPage, nextPage).flatten
   }
 
-  private def paginationHref(filter: ViewSubmissionsFilter, pageNumber: Int)
-                            (implicit request: Request[?]): String = {
+  private def paginationHref(filter: ViewSubmissionsFilter, pageNumber: Int, baseUrl: String): String = {
     val sortQueryParameters = Map(
       "sortBy" -> filter.sortBy.entryName,
       "sortOrder" -> filter.sortOrder.entryName
@@ -193,7 +188,7 @@ object ViewSubmissionsViewModel {
         sortQueryParameters ++
         pageNumberQueryParameter(pageNumber)
 
-    buildLink(queryParameters)
+    buildLink(queryParameters, baseUrl)
   }
 
   private def filterQueryParameters(filter: ViewSubmissionsFilter): Map[String, String] = {
@@ -209,8 +204,7 @@ object ViewSubmissionsViewModel {
   private def pageNumberQueryParameter(pageNumber: Int): Map[String, String] =
     if (pageNumber > 1) Map("page" -> pageNumber.toString) else Map.empty[String, String]
 
-  private def submissionDateSortLink(filter: ViewSubmissionsFilter)
-                                    (implicit request: Request[?]): String = {
+  private def submissionDateSortLink(filter: ViewSubmissionsFilter, baseUrl: String): String = {
     val sortByQueryParameter = Map("sortBy" -> SubmissionDate.entryName)
     val sortOrderQueryParameter = if (filter.sortBy == SubmissionDate && filter.sortOrder == Descending) {
       Map("sortOrder" -> Ascending.entryName)
@@ -223,11 +217,10 @@ object ViewSubmissionsViewModel {
         sortOrderQueryParameter ++
         sortByQueryParameter
 
-    buildLink(queryParameters)
+    buildLink(queryParameters, baseUrl)
   }
 
-  private def reportingPeriodSortLink(filter: ViewSubmissionsFilter)
-                                     (implicit request: Request[?]): String = {
+  private def reportingPeriodSortLink(filter: ViewSubmissionsFilter, baseUrl: String): String = {
     val sortByQueryParameter = Map("sortBy" -> ReportingPeriod.entryName)
     val sortOrderQueryParameter = if (filter.sortBy == ReportingPeriod && filter.sortOrder == Descending) {
       Map("sortOrder" -> Ascending.entryName)
@@ -240,16 +233,15 @@ object ViewSubmissionsViewModel {
         sortOrderQueryParameter ++
         sortByQueryParameter
 
-    buildLink(queryParameters)
+    buildLink(queryParameters, baseUrl)
   }
 
-  private def buildLink(queryParameters: Map[String, String])
-                       (implicit request: Request[?]): String =
-    if (queryParameters.isEmpty) {
-      url"${routes.ViewSubmissionsController.onPageLoad().absoluteURL()}".toString
-    } else {
-      url"${routes.ViewSubmissionsController.onPageLoad().absoluteURL()}?$queryParameters".toString
-    }
+  private def buildLink(queryParameters: Map[String, String], baseUrl: String): String = {
+    
+    val pageUrl = s"$baseUrl${routes.ViewSubmissionsController.onPageLoad().url}"
+    
+    if (queryParameters.isEmpty) pageUrl else url"$pageUrl?$queryParameters".toString
+  }
 
   private def sortingIconFor(filter: ViewSubmissionsFilter, sortBy: SortBy): String = {
     if (filter.sortBy.entryName.equals(sortBy.entryName)) {
