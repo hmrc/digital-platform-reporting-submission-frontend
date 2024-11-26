@@ -198,9 +198,11 @@ object ViewSubmissionsViewModel {
 
   private def filterQueryParameters(filter: ViewSubmissionsFilter): Map[String, String] = {
     val reportingPeriodQueryParameter = filter.reportingPeriod.map(period => Map("reportingPeriod" -> period.toString))
+    val operatorIdQueryParameter      = filter.operatorId.map(operatorId => Map("operatorId" -> operatorId))
     val statusesQueryParameter        = filter.statuses.zipWithIndex.map((status, index) => s"statuses[$index]" -> status.entryName).toMap
 
     statusesQueryParameter ++
+    operatorIdQueryParameter.getOrElse(Map.empty[String, String]) ++
       reportingPeriodQueryParameter.getOrElse(Map.empty[String, String])
   }
 
