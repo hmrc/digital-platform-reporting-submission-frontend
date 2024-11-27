@@ -17,6 +17,7 @@
 package controllers.submission
 
 import base.SpecBase
+import config.FrontendAppConfig
 import connectors.{PlatformOperatorConnector, SubmissionConnector}
 import forms.ViewSubmissionsFormProvider
 import models.ViewSubmissionsFilter
@@ -113,7 +114,8 @@ class ViewSubmissionsControllerSpec extends SpecBase with MockitoSugar with Befo
 
         implicit val msgs: Messages = messages(application)
         val view = application.injector.instanceOf[ViewSubmissionsView]
-        val viewModel = ViewSubmissionsViewModel(Some(summary), Seq(platformOperator), defaultFilter, thisYear)(request)
+        val appConfig = application.injector.instanceOf[FrontendAppConfig]
+        val viewModel = ViewSubmissionsViewModel(Some(summary), Seq(platformOperator), defaultFilter, thisYear, appConfig.baseUrl)
 
         status(result) mustEqual OK
         contentAsString(result) mustEqual view(form, viewModel)(request, implicitly).toString

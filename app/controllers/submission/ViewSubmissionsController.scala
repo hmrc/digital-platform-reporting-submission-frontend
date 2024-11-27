@@ -16,6 +16,7 @@
 
 package controllers.submission
 
+import config.FrontendAppConfig
 import connectors.{PlatformOperatorConnector, SubmissionConnector}
 import controllers.actions.IdentifierAction
 import controllers.routes as baseRoutes
@@ -38,7 +39,8 @@ class ViewSubmissionsController @Inject()(override val messagesApi: MessagesApi,
                                           platformOperatorConnector: PlatformOperatorConnector,
                                           view: ViewSubmissionsView,
                                           formProvider: ViewSubmissionsFormProvider,
-                                          clock: Clock)
+                                          clock: Clock,
+                                          appConfig: FrontendAppConfig)
                                          (implicit ec: ExecutionContext) extends FrontendBaseController with I18nSupport {
   
   def onPageLoad(): Action[AnyContent] = identify.async {
@@ -53,7 +55,7 @@ class ViewSubmissionsController @Inject()(override val messagesApi: MessagesApi,
             submissions <- submissionConnector.listDeliveredSubmissions(ViewSubmissionsRequest(filter))
             operators   <- platformOperatorConnector.viewPlatformOperators
           } yield {
-            val viewModel = ViewSubmissionsViewModel(submissions, operators.platformOperators, filter, Year.now(clock))
+            val viewModel = ViewSubmissionsViewModel(submissions, operators.platformOperators, filter, Year.now(clock), appConfig.baseUrl)
             
             Ok(view(form.fill(filter), viewModel))
           }
