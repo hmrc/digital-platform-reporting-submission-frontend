@@ -17,14 +17,20 @@
 package pages.assumed.update
 
 import controllers.assumed.update.routes
-import models.{CheckMode, Country, NormalMode, UserAnswers}
+import models.{Country, UserAnswers}
 import play.api.libs.json.JsPath
 import play.api.mvc.Call
+
+import java.time.Year
 
 case object TaxResidencyCountryPage extends AssumedReportingUpdateQuestionPage[Country] {
 
   override def path: JsPath = JsPath \ toString
 
   override def toString: String = "taxResidencyCountry"
-  
+
+  override def nextPage(reportingPeriod: Year, answers: UserAnswers): Call =
+    answers.get(HasInternationalTaxIdentifierPage)
+      .map(_ => routes.CheckYourAnswersController.onPageLoad(answers.operatorId, reportingPeriod))
+      .getOrElse(routes.HasInternationalTaxIdentifierController.onPageLoad(answers.operatorId, reportingPeriod))
 }

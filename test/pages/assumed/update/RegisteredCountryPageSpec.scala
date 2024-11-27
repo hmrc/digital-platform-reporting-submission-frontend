@@ -30,8 +30,8 @@ class RegisteredCountryPageSpec extends AnyFreeSpec with Matchers {
   private val emptyAnswers = UserAnswers("id", operatorId, Some(reportingPeriod))
   
   ".nextPage" - {
-    
-    "must go to Check Answers" - {
+
+    "must go to Check Answers" in {
 
       RegisteredCountryPage.nextPage(reportingPeriod, emptyAnswers).mustEqual(routes.CheckYourAnswersController.onPageLoad(operatorId, reportingPeriod))
     }

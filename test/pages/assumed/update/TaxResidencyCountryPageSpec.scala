@@ -18,12 +18,13 @@ package pages.assumed.update
 
 import controllers.assumed.update.routes
 import models.UserAnswers
+import org.scalatest.{OptionValues, TryValues}
 import org.scalatest.freespec.AnyFreeSpec
 import org.scalatest.matchers.must.Matchers
 
 import java.time.Year
 
-class TaxResidencyCountryPageSpec extends AnyFreeSpec with Matchers {
+class TaxResidencyCountryPageSpec extends AnyFreeSpec with Matchers with TryValues with OptionValues {
 
   ".nextPage" - {
 
@@ -31,9 +32,15 @@ class TaxResidencyCountryPageSpec extends AnyFreeSpec with Matchers {
     val operatorId = "operatorId"
     val emptyAnswers = UserAnswers("id", operatorId, Some(reportingPeriod))
 
-    "must go to Check Answers" in {
+    "must go to Check Answers when HasInternationalTaxIdentifier has been answered" in {
 
-      TaxResidencyCountryPage.nextPage(reportingPeriod, emptyAnswers).mustEqual(routes.CheckYourAnswersController.onPageLoad(operatorId, reportingPeriod))
+      val answers = emptyAnswers.set(HasInternationalTaxIdentifierPage, true).success.value
+      TaxResidencyCountryPage.nextPage(reportingPeriod, answers).mustEqual(routes.CheckYourAnswersController.onPageLoad(operatorId, reportingPeriod))
+    }
+
+    "must go to HasInternationalTaxIdentifier when it has not been answered" in {
+
+      TaxResidencyCountryPage.nextPage(reportingPeriod, emptyAnswers).mustEqual(routes.HasInternationalTaxIdentifierController.onPageLoad(operatorId, reportingPeriod))
     }
   }
 }
