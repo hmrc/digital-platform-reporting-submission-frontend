@@ -25,7 +25,6 @@ import models.submission.Submission.UploadFailureReason
 import models.submission.Submission.UploadFailureReason.SchemaValidationError
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents, Result}
-import queries.PlatformOperatorSummaryQuery
 import services.UpscanService
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import views.html.submission.{SchemaFailureView, UploadFailedView}
@@ -35,8 +34,6 @@ import scala.concurrent.{ExecutionContext, Future}
 
 class UploadFailedController @Inject()(override val messagesApi: MessagesApi,
                                        identify: IdentifierAction,
-                                       getData: DataRetrievalActionProvider,
-                                       requireData: DataRequiredAction,
                                        val controllerComponents: MessagesControllerComponents,
                                        view: UploadFailedView,
                                        schemaFailureView: SchemaFailureView,
@@ -45,26 +42,24 @@ class UploadFailedController @Inject()(override val messagesApi: MessagesApi,
                                       (using ExecutionContext)
   extends FrontendBaseController with I18nSupport with AnswerExtractor {
 
-  def onPageLoad(operatorId: String, submissionId: String): Action[AnyContent] = (identify andThen getData(operatorId) andThen requireData).async {
+  def onPageLoad(operatorId: String, submissionId: String): Action[AnyContent] = identify.async {
     implicit request =>
-      getAnswerAsync(PlatformOperatorSummaryQuery) { operator =>
-        submissionConnector.get(submissionId).flatMap {
-          _.map { submission =>
-            handleSubmission(operatorId, submission) { case state: UploadFailed =>
-              if (state.reason == SchemaValidationError) {
-                state.fileName.map { fileName =>
-                  val uploadDifferentFileUrl = routes.UploadController.onRedirect(submission.operatorId, submissionId).url
-                  Future.successful(Ok(schemaFailureView(uploadDifferentFileUrl, fileName)))
-                }.getOrElse(Future.successful(Redirect(controllers.routes.JourneyRecoveryController.onPageLoad())))
-              } else {
-                upscanService.initiate(operatorId, request.dprsId, submissionId).map { uploadRequest =>
-                  Ok(view(uploadRequest, state.reason, operator))
-                }
+      submissionConnector.get(submissionId).flatMap {
+        _.map { submission =>
+          handleSubmission(operatorId, submission) { case state: UploadFailed =>
+            if (state.reason == SchemaValidationError) {
+              state.fileName.map { fileName =>
+                val uploadDifferentFileUrl = routes.UploadController.onRedirect(submission.operatorId, submissionId).url
+                Future.successful(Ok(schemaFailureView(uploadDifferentFileUrl, fileName)))
+              }.getOrElse(Future.successful(Redirect(controllers.routes.JourneyRecoveryController.onPageLoad())))
+            } else {
+              upscanService.initiate(operatorId, request.dprsId, submissionId).map { uploadRequest =>
+                Ok(view(uploadRequest, state.reason, submission.operatorName))
               }
             }
-          }.getOrElse {
-            Future.successful(Redirect(controllers.routes.JourneyRecoveryController.onPageLoad()))
           }
+        }.getOrElse {
+          Future.successful(Redirect(controllers.routes.JourneyRecoveryController.onPageLoad()))
         }
       }
   }
@@ -75,7 +70,7 @@ class UploadFailedController @Inject()(override val messagesApi: MessagesApi,
     "InvalidArgument" -> UploadFailureReason.InvalidArgument
   )
 
-  def onRedirect(operatorId: String, submissionId: String, errorCode: Option[String]): Action[AnyContent] = (identify andThen getData(operatorId) andThen requireData).async { implicit request =>
+  def onRedirect(operatorId: String, submissionId: String, errorCode: Option[String]): Action[AnyContent] = identify.async { implicit request =>
     submissionConnector.get(submissionId).flatMap {
       _.map { submission =>
         handleSubmission(operatorId, submission) {

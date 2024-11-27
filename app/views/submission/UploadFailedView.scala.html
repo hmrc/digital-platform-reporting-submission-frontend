@@ -30,7 +30,7 @@
         govukErrorSummary: GovukErrorSummary
 )
 
-@(uploadRequest: UploadRequest, error: UploadFailureReason, operator: PlatformOperatorSummary)(implicit request: Request[_], messages: Messages)
+@(uploadRequest: UploadRequest, error: UploadFailureReason, operatorName: String)(implicit request: Request[_], messages: Messages)
 
 @layout(pageTitle = titleNoForm(messages("uploadFailed.title")), showBackLink = false) {
 
@@ -72,7 +72,7 @@
         <p class="govuk-body">@messages("uploadFailed.error.ManualAssumedReportExists.p1")</p>
 
         <p class="govuk-body">
-            <a href="@assumedRoutes.ViewAssumedReportsController.onPageLoad().url" class="govuk-link">@messages("uploadFailed.error.ManualAssumedReportExists.viewAssumedReports", operator.operatorName)</a>
+            <a href="@assumedRoutes.ViewAssumedReportsController.onPageLoad().url" class="govuk-link">@messages("uploadFailed.error.ManualAssumedReportExists.viewAssumedReports", operatorName)</a>
         </p>
     }
 }
