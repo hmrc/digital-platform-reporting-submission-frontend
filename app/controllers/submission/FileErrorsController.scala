@@ -34,14 +34,12 @@ import scala.concurrent.{ExecutionContext, Future}
 class FileErrorsController @Inject()(
                                       override val messagesApi: MessagesApi,
                                       identify: IdentifierAction,
-                                      getData: DataRetrievalActionProvider,
-                                      requireData: DataRequiredAction,
                                       val controllerComponents: MessagesControllerComponents,
                                       view: FileErrorsView,
                                       submissionConnector: SubmissionConnector
                                     )(using ExecutionContext) extends FrontendBaseController with I18nSupport {
 
-  def onPageLoad(operatorId: String, submissionId: String): Action[AnyContent] = (identify andThen getData(operatorId) andThen requireData).async {
+  def onPageLoad(operatorId: String, submissionId: String): Action[AnyContent] = identify.async {
     implicit request =>
       submissionConnector.get(submissionId).flatMap {
         _.map { submission =>
@@ -54,7 +52,7 @@ class FileErrorsController @Inject()(
       }
   }
 
-  def listErrors(operatorId: String, submissionId: String): Action[AnyContent] = (identify andThen getData(operatorId) andThen requireData).async {
+  def listErrors(operatorId: String, submissionId: String): Action[AnyContent] = identify.async {
     implicit request =>
       submissionConnector.get(submissionId).flatMap {
         _.map { submission =>
