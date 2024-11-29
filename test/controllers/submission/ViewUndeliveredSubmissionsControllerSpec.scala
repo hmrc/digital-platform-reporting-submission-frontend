@@ -58,7 +58,8 @@ class ViewUndeliveredSubmissionsControllerSpec extends SpecBase with MockitoSuga
         submissionDateTime = instant,
         submissionStatus = SubmissionStatus.Pending,
         assumingReporterName = None,
-        submissionCaseId = None
+        submissionCaseId = None,
+        localDataExists = true
       )
       
       when(mockSubmissionConnector.listUndeliveredSubmissions(using any())).thenReturn(Future.successful(Seq(submissionSummary)))
