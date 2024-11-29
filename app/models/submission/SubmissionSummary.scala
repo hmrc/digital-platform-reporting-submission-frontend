@@ -36,12 +36,17 @@ final case class SubmissionSummary(submissionId: String,
                                    submissionDateTime: Instant,
                                    submissionStatus: SubmissionStatus,
                                    assumingReporterName: Option[String],
-                                   submissionCaseId: Option[String]) {
+                                   submissionCaseId: Option[String],
+                                   localDataExists: Boolean) {
 
-  def link(implicit messages: Messages): Link = submissionStatus match {
-    case Pending  => Link(messages("viewSubmissions.refreshStatus"), routes.CheckFileController.onPageLoad(operatorId, submissionId).url)
-    case Success  => Link(messages("viewSubmissions.confirmation"), routes.SubmissionConfirmationController.onPageLoad(operatorId, submissionId).url)
-    case Rejected => Link(messages("viewSubmissions.checkErrors"), routes.FileErrorsController.onPageLoad(operatorId, submissionId).url)
+  def link(implicit messages: Messages): Option[Link] = submissionStatus match {
+    case Pending  => Some(Link(messages("viewSubmissions.refreshStatus"), routes.CheckFileController.onPageLoad(operatorId, submissionId).url))
+    case Success  => Some(Link(messages("viewSubmissions.confirmation"), routes.SubmissionConfirmationController.onPageLoad(operatorId, submissionId).url))
+    case Rejected => if (localDataExists) {
+       Some(Link(messages("viewSubmissions.checkErrors"), routes.FileErrorsController.onPageLoad(operatorId, submissionId).url))
+    } else {
+      None
+    }
   }
 
   def statusTag(implicit messages: Messages): Tag = submissionStatus match {

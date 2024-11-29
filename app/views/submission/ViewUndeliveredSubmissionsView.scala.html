@@ -60,7 +60,11 @@
                     <td class="govuk-table__cell">@submission.operatorName<br/>@submission.operatorId</td>
                     <td class="govuk-table__cell">@submission.reportingPeriod</td>
                     <td class="govuk-table__cell">@submission.fileName</td>
-                    <td class="govuk-table__cell"><a href="@submission.link.href" class="govuk-link">@submission.link.text</a></td>
+                    <td class="govuk-table__cell">
+                        @submission.link.map { link =>
+                            <a href="@link.href" class="govuk-link">@link.text</a>
+                        }
+                    </td>
                 </tr>
             }
         </table>

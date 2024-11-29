@@ -157,7 +157,8 @@ class ReportingPeriodControllerSpec extends SpecBase with MockitoSugar with Befo
           submissionDateTime = instant,
           submissionStatus = Success,
           assumingReporterName = None,
-          submissionCaseId = Some("caseId")
+          submissionCaseId = Some("caseId"),
+          localDataExists = true
         )
         val submissionsSummary = SubmissionsSummary(Seq(deliveredSubmission), 1, true, 0)
 
@@ -209,7 +210,8 @@ class ReportingPeriodControllerSpec extends SpecBase with MockitoSugar with Befo
           submissionDateTime = instant,
           submissionStatus = Pending,
           assumingReporterName = None,
-          submissionCaseId = Some("caseId")
+          submissionCaseId = Some("caseId"),
+          localDataExists = true
         )
 
         when(mockSessionRepository.set(any())).thenReturn(Future.successful(true))
@@ -260,7 +262,8 @@ class ReportingPeriodControllerSpec extends SpecBase with MockitoSugar with Befo
           submissionDateTime = instant,
           submissionStatus = Success,
           assumingReporterName = None,
-          submissionCaseId = Some("caseId")
+          submissionCaseId = Some("caseId"),
+          localDataExists = true
         )
         val deliveredSubmission2 = SubmissionSummary(
           submissionId = "submissionId",
@@ -271,7 +274,8 @@ class ReportingPeriodControllerSpec extends SpecBase with MockitoSugar with Befo
           submissionDateTime = instant,
           submissionStatus = Success,
           assumingReporterName = None,
-          submissionCaseId = Some("caseId")
+          submissionCaseId = Some("caseId"),
+          localDataExists = true
         )
         val submissionsSummary = SubmissionsSummary(Seq(deliveredSubmission1, deliveredSubmission2), 0, true, 0)
 

@@ -57,7 +57,8 @@ class ViewSubmissionsViewModelSpec extends AnyFreeSpec with Matchers with Option
     submissionDateTime = now,
     submissionStatus = SubmissionStatus.Success,
     assumingReporterName = None,
-    submissionCaseId = None
+    submissionCaseId = None,
+    localDataExists = true
   )
 
   private val defaultFilter = ViewSubmissionsFilter(
