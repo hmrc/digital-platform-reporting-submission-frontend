@@ -18,15 +18,15 @@ package controllers.submission
 
 import base.SpecBase
 import connectors.SubmissionConnector
-import models.submission.{CadxValidationError, Submission}
-import models.submission.Submission.State.{Approved, Ready, Rejected, Submitted, UploadFailed, Uploading, Validated}
+import models.submission.*
+import models.submission.Submission.State.*
 import models.submission.Submission.SubmissionType
 import models.submission.Submission.UploadFailureReason.SchemaValidationError
 import org.apache.pekko.stream.Materializer
 import org.apache.pekko.stream.scaladsl.Source
 import org.mockito.ArgumentMatchers.{any, eq as eqTo}
 import org.mockito.Mockito
-import org.mockito.Mockito.{never, verify, when}
+import org.mockito.Mockito.{verify, when}
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.matchers.must.Matchers.mustEqual
 import org.scalatestplus.mockito.MockitoSugar
@@ -93,7 +93,7 @@ class FileErrorsControllerSpec extends SpecBase with MockitoSugar with BeforeAnd
 
       "when there is no submission for the given id" - {
 
-        "must redirect to the journey recovery page" in {
+        "must return NotFound" in {
 
           val application = applicationBuilder(userAnswers = None)
             .overrides(
@@ -107,14 +107,189 @@ class FileErrorsControllerSpec extends SpecBase with MockitoSugar with BeforeAnd
             val request = FakeRequest(routes.FileErrorsController.onPageLoad(operatorId, "id"))
             val result = route(application, request).value
 
+            status(result) mustEqual NOT_FOUND
+          }
+        }
+      }
+
+      "when the submission is in a ready state" - {
+
+        "must redirect to the upload page" in {
+
+          val application = applicationBuilder(userAnswers = None)
+            .overrides(
+              bind[SubmissionConnector].toInstance(mockSubmissionConnector)
+            )
+            .build()
+
+          val submission = Submission(
+            _id = "id",
+            submissionType = SubmissionType.Xml,
+            dprsId = "dprsId",
+            operatorId = "operatorId",
+            operatorName = "operatorName",
+            assumingOperatorName = None,
+            state = Ready,
+            created = now,
+            updated = now
+          )
+
+          when(mockSubmissionConnector.get(any())(using any())).thenReturn(Future.successful(Some(submission)))
+
+          running(application) {
+            val request = FakeRequest(routes.FileErrorsController.onPageLoad(operatorId, "id"))
+            val result = route(application, request).value
+
             status(result) mustEqual SEE_OTHER
-            redirectLocation(result).value mustEqual controllers.routes.JourneyRecoveryController.onPageLoad().url
+            redirectLocation(result).value mustEqual routes.UploadController.onPageLoad(operatorId, "id").url
           }
+
+          verify(mockSubmissionConnector).get(eqTo("id"))(using any())
         }
+      }
 
-        "when the submission is in a ready state" - {
+      "when the submission is in an uploading state" - {
 
-          "must redirect to the upload page" in {
+        "must redirect to the uploading page" in {
+
+          val application = applicationBuilder(userAnswers = None)
+            .overrides(
+              bind[SubmissionConnector].toInstance(mockSubmissionConnector)
+            )
+            .build()
+
+          val submission = Submission(
+            _id = "id",
+            submissionType = SubmissionType.Xml,
+            dprsId = "dprsId",
+            operatorId = "operatorId",
+            operatorName = "operatorName",
+            assumingOperatorName = None,
+            state = Uploading,
+            created = now,
+            updated = now
+          )
+
+          when(mockSubmissionConnector.get(any())(using any())).thenReturn(Future.successful(Some(submission)))
+
+          running(application) {
+            val request = FakeRequest(routes.FileErrorsController.onPageLoad(operatorId, "id"))
+            val result = route(application, request).value
+
+            status(result) mustEqual SEE_OTHER
+            redirectLocation(result).value mustEqual routes.UploadingController.onPageLoad(operatorId, "id").url
+          }
+
+          verify(mockSubmissionConnector).get(eqTo("id"))(using any())
+        }
+      }
+
+      "when the submission is in an upload failed state" - {
+
+        "must redirect to the upload failed page" in {
+
+          val application = applicationBuilder(userAnswers = None)
+            .overrides(
+              bind[SubmissionConnector].toInstance(mockSubmissionConnector)
+            )
+            .build()
+
+          val submission = Submission(
+            _id = "id",
+            submissionType = SubmissionType.Xml,
+            dprsId = "dprsId",
+            operatorId = "operatorId",
+            operatorName = "operatorName",
+            assumingOperatorName = None,
+            state = UploadFailed(SchemaValidationError, None),
+            created = now,
+            updated = now
+          )
+
+          when(mockSubmissionConnector.get(any())(using any())).thenReturn(Future.successful(Some(submission)))
+
+          running(application) {
+            val request = FakeRequest(routes.FileErrorsController.onPageLoad(operatorId, "id"))
+            val result = route(application, request).value
+
+            status(result) mustEqual SEE_OTHER
+            redirectLocation(result).value mustEqual routes.UploadFailedController.onPageLoad(operatorId, "id").url
+          }
+
+          verify(mockSubmissionConnector).get(eqTo("id"))(using any())
+        }
+      }
+
+      "when the submission is in a validated state" - {
+
+        "must redirect to the send file page" in {
+
+          val application = applicationBuilder(userAnswers = None)
+            .overrides(
+              bind[SubmissionConnector].toInstance(mockSubmissionConnector)
+            )
+            .build()
+
+          val submission = Submission(
+            _id = "id",
+            submissionType = SubmissionType.Xml,
+            dprsId = "dprsId",
+            operatorId = "operatorId",
+            operatorName = "operatorName",
+            assumingOperatorName = None,
+            state = Validated(
+              downloadUrl = url"http://example.com/test.xml",
+              reportingPeriod = Year.of(2024),
+              fileName = "test.xml",
+              checksum = "checksum",
+              size = 1337L
+            ),
+            created = now,
+            updated = now
+          )
+
+          when(mockSubmissionConnector.get(any())(using any())).thenReturn(Future.successful(Some(submission)))
+
+          running(application) {
+            val request = FakeRequest(routes.FileErrorsController.onPageLoad(operatorId, "id"))
+            val result = route(application, request).value
+
+            status(result) mustEqual SEE_OTHER
+            redirectLocation(result).value mustEqual routes.SendFileController.onPageLoad(operatorId, "id").url
+          }
+
+          verify(mockSubmissionConnector).get(eqTo("id"))(using any())
+        }
+      }
+
+      "when the submission is in a submitted state" - {
+
+        val submission = Submission(
+          _id = "id",
+          submissionType = SubmissionType.Xml,
+          dprsId = "dprsId",
+          operatorId = "operatorId",
+          operatorName = "operatorName",
+          assumingOperatorName = None,
+          state = Submitted("test.xml", Year.of(2024)),
+          created = now,
+          updated = now
+        )
+        
+        val expectedViewRequest = ViewSubmissionsRequest(
+          assumedReporting = false,
+          pageNumber = 1,
+          sortBy = SortBy.SubmissionDate,
+          sortOrder = SortOrder.Descending,
+          reportingPeriod = None,
+          operatorId = None,
+          statuses = Nil,
+          fileName = Some("test.xml")
+        )
+
+        "and no submissions are found at CADX" - {
+
+          "must redirect to Check File" in {
 
             val application = applicationBuilder(userAnswers = None)
               .overrides(
@@ -122,169 +297,8 @@ class FileErrorsControllerSpec extends SpecBase with MockitoSugar with BeforeAnd
               )
               .build()
 
-            val submission = Submission(
-              _id = "id",
-              submissionType = SubmissionType.Xml,
-              dprsId = "dprsId",
-              operatorId = "operatorId",
-              operatorName = "operatorName",
-              assumingOperatorName = None,
-              state = Ready,
-              created = now,
-              updated = now
-            )
-
             when(mockSubmissionConnector.get(any())(using any())).thenReturn(Future.successful(Some(submission)))
-
-            running(application) {
-              val request = FakeRequest(routes.FileErrorsController.onPageLoad(operatorId, "id"))
-              val result = route(application, request).value
-
-              status(result) mustEqual SEE_OTHER
-              redirectLocation(result).value mustEqual routes.UploadController.onPageLoad(operatorId, "id").url
-            }
-
-            verify(mockSubmissionConnector).get(eqTo("id"))(using any())
-          }
-        }
-
-        "when the submission is in an uploading state" - {
-
-          "must redirect to the uploading page" in {
-
-            val application = applicationBuilder(userAnswers = None)
-              .overrides(
-                bind[SubmissionConnector].toInstance(mockSubmissionConnector)
-              )
-              .build()
-
-            val submission = Submission(
-              _id = "id",
-              submissionType = SubmissionType.Xml,
-              dprsId = "dprsId",
-              operatorId = "operatorId",
-              operatorName = "operatorName",
-              assumingOperatorName = None,
-              state = Uploading,
-              created = now,
-              updated = now
-            )
-
-            when(mockSubmissionConnector.get(any())(using any())).thenReturn(Future.successful(Some(submission)))
-
-            running(application) {
-              val request = FakeRequest(routes.FileErrorsController.onPageLoad(operatorId, "id"))
-              val result = route(application, request).value
-
-              status(result) mustEqual SEE_OTHER
-              redirectLocation(result).value mustEqual routes.UploadingController.onPageLoad(operatorId, "id").url
-            }
-
-            verify(mockSubmissionConnector).get(eqTo("id"))(using any())
-          }
-        }
-
-        "when the submission is in an upload failed state" - {
-
-          "must redirect to the upload failed page" in {
-
-            val application = applicationBuilder(userAnswers = None)
-              .overrides(
-                bind[SubmissionConnector].toInstance(mockSubmissionConnector)
-              )
-              .build()
-
-            val submission = Submission(
-              _id = "id",
-              submissionType = SubmissionType.Xml,
-              dprsId = "dprsId",
-              operatorId = "operatorId",
-              operatorName = "operatorName",
-              assumingOperatorName = None,
-              state = UploadFailed(SchemaValidationError, None),
-              created = now,
-              updated = now
-            )
-
-            when(mockSubmissionConnector.get(any())(using any())).thenReturn(Future.successful(Some(submission)))
-
-            running(application) {
-              val request = FakeRequest(routes.FileErrorsController.onPageLoad(operatorId, "id"))
-              val result = route(application, request).value
-
-              status(result) mustEqual SEE_OTHER
-              redirectLocation(result).value mustEqual routes.UploadFailedController.onPageLoad(operatorId, "id").url
-            }
-
-            verify(mockSubmissionConnector).get(eqTo("id"))(using any())
-          }
-        }
-
-        "when the submission is in a validated state" - {
-
-          "must redirect to the send file page" in {
-
-            val application = applicationBuilder(userAnswers = None)
-              .overrides(
-                bind[SubmissionConnector].toInstance(mockSubmissionConnector)
-              )
-              .build()
-
-            val submission = Submission(
-              _id = "id",
-              submissionType = SubmissionType.Xml,
-              dprsId = "dprsId",
-              operatorId = "operatorId",
-              operatorName = "operatorName",
-              assumingOperatorName = None,
-              state = Validated(
-                downloadUrl = url"http://example.com/test.xml",
-                reportingPeriod = Year.of(2024),
-                fileName = "test.xml",
-                checksum = "checksum",
-                size = 1337L
-              ),
-              created = now,
-              updated = now
-            )
-
-            when(mockSubmissionConnector.get(any())(using any())).thenReturn(Future.successful(Some(submission)))
-
-            running(application) {
-              val request = FakeRequest(routes.FileErrorsController.onPageLoad(operatorId, "id"))
-              val result = route(application, request).value
-
-              status(result) mustEqual SEE_OTHER
-              redirectLocation(result).value mustEqual routes.SendFileController.onPageLoad(operatorId, "id").url
-            }
-
-            verify(mockSubmissionConnector).get(eqTo("id"))(using any())
-          }
-        }
-
-        "when the submission is in an submitted state" - {
-
-          "must redirect to the check file page" in {
-
-            val application = applicationBuilder(userAnswers = None)
-              .overrides(
-                bind[SubmissionConnector].toInstance(mockSubmissionConnector)
-              )
-              .build()
-
-            val submission = Submission(
-              _id = "id",
-              submissionType = SubmissionType.Xml,
-              dprsId = "dprsId",
-              operatorId = "operatorId",
-              operatorName = "operatorName",
-              assumingOperatorName = None,
-              state = Submitted("test.xml", Year.of(2024)),
-              created = now,
-              updated = now
-            )
-
-            when(mockSubmissionConnector.get(any())(using any())).thenReturn(Future.successful(Some(submission)))
+            when(mockSubmissionConnector.listDeliveredSubmissions(any())(using any())).thenReturn(Future.successful(None))
 
             running(application) {
               val request = FakeRequest(routes.FileErrorsController.onPageLoad(operatorId, "id"))
@@ -295,12 +309,13 @@ class FileErrorsControllerSpec extends SpecBase with MockitoSugar with BeforeAnd
             }
 
             verify(mockSubmissionConnector).get(eqTo("id"))(using any())
+            verify(mockSubmissionConnector).listDeliveredSubmissions(eqTo(expectedViewRequest))(using any)
           }
         }
 
-        "when the submission is in a approved state" - {
+        "and this submission is not found at CADX" - {
 
-          "must redirect to the file success page" in {
+          "must redirect to Check File" in {
 
             val application = applicationBuilder(userAnswers = None)
               .overrides(
@@ -308,19 +323,46 @@ class FileErrorsControllerSpec extends SpecBase with MockitoSugar with BeforeAnd
               )
               .build()
 
-            val submission = Submission(
-              _id = "id",
-              submissionType = SubmissionType.Xml,
-              dprsId = "dprsId",
+            when(mockSubmissionConnector.get(any())(using any())).thenReturn(Future.successful(Some(submission)))
+            when(mockSubmissionConnector.listDeliveredSubmissions(any())(using any())).thenReturn(Future.successful(Some(SubmissionsSummary(Nil, 0, false, 0))))
+
+            running(application) {
+              val request = FakeRequest(routes.FileErrorsController.onPageLoad(operatorId, "id"))
+              val result = route(application, request).value
+
+              status(result) mustEqual SEE_OTHER
+              redirectLocation(result).value mustEqual routes.CheckFileController.onPageLoad(operatorId, "id").url
+            }
+
+            verify(mockSubmissionConnector).get(eqTo("id"))(using any())
+            verify(mockSubmissionConnector).listDeliveredSubmissions(eqTo(expectedViewRequest))(using any)
+          }
+        }
+
+        "and the submission from CADX is in an approved state" - {
+
+          "must redirect to Submission Confirmation" in {
+
+            val application = applicationBuilder(userAnswers = None)
+              .overrides(
+                bind[SubmissionConnector].toInstance(mockSubmissionConnector)
+              )
+              .build()
+
+            val submissionSummary = SubmissionSummary(
+              submissionId = "id",
+              fileName = "test.xml",
               operatorId = "operatorId",
               operatorName = "operatorName",
-              assumingOperatorName = None,
-              state = Approved("test.xml", Year.of(2024)),
-              created = now,
-              updated = now
+              reportingPeriod = Year.of(2024),
+              submissionDateTime = now,
+              submissionStatus = SubmissionStatus.Success,
+              assumingReporterName = None,
+              submissionCaseId = Some("caseId")
             )
 
             when(mockSubmissionConnector.get(any())(using any())).thenReturn(Future.successful(Some(submission)))
+            when(mockSubmissionConnector.listDeliveredSubmissions(any())(using any())).thenReturn(Future.successful(Some(SubmissionsSummary(Seq(submissionSummary), 1, false, 0))))
 
             running(application) {
               val request = FakeRequest(routes.FileErrorsController.onPageLoad(operatorId, "id"))
@@ -331,7 +373,121 @@ class FileErrorsControllerSpec extends SpecBase with MockitoSugar with BeforeAnd
             }
 
             verify(mockSubmissionConnector).get(eqTo("id"))(using any())
+            verify(mockSubmissionConnector).listDeliveredSubmissions(eqTo(expectedViewRequest))(using any)
           }
+        }
+
+        "and the submission from CADX is in a pending state" - {
+
+          "must redirect to Check File" in {
+
+            val application = applicationBuilder(userAnswers = None)
+              .overrides(
+                bind[SubmissionConnector].toInstance(mockSubmissionConnector)
+              )
+              .build()
+
+            val submissionSummary = SubmissionSummary(
+              submissionId = "id",
+              fileName = "test.xml",
+              operatorId = "operatorId",
+              operatorName = "operatorName",
+              reportingPeriod = Year.of(2024),
+              submissionDateTime = now,
+              submissionStatus = SubmissionStatus.Pending,
+              assumingReporterName = None,
+              submissionCaseId = Some("caseId")
+            )
+
+            when(mockSubmissionConnector.get(any())(using any())).thenReturn(Future.successful(Some(submission)))
+            when(mockSubmissionConnector.listDeliveredSubmissions(any())(using any())).thenReturn(Future.successful(Some(SubmissionsSummary(Seq(submissionSummary), 1, false, 0))))
+
+            running(application) {
+              val request = FakeRequest(routes.FileErrorsController.onPageLoad(operatorId, "id"))
+              val result = route(application, request).value
+
+              status(result) mustEqual SEE_OTHER
+              redirectLocation(result).value mustEqual routes.CheckFileController.onPageLoad(operatorId, "id").url
+            }
+
+            verify(mockSubmissionConnector).get(eqTo("id"))(using any())
+            verify(mockSubmissionConnector).listDeliveredSubmissions(eqTo(expectedViewRequest))(using any)
+          }
+        }
+
+        "and the submission from CADX is in a rejected state" - {
+
+          "must render the view" in {
+
+            val application = applicationBuilder(userAnswers = None)
+              .overrides(
+                bind[SubmissionConnector].toInstance(mockSubmissionConnector)
+              )
+              .build()
+
+            val submissionSummary = SubmissionSummary(
+              submissionId = "id",
+              fileName = "test.xml",
+              operatorId = "operatorId",
+              operatorName = "operatorName",
+              reportingPeriod = Year.of(2024),
+              submissionDateTime = now,
+              submissionStatus = SubmissionStatus.Rejected,
+              assumingReporterName = None,
+              submissionCaseId = Some("caseId")
+            )
+
+            when(mockSubmissionConnector.get(any())(using any())).thenReturn(Future.successful(Some(submission)))
+            when(mockSubmissionConnector.listDeliveredSubmissions(any())(using any())).thenReturn(Future.successful(Some(SubmissionsSummary(Seq(submissionSummary), 1, false, 0))))
+
+            running(application) {
+              val request = FakeRequest(routes.FileErrorsController.onPageLoad(operatorId, "id"))
+              val result = route(application, request).value
+              val view = application.injector.instanceOf[FileErrorsView]
+
+              status(result) mustEqual OK
+              contentAsString(result) mustEqual view(submission.operatorId, submission._id, "test.xml")(request, messages(application)).toString
+            }
+
+            verify(mockSubmissionConnector).get(eqTo("id"))(using any())
+            verify(mockSubmissionConnector).listDeliveredSubmissions(eqTo(expectedViewRequest))(using any)
+          }
+        }
+      }
+
+      "when the submission is in a approved state" - {
+
+        "must redirect to the file success page" in {
+
+          val application = applicationBuilder(userAnswers = None)
+            .overrides(
+              bind[SubmissionConnector].toInstance(mockSubmissionConnector)
+            )
+            .build()
+
+          val submission = Submission(
+            _id = "id",
+            submissionType = SubmissionType.Xml,
+            dprsId = "dprsId",
+            operatorId = "operatorId",
+            operatorName = "operatorName",
+            assumingOperatorName = None,
+            state = Approved("test.xml", Year.of(2024)),
+            created = now,
+            updated = now
+          )
+
+          when(mockSubmissionConnector.get(any())(using any())).thenReturn(Future.successful(Some(submission)))
+
+          running(application) {
+            val request = FakeRequest(routes.FileErrorsController.onPageLoad(operatorId, "id"))
+            val result = route(application, request).value
+
+            status(result) mustEqual SEE_OTHER
+            redirectLocation(result).value mustEqual routes.SubmissionConfirmationController.onPageLoad(operatorId, "id").url
+          }
+
+          verify(mockSubmissionConnector).get(eqTo("id"))(using any())
         }
       }
     }

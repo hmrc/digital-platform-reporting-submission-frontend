@@ -20,11 +20,11 @@ import connectors.SubmissionConnector
 import controllers.actions.*
 import models.submission.CadxValidationError.{FileError, RowError}
 import models.submission.Submission.State.{Approved, Ready, Rejected, Submitted, UploadFailed, Uploading, Validated}
-import models.submission.{CadxValidationError, Submission}
+import models.submission.*
 import org.apache.pekko.stream.connectors.csv.scaladsl.CsvFormatting
 import org.apache.pekko.stream.scaladsl.Source
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}
-import play.api.mvc.{Action, AnyContent, MessagesControllerComponents, Result}
+import play.api.mvc.{Action, AnyContent, MessagesControllerComponents, Request, Result}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import views.html.submission.FileErrorsView
 
@@ -43,11 +43,12 @@ class FileErrorsController @Inject()(
     implicit request =>
       submissionConnector.get(submissionId).flatMap {
         _.map { submission =>
-          handleSubmission(operatorId, submission) { case state: Rejected =>
-            Future.successful(Ok(view(submission.operatorId, submission._id, state.fileName)))
+          handleSubmission(operatorId, submission) {
+            case state: Rejected  => Future.successful(Ok(view(submission.operatorId, submission._id, state.fileName)))
+            case state: Submitted => handleSubmittedState(operatorId, submission, state.fileName)
           }
         }.getOrElse {
-          Future.successful(Redirect(controllers.routes.JourneyRecoveryController.onPageLoad()))
+          Future.successful(NotFound)
         }
       }
   }
@@ -110,4 +111,35 @@ class FileErrorsController @Inject()(
 
       Future.successful(Redirect(redirectLocation))
     }
+
+  private def handleSubmittedState(operatorId: String, submission: Submission, fileName: String)
+                                  (implicit request: Request[?]): Future[Result] = {
+    val viewRequest = ViewSubmissionsRequest(
+      assumedReporting = false,
+      pageNumber = 1,
+      sortBy = SortBy.SubmissionDate,
+      sortOrder = SortOrder.Descending,
+      reportingPeriod = None,
+      operatorId = None,
+      statuses = Nil,
+      fileName = Some(fileName)
+    )
+
+    submissionConnector.listDeliveredSubmissions(viewRequest).flatMap {
+      _.map {
+        _.deliveredSubmissions.headOption.map { submissionSummary =>
+          submissionSummary.submissionStatus match {
+            case SubmissionStatus.Rejected =>
+              Future.successful(Ok(view(operatorId, submission._id, fileName)))
+
+            case SubmissionStatus.Success =>
+              Future.successful(Redirect(routes.SubmissionConfirmationController.onPageLoad(operatorId, submission._id)))
+
+            case SubmissionStatus.Pending =>
+              Future.successful(Redirect(routes.CheckFileController.onPageLoad(operatorId, submission._id)))
+          }
+        }.getOrElse(Future.successful(Redirect(routes.CheckFileController.onPageLoad(operatorId, submission._id))))
+      }.getOrElse(Future.successful(Redirect(routes.CheckFileController.onPageLoad(operatorId, submission._id))))
+    }
+  }
 }
