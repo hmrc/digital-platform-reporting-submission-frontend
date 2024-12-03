@@ -59,9 +59,8 @@ class CheckReportingNotificationsPageSpec
     
     "must go to add a reporting notification when the answer is no" in {
       
-      when(mockAppConfig.addReportingNotificationUrl(operatorId)).thenReturn("/foo")
       val answers = emptyAnswers.set(page, false).success.value
-      page.nextPage(reportingPeriod, answers).mustEqual(Call("GET", "/foo"))
+      page.nextPage(reportingPeriod, answers).mustEqual(Call("GET", mockAppConfig.manageHomepageUrl))
     }
   }
 }

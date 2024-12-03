@@ -82,7 +82,7 @@ class CheckPlatformOperatorController @Inject()(
             ))
           }
         },
-        answer =>
+        answer => 
           for {
             updatedAnswers <- Future.fromTry(request.userAnswers.set(checkPlatformOperatorPage, answer))
             _              <- sessionRepository.set(updatedAnswers)

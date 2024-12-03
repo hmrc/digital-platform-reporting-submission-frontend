@@ -33,6 +33,6 @@ class CheckReportingNotificationsPage @Inject()(appConfig: FrontendAppConfig) ex
   override def nextPage(reportingPeriod: Year, answers: UserAnswers): Call =
     answers.get(this).map {
       case true  => routes.CheckContactDetailsController.onPageLoad(answers.operatorId, reportingPeriod)
-      case false => Call("GET", appConfig.addReportingNotificationUrl(answers.operatorId))
+      case false => Call("GET", appConfig.manageHomepageUrl)
     }.getOrElse(baseRoutes.JourneyRecoveryController.onPageLoad())
 }
