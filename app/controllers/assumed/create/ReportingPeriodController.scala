@@ -77,14 +77,15 @@ class ReportingPeriodController @Inject()(
         )
         
         for {
-          deliveredSubmissions   <- connector.listDeliveredSubmissions(viewSubmissionsRequest)
-          undeliveredSubmissions <- connector.listUndeliveredSubmissions
-          submissionsExist       = deliveredSubmissions.exists(_.deliveredSubmissionRecordCount > 0) || undeliveredSubmissions.nonEmpty
-          updatedAnswers         <- Future.fromTry(request.userAnswers
+          deliveredSubmissions                <- connector.listDeliveredSubmissions(viewSubmissionsRequest)
+          undeliveredSubmissions              <- connector.listUndeliveredSubmissions
+          matchingUndeliveredSubmissionExists = undeliveredSubmissions.exists(s => s.operatorId == operatorId && s.reportingPeriod == reportingPeriod)
+          submissionsExist                    = deliveredSubmissions.exists(_.deliveredSubmissionRecordCount > 0) || matchingUndeliveredSubmissionExists
+          updatedAnswers                      <- Future.fromTry(request.userAnswers
                                                     .set(ReportingPeriodPage, reportingPeriod)
                                                     .flatMap(_.set(SubmissionsExistQuery, submissionsExist))
                                                   )
-          _ <- sessionRepository.set(updatedAnswers)
+          _                                   <- sessionRepository.set(updatedAnswers)
         } yield Redirect(ReportingPeriodPage.nextPage(mode, updatedAnswers))
       }
     )

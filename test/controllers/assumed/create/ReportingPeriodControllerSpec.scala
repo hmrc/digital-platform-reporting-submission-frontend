@@ -306,7 +306,71 @@ class ReportingPeriodControllerSpec extends SpecBase with MockitoSugar with Befo
 
           status(result) mustEqual SEE_OTHER
           redirectLocation(result).value mustEqual ReportingPeriodPage.nextPage(NormalMode, answers).url
-          verify(mockConnector).listDeliveredSubmissions(eqTo(expectedViewSubmissionsRequest))(using (any()))
+          verify(mockConnector).listDeliveredSubmissions(eqTo(expectedViewSubmissionsRequest))(using any())
+          verify(mockConnector).listUndeliveredSubmissions(using any())
+          verify(mockSessionRepository).set(answersCaptor.capture())
+
+          val savedAnswers = answersCaptor.getValue
+          savedAnswers.get(SubmissionsExistQuery).value mustEqual false
+          savedAnswers.get(ReportingPeriodPage).value mustEqual validAnswer
+        }
+      }
+
+      "when there are undelivered XML submissions, but they are for a different operator or reporting period" ignore {
+
+        val undeliveredSubmission1 = SubmissionSummary(
+          submissionId = "submissionId",
+          fileName = "filename",
+          operatorId = "different operator id",
+          operatorName = operatorName,
+          reportingPeriod = validAnswer,
+          submissionDateTime = instant,
+          submissionStatus = Pending,
+          assumingReporterName = None,
+          submissionCaseId = Some("caseId"),
+          localDataExists = true
+        )
+        val undeliveredSubmission2 = SubmissionSummary(
+          submissionId = "submissionId",
+          fileName = "filename",
+          operatorId = operatorId,
+          operatorName = operatorName,
+          reportingPeriod = validAnswer.plusYears(1),
+          submissionDateTime = instant,
+          submissionStatus = Pending,
+          assumingReporterName = None,
+          submissionCaseId = Some("caseId"),
+          localDataExists = true
+        )
+
+        when(mockSessionRepository.set(any())).thenReturn(Future.successful(true))
+        when(mockConnector.listDeliveredSubmissions(any())(using any())).thenReturn(Future.successful(None))
+        when(mockConnector.listUndeliveredSubmissions(using any())).thenReturn(Future.successful(Seq(undeliveredSubmission1, undeliveredSubmission2)))
+
+        val application =
+          applicationBuilder(userAnswers = Some(emptyUserAnswers))
+            .overrides(
+              bind[SessionRepository].toInstance(mockSessionRepository),
+              bind[SubmissionConnector].toInstance(mockConnector)
+            )
+            .build()
+
+        running(application) {
+          val request =
+            FakeRequest(POST, reportingPeriodRoute)
+              .withFormUrlEncodedBody(("value", validAnswer.toString))
+
+          val answersCaptor: ArgumentCaptor[UserAnswers] = ArgumentCaptor.forClass(classOf[UserAnswers])
+          val answers =
+            emptyUserAnswers
+              .set(ReportingPeriodPage, validAnswer).success.value
+              .set(SubmissionsExistQuery, false).success.value
+
+          val result = route(application, request).value
+
+          status(result) mustEqual SEE_OTHER
+          redirectLocation(result).value mustEqual ReportingPeriodPage.nextPage(NormalMode, answers).url
+          verify(mockConnector).listDeliveredSubmissions(eqTo(expectedViewSubmissionsRequest))(using any())
           verify(mockConnector).listUndeliveredSubmissions(using any())
           verify(mockSessionRepository).set(answersCaptor.capture())
 
