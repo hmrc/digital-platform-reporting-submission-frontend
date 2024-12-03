@@ -55,10 +55,9 @@ class CheckPlatformOperatorPageSpec
     }
 
     "must go to update the operator when the answer is no" in {
-
-      when(mockAppConfig.updateOperatorUrl(eqTo("operatorId"))).thenReturn("/foo")
+      
       val answers = emptyAnswers.set(page, false).success.value
-      page.nextPage(NormalMode, answers) mustEqual Call("GET", "/foo")
+      page.nextPage(NormalMode, answers) mustEqual Call("GET", mockAppConfig.manageHomepageUrl)
     }
   }
 }
