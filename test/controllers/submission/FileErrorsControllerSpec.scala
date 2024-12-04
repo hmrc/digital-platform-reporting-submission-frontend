@@ -34,7 +34,7 @@ import play.api.inject.bind
 import play.api.test.FakeRequest
 import play.api.test.Helpers.*
 import uk.gov.hmrc.http.StringContextOps
-import views.html.submission.FileErrorsView
+import views.html.submission.{FileErrorsNoDownloadView, FileErrorsView}
 
 import java.time.{Instant, Year}
 import scala.concurrent.Future
@@ -358,7 +358,8 @@ class FileErrorsControllerSpec extends SpecBase with MockitoSugar with BeforeAnd
               submissionDateTime = now,
               submissionStatus = SubmissionStatus.Success,
               assumingReporterName = None,
-              submissionCaseId = Some("caseId")
+              submissionCaseId = Some("caseId"),
+              localDataExists = true
             )
 
             when(mockSubmissionConnector.get(any())(using any())).thenReturn(Future.successful(Some(submission)))
@@ -396,7 +397,8 @@ class FileErrorsControllerSpec extends SpecBase with MockitoSugar with BeforeAnd
               submissionDateTime = now,
               submissionStatus = SubmissionStatus.Pending,
               assumingReporterName = None,
-              submissionCaseId = Some("caseId")
+              submissionCaseId = Some("caseId"),
+              localDataExists = true
             )
 
             when(mockSubmissionConnector.get(any())(using any())).thenReturn(Future.successful(Some(submission)))
@@ -417,7 +419,7 @@ class FileErrorsControllerSpec extends SpecBase with MockitoSugar with BeforeAnd
 
         "and the submission from CADX is in a rejected state" - {
 
-          "must render the view" in {
+          "must render the correct view" in {
 
             val application = applicationBuilder(userAnswers = None)
               .overrides(
@@ -434,7 +436,8 @@ class FileErrorsControllerSpec extends SpecBase with MockitoSugar with BeforeAnd
               submissionDateTime = now,
               submissionStatus = SubmissionStatus.Rejected,
               assumingReporterName = None,
-              submissionCaseId = Some("caseId")
+              submissionCaseId = Some("caseId"),
+              localDataExists = true
             )
 
             when(mockSubmissionConnector.get(any())(using any())).thenReturn(Future.successful(Some(submission)))
@@ -443,7 +446,7 @@ class FileErrorsControllerSpec extends SpecBase with MockitoSugar with BeforeAnd
             running(application) {
               val request = FakeRequest(routes.FileErrorsController.onPageLoad(operatorId, "id"))
               val result = route(application, request).value
-              val view = application.injector.instanceOf[FileErrorsView]
+              val view = application.injector.instanceOf[FileErrorsNoDownloadView]
 
               status(result) mustEqual OK
               contentAsString(result) mustEqual view(submission.operatorId, submission._id, "test.xml")(request, messages(application)).toString

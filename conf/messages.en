@@ -158,6 +158,19 @@ fileErrors.tsv.code = Code
 fileErrors.tsv.detail = Detail
 fileErrors.tsv.docRef = DocRef
 
+fileErrorsNoDownload.title = There is a problem with your file
+fileErrorsNoDownload.heading = There is a problem with your file
+fileErrorsNoDownload.p1 = We cannot accept the file {0} because it does not meet the digital platform reporting business rules.
+fileErrorsNoDownload.h2 = What you can do next
+fileErrorsNoDownload.point1 = Wait for the error report to generate.
+fileErrorsNoDownload.point2 = View the errors in the report.
+fileErrorsNoDownload.point3.text = Refer to the schema and supporting documents (opens in new tab)
+fileErrorsNoDownload.point3.href = https://www.gov.uk/government/publications/digital-platform-reporting-xml-schema-and-supporting-documents
+fileErrorsNoDownload.point4 = Submit the updated file
+fileErrorsNoDownload.inset.p1 = Your error report is not available yet. Come back later.
+fileErrorsNoDownload.inset.p2 = If this does not change, your report may have failed to generate and you should resubmit your file. Reach out to aeoi.enquiries@hmrc.gov.uk if you need more support or your error report continues to get stuck.
+fileErrorsNoDownload.return = Return to manage your digital platform reporting
+
 chrn.checkYourAnswersLabel = HMRC Charity Reference (CHRN)
 utr.checkYourAnswersLabel = Unique Taxpayer Reference (UTR)
 crn.checkYourAnswersLabel = Company Registration Number (CRN)

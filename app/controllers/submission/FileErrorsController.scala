@@ -19,14 +19,14 @@ package controllers.submission
 import connectors.SubmissionConnector
 import controllers.actions.*
 import models.submission.CadxValidationError.{FileError, RowError}
-import models.submission.Submission.State.{Approved, Ready, Rejected, Submitted, UploadFailed, Uploading, Validated}
+import models.submission.Submission.State.*
 import models.submission.*
 import org.apache.pekko.stream.connectors.csv.scaladsl.CsvFormatting
 import org.apache.pekko.stream.scaladsl.Source
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents, Request, Result}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
-import views.html.submission.FileErrorsView
+import views.html.submission.{FileErrorsNoDownloadView, FileErrorsView}
 
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
@@ -36,6 +36,7 @@ class FileErrorsController @Inject()(
                                       identify: IdentifierAction,
                                       val controllerComponents: MessagesControllerComponents,
                                       view: FileErrorsView,
+                                      viewNoDownload: FileErrorsNoDownloadView,
                                       submissionConnector: SubmissionConnector
                                     )(using ExecutionContext) extends FrontendBaseController with I18nSupport {
 
@@ -130,7 +131,7 @@ class FileErrorsController @Inject()(
         _.deliveredSubmissions.headOption.map { submissionSummary =>
           submissionSummary.submissionStatus match {
             case SubmissionStatus.Rejected =>
-              Future.successful(Ok(view(operatorId, submission._id, fileName)))
+              Future.successful(Ok(viewNoDownload(operatorId, submission._id, fileName)))
 
             case SubmissionStatus.Success =>
               Future.successful(Redirect(routes.SubmissionConfirmationController.onPageLoad(operatorId, submission._id)))
