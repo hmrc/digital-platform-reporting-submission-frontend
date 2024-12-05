@@ -18,15 +18,14 @@ package controllers.submission
 
 import base.SpecBase
 import config.FrontendAppConfig
-import connectors.{SubmissionConnector, SubscriptionConnector}
+import connectors.{RecentSubmissionsConnector, SubmissionConnector, SubscriptionConnector}
 import forms.CheckContactDetailsFormProvider
-import models.submission.Submission
-import models.submission.Submission.State.Ready
-import models.submission.Submission.SubmissionType
+import models.recentsubmissions.RecentSubmissionRequest
 import models.subscription.*
+import org.apache.pekko.Done
 import org.mockito.ArgumentMatchers.{any, eq as eqTo}
-import org.mockito.Mockito.{never, verify, when}
 import org.mockito.Mockito
+import org.mockito.Mockito.{never, times, verify, when}
 import org.scalatest.BeforeAndAfterEach
 import org.scalatestplus.mockito.MockitoSugar
 import play.api.i18n.Messages
@@ -35,27 +34,32 @@ import play.api.test.FakeRequest
 import play.api.test.Helpers.*
 import queries.PlatformOperatorSummaryQuery
 import repositories.SessionRepository
+import support.builders.SubmissionBuilder.aSubmission
+import support.builders.UserAnswersBuilder.aUserAnswers
 import viewmodels.PlatformOperatorSummary
 import viewmodels.checkAnswers.subscription.*
 import viewmodels.govuk.SummaryListFluency
 import views.html.submission.CheckContactDetailsView
 
-import java.time.Instant
+import java.time.temporal.ChronoUnit
+import java.time.{Clock, Instant, ZoneId}
 import scala.concurrent.Future
 
 class CheckContactDetailsControllerSpec extends SpecBase with SummaryListFluency with MockitoSugar with BeforeAndAfterEach {
+
+  private val instant = Instant.now.truncatedTo(ChronoUnit.MILLIS)
+  private val stubClock: Clock = Clock.fixed(instant, ZoneId.systemDefault)
 
   private val form = CheckContactDetailsFormProvider()()
   private val mockSubmissionConnector: SubmissionConnector = mock[SubmissionConnector]
   private val mockSubscriptionConnector = mock[SubscriptionConnector]
   private val mockRepository = mock[SessionRepository]
+  private val mockRecentSubmissionsConnector = mock[RecentSubmissionsConnector]
   private val platformOperatorSummary = PlatformOperatorSummary("operatorId", "operatorName", true)
-  private val baseAnswers = emptyUserAnswers.set(PlatformOperatorSummaryQuery, platformOperatorSummary).success.value
-
-  private val now: Instant = Instant.now()
+  private val baseAnswers = aUserAnswers.set(PlatformOperatorSummaryQuery, platformOperatorSummary).success.value
 
   override def beforeEach(): Unit = {
-    Mockito.reset(mockSubscriptionConnector, mockRepository, mockSubmissionConnector)
+    Mockito.reset(mockSubscriptionConnector, mockRepository, mockSubmissionConnector, mockRecentSubmissionsConnector)
     super.beforeEach()
   }
 
@@ -76,16 +80,13 @@ class CheckContactDetailsControllerSpec extends SpecBase with SummaryListFluency
 
         when(mockSubscriptionConnector.getSubscription(any())).thenReturn(Future.successful(subscription))
 
-        val application =
-          applicationBuilder(userAnswers = Some(emptyUserAnswers))
-            .overrides(bind[SubscriptionConnector].toInstance(mockSubscriptionConnector))
-            .build()
+        val application = applicationBuilder(userAnswers = Some(aUserAnswers))
+          .overrides(bind[SubscriptionConnector].toInstance(mockSubscriptionConnector))
+          .build()
 
         running(application) {
           val request = FakeRequest(GET, routes.CheckContactDetailsController.onPageLoad(operatorId).url)
-
           val result = route(application, request).value
-
           val view = application.injector.instanceOf[CheckContactDetailsView]
 
           implicit val msgs: Messages = messages(application)
@@ -113,10 +114,9 @@ class CheckContactDetailsControllerSpec extends SpecBase with SummaryListFluency
 
         when(mockSubscriptionConnector.getSubscription(any())).thenReturn(Future.successful(subscription))
 
-        val application =
-          applicationBuilder(userAnswers = Some(emptyUserAnswers))
-            .overrides(bind[SubscriptionConnector].toInstance(mockSubscriptionConnector))
-            .build()
+        val application = applicationBuilder(userAnswers = Some(aUserAnswers))
+          .overrides(bind[SubscriptionConnector].toInstance(mockSubscriptionConnector))
+          .build()
 
         running(application) {
           val request = FakeRequest(GET, routes.CheckContactDetailsController.onPageLoad(operatorId).url)
@@ -153,10 +153,9 @@ class CheckContactDetailsControllerSpec extends SpecBase with SummaryListFluency
 
         when(mockSubscriptionConnector.getSubscription(any())).thenReturn(Future.successful(subscription))
 
-        val application =
-          applicationBuilder(userAnswers = Some(emptyUserAnswers))
-            .overrides(bind[SubscriptionConnector].toInstance(mockSubscriptionConnector))
-            .build()
+        val application = applicationBuilder(userAnswers = Some(aUserAnswers))
+          .overrides(bind[SubscriptionConnector].toInstance(mockSubscriptionConnector))
+          .build()
 
         running(application) {
           val request = FakeRequest(GET, routes.CheckContactDetailsController.onPageLoad(operatorId).url)
@@ -198,15 +197,13 @@ class CheckContactDetailsControllerSpec extends SpecBase with SummaryListFluency
 
       when(mockSubscriptionConnector.getSubscription(any())).thenReturn(Future.successful(subscription))
 
-      val application =
-        applicationBuilder(userAnswers = Some(baseAnswers))
-          .overrides(bind[SubscriptionConnector].toInstance(mockSubscriptionConnector))
-          .build()
+      val application = applicationBuilder(userAnswers = Some(baseAnswers))
+        .overrides(bind[SubscriptionConnector].toInstance(mockSubscriptionConnector))
+        .build()
 
       running(application) {
-        val request =
-          FakeRequest(POST, routes.CheckContactDetailsController.onPageLoad(operatorId).url)
-            .withFormUrlEncodedBody("value" -> "invalid value")
+        val request = FakeRequest(POST, routes.CheckContactDetailsController.onPageLoad(operatorId).url)
+          .withFormUrlEncodedBody("value" -> "invalid value")
 
         val result = route(application, request).value
 
@@ -227,82 +224,91 @@ class CheckContactDetailsControllerSpec extends SpecBase with SummaryListFluency
     }
 
     "when `true` is submitted" - {
-      
-      "must start a new submission and redirect to upload when `true` is submitted" in {
+      "must start a new submission, save recent submission and redirect to upload when `true` is submitted" in {
+        when(mockSubmissionConnector.start(any(), any(), any())(using any())).thenReturn(Future.successful(aSubmission))
+        when(mockRecentSubmissionsConnector.save(any())(any())).thenReturn(Future.successful(Done))
 
-        val submissionId = "id"
-        val submission = Submission(
-          _id = "id",
-          submissionType = SubmissionType.Xml,
-          dprsId = "dprsId",
-          operatorId = "operatorId",
-          operatorName = "operatorName",
-          assumingOperatorName = None,
-          state = Ready,
-          created = now,
-          updated = now
-        )
-
-        when(mockSubmissionConnector.start(any(), any(), any())(using any())).thenReturn(Future.successful(submission))
-
-        val application =
-          applicationBuilder(userAnswers = Some(baseAnswers))
-            .overrides(bind[SubmissionConnector].toInstance(mockSubmissionConnector))
-            .build()
+        val userAnswers = aUserAnswers.set(PlatformOperatorSummaryQuery, platformOperatorSummary).success.value
+        val application = applicationBuilder(userAnswers = Some(userAnswers)).overrides(
+          bind[SubmissionConnector].toInstance(mockSubmissionConnector),
+          bind[RecentSubmissionsConnector].toInstance(mockRecentSubmissionsConnector),
+          bind[Clock].toInstance(stubClock)
+        ).build()
+        val expectedRecentSubmission = RecentSubmissionRequest("some-operator-id")
 
         running(application) {
-          val request =
-            FakeRequest(POST, routes.CheckContactDetailsController.onPageLoad(operatorId).url)
-              .withFormUrlEncodedBody("value" -> "true")
-
+          val request = FakeRequest(POST, routes.CheckContactDetailsController.onSubmit("some-operator-id").url)
+            .withFormUrlEncodedBody("value" -> "true")
           val result = route(application, request).value
 
           status(result) mustEqual SEE_OTHER
-          redirectLocation(result).value mustEqual routes.UploadController.onPageLoad(operatorId, submissionId).url
-          verify(mockSubmissionConnector).start(eqTo("operatorId"), eqTo("operatorName"), eqTo(None))(using any())
+          redirectLocation(result).value mustEqual routes.UploadController.onPageLoad("some-operator-id", aSubmission._id).url
         }
-      }
-      
-      "must fail when the call to create a new submission fails" in {
 
-        val application = applicationBuilder(userAnswers = Some(baseAnswers))
-          .overrides(
-            bind[SubmissionConnector].toInstance(mockSubmissionConnector)
-          )
-          .build()
+        verify(mockSubmissionConnector, times(1)).start(eqTo("some-operator-id"), eqTo("operatorName"), eqTo(None))(using any())
+        verify(mockRecentSubmissionsConnector, times(1)).save(eqTo(expectedRecentSubmission))(any())
+      }
+
+      "must start a new submission and redirect to upload when `true` is submitted and save recent submission fails" in {
+        when(mockSubmissionConnector.start(any(), any(), any())(using any())).thenReturn(Future.successful(aSubmission))
+        when(mockRecentSubmissionsConnector.save(any())(any())).thenReturn(Future.failed(new RuntimeException()))
+
+        val userAnswers = aUserAnswers.set(PlatformOperatorSummaryQuery, platformOperatorSummary).success.value
+        val application = applicationBuilder(userAnswers = Some(userAnswers)).overrides(
+          bind[SubmissionConnector].toInstance(mockSubmissionConnector),
+          bind[RecentSubmissionsConnector].toInstance(mockRecentSubmissionsConnector),
+          bind[Clock].toInstance(stubClock)
+        ).build()
+
+        running(application) {
+          val request = FakeRequest(POST, routes.CheckContactDetailsController.onSubmit("some-operator-id").url)
+            .withFormUrlEncodedBody("value" -> "true")
+          val result = route(application, request).value
+
+          status(result) mustEqual SEE_OTHER
+          redirectLocation(result).value mustEqual routes.UploadController.onPageLoad("some-operator-id", aSubmission._id).url
+        }
+
+        verify(mockSubmissionConnector, times(1)).start(eqTo("some-operator-id"), eqTo("operatorName"), eqTo(None))(using any())
+      }
+
+      "must fail when the call to create a new submission fails" in {
+        val application = applicationBuilder(userAnswers = Some(baseAnswers)).overrides(
+          bind[SubmissionConnector].toInstance(mockSubmissionConnector),
+          bind[RecentSubmissionsConnector].toInstance(mockRecentSubmissionsConnector)
+        ).build()
 
         when(mockSubmissionConnector.start(any(), any(), any())(using any())).thenReturn(Future.failed(new RuntimeException()))
 
         running(application) {
-          val request =
-            FakeRequest(routes.CheckContactDetailsController.onSubmit(operatorId))
-              .withFormUrlEncodedBody("value" -> "true")
+          val request = FakeRequest(routes.CheckContactDetailsController.onSubmit("some-operator-id"))
+            .withFormUrlEncodedBody("value" -> "true")
 
           route(application, request).value.failed.futureValue
         }
+
+        verify(mockRecentSubmissionsConnector, never()).getRecentSubmission(any())(any())
       }
     }
 
-    "must redirect to update contact details when `false` is submitted" in {
-
-      val application =
-        applicationBuilder(userAnswers = Some(baseAnswers))
-          .overrides(bind[SubmissionConnector].toInstance(mockSubmissionConnector))
-          .build()
+    "must redirect to manage home page when `false` is submitted" in {
+      val application = applicationBuilder(userAnswers = Some(baseAnswers)).overrides(
+        bind[SubmissionConnector].toInstance(mockSubmissionConnector),
+        bind[RecentSubmissionsConnector].toInstance(mockRecentSubmissionsConnector)
+      ).build()
 
       running(application) {
-        val request =
-          FakeRequest(POST, routes.CheckContactDetailsController.onPageLoad(operatorId).url)
-            .withFormUrlEncodedBody("value" -> "false")
-
+        val request = FakeRequest(POST, routes.CheckContactDetailsController.onPageLoad("any-operator-id").url)
+          .withFormUrlEncodedBody("value" -> "false")
         val result = route(application, request).value
         val appConfig = application.injector.instanceOf[FrontendAppConfig]
 
         status(result) mustEqual SEE_OTHER
         redirectLocation(result).value mustEqual appConfig.manageHomepageUrl
-        verify(mockSubmissionConnector, never()).start(any(), any(), any())(using any())
       }
+
+      verify(mockSubmissionConnector, never()).start(any(), any(), any())(using any())
+      verify(mockRecentSubmissionsConnector, never()).getRecentSubmission(any())(any())
     }
-    
   }
 }

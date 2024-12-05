@@ -22,7 +22,7 @@ import play.api.i18n.Lang
 import play.api.mvc.RequestHeader
 
 @Singleton
-class FrontendAppConfig @Inject() (configuration: Configuration) {
+class FrontendAppConfig @Inject()(configuration: Configuration) {
 
   val host: String    = configuration.get[String]("host")
   val appName: String = configuration.get[String]("appName")
@@ -30,6 +30,8 @@ class FrontendAppConfig @Inject() (configuration: Configuration) {
 
   private val contactHost = configuration.get[String]("contact-frontend.host")
   private val contactFormServiceIdentifier = "digital-platform-reporting-submission-frontend"
+
+  val digitalPlatformReportingUrl: Service = configuration.get[Service]("microservice.services.digital-platform-reporting")
 
   def feedbackUrl(implicit request: RequestHeader): String =
     s"$contactHost/contact/beta-feedback?service=$contactFormServiceIdentifier&backUrl=${host + request.uri}"
@@ -58,11 +60,12 @@ class FrontendAppConfig @Inject() (configuration: Configuration) {
 
   private val operatorFrontendUrl: String = configuration.get[String]("microservice.services.digital-platform-reporting-operator-frontend.baseUrl")
   val addOperatorUrl: String = s"$operatorFrontendUrl/platform-operator/add-platform-operator/start"
+
   def updateOperatorUrl(operatorId: String) = s"$operatorFrontendUrl/platform-operator/$operatorId/check-your-answers"
+
   def addReportingNotificationUrl(operatorId: String) = s"$operatorFrontendUrl/reporting-notification/$operatorId/start"
 
   private val manageFrontendUrl: String = configuration.get[String]("microservice.services.digital-platform-reporting-manage-frontend.baseUrl")
   val updateContactDetailsUrl: String = s"$manageFrontendUrl/contact-details/view-contact-details"
   val manageHomepageUrl: String = s"$manageFrontendUrl/manage-reporting"
-
 }

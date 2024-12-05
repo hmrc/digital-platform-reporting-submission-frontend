@@ -17,16 +17,16 @@
 package controllers.submission
 
 import base.SpecBase
+import connectors.PendingEnrolmentConnector.GetRecentSubmissionFailure
 import connectors.PlatformOperatorConnector.PlatformOperatorNotFoundFailure
-import connectors.PlatformOperatorConnector
+import connectors.{PlatformOperatorConnector, RecentSubmissionsConnector, SubmissionConnector}
 import models.UserAnswers
-import models.operator.{AddressDetails, ContactDetails}
 import models.operator.responses.PlatformOperator
-import models.submission.Submission
-import models.submission.Submission.State.Ready
+import models.operator.{AddressDetails, ContactDetails}
+import models.recentsubmissions.RecentSubmissionDetails
 import org.mockito.ArgumentMatchers.{any, eq as eqTo}
-import org.mockito.{ArgumentCaptor, Mockito}
 import org.mockito.Mockito.{never, times, verify, when}
+import org.mockito.{ArgumentCaptor, Mockito}
 import org.scalatest.BeforeAndAfterEach
 import org.scalatestplus.mockito.MockitoSugar
 import play.api.inject.bind
@@ -34,6 +34,8 @@ import play.api.test.FakeRequest
 import play.api.test.Helpers.*
 import queries.PlatformOperatorSummaryQuery
 import repositories.SessionRepository
+import support.builders.SubmissionBuilder.aSubmission
+import support.builders.UserAnswersBuilder.aUserAnswers
 import viewmodels.PlatformOperatorSummary
 import views.html.submission.StartPageView
 
@@ -41,31 +43,30 @@ import scala.concurrent.Future
 
 class StartControllerSpec extends SpecBase with MockitoSugar with BeforeAndAfterEach {
 
-  private val mockConnector = mock[PlatformOperatorConnector]
-  private val mockRepository = mock[SessionRepository]
+  private val mockSubmissionConnector = mock[SubmissionConnector]
+  private val mockPlatformOperatorConnector = mock[PlatformOperatorConnector]
+  private val mockSessionRepository = mock[SessionRepository]
+  private val mockRecentSubmissionsConnector = mock[RecentSubmissionsConnector]
   private val platformOperatorSummary = PlatformOperatorSummary("operatorId", "operatorName", true)
-  private val baseAnswers = emptyUserAnswers.set(PlatformOperatorSummaryQuery, platformOperatorSummary).success.value
-  
+  private val baseAnswers = aUserAnswers.set(PlatformOperatorSummaryQuery, platformOperatorSummary).success.value
+
   override def beforeEach(): Unit = {
     super.beforeEach()
     Mockito.reset(
-      mockConnector,
-      mockRepository
+      mockSubmissionConnector,
+      mockPlatformOperatorConnector,
+      mockSessionRepository,
+      mockRecentSubmissionsConnector
     )
   }
 
   "StartPage Controller" - {
-
     "onPageLoad" - {
-
       "must return OK and the correct view for a GET when user answers exist" in {
-
-        val application = applicationBuilder(userAnswers = Some(baseAnswers))
-          .overrides(
-            bind[PlatformOperatorConnector].toInstance(mockConnector),
-            bind[SessionRepository].toInstance(mockRepository)
-          )
-          .build()
+        val application = applicationBuilder(userAnswers = Some(baseAnswers)).overrides(
+          bind[PlatformOperatorConnector].toInstance(mockPlatformOperatorConnector),
+          bind[SessionRepository].toInstance(mockSessionRepository)
+        ).build()
 
         running(application) {
           val request = FakeRequest(routes.StartController.onPageLoad(operatorId))
@@ -76,12 +77,11 @@ class StartControllerSpec extends SpecBase with MockitoSugar with BeforeAndAfter
           contentAsString(result) mustEqual view(operatorId)(request, messages(application)).toString
         }
 
-        verify(mockConnector, never()).viewPlatformOperator(any())(any())
-        verify(mockRepository, never()).set(any())
+        verify(mockPlatformOperatorConnector, never()).viewPlatformOperator(any())(any())
+        verify(mockSessionRepository, never()).set(any())
       }
 
       "must save a platform operator summary and return OK and the correct view for a GET when user answers do not exist" in {
-
         val operator = PlatformOperator(
           operatorId = operatorId,
           operatorName = "operatorName",
@@ -94,15 +94,13 @@ class StartControllerSpec extends SpecBase with MockitoSugar with BeforeAndAfter
           notifications = Nil
         )
 
-        when(mockConnector.viewPlatformOperator(any())(any())).thenReturn(Future.successful(operator))
-        when(mockRepository.set(any())).thenReturn(Future.successful(true))
+        when(mockPlatformOperatorConnector.viewPlatformOperator(any())(any())).thenReturn(Future.successful(operator))
+        when(mockSessionRepository.set(any())).thenReturn(Future.successful(true))
 
-        val application = applicationBuilder(userAnswers = None)
-          .overrides(
-            bind[PlatformOperatorConnector].toInstance(mockConnector),
-            bind[SessionRepository].toInstance(mockRepository)
-          )
-          .build()
+        val application = applicationBuilder(userAnswers = None).overrides(
+          bind[PlatformOperatorConnector].toInstance(mockPlatformOperatorConnector),
+          bind[SessionRepository].toInstance(mockSessionRepository)
+        ).build()
 
         running(application) {
           val request = FakeRequest(routes.StartController.onPageLoad(operatorId))
@@ -114,8 +112,8 @@ class StartControllerSpec extends SpecBase with MockitoSugar with BeforeAndAfter
           status(result) mustEqual OK
           contentAsString(result) mustEqual view(operatorId)(request, messages(application)).toString
 
-          verify(mockConnector, times(1)).viewPlatformOperator(eqTo(operator.operatorId))(any())
-          verify(mockRepository, times(1)).set(answersCaptor.capture())
+          verify(mockPlatformOperatorConnector, times(1)).viewPlatformOperator(eqTo(operator.operatorId))(any())
+          verify(mockSessionRepository, times(1)).set(answersCaptor.capture())
 
           val answers = answersCaptor.getValue
           answers.get(PlatformOperatorSummaryQuery).value mustEqual expectedSummary
@@ -123,16 +121,13 @@ class StartControllerSpec extends SpecBase with MockitoSugar with BeforeAndAfter
       }
 
       "must redirect to Select Platform Operator when user answers do not exist and the platform operator cannot be found" in {
+        when(mockPlatformOperatorConnector.viewPlatformOperator(any())(any())).thenReturn(Future.failed(PlatformOperatorNotFoundFailure))
+        when(mockSessionRepository.set(any())).thenReturn(Future.successful(true))
 
-        when(mockConnector.viewPlatformOperator(any())(any())).thenReturn(Future.failed(PlatformOperatorNotFoundFailure))
-        when(mockRepository.set(any())).thenReturn(Future.successful(true))
-
-        val application = applicationBuilder(userAnswers = None)
-          .overrides(
-            bind[PlatformOperatorConnector].toInstance(mockConnector),
-            bind[SessionRepository].toInstance(mockRepository)
-          )
-          .build()
+        val application = applicationBuilder(userAnswers = None).overrides(
+          bind[PlatformOperatorConnector].toInstance(mockPlatformOperatorConnector),
+          bind[SessionRepository].toInstance(mockSessionRepository)
+        ).build()
 
         running(application) {
           val request = FakeRequest(routes.StartController.onPageLoad(operatorId))
@@ -141,16 +136,19 @@ class StartControllerSpec extends SpecBase with MockitoSugar with BeforeAndAfter
           status(result) mustEqual SEE_OTHER
           redirectLocation(result).value mustEqual controllers.routes.JourneyRecoveryController.onPageLoad().url // TODO change this when the select PO pages exist
 
-          verify(mockRepository, never()).set(any())
+          verify(mockSessionRepository, never()).set(any())
         }
       }
     }
 
     "onSubmit" - {
+      "must redirect to Check Platform Operator when no recent submission" in {
+        val application = applicationBuilder(userAnswers = Some(aUserAnswers)).overrides(
+          bind[SubmissionConnector].toInstance(mockSubmissionConnector),
+          bind[RecentSubmissionsConnector].toInstance(mockRecentSubmissionsConnector)
+        ).build()
 
-      "must redirect to Check Platform Operator" in {
-        
-        val application = applicationBuilder(userAnswers = Some(emptyUserAnswers)).build()
+        when(mockRecentSubmissionsConnector.getRecentSubmission(any())(any())).thenReturn(Future.successful(None))
 
         running(application) {
           val request = FakeRequest(routes.StartController.onSubmit(operatorId))
@@ -159,6 +157,49 @@ class StartControllerSpec extends SpecBase with MockitoSugar with BeforeAndAfter
           status(result) mustEqual SEE_OTHER
           redirectLocation(result).value mustEqual routes.CheckPlatformOperatorController.onPageLoad(operatorId).url
         }
+
+        verify(mockSubmissionConnector, never()).start(any(), any(), any())(using any())
+      }
+
+      "must redirect to Check Platform Operator when getting recent submission failed" in {
+        val application = applicationBuilder(userAnswers = Some(aUserAnswers)).overrides(
+          bind[SubmissionConnector].toInstance(mockSubmissionConnector),
+          bind[RecentSubmissionsConnector].toInstance(mockRecentSubmissionsConnector)
+        ).build()
+
+        when(mockRecentSubmissionsConnector.getRecentSubmission(any())(any())).thenReturn(Future.failed(GetRecentSubmissionFailure(500)))
+
+        running(application) {
+          val request = FakeRequest(routes.StartController.onSubmit(operatorId))
+          val result = route(application, request).value
+
+          status(result) mustEqual SEE_OTHER
+          redirectLocation(result).value mustEqual routes.CheckPlatformOperatorController.onPageLoad(operatorId).url
+        }
+
+        verify(mockSubmissionConnector, never()).start(any(), any(), any())(using any())
+      }
+
+      "must redirect to Upload when recent submission" in {
+        val userAnswers = aUserAnswers.set(PlatformOperatorSummaryQuery, platformOperatorSummary).success.value
+        val application = applicationBuilder(userAnswers = Some(userAnswers)).overrides(
+          bind[SubmissionConnector].toInstance(mockSubmissionConnector),
+          bind[RecentSubmissionsConnector].toInstance(mockRecentSubmissionsConnector)
+        ).build()
+
+        when(mockRecentSubmissionsConnector.getRecentSubmission(any())(any())).thenReturn(Future.successful(Some(RecentSubmissionDetails(userId, operatorId))))
+        when(mockSubmissionConnector.start(any(), any(), any())(using any())).thenReturn(Future.successful(aSubmission))
+
+        running(application) {
+          val request = FakeRequest(routes.StartController.onSubmit(operatorId))
+          val result = route(application, request).value
+
+          status(result) mustEqual SEE_OTHER
+          redirectLocation(result).value mustEqual routes.UploadController.onPageLoad(operatorId, aSubmission._id).url
+        }
+
+        verify(mockRecentSubmissionsConnector, times(1)).getRecentSubmission(eqTo(operatorId))(any())
+        verify(mockSubmissionConnector, times(1)).start(eqTo(operatorId), eqTo(platformOperatorSummary.operatorName), eqTo(None))(using any())
       }
     }
   }

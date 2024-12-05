@@ -18,11 +18,14 @@ package controllers.submission
 
 import com.google.inject.Inject
 import config.FrontendAppConfig
-import connectors.{SubmissionConnector, SubscriptionConnector}
+import connectors.{RecentSubmissionsConnector, SubmissionConnector, SubscriptionConnector}
 import controllers.AnswerExtractor
 import controllers.actions.{DataRequiredAction, DataRetrievalActionProvider, IdentifierAction}
 import forms.CheckContactDetailsFormProvider
+import models.recentsubmissions.RecentSubmissionRequest
 import models.subscription.{IndividualContact, OrganisationContact, SubscriptionInfo}
+import org.apache.pekko.Done
+import play.api.Logging
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import queries.PlatformOperatorSummaryQuery
@@ -32,54 +35,54 @@ import viewmodels.checkAnswers.subscription.*
 import views.html.submission.CheckContactDetailsView
 
 import scala.concurrent.{ExecutionContext, Future}
+import scala.util.control.NonFatal
 
-class CheckContactDetailsController @Inject()(
-                                               override val messagesApi: MessagesApi,
-                                               identify: IdentifierAction,
-                                               getData: DataRetrievalActionProvider,
-                                               requireData: DataRequiredAction,
-                                               val controllerComponents: MessagesControllerComponents,
-                                               formProvider: CheckContactDetailsFormProvider,
-                                               view: CheckContactDetailsView,
-                                               connector: SubscriptionConnector,
-                                               submissionConnector: SubmissionConnector,
-                                               appConfig: FrontendAppConfig
-                                             )(implicit ec: ExecutionContext)
-  extends FrontendBaseController with I18nSupport with AnswerExtractor {
+class CheckContactDetailsController @Inject()(override val messagesApi: MessagesApi,
+                                              identify: IdentifierAction,
+                                              getData: DataRetrievalActionProvider,
+                                              requireData: DataRequiredAction,
+                                              val controllerComponents: MessagesControllerComponents,
+                                              formProvider: CheckContactDetailsFormProvider,
+                                              view: CheckContactDetailsView,
+                                              connector: SubscriptionConnector,
+                                              submissionConnector: SubmissionConnector,
+                                              recentSubmissionsConnector: RecentSubmissionsConnector,
+                                              appConfig: FrontendAppConfig)
+                                             (implicit ec: ExecutionContext)
+  extends FrontendBaseController with I18nSupport with AnswerExtractor with Logging {
 
-  def onPageLoad(operatorId: String): Action[AnyContent] = (identify andThen getData(operatorId) andThen requireData).async {
-    implicit request =>
-      connector.getSubscription.map { subscriptionInfo =>
-        val list = summaryList(subscriptionInfo)
-        val form = formProvider()
-        Ok(view(form, list, operatorId))
-      }
+  def onPageLoad(operatorId: String): Action[AnyContent] = (identify andThen getData(operatorId) andThen requireData).async { implicit request =>
+    connector.getSubscription.map { subscriptionInfo =>
+      val list = summaryList(subscriptionInfo)
+      val form = formProvider()
+      Ok(view(form, list, operatorId))
+    }
   }
 
-  def onSubmit(operatorId: String): Action[AnyContent] = (identify andThen getData(operatorId) andThen requireData).async {
-    implicit request =>
-      getAnswerAsync(PlatformOperatorSummaryQuery) { summary =>
-
-        val form = formProvider()
-
-        form.bindFromRequest().fold(
-          formWithErrors => {
-            connector.getSubscription.map { subscriptionInfo =>
-              val list = summaryList(subscriptionInfo)
-              BadRequest(view(formWithErrors, list, operatorId))
-            }
-          },
-          answer => if (answer) {
-            submissionConnector.start(operatorId, summary.operatorName, None).map { submission =>
-              Redirect(routes.UploadController.onPageLoad(operatorId, submission._id))
-            }
-          } else {
-            Future.successful(Redirect(appConfig.manageHomepageUrl))
+  def onSubmit(operatorId: String): Action[AnyContent] = (identify andThen getData(operatorId) andThen requireData).async { implicit request =>
+    getAnswerAsync(PlatformOperatorSummaryQuery) { summary =>
+      formProvider().bindFromRequest().fold(
+        formWithErrors => {
+          connector.getSubscription.map { subscriptionInfo =>
+            val list = summaryList(subscriptionInfo)
+            BadRequest(view(formWithErrors, list, operatorId))
           }
-        )
-      }
+        },
+        answer => if (answer) {
+          submissionConnector.start(operatorId, summary.operatorName, None).map { submission =>
+            recentSubmissionsConnector.save(RecentSubmissionRequest(operatorId)).recoverWith {
+              case NonFatal(e) => logger.warn("Recent submission could not be saved", e)
+                Future.successful(Done)
+            }
+            Redirect(routes.UploadController.onPageLoad(operatorId, submission._id))
+          }
+        } else {
+          Future.successful(Redirect(appConfig.manageHomepageUrl))
+        }
+      )
+    }
   }
-      
+
   private def summaryList(subscription: SubscriptionInfo)(implicit messages: Messages): SummaryList = {
     subscription.primaryContact match {
       case primaryContact: OrganisationContact =>
