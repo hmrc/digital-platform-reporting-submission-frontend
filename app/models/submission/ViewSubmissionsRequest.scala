@@ -25,7 +25,8 @@ final case class ViewSubmissionsRequest(assumedReporting: Boolean,
                                         sortOrder: SortOrder,
                                         reportingPeriod: Option[Int],
                                         operatorId: Option[String],
-                                        statuses: Seq[SubmissionStatus])
+                                        statuses: Seq[SubmissionStatus],
+                                        fileName: Option[String] = None)
 
 object ViewSubmissionsRequest {
   
