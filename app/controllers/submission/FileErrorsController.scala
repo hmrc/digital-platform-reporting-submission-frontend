@@ -26,6 +26,7 @@ import org.apache.pekko.stream.scaladsl.Source
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents, Request, Result}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
+import utils.FileUtils.stripExtension
 import views.html.submission.{FileErrorsNoDownloadView, FileErrorsView}
 
 import javax.inject.Inject
@@ -123,7 +124,7 @@ class FileErrorsController @Inject()(
       reportingPeriod = None,
       operatorId = None,
       statuses = Nil,
-      fileName = Some(fileName)
+      fileName = Some(stripExtension(fileName))
     )
 
     submissionConnector.listDeliveredSubmissions(viewRequest).flatMap {

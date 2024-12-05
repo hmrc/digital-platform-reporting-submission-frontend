@@ -284,7 +284,7 @@ class FileErrorsControllerSpec extends SpecBase with MockitoSugar with BeforeAnd
           reportingPeriod = None,
           operatorId = None,
           statuses = Nil,
-          fileName = Some("test.xml")
+          fileName = Some("test")
         )
 
         "and no submissions are found at CADX" - {
