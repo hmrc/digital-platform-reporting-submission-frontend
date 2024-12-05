@@ -17,10 +17,12 @@
 package controllers.submission
 
 import connectors.PlatformOperatorConnector.PlatformOperatorNotFoundFailure
-import connectors.{PlatformOperatorConnector, SubmissionConnector}
+import connectors.{PlatformOperatorConnector, RecentSubmissionsConnector, SubmissionConnector}
 import controllers.AnswerExtractor
 import controllers.actions.*
 import models.UserAnswers
+import models.recentsubmissions.RecentSubmissionDetails
+import play.api.Logging
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import queries.PlatformOperatorSummaryQuery
@@ -31,18 +33,20 @@ import views.html.submission.StartPageView
 
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
+import scala.util.control.NonFatal
 
-class StartController @Inject()(
-                                 override val messagesApi: MessagesApi,
-                                 identify: IdentifierAction,
-                                 val controllerComponents: MessagesControllerComponents,
-                                 view: StartPageView,
-                                 submissionConnector: SubmissionConnector,
-                                 platformOperatorConnector: PlatformOperatorConnector,
-                                 sessionRepository: SessionRepository,
-                                 getData: DataRetrievalActionProvider,
-                                 requireData: DataRequiredAction,
-                               )(using ExecutionContext) extends FrontendBaseController with I18nSupport with AnswerExtractor {
+class StartController @Inject()(override val messagesApi: MessagesApi,
+                                identify: IdentifierAction,
+                                val controllerComponents: MessagesControllerComponents,
+                                view: StartPageView,
+                                submissionConnector: SubmissionConnector,
+                                platformOperatorConnector: PlatformOperatorConnector,
+                                sessionRepository: SessionRepository,
+                                recentSubmissionsConnector: RecentSubmissionsConnector,
+                                getData: DataRetrievalActionProvider,
+                                requireData: DataRequiredAction)
+                               (using ExecutionContext)
+  extends FrontendBaseController with I18nSupport with AnswerExtractor with Logging {
 
   def onPageLoad(operatorId: String): Action[AnyContent] = (identify andThen getData(operatorId)).async { implicit request =>
     request.userAnswers
@@ -51,8 +55,8 @@ class StartController @Inject()(
         platformOperatorConnector.viewPlatformOperator(operatorId).flatMap { operator =>
           val summary = PlatformOperatorSummary(operator)
           for {
-            answers  <- Future.fromTry(UserAnswers(request.userId, operatorId).set(PlatformOperatorSummaryQuery, summary))
-            _        <- sessionRepository.set(answers)
+            answers <- Future.fromTry(UserAnswers(request.userId, operatorId).set(PlatformOperatorSummaryQuery, summary))
+            _ <- sessionRepository.set(answers)
           } yield Ok(view(operatorId))
         }.recover {
           case PlatformOperatorNotFoundFailure => Redirect(controllers.routes.JourneyRecoveryController.onPageLoad()) // TODO change this when the choose PO pages exist
@@ -60,7 +64,19 @@ class StartController @Inject()(
       }
   }
 
-  def onSubmit(operatorId: String): Action[AnyContent] = (identify andThen getData(operatorId) andThen requireData) { implicit request =>
-    Redirect(routes.CheckPlatformOperatorController.onPageLoad(operatorId))
+  def onSubmit(operatorId: String): Action[AnyContent] = (identify andThen getData(operatorId) andThen requireData).async { implicit request =>
+    recentSubmissionsConnector
+      .getRecentSubmission(operatorId)
+      .recover {
+        case NonFatal(e) => logger.warn("Getting recent submission failed", e)
+          None
+      }.map(_.nonEmpty).flatMap {
+        case true => getAnswerAsync(PlatformOperatorSummaryQuery) { summary =>
+          submissionConnector.start(operatorId, summary.operatorName, None).map { submission =>
+            Redirect(routes.UploadController.onPageLoad(operatorId, submission._id))
+          }
+        }
+        case false => Future.successful(Redirect(routes.CheckPlatformOperatorController.onPageLoad(operatorId)))
+      }
   }
 }
