@@ -33,8 +33,10 @@ import org.scalatestplus.mockito.MockitoSugar
 import play.api.inject.bind
 import play.api.test.FakeRequest
 import play.api.test.Helpers.*
+import queries.PlatformOperatorSummaryQuery
 import services.UpscanService
 import uk.gov.hmrc.http.StringContextOps
+import viewmodels.PlatformOperatorSummary
 import views.html.submission.{SchemaFailureView, UploadFailedView, XmlFailureView}
 
 import java.time.{Instant, Year}
@@ -54,7 +56,7 @@ class UploadFailedControllerSpec extends SpecBase with MockitoSugar with BeforeA
 
   private val readyGen: Gen[Ready.type] = Gen.const(Ready)
   private val uploadingGen: Gen[Uploading.type] = Gen.const(Uploading)
-  private val uploadFailureReasonGen: Gen[UploadFailureReason] = Gen.oneOf(NotXml, SchemaValidationError, PlatformOperatorIdMissing, ReportingPeriodInvalid)
+  private val uploadFailureReasonGen: Gen[UploadFailureReason] = Gen.oneOf(NotXml, SchemaValidationError(Seq.empty), PlatformOperatorIdMissing, ReportingPeriodInvalid)
   private val uploadFailedGen: Gen[UploadFailed] = uploadFailureReasonGen.map(reason => UploadFailed(reason, None))
 
   "UploadFailed Controller" - {
@@ -115,7 +117,7 @@ class UploadFailedControllerSpec extends SpecBase with MockitoSugar with BeforeA
             operatorId = "operatorId",
             operatorName = "operatorName",
             assumingOperatorName = None,
-            state = UploadFailed(SchemaValidationError, Some("some-file-name")),
+            state = UploadFailed(SchemaValidationError(Seq.empty), Some("some-file-name")),
             created = now,
             updated = now
           )
@@ -156,7 +158,7 @@ class UploadFailedControllerSpec extends SpecBase with MockitoSugar with BeforeA
             operatorId = "operatorId",
             operatorName = "operatorName",
             assumingOperatorName = None,
-            state = UploadFailed(SchemaValidationError, None),
+            state = UploadFailed(SchemaValidationError(Seq.empty), None),
             created = now,
             updated = now
           )

@@ -194,17 +194,17 @@ class FileErrorsControllerSpec extends SpecBase with MockitoSugar with BeforeAnd
             )
             .build()
 
-          val submission = Submission(
-            _id = "id",
-            submissionType = SubmissionType.Xml,
-            dprsId = "dprsId",
-            operatorId = "operatorId",
-            operatorName = "operatorName",
-            assumingOperatorName = None,
-            state = UploadFailed(SchemaValidationError, None),
-            created = now,
-            updated = now
-          )
+            val submission = Submission(
+              _id = "id",
+              submissionType = SubmissionType.Xml,
+              dprsId = "dprsId",
+              operatorId = "operatorId",
+              operatorName = "operatorName",
+              assumingOperatorName = None,
+              state = UploadFailed(SchemaValidationError(Seq.empty), None),
+              created = now,
+              updated = now
+            )
 
           when(mockSubmissionConnector.get(any())(using any())).thenReturn(Future.successful(Some(submission)))
 
@@ -275,7 +275,7 @@ class FileErrorsControllerSpec extends SpecBase with MockitoSugar with BeforeAnd
           created = now,
           updated = now
         )
-        
+
         val expectedViewRequest = ViewSubmissionsRequest(
           assumedReporting = false,
           pageNumber = 1,
@@ -654,7 +654,7 @@ class FileErrorsControllerSpec extends SpecBase with MockitoSugar with BeforeAnd
               operatorId = "operatorId",
               operatorName = "operatorName",
               assumingOperatorName = None,
-              state = UploadFailed(SchemaValidationError, None),
+              state = UploadFailed(SchemaValidationError(Seq.empty), None),
               created = now,
               updated = now
             )
