@@ -1,0 +1,48 @@
+@*
+ * Copyright 2024 HM Revenue & Customs
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *@
+
+@import config.FrontendAppConfig
+
+@this(
+        appConfig: FrontendAppConfig,
+        layout: templates.Layout
+)
+
+@(uploadDifferentFileUrl: String, fileName: String)(implicit request: Request[_], messages: Messages)
+
+@layout(pageTitle = titleNoForm(messages("uploadFailed.xmlFailure.title")), showBackLink = false) {
+
+    <h1 class="govuk-heading-xl">@messages("uploadFailed.xmlFailure.heading")</h1>
+
+    <p class="govuk-body">@messages("uploadFailed.xmlFailure.p1", fileName)</p>
+
+    <p class="govuk-body">@messages("uploadFailed.xmlFailure.p2")</p>
+
+    <ul class="govuk-list govuk-list--bullet">
+        <li>@messages("uploadFailed.xmlFailure.bullet1")</li>
+        <li>@messages("uploadFailed.xmlFailure.bullet2")</li>
+        <li>@messages("uploadFailed.xmlFailure.bullet3")</li>
+    </ul>
+
+    <p class="govuk-body">
+        <a href="https://www.gov.uk/government/publications/digital-platform-reporting-xml-schema-and-supporting-documents" class="govuk-link" target="_blank" rel="noreferrer noopener">@messages("uploadFailed.xmlFailure.p3.link.text")</a>.
+    </p>
+
+    <p class="govuk-body"><a class="govuk-link" href="@uploadDifferentFileUrl">@messages("uploadFailed.xmlFailure.p4.link.text")</a></p>
+
+    <p class="govuk-body"><a class="govuk-link" href="@appConfig.manageHomepageUrl">@messages("uploadFailed.xmlFailure.p5.link.text")</a></p>
+
+}
