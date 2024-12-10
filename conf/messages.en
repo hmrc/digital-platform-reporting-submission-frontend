@@ -82,6 +82,17 @@ uploadFailed.schemafailure.p1.3 = We are unable to display a break down of the s
 uploadFailed.schemafailure.p1.4 = Upload a different file
 uploadFailed.schemafailure.p1.5 = Return to manage your digital platform reporting
 
+uploadFailed.xmlFailure.title = There is a problem with the formatting of your file
+uploadFailed.xmlFailure.heading = There is a problem with the formatting of your file
+uploadFailed.xmlFailure.p1 = We cannot accept the file {0} because there is a problem with its formatting.
+uploadFailed.xmlFailure.p2 = Check that all:
+uploadFailed.xmlFailure.bullet1 = element names are correct
+uploadFailed.xmlFailure.bullet2 = elements have an opening and a closing tag
+uploadFailed.xmlFailure.bullet3 = tags are correctly nested
+uploadFailed.xmlFailure.p3.link.text = Refer to the XML schema and supporting documents (opens in new tab)
+uploadFailed.xmlFailure.p4.link.text = Upload a different file
+uploadFailed.xmlFailure.p5.link.text = Return to manage your digital platform reporting
+
 uploadFailed.title = Upload an XML file
 uploadFailed.heading = Upload an XML file
 uploadFailed.body = We will automatically check the formatting of the file and send you to another page once completed.

@@ -22,12 +22,12 @@ import controllers.actions.*
 import models.submission.Submission
 import models.submission.Submission.State.{Approved, Ready, Rejected, Submitted, UploadFailed, Uploading, Validated}
 import models.submission.Submission.UploadFailureReason
-import models.submission.Submission.UploadFailureReason.SchemaValidationError
+import models.submission.Submission.UploadFailureReason.{NotXml, SchemaValidationError}
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents, Result}
 import services.UpscanService
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
-import views.html.submission.{SchemaFailureView, UploadFailedView}
+import views.html.submission.{SchemaFailureView, UploadFailedView, XmlFailureView}
 
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
@@ -37,6 +37,7 @@ class UploadFailedController @Inject()(override val messagesApi: MessagesApi,
                                        val controllerComponents: MessagesControllerComponents,
                                        view: UploadFailedView,
                                        schemaFailureView: SchemaFailureView,
+                                       xmlFailureView: XmlFailureView,
                                        submissionConnector: SubmissionConnector,
                                        upscanService: UpscanService)
                                       (using ExecutionContext)
@@ -46,17 +47,20 @@ class UploadFailedController @Inject()(override val messagesApi: MessagesApi,
     implicit request =>
       submissionConnector.get(submissionId).flatMap {
         _.map { submission =>
-          handleSubmission(operatorId, submission) { case state: UploadFailed =>
-            if (state.reason == SchemaValidationError) {
+          val uploadDifferentFileUrl = routes.UploadController.onRedirect(submission.operatorId, submissionId).url
+          handleSubmission(operatorId, submission) {
+            case state: UploadFailed if state.reason == SchemaValidationError =>
               state.fileName.map { fileName =>
-                val uploadDifferentFileUrl = routes.UploadController.onRedirect(submission.operatorId, submissionId).url
                 Future.successful(Ok(schemaFailureView(uploadDifferentFileUrl, fileName)))
               }.getOrElse(Future.successful(Redirect(controllers.routes.JourneyRecoveryController.onPageLoad())))
-            } else {
+            case state: UploadFailed if state.reason == NotXml =>
+              state.fileName.map { fileName =>
+                Future.successful(Ok(xmlFailureView(uploadDifferentFileUrl, fileName)))
+              }.getOrElse(Future.successful(Redirect(controllers.routes.JourneyRecoveryController.onPageLoad())))
+            case state: UploadFailed =>
               upscanService.initiate(operatorId, request.dprsId, submissionId).map { uploadRequest =>
                 Ok(view(uploadRequest, state.reason, submission.operatorName))
               }
-            }
           }
         }.getOrElse {
           Future.successful(Redirect(controllers.routes.JourneyRecoveryController.onPageLoad()))

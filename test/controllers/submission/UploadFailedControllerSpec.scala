@@ -35,7 +35,7 @@ import play.api.test.FakeRequest
 import play.api.test.Helpers.*
 import services.UpscanService
 import uk.gov.hmrc.http.StringContextOps
-import views.html.submission.{SchemaFailureView, UploadFailedView}
+import views.html.submission.{SchemaFailureView, UploadFailedView, XmlFailureView}
 
 import java.time.{Instant, Year}
 import scala.concurrent.Future
@@ -75,7 +75,7 @@ class UploadFailedControllerSpec extends SpecBase with MockitoSugar with BeforeA
             operatorId = "operatorId",
             operatorName = "operatorName",
             assumingOperatorName = None,
-            state = UploadFailed(NotXml, Some("some-file-name")),
+            state = UploadFailed(PlatformOperatorIdMissing, Some("some-file-name")),
             created = now,
             updated = now
           )
@@ -94,7 +94,7 @@ class UploadFailedControllerSpec extends SpecBase with MockitoSugar with BeforeA
             val view = application.injector.instanceOf[UploadFailedView]
 
             status(result) mustEqual OK
-            contentAsString(result) mustEqual view(uploadRequest, NotXml, "operatorName")(request, messages(application))
+            contentAsString(result) mustEqual view(uploadRequest, PlatformOperatorIdMissing, "operatorName")(request, messages(application))
               .toString
           }
 
@@ -180,6 +180,86 @@ class UploadFailedControllerSpec extends SpecBase with MockitoSugar with BeforeA
           verify(mockSubmissionConnector).get(eqTo("id"))(using any())
           verify(mockUpscanService, never()).initiate(any(), any(), any())(using any())
         }
+
+        "must return OK and the correct view for a GET when NotXml" in {
+          val application = applicationBuilder(userAnswers = None).overrides(
+            bind[SubmissionConnector].toInstance(mockSubmissionConnector),
+            bind[UpscanService].toInstance(mockUpscanService)
+          ).build()
+
+          val submission = Submission(
+            _id = "id",
+            submissionType = SubmissionType.Xml,
+            dprsId = "dprsId",
+            operatorId = "operatorId",
+            operatorName = "operatorName",
+            assumingOperatorName = None,
+            state = UploadFailed(NotXml, Some("some-file-name")),
+            created = now,
+            updated = now
+          )
+
+          val uploadRequest = UploadRequest(
+            href = "href",
+            fields = Map.empty
+          )
+
+          when(mockSubmissionConnector.get(any())(using any())).thenReturn(Future.successful(Some(submission)))
+          when(mockUpscanService.initiate(any(), any(), any())(using any())).thenReturn(Future.successful(uploadRequest))
+
+          running(application) {
+            val request = FakeRequest(GET, routes.UploadFailedController.onPageLoad(operatorId, "id").url)
+            val result = route(application, request).value
+            val view = application.injector.instanceOf[XmlFailureView]
+
+            status(result) mustEqual OK
+            val uploadDifferentFileUrl = routes.UploadController.onRedirect(submission.operatorId, "id").url
+            contentAsString(result) mustEqual view(uploadDifferentFileUrl, "some-file-name")(request, messages(application))
+              .toString
+          }
+
+          verify(mockSubmissionConnector).get(eqTo("id"))(using any())
+          verify(mockUpscanService, never()).initiate(any(), any(), any())(using any())
+        }
+
+        "must redirect to JourneyRecoveryController for a GET when NotXml with file name None" in {
+          val application = applicationBuilder(userAnswers = None).overrides(
+            bind[SubmissionConnector].toInstance(mockSubmissionConnector),
+            bind[UpscanService].toInstance(mockUpscanService)
+          ).build()
+
+          val submission = Submission(
+            _id = "id",
+            submissionType = SubmissionType.Xml,
+            dprsId = "dprsId",
+            operatorId = "operatorId",
+            operatorName = "operatorName",
+            assumingOperatorName = None,
+            state = UploadFailed(NotXml, None),
+            created = now,
+            updated = now
+          )
+
+          val uploadRequest = UploadRequest(
+            href = "href",
+            fields = Map.empty
+          )
+
+          when(mockSubmissionConnector.get(any())(using any())).thenReturn(Future.successful(Some(submission)))
+          when(mockUpscanService.initiate(any(), any(), any())(using any())).thenReturn(Future.successful(uploadRequest))
+
+          running(application) {
+            val request = FakeRequest(GET, routes.UploadFailedController.onPageLoad(operatorId, "id").url)
+            val result = route(application, request).value
+
+            status(result) mustEqual SEE_OTHER
+            redirectLocation(result).value mustEqual controllers.routes.JourneyRecoveryController.onPageLoad().url
+          }
+
+          verify(mockSubmissionConnector).get(eqTo("id"))(using any())
+          verify(mockUpscanService, never()).initiate(any(), any(), any())(using any())
+        }
+
       }
 
       "when there is no submission for the given id" - {
