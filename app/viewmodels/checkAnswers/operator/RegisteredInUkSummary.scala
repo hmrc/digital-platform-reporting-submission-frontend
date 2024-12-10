@@ -27,12 +27,14 @@ object RegisteredInUkSummary {
 
   def row(operator: PlatformOperator)(implicit messages: Messages): Option[SummaryListRow] = {
 
-    val value = if (Country.ukCountries.map(_.code).contains(operator.addressDetails.countryCode)) "site.yes" else "site.no"
+    operator.addressDetails.countryCode.map { countryCode =>
+      val value = if (Country.ukCountries.map(_.code).contains(countryCode)) "site.yes" else "site.no"
 
-    Some(SummaryListRowViewModel(
-      key = messages("registeredInUk.checkYourAnswersLabel", operator.operatorName),
-      value = ValueViewModel(value),
-      actions = Nil
-    ))
+      SummaryListRowViewModel(
+        key = messages("registeredInUk.checkYourAnswersLabel", operator.operatorName),
+        value = ValueViewModel(value),
+        actions = Nil
+      )
+    }
   }
 }
