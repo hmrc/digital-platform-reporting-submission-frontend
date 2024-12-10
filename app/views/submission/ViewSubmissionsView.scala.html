@@ -115,13 +115,9 @@
                         <thead class="govuk-table__head">
                             <tr class="govuk-table__row">
                                 <th class="govuk-table__header" scope="col">@messages("viewSubmissions.status")</th>
-                                <th class="govuk-table__header" scope="col">
-                                    <a href="@viewModel.submissionDateSort.href" class="govuk-link--muted govuk-link--no-underline govuk-link--no-visited-state govuk-link-">@viewModel.submissionDateSort.text@viewModel.submissionDateSortIcon</a>
-                                </th>
+                                <th class="govuk-table__header" scope="col">@viewModel.submissionDateSort.text</th>
                                 <th class="govuk-table__header" scope="col">@messages("viewSubmissions.platformOperator")</th>
-                                <th class="govuk-table__header" scope="col">
-                                    <a href="@viewModel.reportingPeriodSort.href" class="govuk-link--muted govuk-link--no-underline govuk-link--no-visited-state">@viewModel.reportingPeriodSort.text@viewModel.reportingPeriodSortIcon</a>
-                                </th>
+                                <th class="govuk-table__header" scope="col">@viewModel.reportingPeriodSort.text</th>
                                 <th class="govuk-table__header" scope="col">@messages("viewSubmissions.fileName")</th>
                                 <th class="govuk-table__header" scope="col">@messages("viewSubmissions.action")</th>
                             </tr>
