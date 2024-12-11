@@ -276,7 +276,7 @@ class SubmissionConfirmationControllerSpec extends SpecBase with MockitoSugar wi
               operatorId = "operatorId",
               operatorName = operatorName,
               assumingOperatorName = None,
-              state = UploadFailed(SchemaValidationError(Seq.empty), None),
+              state = UploadFailed(SchemaValidationError(Seq.empty, false), None),
               created = now,
               updated = now
             )

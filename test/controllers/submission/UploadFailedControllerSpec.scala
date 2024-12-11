@@ -56,7 +56,7 @@ class UploadFailedControllerSpec extends SpecBase with MockitoSugar with BeforeA
 
   private val readyGen: Gen[Ready.type] = Gen.const(Ready)
   private val uploadingGen: Gen[Uploading.type] = Gen.const(Uploading)
-  private val uploadFailureReasonGen: Gen[UploadFailureReason] = Gen.oneOf(NotXml, SchemaValidationError(Seq.empty), PlatformOperatorIdMissing, ReportingPeriodInvalid)
+  private val uploadFailureReasonGen: Gen[UploadFailureReason] = Gen.oneOf(NotXml, SchemaValidationError(Seq.empty, false), PlatformOperatorIdMissing, ReportingPeriodInvalid)
   private val uploadFailedGen: Gen[UploadFailed] = uploadFailureReasonGen.map(reason => UploadFailed(reason, None))
 
   "UploadFailed Controller" - {
@@ -117,7 +117,7 @@ class UploadFailedControllerSpec extends SpecBase with MockitoSugar with BeforeA
             operatorId = "operatorId",
             operatorName = "operatorName",
             assumingOperatorName = None,
-            state = UploadFailed(SchemaValidationError(Seq.empty), Some("some-file-name")),
+            state = UploadFailed(SchemaValidationError(Seq.empty, false), Some("some-file-name")),
             created = now,
             updated = now
           )
@@ -158,7 +158,7 @@ class UploadFailedControllerSpec extends SpecBase with MockitoSugar with BeforeA
             operatorId = "operatorId",
             operatorName = "operatorName",
             assumingOperatorName = None,
-            state = UploadFailed(SchemaValidationError(Seq.empty), None),
+            state = UploadFailed(SchemaValidationError(Seq.empty, false), None),
             created = now,
             updated = now
           )

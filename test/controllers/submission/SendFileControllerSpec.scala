@@ -237,7 +237,7 @@ class SendFileControllerSpec extends SpecBase with MockitoSugar with BeforeAndAf
               operatorId = "operatorId",
               operatorName = "operatorName",
               assumingOperatorName = None,
-              state = UploadFailed(SchemaValidationError(Seq.empty), None),
+              state = UploadFailed(SchemaValidationError(Seq.empty, false), None),
               created = now,
               updated = now
             )
@@ -550,7 +550,7 @@ class SendFileControllerSpec extends SpecBase with MockitoSugar with BeforeAndAf
               operatorId = "operatorId",
               operatorName = "operatorName",
               assumingOperatorName = None,
-              state = UploadFailed(SchemaValidationError(Seq.empty), None),
+              state = UploadFailed(SchemaValidationError(Seq.empty, false), None),
               created = now,
               updated = now
             )
