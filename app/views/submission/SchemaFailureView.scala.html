@@ -33,19 +33,28 @@
         govukErrorSummary: GovukErrorSummary
 )
 
-@(uploadDifferentFileUrl: String, fileName: String)(implicit request: Request[_], messages: Messages)
+@(uploadDifferentFileUrl: String, fileName: String, operatorId: String, submissionId: String, moreErrors: Boolean, maxErrors: Int)(implicit request: Request[_], messages: Messages)
 
 @layout(pageTitle = titleNoForm(messages("uploadFailed.schemafailure.title")), showBackLink = false) {
 
   <h1 class="govuk-heading-xl">@messages("uploadFailed.schemafailure.heading")</h1>
-
   <p class="govuk-body">@messages("uploadFailed.schemafailure.p1.1", fileName)</p>
-  <p class="govuk-body">
-    @messages("uploadFailed.schemafailure.p1.2")
-    <a href="https://www.gov.uk/government/publications/digital-platform-reporting-xml-schema-and-supporting-documents" class="govuk-link" target="_blank" rel="noreferrer noopener">@messages("uploadFailed.schemafailure.p1.2.link.text")</a>.
-  </p>
-  <p class="govuk-body">@messages("uploadFailed.schemafailure.p1.3")</p>
-  <p class="govuk-body"><a class="govuk-link" href="@uploadDifferentFileUrl">@messages("uploadFailed.schemafailure.p1.4")</a></p>
-  <p class="govuk-body"><a class="govuk-link" href="@appConfig.manageHomepageUrl">@messages("uploadFailed.schemafailure.p1.5")</a></p>
 
+  <h2 class="govuk-heading-m">@messages("uploadFailed.schemafailure.h2")</h2>
+  <ol class="govuk-list govuk-list--number govuk-!-margin-bottom-8">
+    <li>@messages("uploadFailed.schemafailure.p2.1")</li>
+    <li>
+      @messages("uploadFailed.schemafailure.p2.2")
+      <a class="govuk-link" href="https://www.gov.uk/government/publications/digital-platform-reporting-xml-schema-and-supporting-documents" target="_blank" rel="noreferrer noopener">@messages("uploadFailed.schemafailure.p2.2.link")</a>.
+    </li>
+    <li><a class="govuk-link" href="@uploadDifferentFileUrl">@messages("uploadFailed.schemafailure.p2.3")</a>.</li>
+  </ol>
+
+  @if(moreErrors) {
+    <p class="govuk-inset-text">@messages("uploadFailed.schemafailure.moreErrors", maxErrors)</p>
+  }
+
+  <a href="@controllers.submission.routes.UploadFailedController.downloadSchemaErrors(operatorId, submissionId)" data-module="govuk-button" role="button" draggable="false" class="govuk-button">@messages("uploadFailed.schemafailure.download")</a>
+
+  <p class="govuk-body"><a class="govuk-link" href="@appConfig.manageHomepageUrl">@messages("uploadFailed.schemafailure.return")</a></p>
 }
