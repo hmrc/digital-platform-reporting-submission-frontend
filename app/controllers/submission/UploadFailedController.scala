@@ -19,11 +19,14 @@ package controllers.submission
 import connectors.SubmissionConnector
 import controllers.AnswerExtractor
 import controllers.actions.*
-import models.submission.Submission
+import models.submission.{CadxValidationError, Submission}
 import models.submission.Submission.State.{Approved, Ready, Rejected, Submitted, UploadFailed, Uploading, Validated}
 import models.submission.Submission.UploadFailureReason
 import models.submission.Submission.UploadFailureReason.SchemaValidationError
-import play.api.i18n.{I18nSupport, MessagesApi}
+import org.apache.pekko.stream.connectors.csv.scaladsl.CsvFormatting
+import org.apache.pekko.stream.scaladsl.Source
+import play.api.Configuration
+import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents, Result}
 import services.UpscanService
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
@@ -38,24 +41,28 @@ class UploadFailedController @Inject()(override val messagesApi: MessagesApi,
                                        view: UploadFailedView,
                                        schemaFailureView: SchemaFailureView,
                                        submissionConnector: SubmissionConnector,
-                                       upscanService: UpscanService)
+                                       upscanService: UpscanService,
+                                       configuration: Configuration)
                                       (using ExecutionContext)
   extends FrontendBaseController with I18nSupport with AnswerExtractor {
+
+  private val maxErrors: Int = configuration.get[Int]("max-errors")
 
   def onPageLoad(operatorId: String, submissionId: String): Action[AnyContent] = identify.async {
     implicit request =>
       submissionConnector.get(submissionId).flatMap {
         _.map { submission =>
           handleSubmission(operatorId, submission) { case state: UploadFailed =>
-            if (state.reason.isInstanceOf[SchemaValidationError]) {
-              state.fileName.map { fileName =>
-                val uploadDifferentFileUrl = routes.UploadController.onRedirect(submission.operatorId, submissionId).url
-                Future.successful(Ok(schemaFailureView(uploadDifferentFileUrl, fileName)))
-              }.getOrElse(Future.successful(Redirect(controllers.routes.JourneyRecoveryController.onPageLoad())))
-            } else {
-              upscanService.initiate(operatorId, request.dprsId, submissionId).map { uploadRequest =>
-                Ok(view(uploadRequest, state.reason, submission.operatorName))
-              }
+            state.reason match {
+              case SchemaValidationError(_, moreErrors) =>
+                state.fileName.map { fileName =>
+                  val uploadDifferentFileUrl = routes.UploadController.onRedirect(submission.operatorId, submissionId).url
+                  Future.successful(Ok(schemaFailureView(uploadDifferentFileUrl, fileName, operatorId, submissionId, moreErrors, maxErrors)))
+                }.getOrElse(Future.successful(Redirect(controllers.routes.JourneyRecoveryController.onPageLoad())))
+              case _ =>
+                upscanService.initiate(operatorId, request.dprsId, submissionId).map { uploadRequest =>
+                  Ok(view(uploadRequest, state.reason, submission.operatorName))
+                }
             }
           }
         }.getOrElse {
@@ -63,6 +70,37 @@ class UploadFailedController @Inject()(override val messagesApi: MessagesApi,
         }
       }
   }
+
+  def downloadSchemaErrors(operatorId: String, submissionId: String): Action[AnyContent] = identify.async { implicit request =>
+    submissionConnector.get(submissionId).map {
+      _.map { submission =>
+        submission.state match {
+          case state @ UploadFailed(SchemaValidationError(errors, _), _) =>
+            val tsvSource = (Source.single(tsvHeaders) ++ Source(errors.map(toRow)))
+              .via(CsvFormatting.format(delimiter = CsvFormatting.Tab))
+            val fileName = state.fileName.get.replaceAll("\\.", "_")
+            Ok.chunked(tsvSource, contentType = Some("text/tsv"))
+              .withHeaders("Content-Disposition" -> s"""attachment; filename="$fileName-schema-errors.tsv"""")
+          case _ =>
+            NotFound
+        }
+      }.getOrElse(NotFound)
+    }
+  }
+
+  private def toRow(error: SchemaValidationError.Error): Seq[String] =
+    Seq(
+      error.line.toString,
+      error.col.toString,
+      error.message
+    )
+
+  private def tsvHeaders(using Messages): Seq[String] =
+    Seq(
+      Messages("uploadFailed.schemafailure.tsv.line"),
+      Messages("uploadFailed.schemafailure.tsv.column"),
+      Messages("uploadFailed.schemafailure.tsv.message")
+    )
 
   private val knownErrors: Map[String, UploadFailureReason] = Map(
     "EntityTooLarge" -> UploadFailureReason.EntityTooLarge,
