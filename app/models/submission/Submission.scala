@@ -24,6 +24,7 @@ import play.api.libs.json.*
 import java.net.URL
 import java.time.{Instant, Year}
 import models.{urlFormat, yearFormat}
+import play.api.libs.functional.syntax.toFunctionalBuilderOps
 
 final case class Submission(
                              _id: String,
@@ -71,7 +72,7 @@ object Submission {
   object UploadFailureReason {
 
     case object NotXml extends UploadFailureReason { val errorMessageKey = "uploadFailed.error.NotXml" }
-    final case class SchemaValidationError(errors: Seq[SchemaValidationError.Error]) extends UploadFailureReason { val errorMessageKey = "uploadFailed.error.SchemaValidationError" }
+    final case class SchemaValidationError(errors: Seq[SchemaValidationError.Error], moreErrors: Boolean) extends UploadFailureReason { val errorMessageKey = "uploadFailed.error.SchemaValidationError" }
     case object ManualAssumedReportExists extends UploadFailureReason { val errorMessageKey = "uploadFailed.error.ManualAssumedReportExists" }
     case object PlatformOperatorIdMissing extends UploadFailureReason { val errorMessageKey = "uploadFailed.error.PlatformOperatorIdMissing" }
     final case class PlatformOperatorIdMismatch(expectedId: String, actualId: String) extends UploadFailureReason { val errorMessageKey = "uploadFailed.error.PlatformOperatorIdMismatch" }
@@ -90,8 +91,14 @@ object Submission {
       given OFormat[Error] = Json.format
 
       given OFormat[SchemaValidationError] = {
-        val reads = (__ \ "errors").readWithDefault(Seq.empty[Error]).map(SchemaValidationError(_))
+
+        val reads = (
+          (__ \ "errors").readWithDefault(Seq.empty[Error]) ~
+          (__ \ "moreErrors").readWithDefault(false)
+        )(SchemaValidationError.apply)
+
         val writes = Json.writes[SchemaValidationError]
+
         OFormat(reads, writes)
       }
     }

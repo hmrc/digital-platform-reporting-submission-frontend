@@ -168,7 +168,7 @@ class UploadingControllerSpec extends SpecBase with MockitoSugar with BeforeAndA
             operatorId = "operatorId",
             operatorName = "operatorName",
             assumingOperatorName = None,
-            state = UploadFailed(SchemaValidationError(Seq.empty), None),
+            state = UploadFailed(SchemaValidationError(Seq.empty, false), None),
             created = now,
             updated = now
           )
@@ -417,7 +417,7 @@ class UploadingControllerSpec extends SpecBase with MockitoSugar with BeforeAndA
             operatorId = "operatorId",
             operatorName = "operatorName",
             assumingOperatorName = None,
-            state = UploadFailed(SchemaValidationError(Seq.empty), None),
+            state = UploadFailed(SchemaValidationError(Seq.empty, false), None),
             created = now,
             updated = now
           )

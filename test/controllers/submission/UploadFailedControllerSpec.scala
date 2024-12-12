@@ -24,6 +24,7 @@ import models.submission.Submission.UploadFailureReason.*
 import models.submission.Submission.{SubmissionType, UploadFailureReason}
 import models.upscan.UpscanInitiateResponse.UploadRequest
 import org.apache.pekko.Done
+import org.apache.pekko.stream.Materializer
 import org.mockito.ArgumentMatchers.{any, eq as eqTo}
 import org.mockito.Mockito
 import org.mockito.Mockito.{never, verify, when}
@@ -56,7 +57,7 @@ class UploadFailedControllerSpec extends SpecBase with MockitoSugar with BeforeA
 
   private val readyGen: Gen[Ready.type] = Gen.const(Ready)
   private val uploadingGen: Gen[Uploading.type] = Gen.const(Uploading)
-  private val uploadFailureReasonGen: Gen[UploadFailureReason] = Gen.oneOf(NotXml, SchemaValidationError(Seq.empty), PlatformOperatorIdMissing, ReportingPeriodInvalid)
+  private val uploadFailureReasonGen: Gen[UploadFailureReason] = Gen.oneOf(NotXml, SchemaValidationError(Seq.empty, false), PlatformOperatorIdMissing, ReportingPeriodInvalid)
   private val uploadFailedGen: Gen[UploadFailed] = uploadFailureReasonGen.map(reason => UploadFailed(reason, None))
 
   "UploadFailed Controller" - {
@@ -108,7 +109,7 @@ class UploadFailedControllerSpec extends SpecBase with MockitoSugar with BeforeA
           val application = applicationBuilder(userAnswers = None).overrides(
             bind[SubmissionConnector].toInstance(mockSubmissionConnector),
             bind[UpscanService].toInstance(mockUpscanService)
-          ).build()
+          ).configure("max-errors" -> 100).build()
 
           val submission = Submission(
             _id = "id",
@@ -117,7 +118,7 @@ class UploadFailedControllerSpec extends SpecBase with MockitoSugar with BeforeA
             operatorId = "operatorId",
             operatorName = "operatorName",
             assumingOperatorName = None,
-            state = UploadFailed(SchemaValidationError(Seq.empty), Some("some-file-name")),
+            state = UploadFailed(SchemaValidationError(Seq.empty, false), Some("some-file-name")),
             created = now,
             updated = now
           )
@@ -137,7 +138,7 @@ class UploadFailedControllerSpec extends SpecBase with MockitoSugar with BeforeA
 
             status(result) mustEqual OK
             val uploadDifferentFileUrl = routes.UploadController.onRedirect(submission.operatorId, "id").url
-            contentAsString(result) mustEqual view(uploadDifferentFileUrl, "some-file-name")(request, messages(application))
+            contentAsString(result) mustEqual view(uploadDifferentFileUrl, "some-file-name", "operatorId", "id", false, 100)(request, messages(application))
               .toString
           }
 
@@ -158,7 +159,7 @@ class UploadFailedControllerSpec extends SpecBase with MockitoSugar with BeforeA
             operatorId = "operatorId",
             operatorName = "operatorName",
             assumingOperatorName = None,
-            state = UploadFailed(SchemaValidationError(Seq.empty), None),
+            state = UploadFailed(SchemaValidationError(Seq.empty, false), None),
             created = now,
             updated = now
           )
@@ -508,6 +509,327 @@ class UploadFailedControllerSpec extends SpecBase with MockitoSugar with BeforeA
 
             status(result) mustEqual SEE_OTHER
             redirectLocation(result).value mustEqual routes.FileErrorsController.onPageLoad(operatorId, "id").url
+          }
+
+          verify(mockUpscanService, never()).initiate(any(), any(), any())(using any())
+        }
+      }
+    }
+
+    "downloadSchemaErrors" - {
+
+      "when there is a submission in an upload failed state for the given id" - {
+
+        "when the error reason is SchemaValidationError" - {
+
+          "must return OK and the errors as a CSV" in {
+            val application = applicationBuilder(userAnswers = None).overrides(
+              bind[SubmissionConnector].toInstance(mockSubmissionConnector),
+            ).build()
+
+            val errors = Seq(
+              SchemaValidationError.Error(1, 2, "foo"),
+              SchemaValidationError.Error(3, 4, "bar")
+            )
+
+            val submission = Submission(
+              _id = "id",
+              submissionType = SubmissionType.Xml,
+              dprsId = "dprsId",
+              operatorId = "operatorId",
+              operatorName = "operatorName",
+              assumingOperatorName = None,
+              state = UploadFailed(SchemaValidationError(errors, false), Some("test.xml")),
+              created = now,
+              updated = now
+            )
+
+            when(mockSubmissionConnector.get(any())(using any())).thenReturn(Future.successful(Some(submission)))
+
+            running(application) {
+              given Materializer = application.materializer
+
+              val request = FakeRequest(routes.UploadFailedController.downloadSchemaErrors(operatorId, "id"))
+              val result = route(application, request).value
+
+              val expectedBodySource = scala.io.Source.fromFile(getClass.getResource("/example-schema-errors.tsv").toURI)
+              val expectedBody = expectedBodySource.mkString
+              expectedBodySource.close()
+
+              status(result) mustEqual OK
+              contentType(result).value mustEqual "text/tsv"
+              header("Content-Disposition", result).value mustEqual """attachment; filename="test_xml-schema-errors.tsv""""
+              contentAsString(result) mustEqual expectedBody
+            }
+
+            verify(mockSubmissionConnector).get(eqTo("id"))(using any())
+          }
+        }
+
+        "when the error reason is not SchemaValidationError" - {
+
+          "must return NotFound" in {
+            val application = applicationBuilder(userAnswers = None).overrides(
+              bind[SubmissionConnector].toInstance(mockSubmissionConnector),
+            ).configure("max-errors" -> 100).build()
+
+            val submission = Submission(
+              _id = "id",
+              submissionType = SubmissionType.Xml,
+              dprsId = "dprsId",
+              operatorId = "operatorId",
+              operatorName = "operatorName",
+              assumingOperatorName = None,
+              state = UploadFailed(NotXml, Some("some-file-name")),
+              created = now,
+              updated = now
+            )
+
+            when(mockSubmissionConnector.get(any())(using any())).thenReturn(Future.successful(Some(submission)))
+
+            running(application) {
+              val request = FakeRequest(routes.UploadFailedController.downloadSchemaErrors(operatorId, "id"))
+              val result = route(application, request).value
+
+              status(result) mustEqual NOT_FOUND
+            }
+
+            verify(mockSubmissionConnector).get(eqTo("id"))(using any())
+          }
+        }
+      }
+
+      "when there is no submission for the given id" - {
+
+        "must return not found" in {
+
+          val application = applicationBuilder(userAnswers = None)
+            .overrides(
+              bind[SubmissionConnector].toInstance(mockSubmissionConnector)
+            )
+            .build()
+
+          when(mockSubmissionConnector.get(any())(using any())).thenReturn(Future.successful(None))
+
+          running(application) {
+            val request = FakeRequest(routes.UploadFailedController.downloadSchemaErrors(operatorId, "id"))
+            val result = route(application, request).value
+
+            status(result) mustEqual NOT_FOUND
+          }
+        }
+      }
+
+      "when the submission is in a ready state" - {
+
+        "must return not found" in {
+
+          val application = applicationBuilder(userAnswers = None)
+            .overrides(
+              bind[SubmissionConnector].toInstance(mockSubmissionConnector),
+            )
+            .build()
+
+          val submission = Submission(
+            _id = "id",
+            submissionType = SubmissionType.Xml,
+            dprsId = "dprsId",
+            operatorId = "operatorId",
+            operatorName = "operatorName",
+            assumingOperatorName = None,
+            state = Ready,
+            created = now,
+            updated = now
+          )
+
+          when(mockSubmissionConnector.get(any())(using any())).thenReturn(Future.successful(Some(submission)))
+
+          running(application) {
+            val request = FakeRequest(routes.UploadFailedController.downloadSchemaErrors(operatorId, "id"))
+            val result = route(application, request).value
+
+            status(result) mustEqual NOT_FOUND
+          }
+
+          verify(mockUpscanService, never()).initiate(any(), any(), any())(using any())
+        }
+      }
+
+      "when the submission is in an uploading state" - {
+
+        "must return not found" in {
+
+          val application = applicationBuilder(userAnswers = None)
+            .overrides(
+              bind[SubmissionConnector].toInstance(mockSubmissionConnector),
+            )
+            .build()
+
+          val submission = Submission(
+            _id = "id",
+            submissionType = SubmissionType.Xml,
+            dprsId = "dprsId",
+            operatorId = "operatorId",
+            operatorName = "operatorName",
+            assumingOperatorName = None,
+            state = Uploading,
+            created = now,
+            updated = now
+          )
+
+          when(mockSubmissionConnector.get(any())(using any())).thenReturn(Future.successful(Some(submission)))
+
+          running(application) {
+            val request = FakeRequest(routes.UploadFailedController.downloadSchemaErrors(operatorId, "id"))
+            val result = route(application, request).value
+
+            status(result) mustEqual NOT_FOUND
+          }
+
+          verify(mockUpscanService, never()).initiate(any(), any(), any())(using any())
+        }
+      }
+
+      "when the submission is in a validated state" - {
+
+        "must return not found" in {
+
+          val application = applicationBuilder(userAnswers = None)
+            .overrides(
+              bind[SubmissionConnector].toInstance(mockSubmissionConnector),
+            )
+            .build()
+
+          val submission = Submission(
+            _id = "id",
+            submissionType = SubmissionType.Xml,
+            dprsId = "dprsId",
+            operatorId = "operatorId",
+            operatorName = "operatorName",
+            assumingOperatorName = None,
+            state = Validated(
+              downloadUrl = url"http://example.com/test.xml",
+              reportingPeriod = Year.of(2024),
+              fileName = "test.xml",
+              checksum = "checksum",
+              size = 1337L
+            ),
+            created = now,
+            updated = now
+          )
+
+          when(mockSubmissionConnector.get(any())(using any())).thenReturn(Future.successful(Some(submission)))
+
+          running(application) {
+            val request = FakeRequest(routes.UploadFailedController.downloadSchemaErrors(operatorId, "id"))
+            val result = route(application, request).value
+
+            status(result) mustEqual NOT_FOUND
+          }
+
+          verify(mockUpscanService, never()).initiate(any(), any(), any())(using any())
+        }
+      }
+
+      "when the submission is in a submitted state" - {
+
+        "must return not found" in {
+
+          val application = applicationBuilder(userAnswers = None)
+            .overrides(
+              bind[SubmissionConnector].toInstance(mockSubmissionConnector),
+            )
+            .build()
+
+          val submission = Submission(
+            _id = "id",
+            submissionType = SubmissionType.Xml,
+            dprsId = "dprsId",
+            operatorId = "operatorId",
+            operatorName = "operatorName",
+            assumingOperatorName = None,
+            state = Submitted("test.xml", Year.of(2024)),
+            created = now,
+            updated = now
+          )
+
+          when(mockSubmissionConnector.get(any())(using any())).thenReturn(Future.successful(Some(submission)))
+
+          running(application) {
+            val request = FakeRequest(routes.UploadFailedController.downloadSchemaErrors(operatorId, "id"))
+            val result = route(application, request).value
+
+            status(result) mustEqual NOT_FOUND
+          }
+
+          verify(mockUpscanService, never()).initiate(any(), any(), any())(using any())
+        }
+      }
+
+      "when the submission is in an approved state" - {
+
+        "must return not found" in {
+
+          val application = applicationBuilder(userAnswers = None)
+            .overrides(
+              bind[SubmissionConnector].toInstance(mockSubmissionConnector),
+            )
+            .build()
+
+          val submission = Submission(
+            _id = "id",
+            submissionType = SubmissionType.Xml,
+            dprsId = "dprsId",
+            operatorId = "operatorId",
+            operatorName = "operatorName",
+            assumingOperatorName = None,
+            state = Approved("test.xml", Year.of(2024)),
+            created = now,
+            updated = now
+          )
+
+          when(mockSubmissionConnector.get(any())(using any())).thenReturn(Future.successful(Some(submission)))
+
+          running(application) {
+            val request = FakeRequest(routes.UploadFailedController.downloadSchemaErrors(operatorId, "id"))
+            val result = route(application, request).value
+
+            status(result) mustEqual NOT_FOUND
+          }
+
+          verify(mockUpscanService, never()).initiate(any(), any(), any())(using any())
+        }
+      }
+
+      "when the submission is in a rejected state" - {
+
+        "must return not found" in {
+
+          val application = applicationBuilder(userAnswers = None)
+            .overrides(
+              bind[SubmissionConnector].toInstance(mockSubmissionConnector),
+            )
+            .build()
+
+          val submission = Submission(
+            _id = "id",
+            submissionType = SubmissionType.Xml,
+            dprsId = "dprsId",
+            operatorId = "operatorId",
+            operatorName = "operatorName",
+            assumingOperatorName = None,
+            state = Rejected("test.xml", Year.of(2024)),
+            created = now,
+            updated = now
+          )
+
+          when(mockSubmissionConnector.get(any())(using any())).thenReturn(Future.successful(Some(submission)))
+
+          running(application) {
+            val request = FakeRequest(routes.UploadFailedController.downloadSchemaErrors(operatorId, "id"))
+            val result = route(application, request).value
+
+            status(result) mustEqual NOT_FOUND
           }
 
           verify(mockUpscanService, never()).initiate(any(), any(), any())(using any())

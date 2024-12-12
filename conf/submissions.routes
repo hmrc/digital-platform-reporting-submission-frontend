@@ -6,6 +6,7 @@ GET         /:operatorId/:submissionId/upload-redirect               controllers
 GET         /:operatorId/:submissionId/uploading-redirect            controllers.submission.UploadingController.onRedirect(operatorId: String, submissionId: String)
 GET         /:operatorId/:submissionId/uploading                     controllers.submission.UploadingController.onPageLoad(operatorId: String, submissionId: String)
 GET         /:operatorId/:submissionId/upload-failed                 controllers.submission.UploadFailedController.onPageLoad(operatorId: String, submissionId: String)
+GET         /:operatorId/:submissionId/schema-errors                 controllers.submission.UploadFailedController.downloadSchemaErrors(operatorId: String, submissionId: String)
 GET         /:operatorId/:submissionId/upload-failed-redirect        controllers.submission.UploadFailedController.onRedirect(operatorId: String, submissionId: String, errorCode: Option[String] ?= None)
 GET         /:operatorId/:submissionId/send-file                     controllers.submission.SendFileController.onPageLoad(operatorId: String, submissionId: String)
 POST        /:operatorId/:submissionId/send-file                     controllers.submission.SendFileController.onSubmit(operatorId: String, submissionId: String)
