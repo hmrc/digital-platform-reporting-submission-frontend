@@ -16,9 +16,9 @@
 
 package models.audit
 
-import models.Country
 import models.operator.{TinDetails, TinType}
 import models.submission.{AssumedReportingSubmissionRequest, AssumingPlatformOperator}
+import models.{Country, DefaultCountriesList}
 import org.scalatest.freespec.AnyFreeSpec
 import org.scalatest.matchers.must.Matchers
 import play.api.libs.json.Json
@@ -27,6 +27,8 @@ import java.time.{Instant, Year}
 import java.util.UUID
 
 class AddAssumedReportEventSpec extends AnyFreeSpec with Matchers {
+
+  private val countriesList = new DefaultCountriesList
 
   "must write to the correct json structure" - {
 
@@ -50,16 +52,16 @@ class AddAssumedReportEventSpec extends AnyFreeSpec with Matchers {
       ),
       reportingPeriod = Year.of(2024)
     )
-    
+
     "for a UK tax resident assuming operator with a tax identifier" in {
-      
+
       val submission = baseSubmission.copy(
         assumingOperator = baseSubmission.assumingOperator.copy(
           tinDetails = Seq(TinDetails("tin", TinType.Other, "GB"))
         )
       )
-      
-      val event = AddAssumedReportEvent(dprsId, operatorName, submission, successfulStatusCode, processedAt, Some(conversationId))
+
+      val event = AddAssumedReportEvent(dprsId, operatorName, submission, successfulStatusCode, processedAt, Some(conversationId), countriesList)
       val expectedJson = Json.obj(
         "platformOperator" -> operatorName,
         "platformOperatorId" -> operatorId,
@@ -81,10 +83,10 @@ class AddAssumedReportEventSpec extends AnyFreeSpec with Matchers {
 
       Json.toJson(event) mustEqual expectedJson
     }
-    
+
     "for a UK tax resident assuming operator without a tax identifier" in {
 
-      val event = AddAssumedReportEvent(dprsId, operatorName, baseSubmission, errorStatusCode, processedAt, None)
+      val event = AddAssumedReportEvent(dprsId, operatorName, baseSubmission, errorStatusCode, processedAt, None, countriesList)
       val expectedJson = Json.obj(
         "platformOperator" -> operatorName,
         "platformOperatorId" -> operatorId,
@@ -106,7 +108,7 @@ class AddAssumedReportEventSpec extends AnyFreeSpec with Matchers {
     }
 
     "for an internationally tax resident assuming operator with a tax identifier" in {
-      
+
       val submission = baseSubmission.copy(
         assumingOperator = baseSubmission.assumingOperator.copy(
           residentCountry = Country("US", "United States"),
@@ -114,7 +116,7 @@ class AddAssumedReportEventSpec extends AnyFreeSpec with Matchers {
         )
       )
 
-      val event = AddAssumedReportEvent(dprsId, operatorName, submission, successfulStatusCode, processedAt, Some(conversationId))
+      val event = AddAssumedReportEvent(dprsId, operatorName, submission, successfulStatusCode, processedAt, Some(conversationId), countriesList)
       val expectedJson = Json.obj(
         "platformOperator" -> operatorName,
         "platformOperatorId" -> operatorId,
@@ -145,7 +147,7 @@ class AddAssumedReportEventSpec extends AnyFreeSpec with Matchers {
         )
       )
 
-      val event = AddAssumedReportEvent(dprsId, operatorName, submission, successfulStatusCode, processedAt, Some(conversationId))
+      val event = AddAssumedReportEvent(dprsId, operatorName, submission, successfulStatusCode, processedAt, Some(conversationId), countriesList)
       val expectedJson = Json.obj(
         "platformOperator" -> operatorName,
         "platformOperatorId" -> operatorId,

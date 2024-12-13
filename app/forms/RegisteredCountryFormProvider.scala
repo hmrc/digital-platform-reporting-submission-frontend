@@ -17,18 +17,19 @@
 package forms
 
 import forms.mappings.Mappings
-import models.Country
+import models.{CountriesList, Country}
 import play.api.data.Form
 import play.api.i18n.Messages
 
 import javax.inject.Inject
 
-class RegisteredCountryFormProvider @Inject() extends Mappings {
+class RegisteredCountryFormProvider @Inject()(countriesList: CountriesList) extends Mappings {
 
   def apply(assumingOperatorName: String)(implicit messages: Messages): Form[Country] =
     Form(
       "value" -> text(messages("registeredCountry.error.required", assumingOperatorName))
-        .verifying(messages("registeredCountry.error.required", assumingOperatorName), value => Country.allCountries.exists(_.code == value))
-        .transform[Country](value => Country.allCountries.find(_.code == value).get, _.code)
+        .verifying(messages("registeredCountry.error.required", assumingOperatorName), value => countriesList.allCountries.exists
+          (_.code == value))
+        .transform[Country](value => countriesList.allCountries.find(_.code == value).get, _.code)
     )
 }

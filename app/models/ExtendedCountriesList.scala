@@ -16,13 +16,22 @@
 
 package models
 
-import play.api.libs.json.{Json, OFormat}
-import viewmodels.govuk.select.*
+import com.google.inject.Inject
 
-final case class Country(code: String, name: String)
+import javax.inject.Singleton
 
-object Country {
-  implicit val format: OFormat[Country] = Json.format[Country]
+@Singleton
+class ExtendedCountriesList @Inject() extends CountriesList {
 
-  val gb = Country("GB", "United Kingdom")
+  private lazy val additionalCountries = Seq(
+    Country("QM", "QM Test Country"),
+    Country("QN", "QN Test Country"),
+    Country("QO", "QO Test Country"),
+    Country("QP", "QP Test Country"),
+    Country("QQ", "QQ Test Country"),
+    Country("QR", "QR Test Country"),
+    Country("QS", "QS Test Country")
+  )
+
+  override val allCountries: Seq[Country] = super.allCountries ++ additionalCountries
 }

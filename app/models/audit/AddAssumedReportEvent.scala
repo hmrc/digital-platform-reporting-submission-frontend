@@ -16,9 +16,9 @@
 
 package models.audit
 
+import models.CountriesList
 import models.submission.AssumedReportingSubmissionRequest
-import models.Country.ukCountries
-import play.api.libs.json.{Json, JsObject, OWrites}
+import play.api.libs.json.{JsObject, Json, OWrites}
 
 import java.time.Instant
 
@@ -28,19 +28,20 @@ final case class AddAssumedReportEvent(
                                         submission: AssumedReportingSubmissionRequest,
                                         statusCode: Int,
                                         processedAt: Instant,
-                                        conversationId: Option[String]
+                                        conversationId: Option[String],
+                                        countriesList: CountriesList
                                       ) extends AuditEvent {
 
   override def auditType: String = "AddAssumedReport"
 }
 
 object AddAssumedReportEvent {
-  
+
   given OWrites[AddAssumedReportEvent] = new OWrites[AddAssumedReportEvent] {
     override def writes(o: AddAssumedReportEvent): JsObject = {
-      
+
       val taxIdentifierJson = o.submission.assumingOperator.residentCountry match {
-        case country if ukCountries.contains(country) =>
+        case country if o.countriesList.ukCountries.contains(country) =>
           Json.obj(
             "isUkTaxResident" -> true,
             "countryOfTaxResidence" -> country.name,
@@ -58,12 +59,12 @@ object AddAssumedReportEvent {
             Json.obj("internationalTaxIdentificationNumber" -> tin.tin)
           }.getOrElse(Json.obj())
       }
-      
+
       val conversationIdJson =
         o.conversationId
           .map(id => Json.obj("conversationId" -> id))
           .getOrElse(Json.obj())
-      
+
       Json.obj(
         "platformOperator" -> o.operatorName,
         "platformOperatorId" -> o.submission.operatorId,

@@ -21,6 +21,7 @@ import config.FrontendAppConfig
 import connectors.PlatformOperatorConnector
 import controllers.actions.{DataRequiredAction, DataRetrievalActionProvider, IdentifierAction}
 import forms.CheckPlatformOperatorFormProvider
+import models.CountriesList
 import models.operator.responses.PlatformOperator
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
@@ -41,7 +42,8 @@ class CheckPlatformOperatorController @Inject()(
                                                  connector: PlatformOperatorConnector,
                                                  formProvider: CheckPlatformOperatorFormProvider,
                                                  view: CheckPlatformOperatorView,
-                                                 appConfig: FrontendAppConfig
+                                                 appConfig: FrontendAppConfig,
+                                                 countriesList: CountriesList
                                                )(implicit ec: ExecutionContext) extends FrontendBaseController with I18nSupport {
 
   def onPageLoad(operatorId: String): Action[AnyContent] = (identify andThen getData(operatorId) andThen requireData).async {
@@ -102,10 +104,10 @@ class CheckPlatformOperatorController @Inject()(
         VrnSummary.row(operator),
         EmprefSummary.row(operator),
         ChrnSummary.row(operator),
-        TaxResidencyCountrySummary.row(operator),
+        TaxResidencyCountrySummary.row(operator, countriesList),
         InternationalTaxIdentifierSummary.row(operator),
-        RegisteredInUkSummary.row(operator),
-        AddressSummary.row(operator)
+        RegisteredInUkSummary.row(operator, countriesList),
+        AddressSummary.row(operator, countriesList)
       ).flatten
     )
 

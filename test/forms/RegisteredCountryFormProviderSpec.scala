@@ -17,7 +17,7 @@
 package forms
 
 import forms.behaviours.StringFieldBehaviours
-import models.Country
+import models.{Country, DefaultCountriesList}
 import org.scalacheck.Gen
 import play.api.data.FormError
 import play.api.i18n.Messages
@@ -29,7 +29,8 @@ class RegisteredCountryFormProviderSpec extends StringFieldBehaviours {
 
   private implicit val msgs: Messages = stubMessages()
   private val assumingOperatorName = "name"
-  private val form = new RegisteredCountryFormProvider()(assumingOperatorName)
+  private val countriesList = new DefaultCountriesList
+  private val form = new RegisteredCountryFormProvider(countriesList)(assumingOperatorName)
 
   ".value" - {
 
@@ -38,7 +39,7 @@ class RegisteredCountryFormProviderSpec extends StringFieldBehaviours {
     behave like fieldThatBindsValidData(
       form,
       fieldName,
-      Gen.oneOf(Country.allCountries.map(_.code))
+      Gen.oneOf(countriesList.allCountries.map(_.code))
     )
 
     behave like mandatoryField(

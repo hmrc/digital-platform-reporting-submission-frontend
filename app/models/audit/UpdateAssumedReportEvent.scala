@@ -16,14 +16,15 @@
 
 package models.audit
 
+import models.CountriesList
 import models.submission.{AssumedReportingSubmission, AssumedReportingSubmissionRequest, AssumingPlatformOperator}
-import models.Country.ukCountries
 import play.api.libs.json.{JsObject, Json, OWrites}
 
 final case class UpdateAssumedReportEvent(
                                            dprsId: String,
                                            original: AssumedReportingSubmission,
-                                           updated: AssumedReportingSubmissionRequest
+                                           updated: AssumedReportingSubmissionRequest,
+                                           countriesList: CountriesList
                                          ) extends AuditEvent {
 
   override def auditType: String = "UpdateAssumedReport"
@@ -34,8 +35,8 @@ object UpdateAssumedReportEvent {
   given OWrites[UpdateAssumedReportEvent] = new OWrites[UpdateAssumedReportEvent] {
     override def writes(o: UpdateAssumedReportEvent): JsObject = {
 
-      val originalJson = toJson(o.original.assumingOperator)
-      val updatedJson = toJson(o.updated.assumingOperator)
+      val originalJson = toJson(o.original.assumingOperator, o.countriesList)
+      val updatedJson = toJson(o.updated.assumingOperator, o.countriesList)
 
       val changedFieldsInOriginal = JsObject(originalJson.fieldSet.diff(updatedJson.fieldSet).toSeq)
       val changedFieldsInUpdated = JsObject(updatedJson.fieldSet.diff(originalJson.fieldSet).toSeq)
@@ -50,10 +51,10 @@ object UpdateAssumedReportEvent {
     }
   }
 
-  private def toJson(assumingOperator: AssumingPlatformOperator): JsObject = {
+  private def toJson(assumingOperator: AssumingPlatformOperator, countriesList: CountriesList): JsObject = {
 
     val taxIdentifierJson = assumingOperator.residentCountry match {
-      case country if ukCountries.contains(country) =>
+      case country if countriesList.ukCountries.contains(country) =>
         Json.obj(
           "isUkTaxResident" -> true,
           "countryOfTaxResidence" -> country.name,

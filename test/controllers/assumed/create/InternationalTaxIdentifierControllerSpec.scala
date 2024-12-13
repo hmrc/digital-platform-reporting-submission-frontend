@@ -19,11 +19,11 @@ package controllers.assumed.create
 import base.SpecBase
 import controllers.routes as baseRoutes
 import forms.InternationalTaxIdentifierFormProvider
-import models.{Country, NormalMode, UserAnswers}
+import models.{Country, DefaultCountriesList, NormalMode, UserAnswers}
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.when
 import org.scalatestplus.mockito.MockitoSugar
-import pages.assumed.create.{InternationalTaxIdentifierPage, AssumingOperatorNamePage, TaxResidencyCountryPage}
+import pages.assumed.create.{AssumingOperatorNamePage, InternationalTaxIdentifierPage, TaxResidencyCountryPage}
 import play.api.inject.bind
 import play.api.test.FakeRequest
 import play.api.test.Helpers.*
@@ -34,8 +34,9 @@ import scala.concurrent.Future
 
 class InternationalTaxIdentifierControllerSpec extends SpecBase with MockitoSugar {
 
+  private val countriesList = new DefaultCountriesList
   val formProvider = new InternationalTaxIdentifierFormProvider()
-  private val country = Country.internationalCountries.head
+  private val country = countriesList.internationalCountries.head
   private val form = formProvider(country)
   private val baseAnswers = emptyUserAnswers.set(TaxResidencyCountryPage, country).success.value
 

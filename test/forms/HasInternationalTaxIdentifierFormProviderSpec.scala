@@ -17,16 +17,18 @@
 package forms
 
 import forms.behaviours.BooleanFieldBehaviours
-import models.Country
+import models.{Country, DefaultCountriesList}
 import play.api.data.FormError
 
 class HasInternationalTaxIdentifierFormProviderSpec extends BooleanFieldBehaviours {
+
+  private val countriesList = new DefaultCountriesList
 
   val requiredKey = "hasInternationalTaxIdentifier.error.required"
   val invalidKey = "error.boolean"
 
   val assumingOperatorName = "name"
-  val country = Country.internationalCountries.head
+  val country = countriesList.internationalCountries.head
   val form = new HasInternationalTaxIdentifierFormProvider()(assumingOperatorName, country)
 
   ".value" - {

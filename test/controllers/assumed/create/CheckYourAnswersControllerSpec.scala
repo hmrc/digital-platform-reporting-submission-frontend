@@ -22,7 +22,7 @@ import connectors.AssumedReportingConnector
 import connectors.AssumedReportingConnector.SubmitAssumedReportingFailure
 import controllers.routes as baseRoutes
 import models.audit.AddAssumedReportEvent
-import models.{Country, UserAnswers, yearFormat}
+import models.{CountriesList, Country, DefaultCountriesList, UserAnswers, yearFormat}
 import models.submission.Submission.State.Submitted
 import models.submission.Submission.SubmissionType
 import models.submission.{AssumedReportSummary, AssumedReportingSubmissionRequest, AssumingPlatformOperator, Submission}
@@ -96,6 +96,7 @@ class CheckYourAnswersControllerSpec extends SpecBase with SummaryListFluency wi
 
     "for a POST" - {
 
+      val countriesList = new DefaultCountriesList
       "must submit an assumed reporting submission request, audit the event, replace user answers with a summary, and redirect to the next page" in {
 
         val assumedReportingSubmissionRequest = AssumedReportingSubmissionRequest(
@@ -134,7 +135,8 @@ class CheckYourAnswersControllerSpec extends SpecBase with SummaryListFluency wi
             bind[UserAnswersService].toInstance(mockUserAnswersService),
             bind[SessionRepository].toInstance(mockSessionRepository),
             bind[AuditService].toInstance(mockAuditService),
-            bind[Clock].toInstance(stubClock)
+            bind[Clock].toInstance(stubClock),
+            bind[CountriesList].toInstance(countriesList)
           )
           .build()
 
@@ -149,8 +151,8 @@ class CheckYourAnswersControllerSpec extends SpecBase with SummaryListFluency wi
           status(result) mustEqual SEE_OTHER
           redirectLocation(result).value mustEqual routes.SubmissionConfirmationController.onPageLoad(operatorId, Year.of(2024)).url
         }
-        
-        val expectedAuditEvent = AddAssumedReportEvent("dprsId", operatorName, assumedReportingSubmissionRequest, 200, now, Some("submissionId"))
+
+        val expectedAuditEvent = AddAssumedReportEvent("dprsId", operatorName, assumedReportingSubmissionRequest, 200, now, Some("submissionId"), countriesList)
 
         verify(mockUserAnswersService).toAssumedReportingSubmission(eqTo(answers))
         verify(mockAssumedReportingConnector).submit(eqTo(assumedReportingSubmissionRequest))(using any())
@@ -218,7 +220,8 @@ class CheckYourAnswersControllerSpec extends SpecBase with SummaryListFluency wi
             bind[UserAnswersService].toInstance(mockUserAnswersService),
             bind[SessionRepository].toInstance(mockSessionRepository),
             bind[AuditService].toInstance(mockAuditService),
-            bind[Clock].toInstance(stubClock)
+            bind[Clock].toInstance(stubClock),
+            bind[CountriesList].toInstance(countriesList)
           )
           .build()
 
@@ -230,7 +233,7 @@ class CheckYourAnswersControllerSpec extends SpecBase with SummaryListFluency wi
           route(application, request).value.failed.futureValue
         }
 
-        val expectedAuditEvent = AddAssumedReportEvent("dprsId", operatorName, assumedReportingSubmissionRequest, 500, now, None)
+        val expectedAuditEvent = AddAssumedReportEvent("dprsId", operatorName, assumedReportingSubmissionRequest, 500, now, None, countriesList)
 
         verify(mockUserAnswersService).toAssumedReportingSubmission(eqTo(answers))
         verify(mockAssumedReportingConnector).submit(eqTo(assumedReportingSubmissionRequest))(using any())

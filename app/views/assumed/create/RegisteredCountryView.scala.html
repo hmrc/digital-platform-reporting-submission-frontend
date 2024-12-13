@@ -15,7 +15,8 @@
  *@
 
 @import controllers.assumed.create.routes
-@import models.Country.*
+@import models.CountriesList
+@import views.ViewUtils.countrySelectItems
 @import uk.gov.hmrc.govukfrontend.views.Implicits.RichSelect
 @import uk.gov.hmrc.hmrcfrontend.views.viewmodels.accessibleautocomplete.AccessibleAutocomplete
 
@@ -24,7 +25,8 @@
         formHelper: FormWithCSRF,
         govukErrorSummary: GovukErrorSummary,
         govukSelect: GovukSelect,
-        govukButton: GovukButton
+        govukButton: GovukButton,
+        countriesList: CountriesList
 )
 
 @(form: Form[_], mode: Mode, operatorId: String, assumingOperatorName: String)(implicit request: Request[_], messages: Messages)
@@ -40,7 +42,7 @@
         @govukSelect(
             SelectViewModel(
                 field = form("value"),
-                items = selectItems(allCountries),
+                items = countrySelectItems(countriesList.allCountries),
                 label = LabelViewModel(messages("registeredCountry.heading", assumingOperatorName)).asPageHeading()
             )
             .withCssClass("govuk-input")
