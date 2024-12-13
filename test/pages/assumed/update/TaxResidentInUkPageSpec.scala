@@ -17,7 +17,7 @@
 package pages.assumed.update
 
 import controllers.assumed.update.routes
-import models.{Country, UserAnswers}
+import models.{Country, DefaultCountriesList, UserAnswers}
 import org.scalatest.{OptionValues, TryValues}
 import org.scalatest.freespec.AnyFreeSpec
 import org.scalatest.matchers.must.Matchers
@@ -26,6 +26,7 @@ import java.time.Year
 
 class TaxResidentInUkPageSpec extends AnyFreeSpec with Matchers with TryValues with OptionValues {
 
+  private val countriesList = new DefaultCountriesList
   private val reportingPeriod = Year.of(2024)
   private val operatorId = "operatorId"
   private val emptyAnswers = UserAnswers("id", operatorId, Some(reportingPeriod))
@@ -49,7 +50,7 @@ class TaxResidentInUkPageSpec extends AnyFreeSpec with Matchers with TryValues w
         val answers =
           emptyAnswers
             .set(TaxResidentInUkPage, false).success.value
-            .set(TaxResidencyCountryPage, Country.internationalCountries.head).success.value
+            .set(TaxResidencyCountryPage, countriesList.internationalCountries.head).success.value
 
         TaxResidentInUkPage.nextPage(reportingPeriod, answers).mustEqual(routes.CheckYourAnswersController.onPageLoad(operatorId, reportingPeriod))
       }
@@ -76,7 +77,7 @@ class TaxResidentInUkPageSpec extends AnyFreeSpec with Matchers with TryValues w
         emptyAnswers
           .set(HasUkTaxIdentifierPage, true).success.value
           .set(UkTaxIdentifierPage, "tin").success.value
-          .set(TaxResidencyCountryPage, Country.internationalCountries.head).success.value
+          .set(TaxResidencyCountryPage, countriesList.internationalCountries.head).success.value
           .set(HasInternationalTaxIdentifierPage, true).success.value
           .set(InternationalTaxIdentifierPage, "foo").success.value
 
@@ -95,7 +96,7 @@ class TaxResidentInUkPageSpec extends AnyFreeSpec with Matchers with TryValues w
         emptyAnswers
           .set(HasUkTaxIdentifierPage, true).success.value
           .set(UkTaxIdentifierPage, "tin").success.value
-          .set(TaxResidencyCountryPage, Country.internationalCountries.head).success.value
+          .set(TaxResidencyCountryPage, countriesList.internationalCountries.head).success.value
           .set(HasInternationalTaxIdentifierPage, true).success.value
           .set(InternationalTaxIdentifierPage, "foo").success.value
 

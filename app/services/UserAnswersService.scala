@@ -19,7 +19,7 @@ package services
 import cats.data.{EitherNec, NonEmptyChain, StateT}
 import cats.implicits.given
 import com.google.inject.{Inject, Singleton}
-import models.{Country, UserAnswers, yearFormat}
+import models.{CountriesList, Country, UserAnswers, yearFormat}
 import models.operator.{TinDetails, TinType}
 import models.submission.{AssumedReportingSubmission, AssumedReportingSubmissionRequest, AssumingPlatformOperator}
 import pages.assumed.create.*
@@ -30,7 +30,7 @@ import queries.{AssumedReportingSubmissionQuery, PlatformOperatorNameQuery, Quer
 import scala.util.Try
 
 @Singleton
-class UserAnswersService @Inject() () {
+class UserAnswersService @Inject() (countriesList: CountriesList) {
 
   def fromAssumedReportingSubmission(userId: String, submission: AssumedReportingSubmission): Try[UserAnswers] = {
 
@@ -51,7 +51,7 @@ class UserAnswersService @Inject() () {
     StateT.modifyF[Try, UserAnswers](_.set(settable, value))
 
   private def setTaxDetails(assumingOperator: AssumingPlatformOperator): StateT[Try, UserAnswers, Unit] =
-    if (Country.ukCountries.contains(assumingOperator.residentCountry)) {
+    if (countriesList.ukCountries.contains(assumingOperator.residentCountry)) {
       setUkTaxDetails(assumingOperator)
     } else {
       for {
@@ -92,7 +92,7 @@ class UserAnswersService @Inject() () {
         } yield ()
       }
 
-  private lazy val ukCountryCodes = Country.ukCountries.map(_.code)
+  private lazy val ukCountryCodes = countriesList.ukCountries.map(_.code)
 
   def toAssumedReportingSubmission(answers: UserAnswers): EitherNec[Query, AssumedReportingSubmissionRequest] =
     (

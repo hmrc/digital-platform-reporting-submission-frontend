@@ -20,8 +20,8 @@ import com.google.inject.Inject
 import connectors.PlatformOperatorConnector
 import controllers.actions.{DataRequiredAction, DataRetrievalActionProvider, IdentifierAction}
 import forms.CheckPlatformOperatorFormProvider
-import models.{NormalMode, yearFormat}
 import models.operator.responses.PlatformOperator
+import models.{CountriesList, NormalMode, yearFormat}
 import pages.assumed.create.CheckPlatformOperatorPage
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
@@ -44,7 +44,8 @@ class CheckPlatformOperatorController @Inject()(
                                                  formProvider: CheckPlatformOperatorFormProvider,
                                                  sessionRepository: SessionRepository,
                                                  checkPlatformOperatorPage: CheckPlatformOperatorPage,
-                                                 view: CheckPlatformOperatorView
+                                                 view: CheckPlatformOperatorView,
+                                                 countriesList: CountriesList
                                                )(implicit ec: ExecutionContext) extends FrontendBaseController with I18nSupport {
 
   def onPageLoad(operatorId: String): Action[AnyContent] = (identify andThen getData(operatorId) andThen requireData).async {
@@ -63,7 +64,7 @@ class CheckPlatformOperatorController @Inject()(
         ))
       }
   }
-  
+
   def onSubmit(operatorId: String): Action[AnyContent] = (identify andThen getData(operatorId) andThen requireData).async {
     implicit request =>
 
@@ -82,14 +83,14 @@ class CheckPlatformOperatorController @Inject()(
             ))
           }
         },
-        answer => 
+        answer =>
           for {
             updatedAnswers <- Future.fromTry(request.userAnswers.set(checkPlatformOperatorPage, answer))
-            _              <- sessionRepository.set(updatedAnswers)
+            _ <- sessionRepository.set(updatedAnswers)
           } yield Redirect(checkPlatformOperatorPage.nextPage(NormalMode, updatedAnswers))
       )
   }
-  
+
   private def platformOperatorList(operator: PlatformOperator)(implicit messages: Messages): SummaryList =
     SummaryListViewModel(
       rows = Seq(
@@ -105,10 +106,10 @@ class CheckPlatformOperatorController @Inject()(
         VrnSummary.row(operator),
         EmprefSummary.row(operator),
         ChrnSummary.row(operator),
-        TaxResidencyCountrySummary.row(operator),
+        TaxResidencyCountrySummary.row(operator, countriesList),
         InternationalTaxIdentifierSummary.row(operator),
-        RegisteredInUkSummary.row(operator),
-        AddressSummary.row(operator)
+        RegisteredInUkSummary.row(operator, countriesList),
+        AddressSummary.row(operator, countriesList)
       ).flatten
     )
 

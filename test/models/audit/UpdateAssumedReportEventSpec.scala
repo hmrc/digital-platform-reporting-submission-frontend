@@ -16,10 +16,10 @@
 
 package models.audit
 
-import models.Country
 import models.operator.TinDetails
 import models.operator.TinType.Other
 import models.submission.{AssumedReportingSubmission, AssumedReportingSubmissionRequest, AssumingPlatformOperator}
+import models.{Country, DefaultCountriesList}
 import org.scalatest.freespec.AnyFreeSpec
 import org.scalatest.matchers.must.Matchers
 import play.api.libs.json.Json
@@ -28,6 +28,7 @@ import java.time.Year
 
 class UpdateAssumedReportEventSpec extends AnyFreeSpec with Matchers {
 
+  private val countriesList = new DefaultCountriesList
   private val dprsId = "dprsId"
   private val operatorId = "operatorId"
   private val operatorName = "operatorName"
@@ -39,18 +40,18 @@ class UpdateAssumedReportEventSpec extends AnyFreeSpec with Matchers {
     registeredCountry = Country.gb,
     address = "address"
   )
-  
+
   "must write details to the correct json structure" - {
-    
+
     "when basic details have changed" in {
-      
+
       val original = AssumedReportingSubmission(operatorId, operatorName, baseAssumingOperator, reportingPeriod, false)
       val newAssumingOperator = baseAssumingOperator.copy(
         name = "new name",
         address = "new address"
       )
       val updated = AssumedReportingSubmissionRequest(operatorId, newAssumingOperator, reportingPeriod)
-      
+
       val expectedJson = Json.obj(
         "digitalPlatformReportingId" -> dprsId,
         "platformOperatorId" -> operatorId,
@@ -64,9 +65,9 @@ class UpdateAssumedReportEventSpec extends AnyFreeSpec with Matchers {
           "registeredAddress" -> "new address"
         )
       )
-      
-      val event = UpdateAssumedReportEvent(dprsId, original, updated)
-      
+
+      val event = UpdateAssumedReportEvent(dprsId, original, updated, countriesList)
+
       Json.toJson(event) mustEqual expectedJson
     }
 
@@ -91,7 +92,7 @@ class UpdateAssumedReportEventSpec extends AnyFreeSpec with Matchers {
         )
       )
 
-      val event = UpdateAssumedReportEvent(dprsId, original, updated)
+      val event = UpdateAssumedReportEvent(dprsId, original, updated, countriesList)
 
       Json.toJson(event) mustEqual expectedJson
     }
@@ -117,7 +118,7 @@ class UpdateAssumedReportEventSpec extends AnyFreeSpec with Matchers {
         )
       )
 
-      val event = UpdateAssumedReportEvent(dprsId, original, updated)
+      val event = UpdateAssumedReportEvent(dprsId, original, updated, countriesList)
 
       Json.toJson(event) mustEqual expectedJson
     }
@@ -146,13 +147,13 @@ class UpdateAssumedReportEventSpec extends AnyFreeSpec with Matchers {
         )
       )
 
-      val event = UpdateAssumedReportEvent(dprsId, original, updated)
+      val event = UpdateAssumedReportEvent(dprsId, original, updated, countriesList)
 
       Json.toJson(event) mustEqual expectedJson
     }
 
     "when an international tax identifier has been added" in {
-      
+
       val oldAssumingOperator = baseAssumingOperator.copy(
         residentCountry = Country("US", "United States")
       )
@@ -176,7 +177,7 @@ class UpdateAssumedReportEventSpec extends AnyFreeSpec with Matchers {
         )
       )
 
-      val event = UpdateAssumedReportEvent(dprsId, original, updated)
+      val event = UpdateAssumedReportEvent(dprsId, original, updated, countriesList)
 
       Json.toJson(event) mustEqual expectedJson
     }
@@ -206,13 +207,13 @@ class UpdateAssumedReportEventSpec extends AnyFreeSpec with Matchers {
         )
       )
 
-      val event = UpdateAssumedReportEvent(dprsId, original, updated)
+      val event = UpdateAssumedReportEvent(dprsId, original, updated, countriesList)
 
       Json.toJson(event) mustEqual expectedJson
     }
 
     "when the assuming operator has changed from being internationally tax resident to UK tax resident" in {
-      
+
       val oldAssumingOperator = baseAssumingOperator.copy(
         residentCountry = Country("US", "United States")
       )
@@ -235,7 +236,7 @@ class UpdateAssumedReportEventSpec extends AnyFreeSpec with Matchers {
         )
       )
 
-      val event = UpdateAssumedReportEvent(dprsId, original, updated)
+      val event = UpdateAssumedReportEvent(dprsId, original, updated, countriesList)
 
       Json.toJson(event) mustEqual expectedJson
     }

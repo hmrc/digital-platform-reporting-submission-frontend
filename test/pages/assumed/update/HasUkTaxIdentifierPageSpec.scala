@@ -17,7 +17,7 @@
 package pages.assumed.update
 
 import controllers.assumed.update.routes
-import models.{Country, UkTaxIdentifiers, UserAnswers}
+import models.{Country, DefaultCountriesList, UkTaxIdentifiers, UserAnswers}
 import org.scalatest.freespec.AnyFreeSpec
 import org.scalatest.matchers.must.Matchers
 import org.scalatest.{OptionValues, TryValues}
@@ -29,7 +29,8 @@ class HasUkTaxIdentifierPageSpec
     with Matchers
     with TryValues
     with OptionValues {
-    
+
+  private val countriesList = new DefaultCountriesList
   private val reportingPeriod = Year.of(2024)
   private val operatorId = "operatorId"
   private val emptyAnswers = UserAnswers("id", operatorId, Some(reportingPeriod))
@@ -69,7 +70,7 @@ class HasUkTaxIdentifierPageSpec
       val answers =
         emptyAnswers
           .set(UkTaxIdentifierPage, "tin").success.value
-          .set(TaxResidencyCountryPage, Country.internationalCountries.head).success.value
+          .set(TaxResidencyCountryPage, countriesList.internationalCountries.head).success.value
           .set(HasInternationalTaxIdentifierPage, true).success.value
           .set(InternationalTaxIdentifierPage, "foo").success.value
 
@@ -86,7 +87,7 @@ class HasUkTaxIdentifierPageSpec
       val answers =
         emptyAnswers
           .set(UkTaxIdentifierPage, "tin").success.value
-          .set(TaxResidencyCountryPage, Country.internationalCountries.head).success.value
+          .set(TaxResidencyCountryPage, countriesList.internationalCountries.head).success.value
           .set(HasInternationalTaxIdentifierPage, true).success.value
           .set(InternationalTaxIdentifierPage, "foo").success.value
 
