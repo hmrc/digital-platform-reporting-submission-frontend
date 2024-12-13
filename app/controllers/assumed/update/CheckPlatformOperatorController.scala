@@ -20,8 +20,8 @@ import com.google.inject.Inject
 import connectors.PlatformOperatorConnector
 import controllers.actions.{DataRequiredAction, DataRetrievalActionProvider, IdentifierAction}
 import forms.CheckPlatformOperatorFormProvider
-import models.NormalMode
 import models.operator.responses.PlatformOperator
+import models.{CountriesList, NormalMode}
 import pages.assumed.update.CheckPlatformOperatorPage
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
@@ -45,16 +45,17 @@ class CheckPlatformOperatorController @Inject()(
                                                  formProvider: CheckPlatformOperatorFormProvider,
                                                  sessionRepository: SessionRepository,
                                                  checkPlatformOperatorPage: CheckPlatformOperatorPage,
-                                                 view: CheckPlatformOperatorView
+                                                 view: CheckPlatformOperatorView,
+                                                 countriesList: CountriesList
                                                )(implicit ec: ExecutionContext) extends FrontendBaseController with I18nSupport {
 
   def onPageLoad(operatorId: String, reportingPeriod: Year): Action[AnyContent] =
     (identify andThen getData(operatorId, Some(reportingPeriod)) andThen requireData).async {
       implicit request =>
         connector.viewPlatformOperator(operatorId).map { operator =>
-    
+
           val form = formProvider()
-    
+
           Ok(view(
             form,
             platformOperatorList(operator),
@@ -66,13 +67,13 @@ class CheckPlatformOperatorController @Inject()(
           ))
         }
     }
-  
+
   def onSubmit(operatorId: String, reportingPeriod: Year): Action[AnyContent] =
     (identify andThen getData(operatorId, Some(reportingPeriod)) andThen requireData).async {
       implicit request =>
-  
+
         val form = formProvider()
-  
+
         form.bindFromRequest().fold(
           formWithErrors => {
             connector.viewPlatformOperator(operatorId).map { operator =>
@@ -90,11 +91,11 @@ class CheckPlatformOperatorController @Inject()(
           answer =>
             for {
               updatedAnswers <- Future.fromTry(request.userAnswers.set(checkPlatformOperatorPage, answer))
-              _              <- sessionRepository.set(updatedAnswers)
+              _ <- sessionRepository.set(updatedAnswers)
             } yield Redirect(checkPlatformOperatorPage.nextPage(reportingPeriod, updatedAnswers))
         )
     }
-  
+
   private def platformOperatorList(operator: PlatformOperator)(implicit messages: Messages): SummaryList =
     SummaryListViewModel(
       rows = Seq(
@@ -110,10 +111,10 @@ class CheckPlatformOperatorController @Inject()(
         VrnSummary.row(operator),
         EmprefSummary.row(operator),
         ChrnSummary.row(operator),
-        TaxResidencyCountrySummary.row(operator),
+        TaxResidencyCountrySummary.row(operator, countriesList),
         InternationalTaxIdentifierSummary.row(operator),
-        RegisteredInUkSummary.row(operator),
-        AddressSummary.row(operator)
+        RegisteredInUkSummary.row(operator, countriesList),
+        AddressSummary.row(operator, countriesList)
       ).flatten
     )
 

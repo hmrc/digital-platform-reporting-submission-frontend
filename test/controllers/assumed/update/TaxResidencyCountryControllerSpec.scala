@@ -19,7 +19,7 @@ package controllers.assumed.update
 import base.SpecBase
 import controllers.routes as baseRoutes
 import forms.TaxResidencyCountryFormProvider
-import models.{Country, NormalMode}
+import models.{Country, DefaultCountriesList, NormalMode}
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.when
 import org.scalatestplus.mockito.MockitoSugar
@@ -36,7 +36,8 @@ import scala.concurrent.Future
 class TaxResidencyCountryControllerSpec extends SpecBase with MockitoSugar {
 
   private val reportingPeriod = Year.of(2024)
-  private val formProvider = new TaxResidencyCountryFormProvider()
+  private val countriesList = new DefaultCountriesList
+  private val formProvider = new TaxResidencyCountryFormProvider(countriesList)
   private val assumingOperatorName = "name"
   private val baseAnswers = emptyUserAnswers.copy(reportingPeriod = Some(reportingPeriod)).set(AssumingOperatorNamePage, assumingOperatorName).success.value
 
@@ -63,7 +64,7 @@ class TaxResidencyCountryControllerSpec extends SpecBase with MockitoSugar {
 
     "must populate the view correctly on a GET when the question has previously been answered" in {
 
-      val userAnswers = baseAnswers.set(TaxResidencyCountryPage, Country.internationalCountries.head).success.value
+      val userAnswers = baseAnswers.set(TaxResidencyCountryPage, countriesList.internationalCountries.head).success.value
 
       val application = applicationBuilder(userAnswers = Some(userAnswers)).build()
 
@@ -76,7 +77,7 @@ class TaxResidencyCountryControllerSpec extends SpecBase with MockitoSugar {
         val result = route(application, request).value
 
         status(result) mustEqual OK
-        contentAsString(result) mustEqual view(form.fill(Country.internationalCountries.head), operatorId, reportingPeriod, assumingOperatorName)(request, messages(application)).toString
+        contentAsString(result) mustEqual view(form.fill(countriesList.internationalCountries.head), operatorId, reportingPeriod, assumingOperatorName)(request, messages(application)).toString
       }
     }
 
@@ -96,10 +97,10 @@ class TaxResidencyCountryControllerSpec extends SpecBase with MockitoSugar {
       running(application) {
         val request =
           FakeRequest(POST, taxResidencyCountryRoute)
-            .withFormUrlEncodedBody(("value", Country.internationalCountries.head.code))
+            .withFormUrlEncodedBody(("value", countriesList.internationalCountries.head.code))
 
         val result = route(application, request).value
-        val answers = baseAnswers.set(TaxResidencyCountryPage, Country.internationalCountries.head).success.value
+        val answers = baseAnswers.set(TaxResidencyCountryPage, countriesList.internationalCountries.head).success.value
 
         status(result) mustEqual SEE_OTHER
         redirectLocation(result).value mustEqual TaxResidencyCountryPage.nextPage(reportingPeriod, answers).url
@@ -148,7 +149,7 @@ class TaxResidencyCountryControllerSpec extends SpecBase with MockitoSugar {
       running(application) {
         val request =
           FakeRequest(POST, taxResidencyCountryRoute)
-            .withFormUrlEncodedBody(("value", Country.internationalCountries.head.code))
+            .withFormUrlEncodedBody(("value", countriesList.internationalCountries.head.code))
 
         val result = route(application, request).value
 

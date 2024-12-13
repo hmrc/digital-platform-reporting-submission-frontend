@@ -16,7 +16,8 @@
 
 package config
 
-import controllers.actions._
+import controllers.actions.*
+import models.CountriesList
 import play.api.inject.Binding
 import play.api.{Configuration, Environment}
 import uk.gov.hmrc.crypto.{Decrypter, Encrypter}
@@ -31,7 +32,8 @@ class Module extends play.api.inject.Module {
       // For session based storage instead of cred based, change to SessionIdentifierAction
       bind[IdentifierAction].to[AuthenticatedIdentifierAction].eagerly(),
       bind[Clock].toInstance(Clock.systemUTC()),
-      bind[Encrypter & Decrypter].toProvider[CryptoProvider]
+      bind[Encrypter & Decrypter].toProvider[CryptoProvider],
+      bind[CountriesList].toProvider[CountriesListProvider]
     )
   }
 }

@@ -16,8 +16,8 @@
 
 package viewmodels.checkAnswers.operator
 
-import models.Country
 import models.operator.responses.PlatformOperator
+import models.{CountriesList, Country}
 import play.api.i18n.Messages
 import play.twirl.api.HtmlFormat
 import uk.gov.hmrc.govukfrontend.views.Aliases.HtmlContent
@@ -27,7 +27,8 @@ import viewmodels.implicits.*
 
 object AddressSummary {
 
-  def row(operator: PlatformOperator)(implicit messages: Messages): Option[SummaryListRow] = {
+  def row(operator: PlatformOperator, countriesList: CountriesList)
+         (implicit messages: Messages): Option[SummaryListRow] = {
 
     val value = Seq(
       Some(HtmlFormat.escape(operator.addressDetails.line1).toString),
@@ -35,7 +36,7 @@ object AddressSummary {
       operator.addressDetails.line3.map(HtmlFormat.escape(_).toString),
       operator.addressDetails.line4.map(HtmlFormat.escape(_).toString),
       operator.addressDetails.postCode.map(HtmlFormat.escape(_).toString),
-      operator.addressDetails.countryCode.flatMap(code => Country.allCountries.map(_.code).find(_ == code))
+      operator.addressDetails.countryCode.flatMap(code => countriesList.allCountries.map(_.code).find(_ == code))
     ).flatten.mkString("<br/>")
 
     Some(SummaryListRowViewModel(

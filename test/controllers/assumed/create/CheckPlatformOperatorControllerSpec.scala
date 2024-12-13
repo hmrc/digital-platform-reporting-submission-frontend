@@ -21,7 +21,7 @@ import connectors.PlatformOperatorConnector
 import forms.CheckPlatformOperatorFormProvider
 import models.operator.responses.PlatformOperator
 import models.operator.{AddressDetails, ContactDetails}
-import models.{NormalMode, UserAnswers}
+import models.{DefaultCountriesList, NormalMode, UserAnswers}
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.{times, verify, when}
 import org.mockito.{ArgumentCaptor, Mockito}
@@ -43,6 +43,7 @@ import scala.concurrent.Future
 
 class CheckPlatformOperatorControllerSpec extends SpecBase with SummaryListFluency with MockitoSugar with BeforeAndAfterEach {
 
+  private val countriesList = new DefaultCountriesList
   private val form = CheckPlatformOperatorFormProvider()()
   private val mockConnector = mock[PlatformOperatorConnector]
   private val mockRepository = mock[SessionRepository]
@@ -91,8 +92,8 @@ class CheckPlatformOperatorControllerSpec extends SpecBase with SummaryListFluen
           BusinessNameSummary.row(operator),
           HasTradingNameSummary.row(operator),
           HasTaxIdentifierSummary.row(operator),
-          RegisteredInUkSummary.row(operator),
-          AddressSummary.row(operator),
+          RegisteredInUkSummary.row(operator, countriesList),
+          AddressSummary.row(operator, countriesList),
         ).flatten)
 
         val primaryContactList = SummaryListViewModel(Seq(
@@ -144,8 +145,8 @@ class CheckPlatformOperatorControllerSpec extends SpecBase with SummaryListFluen
           BusinessNameSummary.row(operator),
           HasTradingNameSummary.row(operator),
           HasTaxIdentifierSummary.row(operator),
-          RegisteredInUkSummary.row(operator),
-          AddressSummary.row(operator),
+          RegisteredInUkSummary.row(operator, countriesList),
+          AddressSummary.row(operator, countriesList),
         ).flatten)
 
         val primaryContactList = SummaryListViewModel(Seq(

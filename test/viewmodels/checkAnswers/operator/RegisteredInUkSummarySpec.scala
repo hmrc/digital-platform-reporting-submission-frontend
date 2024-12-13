@@ -16,7 +16,7 @@
 
 package viewmodels.checkAnswers.operator
 
-import models.Country
+import models.{Country, DefaultCountriesList}
 import models.operator.{AddressDetails, ContactDetails}
 import models.operator.responses.PlatformOperator
 import org.scalacheck.Gen
@@ -30,6 +30,8 @@ import viewmodels.govuk.summarylist.ValueViewModel
 import viewmodels.implicits.*
 
 class RegisteredInUkSummarySpec extends AnyFreeSpec with Matchers with ScalaCheckPropertyChecks with OptionValues {
+
+  private val countriesList = new DefaultCountriesList
 
   ".row" - {
 
@@ -49,25 +51,25 @@ class RegisteredInUkSummarySpec extends AnyFreeSpec with Matchers with ScalaChec
 
     "must have a value of `yes` when the operator's country is in the UK" in {
 
-      forAll(Gen.oneOf(Country.ukCountries)) { country =>
+      forAll(Gen.oneOf(countriesList.ukCountries)) { country =>
         val operator = baseOperator.copy(addressDetails = baseAddress.copy(countryCode = Some(country.code)))
-        val row = RegisteredInUkSummary.row(operator).value
+        val row = RegisteredInUkSummary.row(operator, countriesList).value
         row.value mustEqual ValueViewModel(messages("site.yes"))
       }
     }
 
     "must have a value of `no` when the operator's country is not in the UK" in {
 
-      forAll(Gen.oneOf(Country.internationalCountries)) { country =>
+      forAll(Gen.oneOf(countriesList.internationalCountries)) { country =>
         val operator = baseOperator.copy(addressDetails = baseAddress.copy(countryCode = Some(country.code)))
-        val row = RegisteredInUkSummary.row(operator).value
+        val row = RegisteredInUkSummary.row(operator, countriesList).value
         row.value mustEqual ValueViewModel(messages("site.no"))
       }
     }
 
     "must be None when the operator does not have a country" in {
 
-      RegisteredInUkSummary.row(baseOperator) must not be defined
+      RegisteredInUkSummary.row(baseOperator, countriesList) must not be defined
     }
   }
 }

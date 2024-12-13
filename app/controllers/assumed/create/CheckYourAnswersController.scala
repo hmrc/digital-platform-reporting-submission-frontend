@@ -21,7 +21,7 @@ import connectors.AssumedReportingConnector
 import connectors.AssumedReportingConnector.SubmitAssumedReportingFailure
 import controllers.AnswerExtractor
 import controllers.actions.*
-import models.UserAnswers
+import models.{CountriesList, UserAnswers}
 import models.audit.AddAssumedReportEvent
 import models.requests.DataRequest
 import models.submission.{AssumedReportSummary, AssumedReportingSubmissionRequest, Submission}
@@ -51,7 +51,8 @@ class CheckYourAnswersController @Inject()(
                                             connector: AssumedReportingConnector,
                                             sessionRepository: SessionRepository,
                                             auditService: AuditService,
-                                            clock: Clock
+                                            clock: Clock,
+                                            countriesList: CountriesList
                                           )(using ExecutionContext)
   extends FrontendBaseController with I18nSupport with AnswerExtractor {
 
@@ -118,7 +119,8 @@ class CheckYourAnswersController @Inject()(
       submission     = submission,
       statusCode     = statusCode,
       processedAt    = Instant.now(clock),
-      conversationId = conversationId
+      conversationId = conversationId,
+      countriesList  = countriesList
     )
     
     auditService.audit(auditEvent)

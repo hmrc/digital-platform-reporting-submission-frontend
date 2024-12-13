@@ -19,7 +19,7 @@ package controllers.assumed.update
 import base.SpecBase
 import controllers.routes as baseRoutes
 import forms.RegisteredCountryFormProvider
-import models.Country
+import models.{Country, DefaultCountriesList}
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.when
 import org.scalatestplus.mockito.MockitoSugar
@@ -36,7 +36,8 @@ import scala.concurrent.Future
 class RegisteredCountryControllerSpec extends SpecBase with MockitoSugar {
 
   private val reportingPeriod = Year.of(2024)
-  private val formProvider = new RegisteredCountryFormProvider()
+  private val countriesList = new DefaultCountriesList
+  private val formProvider = new RegisteredCountryFormProvider(countriesList)
   private val assumingOperatorName = "name"
   private val baseAnswers = emptyUserAnswers.copy(reportingPeriod = Some(reportingPeriod)).set(AssumingOperatorNamePage, assumingOperatorName).success.value
 
@@ -55,7 +56,7 @@ class RegisteredCountryControllerSpec extends SpecBase with MockitoSugar {
 
         val view = application.injector.instanceOf[RegisteredCountryView]
         val form = formProvider(assumingOperatorName)(messages(application))
-        
+
         status(result) mustEqual OK
         contentAsString(result) mustEqual view(form, operatorId, reportingPeriod, assumingOperatorName)(request, messages(application)).toString
       }
@@ -63,7 +64,7 @@ class RegisteredCountryControllerSpec extends SpecBase with MockitoSugar {
 
     "must populate the view correctly on a GET when the question has previously been answered" in {
 
-      val userAnswers = baseAnswers.set(RegisteredCountryPage, Country.allCountries.head).success.value
+      val userAnswers = baseAnswers.set(RegisteredCountryPage, countriesList.allCountries.head).success.value
 
       val application = applicationBuilder(userAnswers = Some(userAnswers)).build()
 
@@ -72,11 +73,11 @@ class RegisteredCountryControllerSpec extends SpecBase with MockitoSugar {
 
         val view = application.injector.instanceOf[RegisteredCountryView]
         val form = formProvider(assumingOperatorName)(messages(application))
-        
+
         val result = route(application, request).value
 
         status(result) mustEqual OK
-        contentAsString(result) mustEqual view(form.fill(Country.allCountries.head), operatorId, reportingPeriod, assumingOperatorName)(request, messages(application)).toString
+        contentAsString(result) mustEqual view(form.fill(countriesList.allCountries.head), operatorId, reportingPeriod, assumingOperatorName)(request, messages(application)).toString
       }
     }
 
@@ -96,10 +97,10 @@ class RegisteredCountryControllerSpec extends SpecBase with MockitoSugar {
       running(application) {
         val request =
           FakeRequest(POST, registeredCountryRoute)
-            .withFormUrlEncodedBody(("value", Country.allCountries.head.code))
+            .withFormUrlEncodedBody(("value", countriesList.allCountries.head.code))
 
         val result = route(application, request).value
-        val answers = baseAnswers.set(RegisteredCountryPage, Country.allCountries.head).success.value
+        val answers = baseAnswers.set(RegisteredCountryPage, countriesList.allCountries.head).success.value
 
         status(result) mustEqual SEE_OTHER
         redirectLocation(result).value mustEqual RegisteredCountryPage.nextPage(reportingPeriod, answers).url
@@ -118,7 +119,7 @@ class RegisteredCountryControllerSpec extends SpecBase with MockitoSugar {
         val view = application.injector.instanceOf[RegisteredCountryView]
         val form = formProvider(assumingOperatorName)(messages(application))
         val boundForm = form.bind(Map("value" -> ""))
-        
+
         val result = route(application, request).value
 
         status(result) mustEqual BAD_REQUEST
@@ -147,7 +148,7 @@ class RegisteredCountryControllerSpec extends SpecBase with MockitoSugar {
       running(application) {
         val request =
           FakeRequest(POST, registeredCountryRoute)
-            .withFormUrlEncodedBody(("value", Country.allCountries.head.code))
+            .withFormUrlEncodedBody(("value", countriesList.allCountries.head.code))
 
         val result = route(application, request).value
 

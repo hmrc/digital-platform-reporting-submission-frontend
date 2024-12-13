@@ -41,12 +41,13 @@ class FrontendAppConfig @Inject() (configuration: Configuration) {
   private val exitSurveyBaseUrl: String = configuration.get[String]("feedback-frontend.host")
   val exitSurveyUrl: String             = s"$exitSurveyBaseUrl/feedback/digital-platform-reporting-submission-frontend"
 
-  val languageTranslationEnabled: Boolean =
-    configuration.get[Boolean]("features.welsh-translation")
+  val languageTranslationEnabled: Boolean = configuration.get[Boolean]("features.welsh-translation")
+  val dataEncryptionEnabled: Boolean = configuration.get[Boolean]("features.use-encryption")
+  val extendedCountriesListEnabled: Boolean = configuration.get[Boolean]("features.extended-countries-list")
 
   def languageMap: Map[String, Lang] = Map(
-    "en" -> Lang("en"),
-    "cy" -> Lang("cy")
+  "en" -> Lang("en"),
+  "cy" -> Lang("cy")
   )
 
   val timeout: Int   = configuration.get[Int]("timeout-dialog.timeout")
@@ -54,7 +55,6 @@ class FrontendAppConfig @Inject() (configuration: Configuration) {
 
   val cacheTtl: Long = configuration.get[Int]("mongodb.timeToLiveInSeconds")
 
-  val dataEncryptionEnabled: Boolean = configuration.get[Boolean]("features.use-encryption")
 
   private val operatorFrontendUrl: String = configuration.get[String]("microservice.services.digital-platform-reporting-operator-frontend.baseUrl")
   val addOperatorUrl: String = s"$operatorFrontendUrl/platform-operator/add-platform-operator/start"

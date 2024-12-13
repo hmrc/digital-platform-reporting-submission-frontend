@@ -20,7 +20,7 @@ import com.google.inject.Inject
 import connectors.AssumedReportingConnector
 import controllers.actions.*
 import controllers.{AnswerExtractor, routes as baseRoutes}
-import models.UserAnswers
+import models.{CountriesList, UserAnswers}
 import models.audit.UpdateAssumedReportEvent
 import models.requests.DataRequest
 import models.submission.{AssumedReportSummary, AssumedReportingSubmission, AssumedReportingSubmissionRequest}
@@ -49,7 +49,8 @@ class CheckYourAnswersController @Inject()(
                                             userAnswersService: UserAnswersService,
                                             connector: AssumedReportingConnector,
                                             sessionRepository: SessionRepository,
-                                            auditService: AuditService
+                                            auditService: AuditService,
+                                            countriesList: CountriesList
                                           )(using ExecutionContext)
   extends FrontendBaseController with I18nSupport with AnswerExtractor {
 
@@ -110,7 +111,7 @@ class CheckYourAnswersController @Inject()(
   
   private def audit(original: AssumedReportingSubmission, updated: AssumedReportingSubmissionRequest)
                    (using request: DataRequest[AnyContent]): Unit = {
-    val auditEvent = UpdateAssumedReportEvent(request.dprsId, original, updated)
+    val auditEvent = UpdateAssumedReportEvent(request.dprsId, original, updated, countriesList)
     auditService.audit(auditEvent)
   }
 }

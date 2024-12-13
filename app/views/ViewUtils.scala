@@ -16,17 +16,20 @@
 
 package views
 
+import models.Country
 import play.api.data.Form
 import play.api.i18n.Messages
+import uk.gov.hmrc.govukfrontend.views.viewmodels.select.SelectItem
+import viewmodels.govuk.all.SelectItemViewModel
 
-import java.time.{Instant, LocalDateTime, ZoneId}
 import java.time.format.DateTimeFormatter
+import java.time.{Instant, LocalDateTime, ZoneId}
 
 object ViewUtils {
 
   def title(form: Form[?], title: String, section: Option[String] = None)(implicit messages: Messages): String =
     titleNoForm(
-      title   = s"${errorPrefix(form)} ${messages(title)}",
+      title = s"${errorPrefix(form)} ${messages(title)}",
       section = section
     )
 
@@ -41,4 +44,14 @@ object ViewUtils {
     val formatter = DateTimeFormatter.ofPattern("d MMM yyyy")
     LocalDateTime.from(instant.atZone(ZoneId.systemDefault())).format(formatter)
   }
+
+  def countrySelectItems(countries: Seq[Country]): Seq[SelectItem] =
+    SelectItem(value = None, text = "") +:
+      countries.map {
+        country =>
+          SelectItemViewModel(
+            value = country.code,
+            text = country.name
+          )
+      }
 }

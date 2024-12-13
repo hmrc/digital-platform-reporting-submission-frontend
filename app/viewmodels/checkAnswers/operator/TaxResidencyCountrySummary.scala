@@ -16,9 +16,9 @@
 
 package viewmodels.checkAnswers.operator
 
-import models.Country
 import models.operator.TinType
 import models.operator.responses.PlatformOperator
+import models.{CountriesList, Country}
 import play.api.i18n.Messages
 import uk.gov.hmrc.govukfrontend.views.viewmodels.summarylist.SummaryListRow
 import viewmodels.govuk.summarylist.*
@@ -26,13 +26,14 @@ import viewmodels.implicits.*
 
 object TaxResidencyCountrySummary {
 
-  def row(operator: PlatformOperator)(implicit messages: Messages): Option[SummaryListRow] = {
+  def row(operator: PlatformOperator, countriesList: CountriesList)
+         (implicit messages: Messages): Option[SummaryListRow] = {
 
     val country =
       operator.tinDetails
         .find(_.issuedBy != "GB")
         .map(_.issuedBy)
-        .flatMap(countryCode => Country.internationalCountries.find(_.code == countryCode))
+        .flatMap(countryCode => countriesList.internationalCountries.find(_.code == countryCode))
 
     country.map { answer =>
       SummaryListRowViewModel(
