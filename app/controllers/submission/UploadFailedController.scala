@@ -22,7 +22,7 @@ import controllers.actions.*
 import models.submission.{CadxValidationError, Submission}
 import models.submission.Submission.State.{Approved, Ready, Rejected, Submitted, UploadFailed, Uploading, Validated}
 import models.submission.Submission.UploadFailureReason
-import models.submission.Submission.UploadFailureReason.{NotXml, SchemaValidationError}
+import models.submission.Submission.UploadFailureReason.SchemaValidationError
 import org.apache.pekko.stream.connectors.csv.scaladsl.CsvFormatting
 import org.apache.pekko.stream.scaladsl.Source
 import play.api.Configuration
@@ -30,7 +30,7 @@ import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents, Result}
 import services.UpscanService
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
-import views.html.submission.{SchemaFailureView, UploadFailedView, XmlFailureView}
+import views.html.submission.{SchemaFailureView, UploadFailedView}
 
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
@@ -40,7 +40,6 @@ class UploadFailedController @Inject()(override val messagesApi: MessagesApi,
                                        val controllerComponents: MessagesControllerComponents,
                                        view: UploadFailedView,
                                        schemaFailureView: SchemaFailureView,
-                                       xmlFailureView: XmlFailureView,
                                        submissionConnector: SubmissionConnector,
                                        upscanService: UpscanService,
                                        configuration: Configuration)
@@ -59,10 +58,6 @@ class UploadFailedController @Inject()(override val messagesApi: MessagesApi,
               case SchemaValidationError(_, moreErrors) =>
                 state.fileName.map { fileName =>
                   Future.successful(Ok(schemaFailureView(uploadDifferentFileUrl, fileName, operatorId, submissionId, moreErrors, maxErrors)))
-                }.getOrElse(Future.successful(Redirect(controllers.routes.JourneyRecoveryController.onPageLoad())))
-              case NotXml =>
-                state.fileName.map { fileName =>
-                  Future.successful(Ok(xmlFailureView(uploadDifferentFileUrl, fileName)))
                 }.getOrElse(Future.successful(Redirect(controllers.routes.JourneyRecoveryController.onPageLoad())))
               case _ =>
                 upscanService.initiate(operatorId, request.dprsId, submissionId).map { uploadRequest =>

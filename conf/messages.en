@@ -73,8 +73,8 @@ uploading.title = Upload an XML file
 uploading.heading = Upload an XML file
 uploading.body = We will automatically check the formatting of the file and send you to another page once completed.
 
-uploadFailed.schemafailure.title = There is a problem with the data in your file
-uploadFailed.schemafailure.heading = There is a problem with the data in your file
+uploadFailed.schemafailure.title = There is a problem with the contents of your file
+uploadFailed.schemafailure.heading = There is a problem with the contents of your file
 uploadFailed.schemafailure.p1.1 = We cannot accept the file {0} because it does not pass the digital platform reporting schema validation.
 uploadFailed.schemafailure.h2 = What you can do next
 uploadFailed.schemafailure.p2.1 = Download and view the schema validation errors below.
@@ -87,17 +87,6 @@ uploadFailed.schemafailure.return = Return to manage your digital platform repor
 uploadFailed.schemafailure.tsv.line = Line
 uploadFailed.schemafailure.tsv.column = Column
 uploadFailed.schemafailure.tsv.message = Message
-
-uploadFailed.xmlFailure.title = There is a problem with the formatting of your file
-uploadFailed.xmlFailure.heading = There is a problem with the formatting of your file
-uploadFailed.xmlFailure.p1 = We cannot accept the file {0} because there is a problem with its formatting.
-uploadFailed.xmlFailure.p2 = Check that all:
-uploadFailed.xmlFailure.bullet1 = element names are correct
-uploadFailed.xmlFailure.bullet2 = elements have an opening and a closing tag
-uploadFailed.xmlFailure.bullet3 = tags are correctly nested
-uploadFailed.xmlFailure.p3.link.text = Refer to the XML schema and supporting documents (opens in new tab)
-uploadFailed.xmlFailure.p4.link.text = Upload a different file
-uploadFailed.xmlFailure.p5.link.text = Return to manage your digital platform reporting
 
 uploadFailed.title = Upload an XML file
 uploadFailed.heading = Upload an XML file
