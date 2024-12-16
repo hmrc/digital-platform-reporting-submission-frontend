@@ -30,7 +30,7 @@ import queries.{AssumedReportingSubmissionQuery, PlatformOperatorNameQuery, Quer
 import scala.util.Try
 
 @Singleton
-class UserAnswersService @Inject() (countriesList: CountriesList) {
+class UserAnswersService @Inject() (implicit countriesList: CountriesList) {
 
   def fromAssumedReportingSubmission(userId: String, submission: AssumedReportingSubmission): Try[UserAnswers] = {
 

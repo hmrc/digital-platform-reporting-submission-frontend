@@ -18,12 +18,12 @@ package connectors
 
 import com.github.tomakehurst.wiremock.client.WireMock.*
 import connectors.AssumedReportingConnector.*
-import models.Country
 import models.operator.TinDetails
 import models.operator.TinType.{Utr, Vrn}
 import models.submission.*
 import models.submission.Submission.State.Submitted
 import models.submission.Submission.SubmissionType
+import models.{Country, DefaultCountriesList}
 import org.scalatest.OptionValues
 import org.scalatest.concurrent.{IntegrationPatience, ScalaFutures}
 import org.scalatest.freespec.AnyFreeSpec
@@ -45,6 +45,8 @@ class AssumedReportingConnectorSpec
     with ScalaFutures
     with IntegrationPatience
     with OptionValues {
+
+  implicit private val countriesList: DefaultCountriesList = new DefaultCountriesList
 
   override lazy val app: Application = GuiceApplicationBuilder()
     .configure(
@@ -202,9 +204,9 @@ class AssumedReportingConnectorSpec
       failure.status mustEqual 500
     }
   }
-  
+
   "list" - {
-    
+
     "must return submission summaries when the server returns OK and some submissions" in {
 
       val submission = AssumedReportingSubmissionSummary(
@@ -219,7 +221,7 @@ class AssumedReportingConnectorSpec
         submissionCaseId = Some("submissionCaseId"),
         isDeleted = false
       )
-      
+
       wireMockServer.stubFor(
         get(urlPathEqualTo("/digital-platform-reporting/submission/assumed"))
           .withHeader("User-Agent", equalTo("app"))
