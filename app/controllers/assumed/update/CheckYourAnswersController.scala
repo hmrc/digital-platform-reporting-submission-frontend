@@ -49,15 +49,14 @@ class CheckYourAnswersController @Inject()(
                                             userAnswersService: UserAnswersService,
                                             connector: AssumedReportingConnector,
                                             sessionRepository: SessionRepository,
-                                            auditService: AuditService,
-                                            countriesList: CountriesList
-                                          )(using ExecutionContext)
+                                            auditService: AuditService
+                                          )(using ExecutionContext, CountriesList)
   extends FrontendBaseController with I18nSupport with AnswerExtractor {
 
   def onPageLoad(operatorId: String, reportingPeriod: Year): Action[AnyContent] =
     (identify andThen getData(operatorId, Some(reportingPeriod)) andThen requireData) {
       implicit request =>
-  
+
         val list = SummaryListViewModel(
           rows = Seq(
             ReportingPeriodSummary.row(reportingPeriod, request.userAnswers),
@@ -73,7 +72,7 @@ class CheckYourAnswersController @Inject()(
             AddressSummary.row(reportingPeriod, request.userAnswers),
           ).flatten
         )
-  
+
         Ok(view(list, operatorId, reportingPeriod))
     }
 
@@ -97,7 +96,7 @@ class CheckYourAnswersController @Inject()(
           }
       }
     }
-    
+
   def initialise(operatorId: String, reportingPeriod: Year): Action[AnyContent] = identify.async {
     implicit request =>
       connector.get(operatorId, reportingPeriod)
@@ -108,10 +107,10 @@ class CheckYourAnswersController @Inject()(
           } yield Redirect(routes.CheckYourAnswersController.onPageLoad(operatorId, reportingPeriod))
         }.getOrElse(Future.successful(Redirect(baseRoutes.JourneyRecoveryController.onPageLoad()))))
   }
-  
+
   private def audit(original: AssumedReportingSubmission, updated: AssumedReportingSubmissionRequest)
                    (using request: DataRequest[AnyContent]): Unit = {
-    val auditEvent = UpdateAssumedReportEvent(request.dprsId, original, updated, countriesList)
+    val auditEvent = UpdateAssumedReportEvent(request.dprsId, original, updated, implicitly[CountriesList])
     auditService.audit(auditEvent)
   }
 }

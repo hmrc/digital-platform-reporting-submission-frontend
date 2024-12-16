@@ -17,7 +17,7 @@
 package models.submission
 
 import models.operator.TinDetails
-import models.{Country, ExtendedCountriesList}
+import models.{CountriesList, Country}
 import play.api.libs.functional.syntax.*
 import play.api.libs.json.*
 
@@ -31,28 +31,29 @@ final case class AssumingPlatformOperator(
 
 object AssumingPlatformOperator {
 
-  private given Reads[Country] =
+  private def countryReads(countriesList: CountriesList): Reads[Country] =
     JsPath.read[String].flatMap { countryCode =>
-      (new ExtendedCountriesList).allCountries.find(_.code == countryCode)
+      countriesList.allCountries.find(_.code == countryCode)
         .map(Reads.pure)
         .getOrElse(Reads.failed("Unrecognised country code"))
     }
 
-  private lazy val reads: Reads[AssumingPlatformOperator] = (
+  private def reads(countriesList: CountriesList): Reads[AssumingPlatformOperator] = (
     (__ \ "name").read[String] and
-      (__ \ "residentCountry").read[Country] and
+      (__ \ "residentCountry").read[Country](countryReads(countriesList)) and
       (__ \ "tinDetails").read[Seq[TinDetails]] and
-      (__ \ "registeredCountry").read[Country] and
+      (__ \ "registeredCountry").read[Country](countryReads(countriesList)) and
       (__ \ "address").read[String]
     )(AssumingPlatformOperator.apply)
 
   private lazy val writes: OWrites[AssumingPlatformOperator] = (
     (__ \ "name").write[String] and
-      (__ \ "residentCountry").write[String] and
+      (__ \ "residentCountry").write[String].contramap[Country](_.code) and
       (__ \ "tinDetails").write[Seq[TinDetails]] and
-      (__ \ "registeredCountry").write[String] and
+      (__ \ "registeredCountry").write[String].contramap[Country](_.code) and
       (__ \ "address").write[String]
-    )(operator => (operator.name, operator.residentCountry.code, operator.tinDetails, operator.registeredCountry.code, operator.address))
+    )(operator => (operator.name, operator.residentCountry, operator.tinDetails, operator.registeredCountry, operator.address))
 
-  given OFormat[AssumingPlatformOperator] = OFormat(reads, writes)
+  given format(using countriesList: CountriesList): OFormat[AssumingPlatformOperator] =
+    OFormat(reads(countriesList), writes)
 }

@@ -18,25 +18,26 @@ package connectors
 
 import config.Service
 import connectors.AssumedReportingConnector.*
+import models.CountriesList
 import models.submission.*
-import org.apache.pekko.stream.Materializer
 import org.apache.pekko.Done
+import org.apache.pekko.stream.Materializer
 import play.api.Configuration
 import play.api.http.Status.{NOT_FOUND, OK}
-import play.api.libs.json.Json
+import play.api.libs.json.*
 import play.api.libs.ws.JsonBodyWritables.writeableOf_JsValue
 import uk.gov.hmrc.http.client.{HttpClientV2, given}
 import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse, StringContextOps}
 
-import javax.inject.{Inject, Singleton}
 import java.time.Year
+import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
-class AssumedReportingConnector @Inject() (
-                                            httpClient: HttpClientV2,
-                                            configuration: Configuration
-                                          )(using ExecutionContext, Materializer) {
+class AssumedReportingConnector @Inject()(
+                                           httpClient: HttpClientV2,
+                                           configuration: Configuration
+                                         )(using ExecutionContext, Materializer, CountriesList) {
 
   private val digitalPlatformReportingService: Service =
     configuration.get[Service]("microservice.services.digital-platform-reporting")
@@ -86,14 +87,14 @@ class AssumedReportingConnector @Inject() (
 }
 
 object AssumedReportingConnector {
-  
+
   final case class SubmitAssumedReportingFailure(status: Int) extends Throwable
-  
+
   case object GetAssumedReportFailure extends Throwable
-  
+
   final case class DeleteAssumedReportFailure(status: Int) extends Throwable {
     override def getMessage: String = s"Unexpected status code $status received when trying to delete an assumed report"
   }
-  
+
   case object ListAssumedReportsFailure extends Throwable
 }

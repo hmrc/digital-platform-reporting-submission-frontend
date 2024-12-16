@@ -16,14 +16,16 @@
 
 package models.submission
 
-import models.Country
 import models.operator.TinDetails
 import models.operator.TinType.Other
+import models.{CountriesList, Country, DefaultCountriesList}
 import org.scalatest.freespec.AnyFreeSpec
 import org.scalatest.matchers.must.Matchers
 import play.api.libs.json.{JsError, Json}
 
 class AssumingPlatformOperatorSpec extends AnyFreeSpec with Matchers {
+
+  implicit private val countriesList: CountriesList = new DefaultCountriesList
 
   "must read from a valid json structure" - {
 
@@ -90,7 +92,7 @@ class AssumingPlatformOperatorSpec extends AnyFreeSpec with Matchers {
   }
 
   "must fail to read when registered country is not recognised" in {
-    
+
     val json = Json.obj(
       "name" -> "name",
       "residentCountry" -> "GB",
@@ -103,7 +105,7 @@ class AssumingPlatformOperatorSpec extends AnyFreeSpec with Matchers {
   }
 
   "must write to the correct json structure" - {
-    
+
     "with optional values present" in {
 
       val operator = AssumingPlatformOperator(
@@ -127,10 +129,10 @@ class AssumingPlatformOperatorSpec extends AnyFreeSpec with Matchers {
         "registeredCountry" -> "US",
         "address" -> "address"
       )
-      
+
       Json.toJson(operator) mustEqual expectedJson
     }
-    
+
     "with optional values missing" in {
 
       val operator = AssumingPlatformOperator(
@@ -140,7 +142,7 @@ class AssumingPlatformOperatorSpec extends AnyFreeSpec with Matchers {
         Country("US", "United States"),
         "address"
       )
-      
+
       val expectedJson = Json.obj(
         "name" -> "name",
         "residentCountry" -> "GB",

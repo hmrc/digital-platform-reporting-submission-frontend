@@ -21,14 +21,14 @@ import cats.data.NonEmptyChain
 import connectors.AssumedReportingConnector
 import controllers.routes as baseRoutes
 import models.audit.UpdateAssumedReportEvent
-import models.{CountriesList, Country, DefaultCountriesList, UserAnswers, yearFormat}
 import models.submission.Submission.State.Submitted
 import models.submission.Submission.SubmissionType
-import models.submission.{AssumedReportSummary, AssumedReportingSubmission, AssumedReportingSubmissionRequest, AssumingPlatformOperator, Submission}
+import models.submission.*
+import models.{CountriesList, Country, DefaultCountriesList, UserAnswers, yearFormat}
 import org.apache.pekko.Done
 import org.mockito.ArgumentMatchers.{any, eq as eqTo}
-import org.mockito.{ArgumentCaptor, Mockito}
 import org.mockito.Mockito.{never, times, verify, when}
+import org.mockito.{ArgumentCaptor, Mockito}
 import org.scalatest.BeforeAndAfterEach
 import org.scalatestplus.mockito.MockitoSugar.mock
 import pages.assumed.update.AssumingOperatorNamePage
@@ -47,7 +47,7 @@ import scala.util.Success
 
 class CheckYourAnswersControllerSpec extends SpecBase with SummaryListFluency with BeforeAndAfterEach {
 
-  private val countriesList = new DefaultCountriesList
+  private implicit val countriesList: CountriesList = new DefaultCountriesList
   private val reportingPeriod = Year.of(2024)
   private val baseAnswers = emptyUserAnswers.copy(reportingPeriod = Some(reportingPeriod))
   private val mockAssumedReportingConnector: AssumedReportingConnector = mock[AssumedReportingConnector]

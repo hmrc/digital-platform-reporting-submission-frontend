@@ -16,8 +16,9 @@
 
 package models.submission
 
-import models.yearFormat
-import play.api.libs.json.{Json, OFormat}
+import models.{CountriesList, yearFormat}
+import play.api.libs.functional.syntax.*
+import play.api.libs.json.*
 
 import java.time.Year
 
@@ -28,6 +29,12 @@ final case class AssumedReportingSubmissionRequest(
                                                   )
 
 object AssumedReportingSubmissionRequest {
-
-  given OFormat[AssumedReportingSubmissionRequest] = Json.format
+  given format(using countriesList: CountriesList): OFormat[AssumedReportingSubmissionRequest] = {
+    val assumingOperatorFormat = AssumingPlatformOperator.format
+    (
+      (__ \ "operatorId").format[String] and
+        (__ \ "assumingOperator").format[AssumingPlatformOperator](assumingOperatorFormat) and
+        (__ \ "reportingPeriod").format[Year]
+      )(AssumedReportingSubmissionRequest.apply, arg => (arg.operatorId, arg.assumingOperator, arg.reportingPeriod))
+  }
 }

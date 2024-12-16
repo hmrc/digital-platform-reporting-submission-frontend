@@ -19,10 +19,10 @@ package services
 import models.operator.TinDetails
 import models.operator.TinType.Other
 import models.submission.{AssumedReportingSubmission, AssumedReportingSubmissionRequest, AssumingPlatformOperator}
-import models.{Country, UserAnswers, yearFormat}
-import org.scalatest.{EitherValues, OptionValues, TryValues}
+import models.{CountriesList, Country, DefaultCountriesList, UserAnswers, yearFormat}
 import org.scalatest.freespec.AnyFreeSpec
 import org.scalatest.matchers.must.Matchers
+import org.scalatest.{EitherValues, OptionValues, TryValues}
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
 import pages.assumed.create.*
 import pages.assumed.update as updatePages
@@ -37,6 +37,8 @@ class UserAnswersServiceSpec
     with GuiceOneAppPerSuite
     with EitherValues
     with OptionValues {
+
+  private implicit val countriesList: CountriesList = new DefaultCountriesList
 
   private lazy val userAnswersService: UserAnswersService = app.injector.instanceOf[UserAnswersService]
 
