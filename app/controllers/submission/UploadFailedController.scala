@@ -52,11 +52,11 @@ class UploadFailedController @Inject()(override val messagesApi: MessagesApi,
     implicit request =>
       submissionConnector.get(submissionId).flatMap {
         _.map { submission =>
-          val uploadDifferentFileUrl = routes.UploadController.onRedirect(submission.operatorId, submissionId).url
           handleSubmission(operatorId, submission) { case state: UploadFailed =>
             state.reason match {
               case SchemaValidationError(_, moreErrors) =>
                 state.fileName.map { fileName =>
+                  val uploadDifferentFileUrl = routes.UploadController.onRedirect(submission.operatorId, submissionId).url
                   Future.successful(Ok(schemaFailureView(uploadDifferentFileUrl, fileName, operatorId, submissionId, moreErrors, maxErrors)))
                 }.getOrElse(Future.successful(Redirect(controllers.routes.JourneyRecoveryController.onPageLoad())))
               case _ =>
