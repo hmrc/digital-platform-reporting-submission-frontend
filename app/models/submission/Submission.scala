@@ -82,6 +82,7 @@ object Submission {
     case object EntityTooSmall extends UploadFailureReason { val errorMessageKey = "uploadFailed.error.EntityTooSmall" }
     case object InvalidArgument extends UploadFailureReason { val errorMessageKey = "uploadFailed.error.InvalidArgument" }
     case object UnknownFailure extends UploadFailureReason { val errorMessageKey = "uploadFailed.error.UnknownFailure" }
+    case object InvalidFileNameExtension extends UploadFailureReason { val errorMessageKey = "uploadFailed.error.NotXml" }
 
     object SchemaValidationError {
 
@@ -113,7 +114,8 @@ object Submission {
     private given OFormat[EntityTooLarge.type] = singletonOFormat(EntityTooLarge)
     private given OFormat[InvalidArgument.type] = singletonOFormat(InvalidArgument)
     private given OFormat[UnknownFailure.type] = singletonOFormat(UnknownFailure)
-    
+    private given OFormat[InvalidFileNameExtension.type] = singletonOFormat(InvalidFileNameExtension)
+
     private given JsonConfiguration = JsonConfiguration(
       discriminator = "type",
       typeNaming = _.split("\\.").last

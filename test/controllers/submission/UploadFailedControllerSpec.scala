@@ -78,7 +78,7 @@ class UploadFailedControllerSpec extends SpecBase with MockitoSugar with BeforeA
             operatorId = "operatorId",
             operatorName = "operatorName",
             assumingOperatorName = None,
-            state = UploadFailed(NotXml, Some("some-file-name")),
+            state = UploadFailed(PlatformOperatorIdMissing, Some("some-file-name")),
             created = now,
             updated = now
           )
@@ -97,7 +97,7 @@ class UploadFailedControllerSpec extends SpecBase with MockitoSugar with BeforeA
             val view = application.injector.instanceOf[UploadFailedView]
 
             status(result) mustEqual OK
-            contentAsString(result) mustEqual view(uploadRequest, NotXml, "operatorName")(request, messages(application))
+            contentAsString(result) mustEqual view(uploadRequest, PlatformOperatorIdMissing, "operatorName")(request, messages(application))
               .toString
           }
 

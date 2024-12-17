@@ -73,8 +73,8 @@ uploading.title = Upload an XML file
 uploading.heading = Upload an XML file
 uploading.body = We will automatically check the formatting of the file and send you to another page once completed.
 
-uploadFailed.schemafailure.title = There is a problem with the data in your file
-uploadFailed.schemafailure.heading = There is a problem with the data in your file
+uploadFailed.schemafailure.title = There is a problem with the contents of your file
+uploadFailed.schemafailure.heading = There is a problem with the contents of your file
 uploadFailed.schemafailure.p1.1 = We cannot accept the file {0} because it does not pass the digital platform reporting schema validation.
 uploadFailed.schemafailure.h2 = What you can do next
 uploadFailed.schemafailure.p2.1 = Download and view the schema validation errors below.
