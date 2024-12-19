@@ -30,6 +30,7 @@
         layout: templates.Layout,
         govukButton: GovukButton,
         govukFileUpload: GovukFileUpload,
+        govukWarningText: GovukWarningText,
         govukErrorSummary: GovukErrorSummary
 )
 
@@ -50,11 +51,13 @@
     <li><a class="govuk-link" href="@uploadDifferentFileUrl">@messages("uploadFailed.schemafailure.p2.3")</a>.</li>
   </ol>
 
-  @if(moreErrors) {
-    <p class="govuk-inset-text">@messages("uploadFailed.schemafailure.moreErrors", maxErrors)</p>
-  }
+    @govukWarningText(WarningText(content = Text(messages("uploadFailed.schemafailure.warning"))))
 
   <a href="@controllers.submission.routes.UploadFailedController.downloadSchemaErrors(operatorId, submissionId)" data-module="govuk-button" role="button" draggable="false" class="govuk-button">@messages("uploadFailed.schemafailure.download")</a>
+
+    @if(moreErrors) {
+        <p class="govuk-inset-text">@messages("uploadFailed.schemafailure.moreErrors", maxErrors)</p>
+    }
 
   <p class="govuk-body"><a class="govuk-link" href="@appConfig.manageHomepageUrl">@messages("uploadFailed.schemafailure.return")</a></p>
 }

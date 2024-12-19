@@ -33,7 +33,8 @@
   @govukSummaryList(summaryList)
 
   <p class="govuk-body">@messages("sendFile.p1")</p>
-  <p class="govuk-body govuk-!-margin-bottom-8">@messages("sendFile.p2")</p>
+  <p class="govuk-body">@messages("sendFile.p2")</p>
+  <p class="govuk-body govuk-!-margin-bottom-8">@messages("sendFile.p3")</p>
 
   @formHelper(action = controllers.submission.routes.SendFileController.onSubmit(operatorId, submissionId), Symbol("autoComplete") -> "off") {
     @govukButton(
