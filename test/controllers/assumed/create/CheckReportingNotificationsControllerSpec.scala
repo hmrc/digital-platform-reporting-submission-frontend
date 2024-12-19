@@ -17,25 +17,26 @@
 package controllers.assumed.create
 
 import base.SpecBase
+import config.FrontendAppConfig
 import connectors.PlatformOperatorConnector
 import forms.CheckReportingNotificationsFormProvider
+import models.NormalMode
 import models.operator.responses.{NotificationDetails, PlatformOperator}
 import models.operator.{AddressDetails, ContactDetails, NotificationType}
-import models.{NormalMode, UserAnswers}
-import org.mockito.ArgumentMatchers.any
-import org.mockito.Mockito.{times, verify, when}
-import org.mockito.{ArgumentCaptor, Mockito}
+import org.mockito.ArgumentMatchers.{any, eq as eqTo}
+import org.mockito.Mockito
+import org.mockito.Mockito.{never, times, verify, when}
 import org.scalatest.BeforeAndAfterEach
 import org.scalatestplus.mockito.MockitoSugar
 import pages.assumed.create.CheckReportingNotificationsPage
-import play.api.i18n.Messages
 import play.api.inject.bind
 import play.api.test.FakeRequest
 import play.api.test.Helpers.*
 import queries.PlatformOperatorSummaryQuery
 import repositories.SessionRepository
+import services.ConfirmedDetailsService
+import support.builders.ConfirmedDetailsBuilder.aConfirmedDetails
 import viewmodels.PlatformOperatorSummary
-import viewmodels.checkAnswers.operator.*
 import viewmodels.govuk.SummaryListFluency
 import views.html.assumed.create.CheckReportingNotificationsView
 
@@ -45,13 +46,14 @@ import scala.concurrent.Future
 class CheckReportingNotificationsControllerSpec extends SpecBase with SummaryListFluency with MockitoSugar with BeforeAndAfterEach {
 
   private val form = CheckReportingNotificationsFormProvider()()
-  private val mockConnector = mock[PlatformOperatorConnector]
-  private val mockRepository = mock[SessionRepository]
+  private val mockPlatformOperatorConnector = mock[PlatformOperatorConnector]
+  private val mockSessionRepository = mock[SessionRepository]
+  private val mockConfirmedDetailsService = mock[ConfirmedDetailsService]
   private val operatorSummary = PlatformOperatorSummary("operatorId", "operatorName", true)
   private val baseAnswers = emptyUserAnswers.set(PlatformOperatorSummaryQuery, operatorSummary).success.value
 
   override def beforeEach(): Unit = {
-    Mockito.reset(mockConnector, mockRepository)
+    Mockito.reset(mockPlatformOperatorConnector, mockSessionRepository, mockConfirmedDetailsService)
     super.beforeEach()
   }
 
@@ -72,11 +74,11 @@ class CheckReportingNotificationsControllerSpec extends SpecBase with SummaryLis
         notifications = Seq(notification)
       )
 
-      when(mockConnector.viewPlatformOperator(any())(any())).thenReturn(Future.successful(operator))
+      when(mockPlatformOperatorConnector.viewPlatformOperator(any())(any())).thenReturn(Future.successful(operator))
 
       val application =
         applicationBuilder(userAnswers = Some(baseAnswers))
-          .overrides(bind[PlatformOperatorConnector].toInstance(mockConnector))
+          .overrides(bind[PlatformOperatorConnector].toInstance(mockPlatformOperatorConnector))
           .build()
 
       running(application) {
@@ -105,11 +107,11 @@ class CheckReportingNotificationsControllerSpec extends SpecBase with SummaryLis
         notifications = Nil
       )
 
-      when(mockConnector.viewPlatformOperator(any())(any())).thenReturn(Future.successful(operator))
+      when(mockPlatformOperatorConnector.viewPlatformOperator(any())(any())).thenReturn(Future.successful(operator))
 
       val application =
         applicationBuilder(userAnswers = Some(baseAnswers))
-          .overrides(bind[PlatformOperatorConnector].toInstance(mockConnector))
+          .overrides(bind[PlatformOperatorConnector].toInstance(mockPlatformOperatorConnector))
           .build()
 
       running(application) {
@@ -122,70 +124,171 @@ class CheckReportingNotificationsControllerSpec extends SpecBase with SummaryLis
       }
     }
 
-    "must return BadRequest and errors when an invalid answer is submitted" in {
+    "onSubmit(...)" - {
+      "must return BadRequest and errors when an invalid answer is submitted" in {
+        val notification = NotificationDetails(NotificationType.Epo, None, None, 2024, Instant.now)
+        val operator = PlatformOperator(
+          operatorId = "operatorId",
+          operatorName = "operatorName",
+          tinDetails = Nil,
+          businessName = None,
+          tradingName = None,
+          primaryContactDetails = ContactDetails(None, "name", "email"),
+          secondaryContactDetails = None,
+          addressDetails = AddressDetails("line 1", None, None, None, None, Some("GB")),
+          notifications = Seq(notification)
+        )
 
-      val notification = NotificationDetails(NotificationType.Epo, None, None, 2024, Instant.now)
-      val operator = PlatformOperator(
-        operatorId = "operatorId",
-        operatorName = "operatorName",
-        tinDetails = Nil,
-        businessName = None,
-        tradingName = None,
-        primaryContactDetails = ContactDetails(None, "name", "email"),
-        secondaryContactDetails = None,
-        addressDetails = AddressDetails("line 1", None, None, None, None, Some("GB")),
-        notifications = Seq(notification)
-      )
+        when(mockPlatformOperatorConnector.viewPlatformOperator(any())(any())).thenReturn(Future.successful(operator))
 
-      when(mockConnector.viewPlatformOperator(any())(any())).thenReturn(Future.successful(operator))
+        val application =
+          applicationBuilder(userAnswers = Some(baseAnswers))
+            .overrides(bind[PlatformOperatorConnector].toInstance(mockPlatformOperatorConnector))
+            .build()
 
-      val application =
-        applicationBuilder(userAnswers = Some(baseAnswers))
-          .overrides(bind[PlatformOperatorConnector].toInstance(mockConnector))
-          .build()
+        running(application) {
+          val request =
+            FakeRequest(POST, routes.CheckReportingNotificationsController.onPageLoad(operatorId).url)
+              .withFormUrlEncodedBody("value" -> "invalid value")
 
-      running(application) {
-        val request =
-          FakeRequest(POST, routes.CheckReportingNotificationsController.onPageLoad(operatorId).url)
-            .withFormUrlEncodedBody("value" -> "invalid value")
+          val result = route(application, request).value
 
-        val result = route(application, request).value
+          val view = application.injector.instanceOf[CheckReportingNotificationsView]
 
-        val view = application.injector.instanceOf[CheckReportingNotificationsView]
+          val formWithErrors = form.bind(Map("value" -> "invalid value"))
 
-        val formWithErrors = form.bind(Map("value" -> "invalid value"))
-
-        status(result) mustEqual BAD_REQUEST
-        contentAsString(result) mustEqual view(formWithErrors, Seq(notification), "operatorId", "operatorName")(request, messages(application)).toString
+          status(result) mustEqual BAD_REQUEST
+          contentAsString(result) mustEqual view(formWithErrors, Seq(notification), "operatorId", "operatorName")(request, messages(application)).toString
+        }
       }
-    }
 
-    "must save the answer and redirect to the next page when valid data is submitted" in {
+      "must redirect to add a reporting notification when `false` is submitted" in {
+        val application = applicationBuilder(userAnswers = Some(baseAnswers)).overrides(
+          bind[PlatformOperatorConnector].toInstance(mockPlatformOperatorConnector),
+          bind[SessionRepository].toInstance(mockSessionRepository),
+          bind[ConfirmedDetailsService].toInstance(mockConfirmedDetailsService)
+        ).build()
+        val page = application.injector.instanceOf[CheckReportingNotificationsPage]
+        val expectedAnswers = baseAnswers.set(page, false).success.value
 
-      when(mockRepository.set(any())).thenReturn(Future.successful(true))
+        when(mockSessionRepository.set(any())).thenReturn(Future.successful(true))
 
-      val application =
-        applicationBuilder(userAnswers = Some(baseAnswers))
-          .overrides(bind[SessionRepository].toInstance(mockRepository))
-          .build()
+        running(application) {
+          val request = FakeRequest(POST, routes.CheckReportingNotificationsController.onPageLoad(operatorId).url)
+            .withFormUrlEncodedBody("value" -> "false")
+          val appConfig = application.injector.instanceOf[FrontendAppConfig]
+          val result = route(application, request).value
 
-      running(application) {
-        val request =
-          FakeRequest(POST, routes.CheckReportingNotificationsController.onPageLoad(operatorId).url)
-            .withFormUrlEncodedBody("value" -> "true")
+          status(result) mustEqual SEE_OTHER
+          redirectLocation(result).value mustEqual appConfig.manageHomepageUrl
+        }
 
+        verify(mockSessionRepository, times(1)).set(expectedAnswers)
+        verify(mockConfirmedDetailsService, never()).confirmBusinessDetailsFor(any())(using any())
+      }
+
+      "must redirect to Check Platform Operator when 'true' is selected and business details have not been confirmed" in {
+        val application = applicationBuilder(userAnswers = Some(baseAnswers)).overrides(
+          bind[PlatformOperatorConnector].toInstance(mockPlatformOperatorConnector),
+          bind[SessionRepository].toInstance(mockSessionRepository),
+          bind[ConfirmedDetailsService].toInstance(mockConfirmedDetailsService)
+        ).build()
         val page = application.injector.instanceOf[CheckReportingNotificationsPage]
         val expectedAnswers = baseAnswers.set(page, true).success.value
-        val answersCaptor: ArgumentCaptor[UserAnswers] = ArgumentCaptor.forClass(classOf[UserAnswers])
 
-        val result = route(application, request).value
+        when(mockSessionRepository.set(any())).thenReturn(Future.successful(true))
+        when(mockConfirmedDetailsService.confirmReportingNotificationsFor(any())(using any()))
+          .thenReturn(Future.successful(aConfirmedDetails.copy(businessDetails = false)))
 
-        status(result) mustEqual SEE_OTHER
-        redirectLocation(result).value mustEqual page.nextPage(NormalMode, expectedAnswers).url
-        verify(mockRepository, times(1)).set(answersCaptor.capture())
+        running(application) {
+          val request = FakeRequest(POST, routes.CheckReportingNotificationsController.onPageLoad(operatorId).url)
+            .withFormUrlEncodedBody("value" -> "true")
+          val result = route(application, request).value
 
-        val answers = answersCaptor.getValue
-        answers.get(page).value mustEqual true
+          status(result) mustEqual SEE_OTHER
+          redirectLocation(result).value mustEqual routes.CheckPlatformOperatorController.onPageLoad(operatorId).url
+        }
+
+        verify(mockSessionRepository, times(1)).set(expectedAnswers)
+        verify(mockConfirmedDetailsService, times(1)).confirmReportingNotificationsFor(eqTo(operatorId))(using any())
+      }
+
+      "must redirect to Check Reporting Notifications when 'true' is selected and notifications have not been confirmed" in {
+        val application = applicationBuilder(userAnswers = Some(baseAnswers)).overrides(
+          bind[PlatformOperatorConnector].toInstance(mockPlatformOperatorConnector),
+          bind[SessionRepository].toInstance(mockSessionRepository),
+          bind[ConfirmedDetailsService].toInstance(mockConfirmedDetailsService)
+        ).build()
+        val page = application.injector.instanceOf[CheckReportingNotificationsPage]
+        val expectedAnswers = baseAnswers.set(page, true).success.value
+
+        when(mockSessionRepository.set(any())).thenReturn(Future.successful(true))
+        when(mockConfirmedDetailsService.confirmReportingNotificationsFor(any())(using any()))
+          .thenReturn(Future.successful(aConfirmedDetails.copy(reportingNotifications = false)))
+
+        running(application) {
+          val request = FakeRequest(POST, routes.CheckReportingNotificationsController.onPageLoad(operatorId).url)
+            .withFormUrlEncodedBody("value" -> "true")
+          val result = route(application, request).value
+
+          status(result) mustEqual SEE_OTHER
+          redirectLocation(result).value mustEqual routes.CheckReportingNotificationsController.onPageLoad(operatorId).url
+        }
+
+        verify(mockSessionRepository, times(1)).set(expectedAnswers)
+        verify(mockConfirmedDetailsService, times(1)).confirmReportingNotificationsFor(eqTo(operatorId))(using any())
+      }
+
+      "must redirect to Check Contact details when 'true' is selected and contact details have not been confirmed" in {
+        val application = applicationBuilder(userAnswers = Some(baseAnswers)).overrides(
+          bind[PlatformOperatorConnector].toInstance(mockPlatformOperatorConnector),
+          bind[SessionRepository].toInstance(mockSessionRepository),
+          bind[ConfirmedDetailsService].toInstance(mockConfirmedDetailsService)
+        ).build()
+        val page = application.injector.instanceOf[CheckReportingNotificationsPage]
+        val expectedAnswers = baseAnswers.set(page, true).success.value
+
+        when(mockSessionRepository.set(any())).thenReturn(Future.successful(true))
+        when(mockConfirmedDetailsService.confirmReportingNotificationsFor(any())(using any()))
+          .thenReturn(Future.successful(aConfirmedDetails.copy(yourContactDetails = false)))
+
+        running(application) {
+          val request = FakeRequest(POST, routes.CheckReportingNotificationsController.onPageLoad(operatorId).url)
+            .withFormUrlEncodedBody("value" -> "true")
+          val result = route(application, request).value
+
+          status(result) mustEqual SEE_OTHER
+          redirectLocation(result).value mustEqual routes.CheckContactDetailsController.onPageLoad(operatorId).url
+        }
+
+        verify(mockSessionRepository, times(1)).set(expectedAnswers)
+        verify(mockConfirmedDetailsService, times(1)).confirmReportingNotificationsFor(eqTo(operatorId))(using any())
+      }
+
+      "must redirect to Reporting Period when all details are confirmed" in {
+        val application = applicationBuilder(userAnswers = Some(baseAnswers)).overrides(
+          bind[PlatformOperatorConnector].toInstance(mockPlatformOperatorConnector),
+          bind[SessionRepository].toInstance(mockSessionRepository),
+          bind[ConfirmedDetailsService].toInstance(mockConfirmedDetailsService)
+        ).build()
+        val page = application.injector.instanceOf[CheckReportingNotificationsPage]
+        val expectedAnswers = baseAnswers.set(page, true).success.value
+
+        when(mockSessionRepository.set(any())).thenReturn(Future.successful(true))
+        when(mockConfirmedDetailsService.confirmReportingNotificationsFor(any())(using any()))
+          .thenReturn(Future.successful(aConfirmedDetails.copy(true, true, true)))
+
+        running(application) {
+          val request = FakeRequest(POST, routes.CheckReportingNotificationsController.onPageLoad(operatorId).url)
+            .withFormUrlEncodedBody("value" -> "true")
+          val result = route(application, request).value
+
+          status(result) mustEqual SEE_OTHER
+          redirectLocation(result).value mustEqual routes.ReportingPeriodController.onPageLoad(NormalMode, operatorId).url
+        }
+
+        verify(mockSessionRepository, times(1)).set(expectedAnswers)
+        verify(mockConfirmedDetailsService, times(1)).confirmReportingNotificationsFor(eqTo(operatorId))(using any())
       }
     }
   }
