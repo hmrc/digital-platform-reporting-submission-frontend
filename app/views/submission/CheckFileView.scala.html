@@ -34,7 +34,6 @@
   @govukSummaryList(summaryList)
 
   <p class="govuk-body">@messages("checkFile.p1")</p>
-  <p class="govuk-body">@messages("checkFile.p2")</p>
 
   <div class="govuk-form-group">
     <p class="govuk-body">
@@ -42,6 +41,10 @@
         @messages("checkFile.button")
       </a>
     </p>
+      <p class="govuk-body">@messages("checkFile.p2")</p>
+      <p class="govuk-body">
+          @messages("checkFile.p3") <a class="govuk-link" href="@controllers.submission.routes.ViewSubmissionsController.onPageLoad()">@messages("checkFile.p3.text")</a>
+      </p>
     <p class="govuk-body">
       <a class="govuk-link" href="@controllers.submission.routes.StartController.onPageLoad(operatorId)">@messages("checkFile.anotherSubmission", operatorName)</a>
     </p>
