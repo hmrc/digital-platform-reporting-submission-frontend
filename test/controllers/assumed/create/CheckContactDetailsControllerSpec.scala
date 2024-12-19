@@ -17,12 +17,13 @@
 package controllers.assumed.create
 
 import base.SpecBase
+import config.FrontendAppConfig
 import connectors.SubscriptionConnector
 import forms.CheckContactDetailsFormProvider
 import models.subscription.*
 import models.{NormalMode, UserAnswers}
-import org.mockito.ArgumentMatchers.any
-import org.mockito.Mockito.{times, verify, when}
+import org.mockito.ArgumentMatchers.{any, eq as eqTo}
+import org.mockito.Mockito.{never, times, verify, when}
 import org.mockito.{ArgumentCaptor, Mockito}
 import org.scalatest.BeforeAndAfterEach
 import org.scalatestplus.mockito.MockitoSugar
@@ -32,6 +33,9 @@ import play.api.inject.bind
 import play.api.test.FakeRequest
 import play.api.test.Helpers.*
 import repositories.SessionRepository
+import services.ConfirmedDetailsService
+import support.builders.ConfirmedDetailsBuilder.aConfirmedDetails
+import support.builders.UserAnswersBuilder.aUserAnswers
 import viewmodels.checkAnswers.subscription.*
 import viewmodels.govuk.SummaryListFluency
 import views.html.assumed.create.CheckContactDetailsView
@@ -41,11 +45,12 @@ import scala.concurrent.Future
 class CheckContactDetailsControllerSpec extends SpecBase with SummaryListFluency with MockitoSugar with BeforeAndAfterEach {
 
   private val form = CheckContactDetailsFormProvider()()
-  private val mockConnector = mock[SubscriptionConnector]
-  private val mockRepository = mock[SessionRepository]
+  private val mockSubscriptionConnector = mock[SubscriptionConnector]
+  private val mockSessionRepository = mock[SessionRepository]
+  private val mockConfirmedDetailsService = mock[ConfirmedDetailsService]
 
   override def beforeEach(): Unit = {
-    Mockito.reset(mockConnector, mockRepository)
+    Mockito.reset(mockSubscriptionConnector, mockSessionRepository, mockConfirmedDetailsService)
     super.beforeEach()
   }
 
@@ -64,11 +69,11 @@ class CheckContactDetailsControllerSpec extends SpecBase with SummaryListFluency
           secondaryContact = None
         )
 
-        when(mockConnector.getSubscription(any())).thenReturn(Future.successful(subscription))
+        when(mockSubscriptionConnector.getSubscription(any())).thenReturn(Future.successful(subscription))
 
         val application =
           applicationBuilder(userAnswers = Some(emptyUserAnswers))
-            .overrides(bind[SubscriptionConnector].toInstance(mockConnector))
+            .overrides(bind[SubscriptionConnector].toInstance(mockSubscriptionConnector))
             .build()
 
         running(application) {
@@ -101,11 +106,11 @@ class CheckContactDetailsControllerSpec extends SpecBase with SummaryListFluency
           secondaryContact = None
         )
 
-        when(mockConnector.getSubscription(any())).thenReturn(Future.successful(subscription))
+        when(mockSubscriptionConnector.getSubscription(any())).thenReturn(Future.successful(subscription))
 
         val application =
           applicationBuilder(userAnswers = Some(emptyUserAnswers))
-            .overrides(bind[SubscriptionConnector].toInstance(mockConnector))
+            .overrides(bind[SubscriptionConnector].toInstance(mockSubscriptionConnector))
             .build()
 
         running(application) {
@@ -141,11 +146,11 @@ class CheckContactDetailsControllerSpec extends SpecBase with SummaryListFluency
           secondaryContact = Some(contact2)
         )
 
-        when(mockConnector.getSubscription(any())).thenReturn(Future.successful(subscription))
+        when(mockSubscriptionConnector.getSubscription(any())).thenReturn(Future.successful(subscription))
 
         val application =
           applicationBuilder(userAnswers = Some(emptyUserAnswers))
-            .overrides(bind[SubscriptionConnector].toInstance(mockConnector))
+            .overrides(bind[SubscriptionConnector].toInstance(mockSubscriptionConnector))
             .build()
 
         running(application) {
@@ -175,73 +180,174 @@ class CheckContactDetailsControllerSpec extends SpecBase with SummaryListFluency
       }
     }
 
-    "must return BadRequest and errors when an invalid answer is submitted" in {
+    "onSubmit(...)" - {
+      "must return BadRequest and errors when an invalid answer is submitted" in {
+        val contact = IndividualContact(Individual("first", "last"), "email", None)
+        val subscription = SubscriptionInfo(
+          id = "dprsId",
+          gbUser = true,
+          tradingName = None,
+          primaryContact = contact,
+          secondaryContact = None
+        )
 
-      val contact = IndividualContact(Individual("first", "last"), "email", None)
-      val subscription = SubscriptionInfo(
-        id = "dprsId",
-        gbUser = true,
-        tradingName = None,
-        primaryContact = contact,
-        secondaryContact = None
-      )
+        when(mockSubscriptionConnector.getSubscription(any())).thenReturn(Future.successful(subscription))
 
-      when(mockConnector.getSubscription(any())).thenReturn(Future.successful(subscription))
+        val application =
+          applicationBuilder(userAnswers = Some(emptyUserAnswers))
+            .overrides(bind[SubscriptionConnector].toInstance(mockSubscriptionConnector))
+            .build()
 
-      val application =
-        applicationBuilder(userAnswers = Some(emptyUserAnswers))
-          .overrides(bind[SubscriptionConnector].toInstance(mockConnector))
-          .build()
+        running(application) {
+          val request =
+            FakeRequest(POST, routes.CheckContactDetailsController.onPageLoad(operatorId).url)
+              .withFormUrlEncodedBody("value" -> "invalid value")
 
-      running(application) {
-        val request =
-          FakeRequest(POST, routes.CheckContactDetailsController.onPageLoad(operatorId).url)
-            .withFormUrlEncodedBody("value" -> "invalid value")
+          val result = route(application, request).value
 
-        val result = route(application, request).value
+          val view = application.injector.instanceOf[CheckContactDetailsView]
 
-        val view = application.injector.instanceOf[CheckContactDetailsView]
+          implicit val msgs: Messages = messages(application)
 
-        implicit val msgs: Messages = messages(application)
+          val summaryList = SummaryListViewModel(Seq(
+            IndividualEmailSummary.row(contact),
+            CanPhoneIndividualSummary.row(contact)
+          ).flatten)
 
-        val summaryList = SummaryListViewModel(Seq(
-          IndividualEmailSummary.row(contact),
-          CanPhoneIndividualSummary.row(contact)
-        ).flatten)
+          val formWithErrors = form.bind(Map("value" -> "invalid value"))
 
-        val formWithErrors = form.bind(Map("value" -> "invalid value"))
-
-        status(result) mustEqual BAD_REQUEST
-        contentAsString(result) mustEqual view(formWithErrors, summaryList, "operatorId")(request, implicitly).toString
+          status(result) mustEqual BAD_REQUEST
+          contentAsString(result) mustEqual view(formWithErrors, summaryList, "operatorId")(request, implicitly).toString
+        }
       }
-    }
 
-    "must save the answer and redirect to the next page when valid data is submitted" in {
-
-      when(mockRepository.set(any())).thenReturn(Future.successful(true))
-
-      val application =
-        applicationBuilder(userAnswers = Some(emptyUserAnswers))
-          .overrides(bind[SessionRepository].toInstance(mockRepository))
-          .build()
-
-      running(application) {
-        val request =
-          FakeRequest(POST, routes.CheckContactDetailsController.onPageLoad(operatorId).url)
-            .withFormUrlEncodedBody("value" -> "true")
-
+      "must redirect to add a reporting notification when `false` is submitted" in {
+        val application = applicationBuilder(userAnswers = Some(aUserAnswers)).overrides(
+          bind[SubscriptionConnector].toInstance(mockSubscriptionConnector),
+          bind[SessionRepository].toInstance(mockSessionRepository),
+          bind[ConfirmedDetailsService].toInstance(mockConfirmedDetailsService)
+        ).build()
         val page = application.injector.instanceOf[CheckContactDetailsPage]
-        val expectedAnswers = emptyUserAnswers.set(page, true).success.value
-        val answersCaptor: ArgumentCaptor[UserAnswers] = ArgumentCaptor.forClass(classOf[UserAnswers])
+        val expectedAnswers = aUserAnswers.set(page, false).success.value
 
-        val result = route(application, request).value
+        when(mockSessionRepository.set(any())).thenReturn(Future.successful(true))
 
-        status(result) mustEqual SEE_OTHER
-        redirectLocation(result).value mustEqual page.nextPage(NormalMode, expectedAnswers).url
-        verify(mockRepository, times(1)).set(answersCaptor.capture())
+        running(application) {
+          val request = FakeRequest(POST, routes.CheckContactDetailsController.onPageLoad(operatorId).url)
+            .withFormUrlEncodedBody("value" -> "false")
+          val appConfig = application.injector.instanceOf[FrontendAppConfig]
+          val result = route(application, request).value
 
-        val answers = answersCaptor.getValue
-        answers.get(page).value mustEqual true
+          status(result) mustEqual SEE_OTHER
+          redirectLocation(result).value mustEqual appConfig.updateContactDetailsUrl
+        }
+
+        verify(mockSessionRepository, times(1)).set(expectedAnswers)
+        verify(mockConfirmedDetailsService, never()).confirmContactDetailsFor(any())(using any())
+      }
+
+      "must redirect to Check Platform Operator when 'true' is selected and business details have not been confirmed" in {
+        val application = applicationBuilder(userAnswers = Some(aUserAnswers)).overrides(
+          bind[SubscriptionConnector].toInstance(mockSubscriptionConnector),
+          bind[SessionRepository].toInstance(mockSessionRepository),
+          bind[ConfirmedDetailsService].toInstance(mockConfirmedDetailsService)
+        ).build()
+        val page = application.injector.instanceOf[CheckContactDetailsPage]
+        val expectedAnswers = aUserAnswers.set(page, true).success.value
+
+        when(mockSessionRepository.set(any())).thenReturn(Future.successful(true))
+        when(mockConfirmedDetailsService.confirmContactDetailsFor(any())(using any()))
+          .thenReturn(Future.successful(aConfirmedDetails.copy(businessDetails = false)))
+
+        running(application) {
+          val request = FakeRequest(POST, routes.CheckContactDetailsController.onPageLoad(operatorId).url)
+            .withFormUrlEncodedBody("value" -> "true")
+          val result = route(application, request).value
+
+          status(result) mustEqual SEE_OTHER
+          redirectLocation(result).value mustEqual routes.CheckPlatformOperatorController.onPageLoad(operatorId).url
+        }
+
+        verify(mockSessionRepository, times(1)).set(expectedAnswers)
+        verify(mockConfirmedDetailsService, times(1)).confirmContactDetailsFor(eqTo(operatorId))(using any())
+      }
+
+      "must redirect to Check Reporting Notifications when 'true' is selected and notifications have not been confirmed" in {
+        val application = applicationBuilder(userAnswers = Some(aUserAnswers)).overrides(
+          bind[SubscriptionConnector].toInstance(mockSubscriptionConnector),
+          bind[SessionRepository].toInstance(mockSessionRepository),
+          bind[ConfirmedDetailsService].toInstance(mockConfirmedDetailsService)
+        ).build()
+        val page = application.injector.instanceOf[CheckContactDetailsPage]
+        val expectedAnswers = aUserAnswers.set(page, true).success.value
+
+        when(mockSessionRepository.set(any())).thenReturn(Future.successful(true))
+        when(mockConfirmedDetailsService.confirmContactDetailsFor(any())(using any()))
+          .thenReturn(Future.successful(aConfirmedDetails.copy(reportingNotifications = false)))
+
+        running(application) {
+          val request = FakeRequest(POST, routes.CheckContactDetailsController.onPageLoad(operatorId).url)
+            .withFormUrlEncodedBody("value" -> "true")
+          val result = route(application, request).value
+
+          status(result) mustEqual SEE_OTHER
+          redirectLocation(result).value mustEqual routes.CheckReportingNotificationsController.onPageLoad(operatorId).url
+        }
+
+        verify(mockSessionRepository, times(1)).set(expectedAnswers)
+        verify(mockConfirmedDetailsService, times(1)).confirmContactDetailsFor(eqTo(operatorId))(using any())
+      }
+
+      "must redirect to Check Contact details when 'true' is selected and contact details have not been confirmed" in {
+        val application = applicationBuilder(userAnswers = Some(aUserAnswers)).overrides(
+          bind[SubscriptionConnector].toInstance(mockSubscriptionConnector),
+          bind[SessionRepository].toInstance(mockSessionRepository),
+          bind[ConfirmedDetailsService].toInstance(mockConfirmedDetailsService)
+        ).build()
+        val page = application.injector.instanceOf[CheckContactDetailsPage]
+        val expectedAnswers = aUserAnswers.set(page, true).success.value
+
+        when(mockSessionRepository.set(any())).thenReturn(Future.successful(true))
+        when(mockConfirmedDetailsService.confirmContactDetailsFor(any())(using any()))
+          .thenReturn(Future.successful(aConfirmedDetails.copy(yourContactDetails = false)))
+
+        running(application) {
+          val request = FakeRequest(POST, routes.CheckContactDetailsController.onPageLoad(operatorId).url)
+            .withFormUrlEncodedBody("value" -> "true")
+          val result = route(application, request).value
+
+          status(result) mustEqual SEE_OTHER
+          redirectLocation(result).value mustEqual routes.CheckContactDetailsController.onPageLoad(operatorId).url
+        }
+
+        verify(mockSessionRepository, times(1)).set(expectedAnswers)
+        verify(mockConfirmedDetailsService, times(1)).confirmContactDetailsFor(eqTo(operatorId))(using any())
+      }
+
+      "must redirect to Reporting Period when all details are confirmed" in {
+        val application = applicationBuilder(userAnswers = Some(aUserAnswers)).overrides(
+          bind[SubscriptionConnector].toInstance(mockSubscriptionConnector),
+          bind[SessionRepository].toInstance(mockSessionRepository),
+          bind[ConfirmedDetailsService].toInstance(mockConfirmedDetailsService)
+        ).build()
+        val page = application.injector.instanceOf[CheckContactDetailsPage]
+        val expectedAnswers = aUserAnswers.set(page, true).success.value
+
+        when(mockSessionRepository.set(any())).thenReturn(Future.successful(true))
+        when(mockConfirmedDetailsService.confirmContactDetailsFor(any())(using any()))
+          .thenReturn(Future.successful(aConfirmedDetails.copy(true, true, true)))
+
+        running(application) {
+          val request = FakeRequest(POST, routes.CheckContactDetailsController.onPageLoad(operatorId).url)
+            .withFormUrlEncodedBody("value" -> "true")
+          val result = route(application, request).value
+
+          status(result) mustEqual SEE_OTHER
+          redirectLocation(result).value mustEqual routes.ReportingPeriodController.onPageLoad(NormalMode, operatorId).url
+        }
+
+        verify(mockSessionRepository, times(1)).set(expectedAnswers)
+        verify(mockConfirmedDetailsService, times(1)).confirmContactDetailsFor(eqTo(operatorId))(using any())
       }
     }
   }

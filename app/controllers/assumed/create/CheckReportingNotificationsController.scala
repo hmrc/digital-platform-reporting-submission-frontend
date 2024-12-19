@@ -20,11 +20,14 @@ import com.google.inject.Inject
 import connectors.PlatformOperatorConnector
 import controllers.actions.{DataRequiredAction, DataRetrievalActionProvider, IdentifierAction}
 import forms.CheckReportingNotificationsFormProvider
-import models.{NormalMode, yearFormat}
+import models.NormalMode
+import models.confirmed.ConfirmedDetails
 import pages.assumed.create.CheckReportingNotificationsPage
 import play.api.i18n.{I18nSupport, MessagesApi}
-import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
+import play.api.mvc.{Action, AnyContent, Call, MessagesControllerComponents}
 import repositories.SessionRepository
+import services.ConfirmedDetailsService
+import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import views.html.assumed.create.CheckReportingNotificationsView
 
@@ -36,16 +39,17 @@ class CheckReportingNotificationsController @Inject()(
                                                        getData: DataRetrievalActionProvider,
                                                        requireData: DataRequiredAction,
                                                        val controllerComponents: MessagesControllerComponents,
-                                                       connector: PlatformOperatorConnector,
+                                                       platformOperatorConnector: PlatformOperatorConnector,
                                                        formProvider: CheckReportingNotificationsFormProvider,
                                                        sessionRepository: SessionRepository,
+                                                       confirmedDetailsService: ConfirmedDetailsService,
                                                        page: CheckReportingNotificationsPage,
                                                        view: CheckReportingNotificationsView
                                                      )(implicit ec: ExecutionContext) extends FrontendBaseController with I18nSupport {
 
   def onPageLoad(operatorId: String): Action[AnyContent] = (identify andThen getData(operatorId) andThen requireData).async {
     implicit request =>
-      connector.viewPlatformOperator(operatorId).map { operator =>
+      platformOperatorConnector.viewPlatformOperator(operatorId).map { operator =>
 
         if (operator.notifications.isEmpty) {
           Redirect(routes.ReportingNotificationRequiredController.onPageLoad(operatorId))
@@ -57,22 +61,27 @@ class CheckReportingNotificationsController @Inject()(
       }
   }
 
-  def onSubmit(operatorId: String): Action[AnyContent] = (identify andThen getData(operatorId) andThen requireData).async {
-    implicit request =>
+  def onSubmit(operatorId: String): Action[AnyContent] = (identify andThen getData(operatorId) andThen requireData).async { implicit request =>
+    formProvider().bindFromRequest().fold(
+      formWithErrors => {
+        platformOperatorConnector.viewPlatformOperator(operatorId).map { operator =>
+          BadRequest(view(formWithErrors, operator.notifications, operatorId, operator.operatorName))
+        }
+      },
+      answer => (for {
+        updatedAnswers <- Future.fromTry(request.userAnswers.set(page, answer))
+        _ <- sessionRepository.set(updatedAnswers)
+      } yield {
+        if (answer) nextPage(operatorId)
+        else Future.successful(page.nextPage(NormalMode, updatedAnswers))
+      }).flatten.map(Redirect)
+    )
+  }
 
-      val form = formProvider()
-
-      form.bindFromRequest().fold(
-        formWithErrors => {
-          connector.viewPlatformOperator(operatorId).map { operator =>
-            BadRequest(view(formWithErrors, operator.notifications, operatorId, operator.operatorName))
-          }
-        },
-        answer =>
-          for {
-            updatedAnswers <- Future.fromTry(request.userAnswers.set(page, answer))
-            _              <- sessionRepository.set(updatedAnswers)
-          } yield Redirect(page.nextPage(NormalMode, updatedAnswers))
-      )
+  private def nextPage(operatorId: String)(using HeaderCarrier): Future[Call] = confirmedDetailsService.confirmReportingNotificationsFor(operatorId).map {
+    case ConfirmedDetails(true, true, true) => routes.ReportingPeriodController.onPageLoad(NormalMode, operatorId)
+    case ConfirmedDetails(true, true, false) => routes.CheckContactDetailsController.onPageLoad(operatorId)
+    case ConfirmedDetails(true, false, _) => routes.CheckReportingNotificationsController.onSubmit(operatorId)
+    case ConfirmedDetails(false, _, _) => routes.CheckPlatformOperatorController.onPageLoad(operatorId)
   }
 }
