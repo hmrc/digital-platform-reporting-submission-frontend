@@ -16,39 +16,46 @@
 
 package controllers.submission
 
-import com.google.inject.Inject
 import config.FrontendAppConfig
-import connectors.PlatformOperatorConnector
-import controllers.actions.{DataRequiredAction, DataRetrievalActionProvider, IdentifierAction}
+import connectors.{PlatformOperatorConnector, SubmissionConnector}
+import controllers.AnswerExtractor
+import controllers.actions.*
 import forms.CheckPlatformOperatorFormProvider
 import models.CountriesList
+import models.confirmed.ConfirmedDetails
 import models.operator.responses.PlatformOperator
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
+import queries.PlatformOperatorSummaryQuery
+import services.ConfirmedDetailsService
 import uk.gov.hmrc.govukfrontend.views.Aliases.SummaryList
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
+import viewmodels.PlatformOperatorSummary
 import viewmodels.checkAnswers.operator.*
 import viewmodels.govuk.summarylist.*
 import views.html.submission.CheckPlatformOperatorView
 
+import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
-class CheckPlatformOperatorController @Inject()(
-                                                 override val messagesApi: MessagesApi,
-                                                 identify: IdentifierAction,
-                                                 getData: DataRetrievalActionProvider,
-                                                 requireData: DataRequiredAction,
-                                                 val controllerComponents: MessagesControllerComponents,
-                                                 connector: PlatformOperatorConnector,
-                                                 formProvider: CheckPlatformOperatorFormProvider,
-                                                 view: CheckPlatformOperatorView,
-                                                 appConfig: FrontendAppConfig,
-                                                 countriesList: CountriesList
-                                               )(implicit ec: ExecutionContext) extends FrontendBaseController with I18nSupport {
+class CheckPlatformOperatorController @Inject()(override val messagesApi: MessagesApi,
+                                                identify: IdentifierAction,
+                                                getData: DataRetrievalActionProvider,
+                                                requireData: DataRequiredAction,
+                                                val controllerComponents: MessagesControllerComponents,
+                                                platformOperatorConnector: PlatformOperatorConnector,
+                                                submissionConnector: SubmissionConnector,
+                                                confirmedDetailsService: ConfirmedDetailsService,
+                                                formProvider: CheckPlatformOperatorFormProvider,
+                                                view: CheckPlatformOperatorView,
+                                                appConfig: FrontendAppConfig,
+                                                countriesList: CountriesList)
+                                               (implicit ec: ExecutionContext)
+  extends FrontendBaseController with I18nSupport with AnswerExtractor {
 
   def onPageLoad(operatorId: String): Action[AnyContent] = (identify andThen getData(operatorId) andThen requireData).async {
     implicit request =>
-      connector.viewPlatformOperator(operatorId).map { operator =>
+      platformOperatorConnector.viewPlatformOperator(operatorId).map { operator =>
 
         val form = formProvider()
 
@@ -62,33 +69,38 @@ class CheckPlatformOperatorController @Inject()(
         ))
       }
   }
-  
-  def onSubmit(operatorId: String): Action[AnyContent] = (identify andThen getData(operatorId) andThen requireData).async {
-    implicit request =>
 
-      val form = formProvider()
-
-      form.bindFromRequest().fold(
-        formWithErrors => {
-          connector.viewPlatformOperator(operatorId).map { operator =>
-            BadRequest(view(
-              formWithErrors,
-              platformOperatorList(operator),
-              primaryContactList(operator),
-              secondaryContactList(operator),
-              operator.operatorId,
-              operator.operatorName
-            ))
-          }
-        },
-        answer => if(answer) {
-          Future.successful(Redirect(routes.CheckReportingNotificationsController.onSubmit(operatorId)))
-        } else {
-          Future.successful(Redirect(appConfig.manageHomepageUrl))
+  def onSubmit(operatorId: String): Action[AnyContent] = (identify andThen getData(operatorId) andThen requireData).async { implicit request =>
+    formProvider().bindFromRequest().fold(
+      formWithErrors => {
+        platformOperatorConnector.viewPlatformOperator(operatorId).map { operator =>
+          BadRequest(view(
+            formWithErrors,
+            platformOperatorList(operator),
+            primaryContactList(operator),
+            secondaryContactList(operator),
+            operator.operatorId,
+            operator.operatorName
+          ))
         }
-      )
+      },
+      answer => if (answer) {
+        confirmedDetailsService.confirmBusinessDetailsFor(operatorId).flatMap {
+          case ConfirmedDetails(true, true, true) => getAnswerAsync(PlatformOperatorSummaryQuery) { summary =>
+            submissionConnector.start(operatorId, summary.operatorName, None).map { submission =>
+              Redirect(routes.UploadController.onPageLoad(operatorId, submission._id))
+            }
+          }
+          case ConfirmedDetails(true, true, false) => Future.successful(Redirect(routes.CheckContactDetailsController.onPageLoad(operatorId)))
+          case ConfirmedDetails(true, false, _) => Future.successful(Redirect(routes.CheckReportingNotificationsController.onSubmit(operatorId)))
+          case ConfirmedDetails(false, _, _) => Future.successful(Redirect(routes.CheckPlatformOperatorController.onPageLoad(operatorId)))
+        }
+      } else {
+        Future.successful(Redirect(appConfig.manageHomepageUrl))
+      }
+    )
   }
-  
+
   private def platformOperatorList(operator: PlatformOperator)(implicit messages: Messages): SummaryList =
     SummaryListViewModel(
       rows = Seq(

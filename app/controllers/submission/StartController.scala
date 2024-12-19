@@ -21,10 +21,12 @@ import connectors.{PlatformOperatorConnector, SubmissionConnector}
 import controllers.AnswerExtractor
 import controllers.actions.*
 import models.UserAnswers
+import models.confirmed.ConfirmedDetails
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import queries.PlatformOperatorSummaryQuery
 import repositories.SessionRepository
+import services.ConfirmedDetailsService
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import viewmodels.PlatformOperatorSummary
 import views.html.submission.StartPageView
@@ -32,17 +34,18 @@ import views.html.submission.StartPageView
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
-class StartController @Inject()(
-                                 override val messagesApi: MessagesApi,
-                                 identify: IdentifierAction,
-                                 val controllerComponents: MessagesControllerComponents,
-                                 view: StartPageView,
-                                 submissionConnector: SubmissionConnector,
-                                 platformOperatorConnector: PlatformOperatorConnector,
-                                 sessionRepository: SessionRepository,
-                                 getData: DataRetrievalActionProvider,
-                                 requireData: DataRequiredAction,
-                               )(using ExecutionContext) extends FrontendBaseController with I18nSupport with AnswerExtractor {
+class StartController @Inject()(override val messagesApi: MessagesApi,
+                                identify: IdentifierAction,
+                                val controllerComponents: MessagesControllerComponents,
+                                view: StartPageView,
+                                submissionConnector: SubmissionConnector,
+                                platformOperatorConnector: PlatformOperatorConnector,
+                                sessionRepository: SessionRepository,
+                                confirmedDetailsService: ConfirmedDetailsService,
+                                getData: DataRetrievalActionProvider,
+                                requireData: DataRequiredAction)
+                               (using ExecutionContext)
+  extends FrontendBaseController with I18nSupport with AnswerExtractor {
 
   def onPageLoad(operatorId: String): Action[AnyContent] = (identify andThen getData(operatorId)).async { implicit request =>
     request.userAnswers
@@ -51,8 +54,8 @@ class StartController @Inject()(
         platformOperatorConnector.viewPlatformOperator(operatorId).flatMap { operator =>
           val summary = PlatformOperatorSummary(operator)
           for {
-            answers  <- Future.fromTry(UserAnswers(request.userId, operatorId).set(PlatformOperatorSummaryQuery, summary))
-            _        <- sessionRepository.set(answers)
+            answers <- Future.fromTry(UserAnswers(request.userId, operatorId).set(PlatformOperatorSummaryQuery, summary))
+            _ <- sessionRepository.set(answers)
           } yield Ok(view(operatorId))
         }.recover {
           case PlatformOperatorNotFoundFailure => Redirect(controllers.routes.JourneyRecoveryController.onPageLoad()) // TODO change this when the choose PO pages exist
@@ -60,7 +63,16 @@ class StartController @Inject()(
       }
   }
 
-  def onSubmit(operatorId: String): Action[AnyContent] = (identify andThen getData(operatorId) andThen requireData) { implicit request =>
-    Redirect(routes.CheckPlatformOperatorController.onPageLoad(operatorId))
+  def onSubmit(operatorId: String): Action[AnyContent] = (identify andThen getData(operatorId) andThen requireData).async { implicit request =>
+    confirmedDetailsService.confirmedDetailsFor(operatorId).flatMap {
+      case ConfirmedDetails(true, true, true) => getAnswerAsync(PlatformOperatorSummaryQuery) { summary =>
+        submissionConnector.start(operatorId, summary.operatorName, None).map { submission =>
+          Redirect(routes.UploadController.onPageLoad(operatorId, submission._id))
+        }
+      }
+      case ConfirmedDetails(true, true, false) => Future.successful(Redirect(routes.CheckContactDetailsController.onPageLoad(operatorId)))
+      case ConfirmedDetails(true, false, _) => Future.successful(Redirect(routes.CheckReportingNotificationsController.onSubmit(operatorId)))
+      case ConfirmedDetails(false, _, _) => Future.successful(Redirect(routes.CheckPlatformOperatorController.onPageLoad(operatorId)))
+    }
   }
 }
