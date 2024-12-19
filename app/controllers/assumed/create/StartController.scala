@@ -18,13 +18,16 @@ package controllers.assumed.create
 
 import connectors.PlatformOperatorConnector
 import connectors.PlatformOperatorConnector.PlatformOperatorNotFoundFailure
+import controllers.AnswerExtractor
 import controllers.actions.{DataRequiredAction, DataRetrievalActionProvider, IdentifierAction}
+import models.confirmed.ConfirmedDetails
 import models.{NormalMode, UserAnswers}
 import pages.assumed.create.StartPage
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import queries.PlatformOperatorSummaryQuery
 import repositories.SessionRepository
+import services.ConfirmedDetailsService
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import viewmodels.PlatformOperatorSummary
 import views.html.assumed.create.StartView
@@ -32,27 +35,28 @@ import views.html.assumed.create.StartView
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
-class StartController @Inject()(
-                                 override val messagesApi: MessagesApi,
-                                 identify: IdentifierAction,
-                                 getData: DataRetrievalActionProvider,
-                                 requireData: DataRequiredAction,
-                                 sessionRepository: SessionRepository,
-                                 connector: PlatformOperatorConnector,
-                                 val controllerComponents: MessagesControllerComponents,
-                                 view: StartView
-                               )(implicit ec: ExecutionContext) extends FrontendBaseController with I18nSupport {
+class StartController @Inject()(override val messagesApi: MessagesApi,
+                                identify: IdentifierAction,
+                                getData: DataRetrievalActionProvider,
+                                requireData: DataRequiredAction,
+                                sessionRepository: SessionRepository,
+                                platformOperatorConnector: PlatformOperatorConnector,
+                                confirmedDetailsService: ConfirmedDetailsService,
+                                val controllerComponents: MessagesControllerComponents,
+                                view: StartView)
+                               (implicit ec: ExecutionContext)
+  extends FrontendBaseController with I18nSupport with AnswerExtractor {
 
   def onPageLoad(operatorId: String): Action[AnyContent] = (identify andThen getData(operatorId)).async { implicit request =>
     request.userAnswers
       .map(_ => Future.successful(Ok(view(operatorId))))
       .getOrElse {
-        connector.viewPlatformOperator(operatorId).flatMap { operator =>
+        platformOperatorConnector.viewPlatformOperator(operatorId).flatMap { operator =>
           val summary = PlatformOperatorSummary(operator)
 
           for {
-            answers  <- Future.fromTry(UserAnswers(request.userId, operatorId).set(PlatformOperatorSummaryQuery, summary))
-            _        <- sessionRepository.set(answers)
+            answers <- Future.fromTry(UserAnswers(request.userId, operatorId).set(PlatformOperatorSummaryQuery, summary))
+            _ <- sessionRepository.set(answers)
           } yield Ok(view(operatorId))
         }.recover {
           case PlatformOperatorNotFoundFailure => Redirect(routes.SelectPlatformOperatorController.onPageLoad)
@@ -60,7 +64,12 @@ class StartController @Inject()(
       }
   }
 
-  def onSubmit(operatorId: String): Action[AnyContent] = (identify andThen getData(operatorId) andThen requireData) { implicit request =>
-    Redirect(StartPage.nextPage(NormalMode, request.userAnswers))
+  def onSubmit(operatorId: String): Action[AnyContent] = (identify andThen getData(operatorId) andThen requireData).async { implicit request =>
+    confirmedDetailsService.confirmedDetailsFor(operatorId).map {
+      case ConfirmedDetails(true, true, true) => Redirect(routes.ReportingPeriodController.onPageLoad(NormalMode, operatorId))
+      case ConfirmedDetails(true, true, false) => Redirect(routes.CheckContactDetailsController.onPageLoad(operatorId))
+      case ConfirmedDetails(true, false, _) => Redirect(routes.CheckReportingNotificationsController.onSubmit(operatorId))
+      case ConfirmedDetails(false, _, _) => Redirect(StartPage.nextPage(NormalMode, request.userAnswers))
+    }
   }
 }
