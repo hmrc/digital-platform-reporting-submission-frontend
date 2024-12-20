@@ -16,33 +16,39 @@
 
 package controllers.submission
 
-import com.google.inject.Inject
 import config.FrontendAppConfig
-import connectors.PlatformOperatorConnector
+import connectors.{PlatformOperatorConnector, SubmissionConnector}
+import controllers.AnswerExtractor
 import controllers.actions.{DataRequiredAction, DataRetrievalActionProvider, IdentifierAction}
 import forms.CheckReportingNotificationsFormProvider
+import models.confirmed.ConfirmedDetails
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
+import queries.PlatformOperatorSummaryQuery
+import services.ConfirmedDetailsService
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import views.html.submission.CheckReportingNotificationsView
 
+import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
-class CheckReportingNotificationsController @Inject()(
-                                                       override val messagesApi: MessagesApi,
-                                                       identify: IdentifierAction,
-                                                       getData: DataRetrievalActionProvider,
-                                                       requireData: DataRequiredAction,
-                                                       val controllerComponents: MessagesControllerComponents,
-                                                       connector: PlatformOperatorConnector,
-                                                       formProvider: CheckReportingNotificationsFormProvider,
-                                                       view: CheckReportingNotificationsView,
-                                                       appConfig: FrontendAppConfig
-                                                     )(implicit ec: ExecutionContext) extends FrontendBaseController with I18nSupport {
+class CheckReportingNotificationsController @Inject()(override val messagesApi: MessagesApi,
+                                                      identify: IdentifierAction,
+                                                      getData: DataRetrievalActionProvider,
+                                                      requireData: DataRequiredAction,
+                                                      val controllerComponents: MessagesControllerComponents,
+                                                      platformOperatorConnector: PlatformOperatorConnector,
+                                                      submissionConnector: SubmissionConnector,
+                                                      confirmedDetailsService: ConfirmedDetailsService,
+                                                      formProvider: CheckReportingNotificationsFormProvider,
+                                                      view: CheckReportingNotificationsView,
+                                                      appConfig: FrontendAppConfig)
+                                                     (implicit ec: ExecutionContext)
+  extends FrontendBaseController with I18nSupport with AnswerExtractor {
 
   def onPageLoad(operatorId: String): Action[AnyContent] = (identify andThen getData(operatorId) andThen requireData).async {
     implicit request =>
-      connector.viewPlatformOperator(operatorId).map { operator =>
+      platformOperatorConnector.viewPlatformOperator(operatorId).map { operator =>
 
         if (operator.notifications.isEmpty) {
           Redirect(routes.ReportingNotificationRequiredController.onPageLoad(operatorId))
@@ -54,22 +60,27 @@ class CheckReportingNotificationsController @Inject()(
       }
   }
 
-  def onSubmit(operatorId: String): Action[AnyContent] = (identify andThen getData(operatorId) andThen requireData).async {
-    implicit request =>
-
-      val form = formProvider()
-
-      form.bindFromRequest().fold(
-        formWithErrors => {
-          connector.viewPlatformOperator(operatorId).map { operator =>
-            BadRequest(view(formWithErrors, operator.notifications, operatorId, operator.operatorName))
-          }
-        },
-        answer => if (answer) {
-          Future.successful(Redirect(routes.CheckContactDetailsController.onPageLoad(operatorId)))
-        } else {
-          Future.successful(Redirect(appConfig.manageHomepageUrl))
+  def onSubmit(operatorId: String): Action[AnyContent] = (identify andThen getData(operatorId) andThen requireData).async { implicit request =>
+    formProvider().bindFromRequest().fold(
+      formWithErrors => {
+        platformOperatorConnector.viewPlatformOperator(operatorId).map { operator =>
+          BadRequest(view(formWithErrors, operator.notifications, operatorId, operator.operatorName))
         }
-      )
+      },
+      answer => if (answer) {
+        confirmedDetailsService.confirmReportingNotificationsFor(operatorId).flatMap {
+          case ConfirmedDetails(true, true, true) => getAnswerAsync(PlatformOperatorSummaryQuery) { summary =>
+            submissionConnector.start(operatorId, summary.operatorName, None).map { submission =>
+              Redirect(routes.UploadController.onPageLoad(operatorId, submission._id))
+            }
+          }
+          case ConfirmedDetails(true, true, false) => Future.successful(Redirect(routes.CheckContactDetailsController.onPageLoad(operatorId)))
+          case ConfirmedDetails(true, false, _) => Future.successful(Redirect(routes.CheckReportingNotificationsController.onSubmit(operatorId)))
+          case ConfirmedDetails(false, _, _) => Future.successful(Redirect(routes.CheckPlatformOperatorController.onPageLoad(operatorId)))
+        }
+      } else {
+        Future.successful(Redirect(appConfig.manageHomepageUrl))
+      }
+    )
   }
 }
