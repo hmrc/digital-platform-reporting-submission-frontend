@@ -88,6 +88,8 @@ class RemoveAssumedReportController @Inject()(override val messagesApi: Messages
 
                       auditService.audit(auditEvent)
 
+                      // TODO add call to deleteSubmissionEmails
+
                       Redirect(routes.AssumedReportRemovedController.onPageLoad(operatorId, reportingPeriod))
                     }.recover {
                       case ex: DeleteAssumedReportFailure =>

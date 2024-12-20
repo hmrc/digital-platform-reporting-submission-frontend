@@ -124,8 +124,8 @@ class SelectPlatformOperatorControllerSpec extends SpecBase with MockitoSugar wi
 
           val view = application.injector.instanceOf[SelectPlatformOperatorView]
           val expectedViewModels = Seq(
-            PlatformOperatorSummary("operatorId", "operatorName1", false),
-            PlatformOperatorSummary("operatorId2", "operatorName2", false)
+            PlatformOperatorSummary("operatorId", "operatorName1", "primaryContactName", "test@test.com", hasReportingNotifications = false),
+            PlatformOperatorSummary("operatorId2", "operatorName2", "primaryContactName", "test@test.com", hasReportingNotifications = false)
           )
 
           status(result) mustEqual OK
@@ -209,8 +209,8 @@ class SelectPlatformOperatorControllerSpec extends SpecBase with MockitoSugar wi
 
         val view = application.injector.instanceOf[SelectPlatformOperatorView]
         val viewModels = Seq(
-          PlatformOperatorSummary("operatorId", "operatorName1", false),
-          PlatformOperatorSummary("operatorId2", "operatorName2", false)
+          PlatformOperatorSummary("operatorId", "operatorName1", "primaryContactName", "test@test.com", hasReportingNotifications = false),
+          PlatformOperatorSummary("operatorId2", "operatorName2", "primaryContactName", "test@test.com", hasReportingNotifications = false)
         )
 
         val result = route(application, request).value

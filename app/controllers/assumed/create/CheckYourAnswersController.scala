@@ -16,24 +16,26 @@
 
 package controllers.assumed.create
 
+import cats.data.OptionT
 import com.google.inject.Inject
-import connectors.AssumedReportingConnector
+import connectors.{AssumedReportingConnector, SubscriptionConnector}
 import connectors.AssumedReportingConnector.SubmitAssumedReportingFailure
 import controllers.AnswerExtractor
-import controllers.actions.*
+import controllers.actions._
 import models.{CountriesList, UserAnswers}
 import models.audit.AddAssumedReportEvent
 import models.requests.DataRequest
 import models.submission.{AssumedReportSummary, AssumedReportingSubmissionRequest, Submission}
+import play.api.Logging
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import queries.{AssumedReportSummaryQuery, PlatformOperatorSummaryQuery}
 import repositories.SessionRepository
-import services.{AuditService, UserAnswersService}
+import services.{AuditService, EmailService, UserAnswersService}
 import services.UserAnswersService.BuildAssumedReportingSubmissionFailure
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
-import viewmodels.checkAnswers.assumed.create.*
-import viewmodels.govuk.summarylist.*
+import viewmodels.checkAnswers.assumed.create._
+import viewmodels.govuk.summarylist._
 import viewmodels.PlatformOperatorSummary
 import views.html.assumed.create.CheckYourAnswersView
 
@@ -50,12 +52,14 @@ class CheckYourAnswersController @Inject()(
                                             view: CheckYourAnswersView,
                                             userAnswersService: UserAnswersService,
                                             connector: AssumedReportingConnector,
+                                            subscriptionConnector: SubscriptionConnector,
                                             sessionRepository: SessionRepository,
                                             auditService: AuditService,
+                                            emailService: EmailService,
                                             clock: Clock,
                                             countriesList: CountriesList
                                           )(using ExecutionContext)
-  extends FrontendBaseController with I18nSupport with AnswerExtractor {
+  extends FrontendBaseController with I18nSupport with AnswerExtractor with Logging {
 
   def onPageLoad(operatorId: String): Action[AnyContent] = (identify andThen checkAssumedReportingAllowed andThen getData(operatorId) andThen requireData) {
     implicit request =>
@@ -87,13 +91,20 @@ class CheckYourAnswersController @Inject()(
           .left.map(errors => Future.failed(BuildAssumedReportingSubmissionFailure(errors)))
           .merge
           .flatMap { submissionRequest =>
-            for {
+            (for {
               submission   <- submit(submissionRequest, platformOperator)
               summary      <- AssumedReportSummary(request.userAnswers).map(Future.successful).getOrElse(Future.failed(Exception("unable to build an assumed report summary")))
               emptyAnswers = UserAnswers(request.userId, operatorId, Some(summary.reportingPeriod))
               answers      <- Future.fromTry(emptyAnswers.set(AssumedReportSummaryQuery, summary))
               _            <- sessionRepository.set(answers)
-            } yield Redirect(routes.SubmissionConfirmationController.onPageLoad(operatorId, summary.reportingPeriod))
+              subscription <- subscriptionConnector.getSubscription
+              _            <- emailService.sendAddAssumedReportingEmails(subscription, platformOperator, submission.created, summary)
+            } yield Redirect(routes.SubmissionConfirmationController.onPageLoad(operatorId, summary.reportingPeriod))).recover {
+              case error: SubmitAssumedReportingFailure => logger.warn("Failed to submit assumed reporting", error)
+                throw error
+              case error => logger.warn("Add assumed reporting emails not sent", error)
+                throw error
+            }
           }
       }
   }

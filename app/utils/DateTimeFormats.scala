@@ -52,6 +52,10 @@ object DateTimeFormats {
       .toFormatter()
   }
 
+  val EmailDateTimeFormatter: DateTimeFormatter = DateTimeFormatter
+    .ofPattern("h:mma z 'on' d MMMM yyyy")
+    .withZone(ZoneId.of("GMT"))
+
   def formatInstant(instant: Instant, formatter: DateTimeFormatter): String =
     formatter.format(instant.atZone(ZoneOffset.UTC).withZoneSameInstant(ZoneId.of("Europe/London")))
 }

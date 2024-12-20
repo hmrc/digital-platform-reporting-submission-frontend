@@ -37,7 +37,7 @@ class SubmissionsExistControllerSpec extends SpecBase {
       "must return OK and the correct view" in {
 
         val reportingPeriod = Year.of(2024)
-        val platformOperator = PlatformOperatorSummary(operatorId, operatorName, true)
+        val platformOperator = PlatformOperatorSummary(operatorId, operatorName, "primaryContactName", "test@test.com", hasReportingNotifications = true)
         val answers =
           emptyUserAnswers
             .set(PlatformOperatorSummaryQuery, platformOperator).success.value
