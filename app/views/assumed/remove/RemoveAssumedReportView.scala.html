@@ -27,7 +27,7 @@
         govukSummaryList: GovukSummaryList
 )
 
-@(form: Form[_], summaryList: SummaryList, operatorId: String, reportingPeriod: Year)(implicit request: Request[_], messages: Messages)
+@(form: Form[_], summaryList: SummaryList, operatorId: String, operatorName: String, reportingPeriod: Year)(implicit request: Request[_], messages: Messages)
 
 @layout(pageTitle = title(form, messages("removeAssumedReport.title"))) {
 
@@ -39,13 +39,13 @@
 
         <h1 class="govuk-heading-xl">@messages("removeAssumedReport.heading")</h1>
 
-        <p class="govuk-body">@messages("removeAssumedReport.p1")</p>
+        <p class="govuk-body">@messages("removeAssumedReport.p1", operatorName, operatorId)</p>
 
         @govukSummaryList(summaryList)
 
         <p class="govuk-body">@messages("removeAssumedReport.p2")</p>
 
-        @govukWarningText(WarningText(content = Text(messages("removeAssumedReport.warning"))))
+        @govukWarningText(WarningText(content = Text(messages("removeAssumedReport.warning", operatorName))))
 
         @govukRadios(
             RadiosViewModel.yesNo(
@@ -55,7 +55,7 @@
         )
 
         @govukButton(
-            ButtonViewModel(messages("site.continue"))
+            ButtonViewModel(messages("site.confirm"))
         )
     }
 }

@@ -64,7 +64,7 @@ class RemoveAssumedReportControllerSpec extends SpecBase with MockitoSugar with 
 
     "for a GET" - {
 
-      "must return OK and the correct view for a known reporting period" in {
+      "must return OK and the correct view for a known reportable period" in {
 
         val application = applicationBuilder(userAnswers = Some(baseAnswers)).build()
 
@@ -79,11 +79,11 @@ class RemoveAssumedReportControllerSpec extends SpecBase with MockitoSugar with 
           val result = route(application, request).value
 
           status(result) mustEqual OK
-          contentAsString(result) mustEqual view(form, summaryList, "operatorId", Year.of(2024))(request, implicitly).toString
+          contentAsString(result) mustEqual view(form, summaryList, "operatorId", "operatorName", Year.of(2024))(request, implicitly).toString
         }
       }
 
-      "must return 404 for an unknown reporting period" in {
+      "must return 404 for an unknown reportable period" in {
 
         val application = applicationBuilder(userAnswers = Some(baseAnswers)).build()
 
@@ -171,7 +171,7 @@ class RemoveAssumedReportControllerSpec extends SpecBase with MockitoSugar with 
           val result = route(application, request).value
 
           status(result) mustEqual BAD_REQUEST
-          contentAsString(result) mustEqual view(boundForm, summaryList, "operatorId", Year.of(2024))(request, implicitly).toString
+          contentAsString(result) mustEqual view(boundForm, summaryList, "operatorId", "operatorName", Year.of(2024))(request, implicitly).toString
         }
       }
       

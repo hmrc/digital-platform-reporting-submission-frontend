@@ -35,11 +35,14 @@
         @if(form.errors.nonEmpty) {
             @govukErrorSummary(ErrorSummaryViewModel(form))
         }
+        <h1 class="govuk-heading-xl">@messages("assumingOperatorName.heading", operator.operatorName)</h1>
+
+        <p class="govuk-body">@messages("assumingOperatorName.p1")</p>
 
         @govukInput(
             InputViewModel(
                 field = form("value"),
-                label = LabelViewModel(messages("assumingOperatorName.heading", operator.operatorName)).asPageHeading()
+                label = LabelViewModel(messages("assumingOperatorName.heading", operator.operatorName)).visuallyHidden()
             )
             .withWidth(Full)
         )

@@ -55,7 +55,7 @@ class RemoveAssumedReportController @Inject()(override val messagesApi: Messages
         summaries.find(_.reportingPeriod == reportingPeriod).map { summary =>
           val summaryList = AssumedReportSummaryList.list(summary)
 
-          Ok(view(form, summaryList, operatorId, reportingPeriod))
+          Ok(view(form, summaryList, operatorId, summary.operatorName, reportingPeriod))
         }.getOrElse(NotFound)
       }
   }
@@ -68,7 +68,7 @@ class RemoveAssumedReportController @Inject()(override val messagesApi: Messages
           form.bindFromRequest().fold(
             formWithErrors => {
               val summaryList = AssumedReportSummaryList.list(summary)
-              Future.successful(BadRequest(view(formWithErrors, summaryList, operatorId, reportingPeriod)))
+              Future.successful(BadRequest(view(formWithErrors, summaryList, operatorId, summary.operatorName, reportingPeriod)))
             },
             answer => 
               if (answer) {

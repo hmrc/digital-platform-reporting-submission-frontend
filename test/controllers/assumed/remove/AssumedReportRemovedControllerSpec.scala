@@ -39,7 +39,7 @@ class AssumedReportRemovedControllerSpec extends SpecBase {
 
   "Assumed Report Removed Controller" - {
 
-    "must return OK and the correct view for a GET of a known reporting period" in {
+    "must return OK and the correct view for a GET of a known reportable period" in {
 
       val application =
         applicationBuilder(userAnswers = Some(baseAnswers))
@@ -61,7 +61,7 @@ class AssumedReportRemovedControllerSpec extends SpecBase {
       }
     }
     
-    "must return NOT_FOUND for an unknown reporting period" in {
+    "must return NOT_FOUND for an unknown reportable period" in {
 
       val application =
         applicationBuilder(userAnswers = Some(baseAnswers))

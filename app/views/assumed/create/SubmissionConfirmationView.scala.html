@@ -36,15 +36,12 @@
 
     @govukSummaryList(summaryList)
 
-    <h2 class="govuk-heading-m">@messages("assumedReportingConfirmation.next")</h2>
-
     <p class="govuk-body">
-        @messages("assumedReportingConfirmation.youCan")
-        <a class="govuk-link" href="@createRoutes.SelectPlatformOperatorController.onPageLoad">@messages("assumedReportingConfirmation.makeAnother")</a>.
+
+        <a class="govuk-link" href="@appConfig.manageHomepageUrl">@messages("assumedReportingConfirmation.return")</a>
     </p>
 
-    <p class="govuk-body">
-
-        <a class="govuk-link" href="@appConfig.manageHomepageUrl">@messages("assumedReportingConfirmation.return")</a>.
+    <p id="print-this-page" class="govuk-list govuk-link print-link hmrc-!-js-visible govuk-!-display-none-print">
+        <a class="govuk-link hmrc-!-js-visible" data-module="hmrc-print-link" href="#" >@messages("assumedReportingConfirmation.print")</a>
     </p>
 }

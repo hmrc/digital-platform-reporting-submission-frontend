@@ -146,7 +146,7 @@ class ReportingPeriodControllerSpec extends SpecBase with MockitoSugar with Befo
         }
       }
 
-      "when there are delivered XML submissions for this operator and reporting period" in {
+      "when there are delivered XML submissions for this operator and reportable period" in {
 
         val deliveredSubmission = SubmissionSummary(
           submissionId = "submissionId",
@@ -199,7 +199,7 @@ class ReportingPeriodControllerSpec extends SpecBase with MockitoSugar with Befo
         }
       }
 
-      "when there are undelivered XML submissions for this operator and reporting period" in {
+      "when there are undelivered XML submissions for this operator and reportable period" in {
 
         val undeliveredSubmission = SubmissionSummary(
           submissionId = "submissionId",
@@ -251,7 +251,7 @@ class ReportingPeriodControllerSpec extends SpecBase with MockitoSugar with Befo
         }
       }
 
-      "when there are delivered XML submissions, but they are for a different operator or reporting period" in {
+      "when there are delivered XML submissions, but they are for a different operator or reportable period" in {
 
         val deliveredSubmission1 = SubmissionSummary(
           submissionId = "submissionId",
@@ -316,7 +316,7 @@ class ReportingPeriodControllerSpec extends SpecBase with MockitoSugar with Befo
         }
       }
 
-      "when there are undelivered XML submissions, but they are for a different operator or reporting period" ignore {
+      "when there are undelivered XML submissions, but they are for a different operator or reportable period" ignore {
 
         val undeliveredSubmission1 = SubmissionSummary(
           submissionId = "submissionId",
