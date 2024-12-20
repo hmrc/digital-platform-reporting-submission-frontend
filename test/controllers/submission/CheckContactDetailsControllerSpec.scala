@@ -49,7 +49,7 @@ class CheckContactDetailsControllerSpec extends SpecBase with SummaryListFluency
   private val mockSubmissionConnector: SubmissionConnector = mock[SubmissionConnector]
   private val mockSubscriptionConnector = mock[SubscriptionConnector]
   private val mockRepository = mock[SessionRepository]
-  private val platformOperatorSummary = PlatformOperatorSummary("operatorId", "operatorName", true)
+  private val platformOperatorSummary = PlatformOperatorSummary("operatorId", "operatorName", "primaryContactName", "test@test.com", hasReportingNotifications = true)
   private val baseAnswers = emptyUserAnswers.set(PlatformOperatorSummaryQuery, platformOperatorSummary).success.value
 
   private val now: Instant = Instant.now()

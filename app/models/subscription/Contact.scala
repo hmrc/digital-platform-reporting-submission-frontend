@@ -19,7 +19,9 @@ package models.subscription
 import play.api.libs.json._
 import play.api.libs.functional.syntax._
 
-sealed trait Contact
+sealed trait Contact {
+  def email: String
+}
 
 object Contact {
 

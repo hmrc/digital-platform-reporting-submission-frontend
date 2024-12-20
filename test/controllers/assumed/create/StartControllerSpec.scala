@@ -42,7 +42,7 @@ class StartControllerSpec extends SpecBase with MockitoSugar with BeforeAndAfter
 
   private val mockConnector = mock[PlatformOperatorConnector]
   private val mockRepository = mock[SessionRepository]
-  private val platformOperatorSummary = PlatformOperatorSummary("operatorId", "operatorName", true)
+  private val platformOperatorSummary = PlatformOperatorSummary("operatorId", "operatorName", "primaryContactName", "test@test.com", hasReportingNotifications = true)
   private val baseAnswers = emptyUserAnswers.set(PlatformOperatorSummaryQuery, platformOperatorSummary).success.value
 
   override def beforeEach(): Unit = {
@@ -108,7 +108,7 @@ class StartControllerSpec extends SpecBase with MockitoSugar with BeforeAndAfter
 
         val view = application.injector.instanceOf[StartView]
         val answersCaptor: ArgumentCaptor[UserAnswers] = ArgumentCaptor.forClass(classOf[UserAnswers])
-        val expectedSummary = PlatformOperatorSummary(operator.operatorId, operator.operatorName, false)
+        val expectedSummary = PlatformOperatorSummary(operator.operatorId, operator.operatorName, "name", "email", hasReportingNotifications = false)
 
         status(result) mustEqual OK
         contentAsString(result) mustEqual view(operatorId)(request, messages(application)).toString

@@ -65,4 +65,6 @@ class FrontendAppConfig @Inject() (configuration: Configuration) {
   val updateContactDetailsUrl: String = s"$manageFrontendUrl/contact-details/view-contact-details"
   val manageHomepageUrl: String = s"$manageFrontendUrl/manage-reporting"
 
+  val emailServiceUrl: String = configuration.get[Service]("microservice.services.email").baseUrl
+
 }

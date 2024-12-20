@@ -22,6 +22,8 @@ import play.api.libs.json.{Json, OFormat}
 final case class PlatformOperatorSummary(
                                             operatorId: String,
                                             operatorName: String,
+                                            operatorPrimaryContactName: String,
+                                            operatorPrimaryContactEmail: String,
                                             hasReportingNotifications: Boolean
                                           )
 
@@ -31,6 +33,8 @@ object PlatformOperatorSummary {
     PlatformOperatorSummary(
       operator.operatorId,
       operator.operatorName,
+      operator.primaryContactDetails.contactName,
+      operator.primaryContactDetails.emailAddress,
       operator.notifications.nonEmpty
     )
 

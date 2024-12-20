@@ -45,7 +45,7 @@ class CheckPlatformOperatorControllerSpec extends SpecBase with SummaryListFluen
   private val countriesList = new DefaultCountriesList
   private val form = CheckPlatformOperatorFormProvider()()
   private val mockConnector = mock[PlatformOperatorConnector]
-  private val operatorSummary = PlatformOperatorSummary("operatorId", "operatorName", true)
+  private val operatorSummary = PlatformOperatorSummary("operatorId", "operatorName", "primaryContactName", "test@test.com", hasReportingNotifications = true)
   private val baseAnswers = emptyUserAnswers.set(PlatformOperatorSummaryQuery, operatorSummary).success.value
 
   override def beforeEach(): Unit = {

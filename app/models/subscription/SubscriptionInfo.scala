@@ -24,7 +24,12 @@ final case class SubscriptionInfo(
                                    tradingName: Option[String],
                                    primaryContact: Contact,
                                    secondaryContact: Option[OrganisationContact]
-                                 )
+                                 ) {
+  def primaryContactName: String = primaryContact match {
+    case ic: IndividualContact => s"${ic.individual.firstName} ${ic.individual.lastName}"
+    case oc: OrganisationContact => oc.organisation.name
+  }
+}
 
 object SubscriptionInfo {
 

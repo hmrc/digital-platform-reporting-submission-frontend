@@ -32,13 +32,13 @@ class SelectPlatformOperatorPageSpec extends AnyFreeSpec with Matchers with TryV
 
     "must go to Start when there are notifications for this operator" in {
 
-      val answers = emptyAnswers.set(PlatformOperatorSummaryQuery, PlatformOperatorSummary("operatorId", "operatorName", true)).success.value
+      val answers = emptyAnswers.set(PlatformOperatorSummaryQuery, PlatformOperatorSummary("operatorId", "operatorName", "primaryContactName", "test@test.com", hasReportingNotifications = true)).success.value
       SelectPlatformOperatorPage.nextPage(NormalMode, answers) mustEqual routes.StartController.onPageLoad("operatorId")
     }
 
     "must go to Reporting Notification required when there are no notifications for this operator" in {
 
-      val answers = emptyAnswers.set(PlatformOperatorSummaryQuery, PlatformOperatorSummary("operatorId", "operatorName", false)).success.value
+      val answers = emptyAnswers.set(PlatformOperatorSummaryQuery, PlatformOperatorSummary("operatorId", "operatorName", "primaryContactName", "test@test.com", hasReportingNotifications = false)).success.value
       SelectPlatformOperatorPage.nextPage(NormalMode, answers) mustEqual routes.ReportingNotificationRequiredController.onPageLoad("operatorId")
     }
   }

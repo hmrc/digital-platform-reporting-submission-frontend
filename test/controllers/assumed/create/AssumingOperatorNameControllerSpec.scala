@@ -36,7 +36,7 @@ import scala.concurrent.Future
 
 class AssumingOperatorNameControllerSpec extends SpecBase with MockitoSugar {
 
-  private val operator = PlatformOperatorSummary("operatorId", "name", false)
+  private val operator = PlatformOperatorSummary("operatorId", "name", "primaryContactName", "test@test.com", hasReportingNotifications = false)
   private val baseAnswers = emptyUserAnswers.set(PlatformOperatorSummaryQuery, operator).success.value
   private val formProvider = new AssumingOperatorNameFormProvider()
   private val form = formProvider(operator.operatorName)
