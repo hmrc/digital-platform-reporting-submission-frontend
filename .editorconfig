@@ -1,0 +1,20 @@
+root = true
+
+[*]
+charset = utf-8
+end_of_line = lf
+indent_size = 2
+indent_style = space
+insert_final_newline = true
+max_line_length = 80
+trim_trailing_whitespace = true
+
+[*.md]
+trim_trailing_whitespace = false
+
+[Jenkinsfile,Makefile,*.kdl]
+indent_style = tab
+
+[*.{java,json,yml,yaml}]
+indent_style = space
+insert_final_newline = false
