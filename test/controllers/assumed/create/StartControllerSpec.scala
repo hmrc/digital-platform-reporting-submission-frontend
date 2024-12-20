@@ -23,16 +23,17 @@ import models.operator.responses.PlatformOperator
 import models.operator.{AddressDetails, ContactDetails}
 import models.{NormalMode, UserAnswers}
 import org.mockito.ArgumentMatchers.{any, eq as eqTo}
-import org.mockito.{ArgumentCaptor, Mockito}
 import org.mockito.Mockito.{never, times, verify, when}
+import org.mockito.{ArgumentCaptor, Mockito}
 import org.scalatest.BeforeAndAfterEach
 import org.scalatestplus.mockito.MockitoSugar
-import pages.assumed.create.StartPage
 import play.api.inject.bind
 import play.api.test.FakeRequest
 import play.api.test.Helpers.*
 import queries.PlatformOperatorSummaryQuery
 import repositories.SessionRepository
+import services.ConfirmedDetailsService
+import support.builders.ConfirmedDetailsBuilder.aConfirmedDetails
 import viewmodels.PlatformOperatorSummary
 import views.html.assumed.create.StartView
 
@@ -40,16 +41,17 @@ import scala.concurrent.Future
 
 class StartControllerSpec extends SpecBase with MockitoSugar with BeforeAndAfterEach {
 
-  private val mockConnector = mock[PlatformOperatorConnector]
-  private val mockRepository = mock[SessionRepository]
+  private val mockPlatformOperatorConnector = mock[PlatformOperatorConnector]
+  private val mockSessionRepository = mock[SessionRepository]
+  private val mockConfirmedDetailsService = mock[ConfirmedDetailsService]
   private val platformOperatorSummary = PlatformOperatorSummary("operatorId", "operatorName", true)
   private val baseAnswers = emptyUserAnswers.set(PlatformOperatorSummaryQuery, platformOperatorSummary).success.value
 
   override def beforeEach(): Unit = {
-    Mockito.reset(mockConnector, mockRepository)
+    Mockito.reset(mockPlatformOperatorConnector, mockSessionRepository, mockConfirmedDetailsService)
     super.beforeEach()
   }
-  
+
   "Start Controller" - {
 
     "must return OK and the correct view for a GET when user answers exist" in {
@@ -57,8 +59,8 @@ class StartControllerSpec extends SpecBase with MockitoSugar with BeforeAndAfter
       val application =
         applicationBuilder(userAnswers = Some(baseAnswers))
           .overrides(
-            bind[PlatformOperatorConnector].toInstance(mockConnector),
-            bind[SessionRepository].toInstance(mockRepository)
+            bind[PlatformOperatorConnector].toInstance(mockPlatformOperatorConnector),
+            bind[SessionRepository].toInstance(mockSessionRepository)
           )
           .build()
 
@@ -71,8 +73,8 @@ class StartControllerSpec extends SpecBase with MockitoSugar with BeforeAndAfter
 
         status(result) mustEqual OK
         contentAsString(result) mustEqual view(operatorId)(request, messages(application)).toString
-        verify(mockConnector, never()).viewPlatformOperator(any())(any())
-        verify(mockRepository, never()).set(any())
+        verify(mockPlatformOperatorConnector, never()).viewPlatformOperator(any())(any())
+        verify(mockSessionRepository, never()).set(any())
       }
     }
 
@@ -90,14 +92,14 @@ class StartControllerSpec extends SpecBase with MockitoSugar with BeforeAndAfter
         notifications = Nil
       )
 
-      when(mockConnector.viewPlatformOperator(any())(any())).thenReturn(Future.successful(operator))
-      when(mockRepository.set(any())).thenReturn(Future.successful(true))
+      when(mockPlatformOperatorConnector.viewPlatformOperator(any())(any())).thenReturn(Future.successful(operator))
+      when(mockSessionRepository.set(any())).thenReturn(Future.successful(true))
 
       val application =
         applicationBuilder(userAnswers = None)
           .overrides(
-            bind[PlatformOperatorConnector].toInstance(mockConnector),
-            bind[SessionRepository].toInstance(mockRepository)
+            bind[PlatformOperatorConnector].toInstance(mockPlatformOperatorConnector),
+            bind[SessionRepository].toInstance(mockSessionRepository)
           )
           .build()
 
@@ -112,8 +114,8 @@ class StartControllerSpec extends SpecBase with MockitoSugar with BeforeAndAfter
 
         status(result) mustEqual OK
         contentAsString(result) mustEqual view(operatorId)(request, messages(application)).toString
-        verify(mockConnector, times(1)).viewPlatformOperator(eqTo(operator.operatorId))(any())
-        verify(mockRepository, times(1)).set(answersCaptor.capture())
+        verify(mockPlatformOperatorConnector, times(1)).viewPlatformOperator(eqTo(operator.operatorId))(any())
+        verify(mockSessionRepository, times(1)).set(answersCaptor.capture())
 
         val answers = answersCaptor.getValue
         answers.get(PlatformOperatorSummaryQuery).value mustEqual expectedSummary
@@ -122,11 +124,11 @@ class StartControllerSpec extends SpecBase with MockitoSugar with BeforeAndAfter
 
     "must redirect to Select Platform Operator when user answers do not exist and the platform operator cannot be found" in {
 
-      when(mockConnector.viewPlatformOperator(any())(any())).thenReturn(Future.failed(PlatformOperatorNotFoundFailure))
+      when(mockPlatformOperatorConnector.viewPlatformOperator(any())(any())).thenReturn(Future.failed(PlatformOperatorNotFoundFailure))
 
       val application =
         applicationBuilder(userAnswers = None)
-          .overrides(bind[PlatformOperatorConnector].toInstance(mockConnector))
+          .overrides(bind[PlatformOperatorConnector].toInstance(mockPlatformOperatorConnector))
           .build()
 
       running(application) {
@@ -138,17 +140,81 @@ class StartControllerSpec extends SpecBase with MockitoSugar with BeforeAndAfter
       }
     }
 
-    "must redirect to the next page for a POST" in {
+    "onSubmit(...)" - {
+      "must redirect to Check Platform Operator when business details have not been confirmed" in {
+        val application = applicationBuilder(userAnswers = Some(baseAnswers)).overrides(
+          bind[PlatformOperatorConnector].toInstance(mockPlatformOperatorConnector),
+          bind[SessionRepository].toInstance(mockSessionRepository),
+          bind[ConfirmedDetailsService].toInstance(mockConfirmedDetailsService)
+        ).build()
 
-      val application = applicationBuilder(userAnswers = Some(baseAnswers)).build()
+        when(mockConfirmedDetailsService.confirmedDetailsFor(any())(using any()))
+          .thenReturn(Future.successful(aConfirmedDetails.copy(businessDetails = false)))
 
-      running(application) {
-        val request = FakeRequest(POST, routes.StartController.onSubmit(operatorId).url)
+        running(application) {
+          val request = FakeRequest(POST, routes.StartController.onSubmit(operatorId).url)
+          val result = route(application, request).value
 
-        val result = route(application, request).value
+          status(result) mustEqual SEE_OTHER
+          redirectLocation(result).value mustEqual routes.CheckPlatformOperatorController.onPageLoad(operatorId).url
+        }
+      }
 
-        status(result) mustEqual SEE_OTHER
-        redirectLocation(result).value mustEqual StartPage.nextPage(NormalMode, baseAnswers).url
+      "must redirect to Check Reporting Notifications when reporting notifications not confirmed" in {
+        val application = applicationBuilder(userAnswers = Some(baseAnswers)).overrides(
+          bind[PlatformOperatorConnector].toInstance(mockPlatformOperatorConnector),
+          bind[SessionRepository].toInstance(mockSessionRepository),
+          bind[ConfirmedDetailsService].toInstance(mockConfirmedDetailsService)
+        ).build()
+
+        when(mockConfirmedDetailsService.confirmedDetailsFor(any())(using any()))
+          .thenReturn(Future.successful(aConfirmedDetails.copy(reportingNotifications = false)))
+
+        running(application) {
+          val request = FakeRequest(routes.StartController.onSubmit(operatorId))
+          val result = route(application, request).value
+
+          status(result) mustEqual SEE_OTHER
+          redirectLocation(result).value mustEqual routes.CheckReportingNotificationsController.onSubmit(operatorId).url
+        }
+      }
+
+      "must redirect to Check Contact details when contact details not confirmed" in {
+        val application = applicationBuilder(userAnswers = Some(baseAnswers)).overrides(
+          bind[PlatformOperatorConnector].toInstance(mockPlatformOperatorConnector),
+          bind[SessionRepository].toInstance(mockSessionRepository),
+          bind[ConfirmedDetailsService].toInstance(mockConfirmedDetailsService)
+        ).build()
+
+        when(mockConfirmedDetailsService.confirmedDetailsFor(any())(using any()))
+          .thenReturn(Future.successful(aConfirmedDetails.copy(yourContactDetails = false)))
+
+        running(application) {
+          val request = FakeRequest(routes.StartController.onSubmit(operatorId))
+          val result = route(application, request).value
+
+          status(result) mustEqual SEE_OTHER
+          redirectLocation(result).value mustEqual routes.CheckContactDetailsController.onSubmit(operatorId).url
+        }
+      }
+
+      "must redirect to Reporting Period when all details are confirmed" in {
+        val application = applicationBuilder(userAnswers = Some(baseAnswers)).overrides(
+          bind[PlatformOperatorConnector].toInstance(mockPlatformOperatorConnector),
+          bind[SessionRepository].toInstance(mockSessionRepository),
+          bind[ConfirmedDetailsService].toInstance(mockConfirmedDetailsService)
+        ).build()
+
+        when(mockConfirmedDetailsService.confirmedDetailsFor(any())(using any()))
+          .thenReturn(Future.successful(aConfirmedDetails.copy(true, true, true)))
+
+        running(application) {
+          val request = FakeRequest(routes.StartController.onSubmit(operatorId))
+          val result = route(application, request).value
+
+          status(result) mustEqual SEE_OTHER
+          redirectLocation(result).value mustEqual routes.ReportingPeriodController.onSubmit(NormalMode, operatorId).url
+        }
       }
     }
   }

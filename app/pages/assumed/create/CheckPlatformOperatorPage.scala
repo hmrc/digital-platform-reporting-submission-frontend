@@ -23,12 +23,13 @@ import models.UserAnswers
 import play.api.libs.json.JsPath
 import play.api.mvc.Call
 
-import javax.inject.Inject
+import javax.inject.{Inject, Singleton}
 
+@Singleton
 class CheckPlatformOperatorPage @Inject()(appConfig: FrontendAppConfig) extends AssumedReportingQuestionPage[Boolean] {
 
   override def path: JsPath = JsPath \ "checkPlatformOperator"
-  
+
   override protected def nextPageNormalMode(answers: UserAnswers): Call =
     answers.get(this).map {
       case true  => routes.CheckReportingNotificationsController.onPageLoad(answers.operatorId)

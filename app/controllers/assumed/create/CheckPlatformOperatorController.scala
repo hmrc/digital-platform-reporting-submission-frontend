@@ -20,13 +20,16 @@ import com.google.inject.Inject
 import connectors.PlatformOperatorConnector
 import controllers.actions.{DataRequiredAction, DataRetrievalActionProvider, IdentifierAction}
 import forms.CheckPlatformOperatorFormProvider
+import models.confirmed.ConfirmedDetails
 import models.operator.responses.PlatformOperator
-import models.{CountriesList, NormalMode, yearFormat}
+import models.{CountriesList, NormalMode}
 import pages.assumed.create.CheckPlatformOperatorPage
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}
-import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
+import play.api.mvc.*
 import repositories.SessionRepository
+import services.ConfirmedDetailsService
 import uk.gov.hmrc.govukfrontend.views.Aliases.SummaryList
+import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import viewmodels.checkAnswers.operator.*
 import viewmodels.govuk.summarylist.*
@@ -43,6 +46,7 @@ class CheckPlatformOperatorController @Inject()(
                                                  connector: PlatformOperatorConnector,
                                                  formProvider: CheckPlatformOperatorFormProvider,
                                                  sessionRepository: SessionRepository,
+                                                 confirmedDetailsService: ConfirmedDetailsService,
                                                  checkPlatformOperatorPage: CheckPlatformOperatorPage,
                                                  view: CheckPlatformOperatorView,
                                                  countriesList: CountriesList
@@ -65,30 +69,35 @@ class CheckPlatformOperatorController @Inject()(
       }
   }
 
-  def onSubmit(operatorId: String): Action[AnyContent] = (identify andThen getData(operatorId) andThen requireData).async {
-    implicit request =>
+  def onSubmit(operatorId: String): Action[AnyContent] = (identify andThen getData(operatorId) andThen requireData).async { implicit request =>
+    formProvider().bindFromRequest().fold(
+      formWithErrors => {
+        connector.viewPlatformOperator(operatorId).map { operator =>
+          BadRequest(view(
+            formWithErrors,
+            platformOperatorList(operator),
+            primaryContactList(operator),
+            secondaryContactList(operator),
+            operator.operatorId,
+            operator.operatorName
+          ))
+        }
+      },
+      answer => (for {
+        updatedAnswers <- Future.fromTry(request.userAnswers.set(checkPlatformOperatorPage, answer))
+        _ <- sessionRepository.set(updatedAnswers)
+      } yield {
+        if (answer) nextPage(operatorId)
+        else Future.successful(checkPlatformOperatorPage.nextPage(NormalMode, updatedAnswers))
+      }).flatten.map(Redirect)
+    )
+  }
 
-      val form = formProvider()
-
-      form.bindFromRequest().fold(
-        formWithErrors => {
-          connector.viewPlatformOperator(operatorId).map { operator =>
-            BadRequest(view(
-              formWithErrors,
-              platformOperatorList(operator),
-              primaryContactList(operator),
-              secondaryContactList(operator),
-              operator.operatorId,
-              operator.operatorName
-            ))
-          }
-        },
-        answer =>
-          for {
-            updatedAnswers <- Future.fromTry(request.userAnswers.set(checkPlatformOperatorPage, answer))
-            _ <- sessionRepository.set(updatedAnswers)
-          } yield Redirect(checkPlatformOperatorPage.nextPage(NormalMode, updatedAnswers))
-      )
+  private def nextPage(operatorId: String)(using HeaderCarrier): Future[Call] = confirmedDetailsService.confirmBusinessDetailsFor(operatorId).map {
+    case ConfirmedDetails(true, true, true) => routes.ReportingPeriodController.onPageLoad(NormalMode, operatorId)
+    case ConfirmedDetails(true, true, false) => routes.CheckContactDetailsController.onPageLoad(operatorId)
+    case ConfirmedDetails(true, false, _) => routes.CheckReportingNotificationsController.onSubmit(operatorId)
+    case ConfirmedDetails(false, _, _) => routes.CheckPlatformOperatorController.onPageLoad(operatorId)
   }
 
   private def platformOperatorList(operator: PlatformOperator)(implicit messages: Messages): SummaryList =
