@@ -294,12 +294,8 @@ ready(async () => {
           sortOrder === "ASC" ? "up" : "down"
         }`;
 
-        console.log(`Current text: '${sortOrderLive.textContent.trim()}'`);
-        console.log(`New text: '${newText}'`);
-
         if (sortOrderLive.textContent.trim() !== newText) {
           sortOrderLive.textContent = newText;
-          console.log(`Updated text to: '${newText}'`);
         }
       }
     });

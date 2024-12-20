@@ -111,7 +111,11 @@
 
                     @govukWarningText(WarningText(content = Text(messages("viewSubmissions.errors"))))
 
-                    <div aria-live="polite" class="govuk-visually-hidden" id="sort-order-live"></div>
+                    @*
+                     * Sonarqube will suggest using an `output` here instead,
+                     * but then Safari reads everything out twice.
+                     *@
+                    <div aria-live="polite" class="govuk-visually-hidden" id="sort-order-live" role="status"></div>
 
                     <table class="govuk-table" data-module="table-sorts" id="xml-subs">
                         <thead class="govuk-table__head">

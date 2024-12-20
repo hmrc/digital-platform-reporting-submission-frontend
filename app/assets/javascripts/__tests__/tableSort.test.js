@@ -1,4 +1,14 @@
 /* eslint-disable jest/expect-expect -- expect is called in the `testGetColumnIndex` function */
+
+/**
+ * These tests are not meant to be run in the build pipeline.
+ * They’re to help you understand the structure of the table before and after the JS switch,
+ * so that you can base effective scalatest and selenium tests off them.
+ *
+ * `npm install && npm run test` to run these tests.
+ * See `package.json` for other commands including `coverage` and `watch`.
+ */
+
 const {
   addSprite,
   compareRows,
@@ -101,7 +111,6 @@ describe("tableSort.js", () => {
     expect(result).toBe(expected);
     expect(typeof result).toBe('number');
   };
-
 
   describe("isInPage", () => {
     it("should return true if the element is in the page", () => {
@@ -218,6 +227,9 @@ describe("tableSort.js", () => {
       expect(rows[1].querySelector(".govuk-table__cell").textContent).toBe(
         "Passed"
       );
+
+      // Add snapshot
+      expect(document.body.innerHTML).toMatchSnapshot();
     });
 
     it("should sort the table by the specified column in descending order", () => {
@@ -233,6 +245,9 @@ describe("tableSort.js", () => {
       expect(rows[1].querySelector(".govuk-table__cell").textContent).toBe(
         "Failed"
       );
+
+      // Add snapshot
+      expect(document.body.innerHTML).toMatchSnapshot();
     });
 
     it("should throw an error if the column index is invalid", () => {
@@ -291,6 +306,9 @@ describe("tableSort.js", () => {
 
       // This is the Title in the SVG, if you’re looking for it.
       expect(button.textContent).toContain("Sort");
+
+      // Add snapshot
+      expect(document.body.innerHTML).toMatchSnapshot();
     });
   });
 
@@ -303,6 +321,9 @@ describe("tableSort.js", () => {
 
       expect(svg).not.toBeNull();
       expect(svg).toBeInTheDocument();
+
+      // Add snapshot
+      expect(document.body.innerHTML).toMatchSnapshot();
     });
 
     it("should not add the SVG sprite if the table-sorts module is not in the page", () => {
@@ -311,6 +332,9 @@ describe("tableSort.js", () => {
       const svg = document.getElementById("SVGsprites");
 
       expect(svg).toBeNull();
+
+      // Add snapshot
+      expect(document.body.innerHTML).toMatchSnapshot();
     });
   });
 
@@ -379,7 +403,7 @@ describe("tableSort.js", () => {
     <th class="govuk-table__header" scope="col">Action</th>
   </tr>
 </thead>
-<div class="govuk-visually-hidden" id="sort-order-live"></div>`;
+<div aria-live="polite" class="govuk-visually-hidden" id="sort-order-live" role="status"></div>`;
 
       return Promise.resolve();
     });
@@ -406,6 +430,9 @@ describe("tableSort.js", () => {
 
       // This is the Title in the SVG, if you’re looking for it.
       expect(buttons[1].textContent).toContain("Sort");
+
+      // Add snapshot
+      expect(document.body.innerHTML).toMatchSnapshot();
     });
 
     /**
