@@ -73,4 +73,11 @@ class DateTimeFormatsSpec extends AnyFreeSpec with Matchers {
       DateTimeFormats.formatInstant(instant, DateTimeFormats.fullDateTimeFormatter).replace("PM", "pm") mustEqual "2:01pm BST on 1 June 2024"
     }
   }
+
+  "EmailDateTimeFormatter" - {
+    "must format to GMT date correctly" in {
+      val dateTime = ZonedDateTime.of(2024, 6, 1, 13, 1, 0, 0, ZoneId.of("Europe/London"))
+      DateTimeFormats.EmailDateTimeFormatter.format(dateTime) mustEqual "12:01pm GMT on 1 June 2024"
+    }
+  }
 }

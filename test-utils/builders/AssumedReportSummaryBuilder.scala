@@ -16,13 +16,16 @@
 
 package builders
 
-import models.subscription.{Organisation, OrganisationContact}
+import models.submission.AssumedReportSummary
 
-object OrganisationContactBuilder {
+import java.time.Year
 
-  val anOrganisationContact: OrganisationContact = OrganisationContact(
-    organisation = Organisation("default-name"),
-    email = "default.organisation.email@example.com",
-    phone = None,
+object AssumedReportSummaryBuilder {
+
+  val anAssumedReportSummary: AssumedReportSummary = AssumedReportSummary(
+    operatorId = "default-operator-id",
+    operatorName = "default-operator-name",
+    assumingOperatorName = "default-assuming-organisation-name",
+    reportingPeriod = Year.now
   )
 }

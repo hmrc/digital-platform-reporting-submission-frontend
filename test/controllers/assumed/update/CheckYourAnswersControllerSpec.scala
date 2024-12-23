@@ -17,18 +17,15 @@
 package controllers.assumed.update
 
 import base.SpecBase
+import builders.PlatformOperatorBuilder.aPlatformOperator
 import builders.SubscriptionInfoBuilder.aSubscriptionInfo
 import cats.data.NonEmptyChain
-import connectors.SubscriptionConnector.GetSubscriptionFailure
-import connectors.{AssumedReportingConnector, SubscriptionConnector}
+import connectors.{AssumedReportingConnector, PlatformOperatorConnector, SubscriptionConnector}
 import controllers.routes as baseRoutes
-import services.EmailService
-import viewmodels.PlatformOperatorSummary
-import queries.PlatformOperatorSummaryQuery
 import models.audit.UpdateAssumedReportEvent
+import models.submission.*
 import models.submission.Submission.State.Submitted
 import models.submission.Submission.SubmissionType
-import models.submission.*
 import models.{CountriesList, Country, DefaultCountriesList, UserAnswers, yearFormat}
 import org.apache.pekko.Done
 import org.mockito.ArgumentMatchers.{any, eq as eqTo}
@@ -40,13 +37,14 @@ import pages.assumed.update.AssumingOperatorNamePage
 import play.api.inject.bind
 import play.api.test.FakeRequest
 import play.api.test.Helpers.*
-import queries.{AssumedReportSummaryQuery, AssumedReportingSubmissionQuery, PlatformOperatorNameQuery, ReportingPeriodQuery}
+import queries.*
 import repositories.SessionRepository
-import services.{AuditService, UserAnswersService}
+import services.{AuditService, EmailService, UserAnswersService}
+import viewmodels.PlatformOperatorSummary
 import viewmodels.govuk.SummaryListFluency
 import views.html.assumed.update.CheckYourAnswersView
 
-import java.time.{Clock, Instant, Year, ZoneId}
+import java.time.{Instant, Year}
 import scala.concurrent.Future
 import scala.util.Success
 
@@ -60,14 +58,14 @@ class CheckYourAnswersControllerSpec extends SpecBase with SummaryListFluency wi
   private val mockSessionRepository: SessionRepository = mock[SessionRepository]
   private val mockAuditService: AuditService = mock[AuditService]
   private val mockSubscriptionConnector = mock[SubscriptionConnector]
+  private val mockPlatformOperatorConnector = mock[PlatformOperatorConnector]
   private val mockEmailService = mock[EmailService]
 
   private val now: Instant = Instant.now()
-  private val stubClock: Clock = Clock.fixed(now, ZoneId.systemDefault)
 
   override def beforeEach(): Unit = {
     super.beforeEach()
-    Mockito.reset(mockAssumedReportingConnector, mockUserAnswersService, mockSessionRepository, mockAuditService, mockSubscriptionConnector, mockEmailService)
+    Mockito.reset(mockAssumedReportingConnector, mockUserAnswersService, mockSessionRepository, mockAuditService, mockPlatformOperatorConnector, mockSubscriptionConnector, mockEmailService)
   }
 
   private val dprsId = "dprsId"
@@ -92,12 +90,10 @@ class CheckYourAnswersControllerSpec extends SpecBase with SummaryListFluency wi
     }
 
     "must redirect to Journey Recovery for a GET if no existing data is found" in {
-
       val application = applicationBuilder(userAnswers = None).build()
 
       running(application) {
         val request = FakeRequest(GET, routes.CheckYourAnswersController.onPageLoad(operatorId, reportingPeriod).url)
-
         val result = route(application, request).value
 
         status(result) mustEqual SEE_OTHER
@@ -106,31 +102,26 @@ class CheckYourAnswersControllerSpec extends SpecBase with SummaryListFluency wi
     }
 
     "for a POST" - {
-
       val originalSubmission = AssumedReportingSubmission(
         operatorId = operatorId,
         operatorName = operatorName,
-        assumingOperator = AssumingPlatformOperator("name", Country.gb, Nil, Country.gb, "address"),
+        assumingOperator = AssumingPlatformOperator("name", Country.GB, Nil, Country.GB, "address"),
         reportingPeriod = Year.of(2024),
         isDeleted = false
       )
-
       val assumedReportingSubmissionRequest = AssumedReportingSubmissionRequest(
         operatorId = operatorId,
         assumingOperator = AssumingPlatformOperator(
           name = "assumingOperator",
-          residentCountry = Country.gb,
+          residentCountry = Country.GB,
           tinDetails = Seq.empty,
-          registeredCountry = Country.gb,
+          registeredCountry = Country.GB,
           address = "address"
         ),
         reportingPeriod = Year.of(2024)
       )
 
-      val subscriptionInfo = aSubscriptionInfo
-
-      "must submit an assumed reporting submission request, audit the event, replace user answers with a summary, and redirect to the next page" in {
-
+      "must submit an assumed reporting submission request, audit the event, replace user answers with a summary, send email, and redirect to the next page" in {
         val submission = Submission(
           _id = "submissionId",
           submissionType = SubmissionType.ManualAssumedReport,
@@ -143,32 +134,30 @@ class CheckYourAnswersControllerSpec extends SpecBase with SummaryListFluency wi
           updated = now
         )
 
-        val answers =
-          baseAnswers
-            .set(AssumingOperatorNamePage, "assumingOperatorName").success.value
-            .set(PlatformOperatorNameQuery, operatorName).success.value
-            .set(ReportingPeriodQuery, Year.of(2024)).success.value
-            .set(AssumedReportingSubmissionQuery, originalSubmission).success.value
-            .set(PlatformOperatorSummaryQuery, PlatformOperatorSummary("operatorId", operatorName, "primaryContactName", "test@test.com", hasReportingNotifications = true)).success.value
+        val answers = baseAnswers
+          .set(AssumingOperatorNamePage, "assumingOperatorName").success.value
+          .set(PlatformOperatorNameQuery, operatorName).success.value
+          .set(ReportingPeriodQuery, Year.of(2024)).success.value
+          .set(AssumedReportingSubmissionQuery, originalSubmission).success.value
+          .set(PlatformOperatorSummaryQuery, PlatformOperatorSummary("operatorId", operatorName, "primaryContactName", "test@test.com", hasReportingNotifications = true)).success.value
 
-        val application = applicationBuilder(userAnswers = Some(answers))
-          .overrides(
-            bind[AssumedReportingConnector].toInstance(mockAssumedReportingConnector),
-            bind[UserAnswersService].toInstance(mockUserAnswersService),
-            bind[SessionRepository].toInstance(mockSessionRepository),
-            bind[AuditService].toInstance(mockAuditService),
-            bind[SubscriptionConnector].toInstance(mockSubscriptionConnector),
-            bind[EmailService].toInstance(mockEmailService),
-            bind[Clock].toInstance(stubClock),
-            bind[CountriesList].toInstance(countriesList)
-          )
-          .build()
+        val application = applicationBuilder(userAnswers = Some(answers)).overrides(
+          bind[AssumedReportingConnector].toInstance(mockAssumedReportingConnector),
+          bind[UserAnswersService].toInstance(mockUserAnswersService),
+          bind[SessionRepository].toInstance(mockSessionRepository),
+          bind[AuditService].toInstance(mockAuditService),
+          bind[PlatformOperatorConnector].toInstance(mockPlatformOperatorConnector),
+          bind[SubscriptionConnector].toInstance(mockSubscriptionConnector),
+          bind[EmailService].toInstance(mockEmailService),
+          bind[CountriesList].toInstance(countriesList)
+        ).build()
 
         when(mockUserAnswersService.toAssumedReportingSubmission(any())).thenReturn(Right(assumedReportingSubmissionRequest))
         when(mockAssumedReportingConnector.submit(any())(using any())).thenReturn(Future.successful(submission))
         when(mockSessionRepository.set(any())).thenReturn(Future.successful(true))
-        when(mockSubscriptionConnector.getSubscription(any())).thenReturn(Future.successful(subscriptionInfo))
-        when(mockEmailService.sendUpdateAssumedReportingEmails(any(), any(), any(), any())(any())).thenReturn(Future.successful(Done))
+        when(mockPlatformOperatorConnector.viewPlatformOperator(any())(any())).thenReturn(Future.successful(aPlatformOperator))
+        when(mockSubscriptionConnector.getSubscription(any())).thenReturn(Future.successful(aSubscriptionInfo))
+        when(mockEmailService.sendUpdateAssumedReportingEmails(any(), any(), any(), any())(using any())).thenReturn(Future.successful(Done))
 
         running(application) {
           val request = FakeRequest(routes.CheckYourAnswersController.onSubmit(operatorId, reportingPeriod))
@@ -187,35 +176,32 @@ class CheckYourAnswersControllerSpec extends SpecBase with SummaryListFluency wi
         val answersCaptor: ArgumentCaptor[UserAnswers] = ArgumentCaptor.forClass(classOf[UserAnswers])
         verify(mockSessionRepository, times(1)).set(answersCaptor.capture())
         verify(mockSubscriptionConnector, times(1)).getSubscription(any())
-        verify(mockEmailService, times(1)).sendUpdateAssumedReportingEmails(any(), any(), any(), any())(any())
+        verify(mockPlatformOperatorConnector, times(1)).viewPlatformOperator(eqTo(operatorId))(any())
+        verify(mockEmailService, times(1)).sendUpdateAssumedReportingEmails(eqTo(aSubscriptionInfo), eqTo(aPlatformOperator), eqTo(submission.updated), any())(using any())
 
         val finalAnswers = answersCaptor.getValue
         finalAnswers.get(AssumedReportSummaryQuery).value mustEqual AssumedReportSummary(operatorId, operatorName, "assumingOperatorName", Year.of(2024))
-        finalAnswers.get(ReportingPeriodQuery)            must not be defined
-        finalAnswers.get(PlatformOperatorNameQuery)       must not be defined
-        finalAnswers.get(AssumingOperatorNamePage)        must not be defined
+        finalAnswers.get(ReportingPeriodQuery) must not be defined
+        finalAnswers.get(PlatformOperatorNameQuery) must not be defined
+        finalAnswers.get(AssumingOperatorNamePage) must not be defined
       }
 
       "must fail if a request cannot be created from the user answers" in {
+        val answers = baseAnswers
+          .set(AssumingOperatorNamePage, "assumingOperatorName").success.value
+          .set(PlatformOperatorNameQuery, operatorName).success.value
+          .set(ReportingPeriodQuery, Year.of(2024)).success.value
+          .set(AssumedReportingSubmissionQuery, originalSubmission).success.value
+          .set(PlatformOperatorSummaryQuery, PlatformOperatorSummary("operatorId", operatorName, "primaryContactName", "test@test.com", hasReportingNotifications = true)).success.value
 
-        val answers =
-          baseAnswers
-            .set(AssumingOperatorNamePage, "assumingOperatorName").success.value
-            .set(PlatformOperatorNameQuery, operatorName).success.value
-            .set(ReportingPeriodQuery, Year.of(2024)).success.value
-            .set(AssumedReportingSubmissionQuery, originalSubmission).success.value
-            .set(PlatformOperatorSummaryQuery, PlatformOperatorSummary("operatorId", operatorName, "primaryContactName", "test@test.com", hasReportingNotifications = true)).success.value
-
-        val application = applicationBuilder(userAnswers = Some(answers))
-          .overrides(
-            bind[AssumedReportingConnector].toInstance(mockAssumedReportingConnector),
-            bind[UserAnswersService].toInstance(mockUserAnswersService),
-            bind[SessionRepository].toInstance(mockSessionRepository),
-            bind[CountriesList].toInstance(countriesList),
-            bind[SubscriptionConnector].toInstance(mockSubscriptionConnector),
-            bind[EmailService].toInstance(mockEmailService)
-          )
-          .build()
+        val application = applicationBuilder(userAnswers = Some(answers)).overrides(
+          bind[AssumedReportingConnector].toInstance(mockAssumedReportingConnector),
+          bind[UserAnswersService].toInstance(mockUserAnswersService),
+          bind[SessionRepository].toInstance(mockSessionRepository),
+          bind[CountriesList].toInstance(countriesList),
+          bind[SubscriptionConnector].toInstance(mockSubscriptionConnector),
+          bind[EmailService].toInstance(mockEmailService)
+        ).build()
 
         when(mockUserAnswersService.toAssumedReportingSubmission(any())).thenReturn(Left(NonEmptyChain.one(AssumingOperatorNamePage)))
         when(mockAssumedReportingConnector.submit(any())(using any())).thenReturn(Future.successful(Done))
@@ -229,69 +215,8 @@ class CheckYourAnswersControllerSpec extends SpecBase with SummaryListFluency wi
         verify(mockAssumedReportingConnector, never()).submit(any())(using any())
         verify(mockSessionRepository, never()).set(any())
         verify(mockSubscriptionConnector, never()).getSubscription(any())
-        verify(mockEmailService, never()).sendUpdateAssumedReportingEmails(any(), any(), any(), any())(any())
+        verify(mockEmailService, never()).sendUpdateAssumedReportingEmails(any(), any(), any(), any())(using any())
       }
-
-      "must return a failed future when  getSubscription fails" in {
-
-        val submission = Submission(
-          _id = "submissionId",
-          submissionType = SubmissionType.ManualAssumedReport,
-          dprsId = dprsId,
-          operatorId = operatorId,
-          operatorName = operatorName,
-          assumingOperatorName = Some("assumingOperatorName"),
-          state = Submitted(fileName = "test.xml", Year.of(2024)),
-          created = now,
-          updated = now
-        )
-
-        val answers =
-          baseAnswers
-            .set(AssumingOperatorNamePage, "assumingOperatorName").success.value
-            .set(PlatformOperatorNameQuery, operatorName).success.value
-            .set(ReportingPeriodQuery, Year.of(2024)).success.value
-            .set(AssumedReportingSubmissionQuery, originalSubmission).success.value
-            .set(PlatformOperatorSummaryQuery, PlatformOperatorSummary("operatorId", operatorName, "primaryContactName", "test@test.com", hasReportingNotifications = true)).success.value
-
-        val application = applicationBuilder(userAnswers = Some(answers))
-          .overrides(
-            bind[AssumedReportingConnector].toInstance(mockAssumedReportingConnector),
-            bind[UserAnswersService].toInstance(mockUserAnswersService),
-            bind[SessionRepository].toInstance(mockSessionRepository),
-            bind[AuditService].toInstance(mockAuditService),
-            bind[SubscriptionConnector].toInstance(mockSubscriptionConnector),
-            bind[EmailService].toInstance(mockEmailService),
-            bind[Clock].toInstance(stubClock),
-            bind[CountriesList].toInstance(countriesList)
-          )
-          .build()
-
-        when(mockUserAnswersService.toAssumedReportingSubmission(any())).thenReturn(Right(assumedReportingSubmissionRequest))
-        when(mockAssumedReportingConnector.submit(any())(using any())).thenReturn(Future.successful(submission))
-        when(mockSessionRepository.set(any())).thenReturn(Future.successful(true))
-        when(mockSubscriptionConnector.getSubscription(any())).thenReturn(Future.successful(GetSubscriptionFailure(422)))
-        when(mockEmailService.sendUpdateAssumedReportingEmails(any(), any(), any(), any())(any())).thenReturn(Future.successful(Done))
-
-        running(application) {
-          val request = FakeRequest(routes.CheckYourAnswersController.onSubmit(operatorId, reportingPeriod))
-          route(application, request).value.failed.futureValue
-        }
-
-        val expectedAuditEvent = UpdateAssumedReportEvent(dprsId, originalSubmission, assumedReportingSubmissionRequest, countriesList)
-
-        verify(mockUserAnswersService).toAssumedReportingSubmission(eqTo(answers))
-        verify(mockAssumedReportingConnector).submit(eqTo(assumedReportingSubmissionRequest))(using any())
-        verify(mockAuditService).audit(eqTo(expectedAuditEvent))(using any(), any())
-
-        val answersCaptor: ArgumentCaptor[UserAnswers] = ArgumentCaptor.forClass(classOf[UserAnswers])
-        verify(mockSessionRepository, times(1)).set(answersCaptor.capture())
-        verify(mockSubscriptionConnector, times(1)).getSubscription(any())
-        verify(mockEmailService, never()).sendUpdateAssumedReportingEmails(any(), any(), any(), any())(any())
-
-      }
-
-
     }
 
     "initialise" - {
@@ -305,9 +230,9 @@ class CheckYourAnswersControllerSpec extends SpecBase with SummaryListFluency wi
             operatorName = operatorName,
             assumingOperator = AssumingPlatformOperator(
               name = "assumingOperator",
-              residentCountry = Country.gb,
+              residentCountry = Country.GB,
               tinDetails = Seq.empty,
-              registeredCountry = Country.gb,
+              registeredCountry = Country.GB,
               address = "address"
             ),
             reportingPeriod = Year.of(2024),

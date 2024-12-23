@@ -118,7 +118,7 @@ class UserAnswersService @Inject() (implicit countriesList: CountriesList) {
   private def getResidentialCountry(answers: UserAnswers): EitherNec[Query, Country] =
     answers.getEither(TaxResidentInUkPage).flatMap {
       case true =>
-        Country.gb.rightNec
+        Country.GB.rightNec
       case false =>
         answers.getEither(TaxResidencyCountryPage)
     }
@@ -142,7 +142,7 @@ class UserAnswersService @Inject() (implicit countriesList: CountriesList) {
       Seq(TinDetails(
         tin = value,
         tinType = TinType.Other,
-        issuedBy = Country.gb.code
+        issuedBy = Country.GB.code
       ))
     }
 

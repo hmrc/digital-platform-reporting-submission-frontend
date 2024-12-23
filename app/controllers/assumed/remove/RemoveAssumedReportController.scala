@@ -16,17 +16,22 @@
 
 package controllers.assumed.remove
 
-import connectors.AssumedReportingConnector
 import connectors.AssumedReportingConnector.DeleteAssumedReportFailure
-import controllers.AnswerExtractor
+import connectors.{AssumedReportingConnector, PlatformOperatorConnector, SubscriptionConnector}
 import controllers.actions.*
-import controllers.assumed.routes as assumedRoutes
+import controllers.assumed.remove.routes.AssumedReportRemovedController
+import controllers.assumed.routes.ViewAssumedReportsController
+import controllers.routes.JourneyRecoveryController
+import controllers.{AnswerExtractor, routes as baseRoutes}
 import forms.RemoveAssumedReportFormProvider
 import models.audit.DeleteAssumedReportEvent
+import models.submission.{AssumedReportingSubmission, AssumedReportingSubmissionSummary}
+import org.apache.pekko.Done
+import play.api.Logging
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import queries.AssumedReportSummariesQuery
-import services.AuditService
+import services.{AuditService, EmailService}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import viewmodels.checkAnswers.assumed.remove.AssumedReportSummaryList
 import views.html.assumed.remove.RemoveAssumedReportView
@@ -43,74 +48,78 @@ class RemoveAssumedReportController @Inject()(override val messagesApi: Messages
                                               checkAssumedReportingAllowed: CheckAssumedReportingAllowedAction,
                                               formProvider: RemoveAssumedReportFormProvider,
                                               view: RemoveAssumedReportView,
-                                              connector: AssumedReportingConnector,
-                                              clock: Clock,
-                                              auditService: AuditService)(implicit ec: ExecutionContext)
-  extends FrontendBaseController with I18nSupport with AnswerExtractor {
+                                              assumedReportingConnector: AssumedReportingConnector,
+                                              platformOperatorConnector: PlatformOperatorConnector,
+                                              subscriptionConnector: SubscriptionConnector,
+                                              auditService: AuditService,
+                                              emailService: EmailService,
+                                              clock: Clock)
+                                             (using ExecutionContext)
+  extends FrontendBaseController with I18nSupport with AnswerExtractor with Logging {
 
-  private val form = formProvider()
+  def onPageLoad(operatorId: String, reportingPeriod: Year): Action[AnyContent] = (identify andThen checkAssumedReportingAllowed andThen getData(operatorId) andThen requireData) { implicit request =>
+    getAnswer(AssumedReportSummariesQuery) { summaries =>
+      summaries.find(_.reportingPeriod == reportingPeriod).map { summary =>
+        val summaryList = AssumedReportSummaryList.list(summary)
+        Ok(view(formProvider(), summaryList, operatorId, summary.operatorName, reportingPeriod))
+      }.getOrElse(NotFound)
+    }
+  }
 
-  def onPageLoad(operatorId: String, reportingPeriod: Year): Action[AnyContent] =
-    (identify andThen checkAssumedReportingAllowed andThen getData(operatorId) andThen requireData) {
-      implicit request =>
-        getAnswer(AssumedReportSummariesQuery) { summaries =>
-          summaries.find(_.reportingPeriod == reportingPeriod).map { summary =>
+  def onSubmit(operatorId: String, reportingPeriod: Year): Action[AnyContent] = (identify andThen checkAssumedReportingAllowed andThen getData(operatorId) andThen requireData).async { implicit request =>
+    getAnswerAsync(AssumedReportSummariesQuery) { summaries =>
+      summaries.find(_.reportingPeriod == reportingPeriod).map { summary =>
+        formProvider().bindFromRequest().fold(
+          formWithErrors => {
             val summaryList = AssumedReportSummaryList.list(summary)
+            Future.successful(BadRequest(view(formWithErrors, summaryList, operatorId, summary.operatorName, reportingPeriod)))
+          },
+          answer =>
+            if (answer) {
+              assumedReportingConnector.get(operatorId, reportingPeriod).flatMap {
+                case Some(assumedReportingSubmission) => assumedReportingConnector.delete(operatorId, reportingPeriod).map { _ =>
+                  val deletionInstant = Instant.now(clock)
+                  val auditEvent = DeleteAssumedReportEvent(
+                    dprsId = request.dprsId,
+                    operatorId = operatorId,
+                    operatorName = summary.operatorName,
+                    conversationId = summary.submissionId,
+                    statusCode = 200,
+                    processedAt = deletionInstant
+                  )
 
-            Ok(view(form, summaryList, operatorId, summary.operatorName, reportingPeriod))
-          }.getOrElse(NotFound)
-        }
-    }
+                  auditService.audit(auditEvent)
 
-  def onSubmit(operatorId: String, reportingPeriod: Year): Action[AnyContent] =
-    (identify andThen checkAssumedReportingAllowed andThen getData(operatorId) andThen requireData).async {
-      implicit request =>
-        getAnswerAsync(AssumedReportSummariesQuery) { summaries =>
-          summaries.find(_.reportingPeriod == reportingPeriod).map { summary =>
+                  (for {
+                    platformOperator <- platformOperatorConnector.viewPlatformOperator(operatorId)
+                    subscriptionInfo <- subscriptionConnector.getSubscription
+                    _ <- emailService.sendDeleteAssumedReportingEmails(subscriptionInfo, platformOperator, assumedReportingSubmission, deletionInstant)
+                  } yield Done).recover {
+                    case error => logger.warn("Update assumed reporting emails not sent", error)
+                  }
 
-            form.bindFromRequest().fold(
-              formWithErrors => {
-                val summaryList = AssumedReportSummaryList.list(summary)
-                Future.successful(BadRequest(view(formWithErrors, summaryList, operatorId, summary.operatorName, reportingPeriod)))
-              },
-              answer =>
-                if (answer) {
-                  connector.delete(operatorId, reportingPeriod)
-                    .map { _ =>
-                      val auditEvent = DeleteAssumedReportEvent(
-                        dprsId = request.dprsId,
-                        operatorId = operatorId,
-                        operatorName = summary.operatorName,
-                        conversationId = summary.submissionId,
-                        statusCode = 200,
-                        processedAt = Instant.now(clock)
-                      )
+                  Redirect(AssumedReportRemovedController.onPageLoad(operatorId, reportingPeriod))
+                }.recover {
+                  case ex: DeleteAssumedReportFailure =>
+                    auditService.audit(DeleteAssumedReportEvent(
+                      dprsId = request.dprsId,
+                      operatorId = operatorId,
+                      operatorName = summary.operatorName,
+                      conversationId = summary.submissionId,
+                      statusCode = ex.status,
+                      processedAt = Instant.now(clock)
+                    ))
 
-                      auditService.audit(auditEvent)
-
-                      // TODO add call to deleteSubmissionEmails
-
-                      Redirect(routes.AssumedReportRemovedController.onPageLoad(operatorId, reportingPeriod))
-                    }.recover {
-                      case ex: DeleteAssumedReportFailure =>
-                        val auditEvent = DeleteAssumedReportEvent(
-                          dprsId = request.dprsId,
-                          operatorId = operatorId,
-                          operatorName = summary.operatorName,
-                          conversationId = summary.submissionId,
-                          statusCode = ex.status,
-                          processedAt = Instant.now(clock)
-                        )
-
-                        auditService.audit(auditEvent)
-
-                        throw ex
-                    }
-                } else {
-                  Future.successful(Redirect(assumedRoutes.ViewAssumedReportsController.onPageLoad()))
+                    throw ex
                 }
-            )
-          }.getOrElse(Future.successful(NotFound))
-        }
+
+                case None => Future.successful(Redirect(JourneyRecoveryController.onPageLoad()))
+              }
+            } else {
+              Future.successful(Redirect(ViewAssumedReportsController.onPageLoad()))
+            }
+        )
+      }.getOrElse(Future.successful(NotFound))
     }
+  }
 }

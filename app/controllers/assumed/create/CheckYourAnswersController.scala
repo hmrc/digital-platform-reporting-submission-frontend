@@ -16,49 +16,47 @@
 
 package controllers.assumed.create
 
-import cats.data.OptionT
 import com.google.inject.Inject
-import connectors.{AssumedReportingConnector, SubscriptionConnector}
 import connectors.AssumedReportingConnector.SubmitAssumedReportingFailure
+import connectors.{AssumedReportingConnector, SubscriptionConnector}
 import controllers.AnswerExtractor
-import controllers.actions._
-import models.{CountriesList, UserAnswers}
+import controllers.actions.*
 import models.audit.AddAssumedReportEvent
 import models.requests.DataRequest
 import models.submission.{AssumedReportSummary, AssumedReportingSubmissionRequest, Submission}
+import models.{CountriesList, UserAnswers}
 import play.api.Logging
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import queries.{AssumedReportSummaryQuery, PlatformOperatorSummaryQuery}
 import repositories.SessionRepository
-import services.{AuditService, EmailService, UserAnswersService}
 import services.UserAnswersService.BuildAssumedReportingSubmissionFailure
+import services.{AuditService, EmailService, UserAnswersService}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
-import viewmodels.checkAnswers.assumed.create._
-import viewmodels.govuk.summarylist._
 import viewmodels.PlatformOperatorSummary
+import viewmodels.checkAnswers.assumed.create.*
+import viewmodels.govuk.summarylist.*
 import views.html.assumed.create.CheckYourAnswersView
 
 import java.time.{Clock, Instant}
 import scala.concurrent.{ExecutionContext, Future}
 
-class CheckYourAnswersController @Inject()(
-                                            override val messagesApi: MessagesApi,
-                                            identify: IdentifierAction,
-                                            getData: DataRetrievalActionProvider,
-                                            requireData: DataRequiredAction,
-                                            checkAssumedReportingAllowed: CheckAssumedReportingAllowedAction,
-                                            val controllerComponents: MessagesControllerComponents,
-                                            view: CheckYourAnswersView,
-                                            userAnswersService: UserAnswersService,
-                                            connector: AssumedReportingConnector,
-                                            subscriptionConnector: SubscriptionConnector,
-                                            sessionRepository: SessionRepository,
-                                            auditService: AuditService,
-                                            emailService: EmailService,
-                                            clock: Clock,
-                                            countriesList: CountriesList
-                                          )(using ExecutionContext)
+class CheckYourAnswersController @Inject()(override val messagesApi: MessagesApi,
+                                           identify: IdentifierAction,
+                                           getData: DataRetrievalActionProvider,
+                                           requireData: DataRequiredAction,
+                                           checkAssumedReportingAllowed: CheckAssumedReportingAllowedAction,
+                                           val controllerComponents: MessagesControllerComponents,
+                                           view: CheckYourAnswersView,
+                                           userAnswersService: UserAnswersService,
+                                           connector: AssumedReportingConnector,
+                                           subscriptionConnector: SubscriptionConnector,
+                                           sessionRepository: SessionRepository,
+                                           auditService: AuditService,
+                                           emailService: EmailService,
+                                           clock: Clock,
+                                           countriesList: CountriesList)
+                                          (using ExecutionContext)
   extends FrontendBaseController with I18nSupport with AnswerExtractor with Logging {
 
   def onPageLoad(operatorId: String): Action[AnyContent] = (identify andThen checkAssumedReportingAllowed andThen getData(operatorId) andThen requireData) {
@@ -85,20 +83,20 @@ class CheckYourAnswersController @Inject()(
   def onSubmit(operatorId: String): Action[AnyContent] = (identify andThen checkAssumedReportingAllowed andThen getData(operatorId) andThen requireData).async {
     implicit request =>
       getAnswerAsync(PlatformOperatorSummaryQuery) { platformOperator =>
-        
+
         userAnswersService.toAssumedReportingSubmission(request.userAnswers)
           .map(Future.successful)
           .left.map(errors => Future.failed(BuildAssumedReportingSubmissionFailure(errors)))
           .merge
           .flatMap { submissionRequest =>
             (for {
-              submission   <- submit(submissionRequest, platformOperator)
-              summary      <- AssumedReportSummary(request.userAnswers).map(Future.successful).getOrElse(Future.failed(Exception("unable to build an assumed report summary")))
+              submission <- submit(submissionRequest, platformOperator)
+              summary <- AssumedReportSummary(request.userAnswers).map(Future.successful).getOrElse(Future.failed(Exception("unable to build an assumed report summary")))
               emptyAnswers = UserAnswers(request.userId, operatorId, Some(summary.reportingPeriod))
-              answers      <- Future.fromTry(emptyAnswers.set(AssumedReportSummaryQuery, summary))
-              _            <- sessionRepository.set(answers)
+              answers <- Future.fromTry(emptyAnswers.set(AssumedReportSummaryQuery, summary))
+              _ <- sessionRepository.set(answers)
               subscription <- subscriptionConnector.getSubscription
-              _            <- emailService.sendAddAssumedReportingEmails(subscription, platformOperator, submission.created, summary)
+              _ <- emailService.sendAddAssumedReportingEmails(subscription, platformOperator, submission.created, summary)
             } yield Redirect(routes.SubmissionConfirmationController.onPageLoad(operatorId, summary.reportingPeriod))).recover {
               case error: SubmitAssumedReportingFailure => logger.warn("Failed to submit assumed reporting", error)
                 throw error
@@ -108,7 +106,7 @@ class CheckYourAnswersController @Inject()(
           }
       }
   }
-  
+
   private def submit(submissionRequest: AssumedReportingSubmissionRequest,
                      platformOperator: PlatformOperatorSummary)
                     (using request: DataRequest[AnyContent]): Future[Submission] =
@@ -122,19 +120,19 @@ class CheckYourAnswersController @Inject()(
           audit(request.dprsId, platformOperator.operatorName, ex.status, submissionRequest, None)
           Future.failed(ex)
       }
-  
+
   private def audit(dprsId: String, operatorName: String, statusCode: Int, submission: AssumedReportingSubmissionRequest, conversationId: Option[String])
                    (using request: DataRequest[AnyContent]): Unit = {
     val auditEvent = AddAssumedReportEvent(
-      dprsId         = dprsId,
-      operatorName   = operatorName,
-      submission     = submission,
-      statusCode     = statusCode,
-      processedAt    = Instant.now(clock),
+      dprsId = dprsId,
+      operatorName = operatorName,
+      submission = submission,
+      statusCode = statusCode,
+      processedAt = Instant.now(clock),
       conversationId = conversationId,
-      countriesList  = countriesList
+      countriesList = countriesList
     )
-    
+
     auditService.audit(auditEvent)
   }
 }

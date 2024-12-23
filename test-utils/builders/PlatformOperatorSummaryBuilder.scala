@@ -16,13 +16,15 @@
 
 package builders
 
-import models.subscription.{Organisation, OrganisationContact}
+import viewmodels.PlatformOperatorSummary
 
-object OrganisationContactBuilder {
+object PlatformOperatorSummaryBuilder {
 
-  val anOrganisationContact: OrganisationContact = OrganisationContact(
-    organisation = Organisation("default-name"),
-    email = "default.organisation.email@example.com",
-    phone = None,
+  val aPlatformOperatorSummary: PlatformOperatorSummary = PlatformOperatorSummary(
+    operatorId = "default-operator-id",
+    operatorName = "default-operator-name",
+    operatorPrimaryContactName = "default-operator-primary-contact-name",
+    operatorPrimaryContactEmail = "default.primary.contact.email@example.com",
+    hasReportingNotifications = false,
   )
 }

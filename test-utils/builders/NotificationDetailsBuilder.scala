@@ -16,13 +16,18 @@
 
 package builders
 
-import models.subscription.{Organisation, OrganisationContact}
+import models.operator.NotificationType.Epo
+import models.operator.responses.NotificationDetails
 
-object OrganisationContactBuilder {
+import java.time.Instant
 
-  val anOrganisationContact: OrganisationContact = OrganisationContact(
-    organisation = Organisation("default-name"),
-    email = "default.organisation.email@example.com",
-    phone = None,
+object NotificationDetailsBuilder {
+
+  val aNotificationDetails: NotificationDetails = NotificationDetails(
+    notificationType = Epo,
+    isActiveSeller = None,
+    isDueDiligence = None,
+    firstPeriod = 2024,
+    receivedDateTime = Instant.now()
   )
 }

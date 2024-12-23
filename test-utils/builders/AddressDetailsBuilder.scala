@@ -16,13 +16,16 @@
 
 package builders
 
-import models.subscription.{Organisation, OrganisationContact}
+import models.operator.AddressDetails
 
-object OrganisationContactBuilder {
+object AddressDetailsBuilder {
 
-  val anOrganisationContact: OrganisationContact = OrganisationContact(
-    organisation = Organisation("default-name"),
-    email = "default.organisation.email@example.com",
-    phone = None,
+  val anAddressDetails: AddressDetails = AddressDetails(
+    line1 = "address-line-1",
+    line2 = None,
+    line3 = None,
+    line4 = None,
+    postCode = None,
+    countryCode = None
   )
 }

@@ -16,13 +16,17 @@
 
 package builders
 
-import models.subscription.{Organisation, OrganisationContact}
+import builders.TinDetailsBuilder.aTinDetails
+import models.Country
+import models.submission.AssumingPlatformOperator
 
-object OrganisationContactBuilder {
+object AssumingPlatformOperatorBuilder {
 
-  val anOrganisationContact: OrganisationContact = OrganisationContact(
-    organisation = Organisation("default-name"),
-    email = "default.organisation.email@example.com",
-    phone = None,
+  val anAssumingPlatformOperator: AssumingPlatformOperator = AssumingPlatformOperator(
+    name = "default-assuming-platform-operator-name",
+    residentCountry = Country.GB,
+    tinDetails = Seq(aTinDetails),
+    registeredCountry = Country.GB,
+    address = "default-address",
   )
 }

@@ -16,13 +16,12 @@
 
 package builders
 
-import models.subscription.{Organisation, OrganisationContact}
+import models.subscription.Individual
 
-object OrganisationContactBuilder {
+object IndividualBuilder {
 
-  val anOrganisationContact: OrganisationContact = OrganisationContact(
-    organisation = Organisation("default-name"),
-    email = "default.organisation.email@example.com",
-    phone = None,
+  val anIndividual: Individual = Individual(
+    firstName = "default-first-name",
+    lastName = "default-last-name"
   )
 }

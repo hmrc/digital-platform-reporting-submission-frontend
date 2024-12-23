@@ -17,18 +17,20 @@
 package services
 
 import base.SpecBase
+import builders.AssumedReportSummaryBuilder.anAssumedReportSummary
+import builders.AssumedReportingSubmissionBuilder.anAssumedReportingSubmission
+import builders.PlatformOperatorBuilder.aPlatformOperator
+import builders.PlatformOperatorSummaryBuilder.aPlatformOperatorSummary
+import builders.SubscriptionInfoBuilder.aSubscriptionInfo
 import connectors.EmailConnector
-import models.email.requests.{AddAssumedReportingPlatformOperator, AddAssumedReportingUser, UpdateAssumedReportingPlatformOperator, UpdateAssumedReportingUser}
-import models.submission.AssumedReportSummary
-import models.subscription._
+import models.email.requests.*
 import org.apache.pekko.Done
-import org.mockito.ArgumentMatchers.{any, eq => eqTo}
+import org.mockito.ArgumentMatchers.{any, eq as eqTo}
 import org.mockito.Mockito
 import org.mockito.Mockito.{never, times, verify, when}
 import org.scalatest.BeforeAndAfterEach
 import org.scalatestplus.mockito.MockitoSugar.mock
 import uk.gov.hmrc.http.HeaderCarrier
-import viewmodels.PlatformOperatorSummary
 
 import java.time.{Instant, Year}
 import scala.concurrent.Future
@@ -36,6 +38,9 @@ import scala.concurrent.Future
 class EmailServiceSpec extends SpecBase with BeforeAndAfterEach {
 
   private implicit val headerCarrier: HeaderCarrier = HeaderCarrier()
+
+  private val dateTime: Instant = Instant.parse("2100-12-31T00:00:00Z")
+  private val completedDateTime = "12:00am GMT on 31 December 2100"
 
   private val mockEmailConnector = mock[EmailConnector]
 
@@ -47,90 +52,122 @@ class EmailServiceSpec extends SpecBase with BeforeAndAfterEach {
   private val underTest = new EmailService(mockEmailConnector)
 
   ".sendAddAssumedReportingEmails(...)" - {
-
-    val dateTime: Instant = Instant.parse("2100-12-31T00:00:00Z")
-    val checksCompletedDateTime = "12:00am GMT on 31 December 2100"
-
-    val expectedIndividual = IndividualContact(Individual("first", "last"), "user.email", None)
-    val subscriptionInfo = SubscriptionInfo("DPRS123", true, None, expectedIndividual, None)
-
-    val expectedAddAssumedReportingUser = AddAssumedReportingUser("user.email", "first last", checksCompletedDateTime, "assumingOperator", operatorName, "2024")
-    val expectedAddAssumedReportingPlatformOperator = AddAssumedReportingPlatformOperator("po.email", "primaryContactName", checksCompletedDateTime, "assumingOperator", operatorName, "2024")
-
-    val reportingPeriod = Year.of(2024)
-
-    val assumedReportingSummary = AssumedReportSummary(operatorId, operatorName, "assumingOperator", reportingPeriod)
-    val platformOperatorSummary = PlatformOperatorSummary(operatorId, operatorName, "primaryContactName", "po.email", hasReportingNotifications = false)
-
+    val expectedAddAssumedReportingPlatformOperator = AddAssumedReportingPlatformOperator(
+      email = aPlatformOperatorSummary.operatorPrimaryContactEmail,
+      platformOperatorContactName = aPlatformOperatorSummary.operatorPrimaryContactName,
+      checksCompletedDateTime = completedDateTime,
+      assumingPlatformOperator = anAssumedReportSummary.assumingOperatorName,
+      businessName = anAssumedReportSummary.operatorName,
+      reportingPeriod = anAssumedReportSummary.reportingPeriod.toString
+    )
+    val expectedAddAssumedReportingUser = AddAssumedReportingUser(
+      email = aSubscriptionInfo.primaryContact.email,
+      name = aSubscriptionInfo.primaryContactName,
+      checksCompletedDateTime = completedDateTime,
+      assumingPlatformOperator = anAssumedReportSummary.assumingOperatorName,
+      businessName = anAssumedReportSummary.operatorName,
+      reportingPeriod = anAssumedReportSummary.reportingPeriod.toString
+    )
 
     "non-matching emails must send both AddAssumedReportingUser AddAssumedReportingPlatformOperator" in {
       when(mockEmailConnector.send(any())(any())).thenReturn(Future.successful(Done))
 
-      underTest.sendAddAssumedReportingEmails(subscriptionInfo, platformOperatorSummary, dateTime, assumedReportingSummary).futureValue
+      underTest.sendAddAssumedReportingEmails(aSubscriptionInfo, aPlatformOperatorSummary, dateTime, anAssumedReportSummary).futureValue
 
-      verify(mockEmailConnector, times(1)).send(eqTo(expectedAddAssumedReportingUser))(any())
       verify(mockEmailConnector, times(1)).send(eqTo(expectedAddAssumedReportingPlatformOperator))(any())
+      verify(mockEmailConnector, times(1)).send(eqTo(expectedAddAssumedReportingUser))(any())
     }
 
     "matching emails must send only AddAssumedReportingUser" in {
-
-      val expectedIndividualSameEmail = expectedIndividual.copy(email = "po.email")
-      val subscriptionInfoSameEmil = subscriptionInfo.copy(primaryContact = expectedIndividualSameEmail)
-
-      val expectedAddAssumedReportingUserSameEmail = expectedAddAssumedReportingUser.copy(to = List("po.email"))
-      val expectedAddAssumedReportingPlatformOperatorSameEmail = expectedAddAssumedReportingPlatformOperator.copy(to = List("po.email"))
+      val expectedAddAssumedReportingPlatformOperatorSameEmail = expectedAddAssumedReportingPlatformOperator.copy(to = List(aSubscriptionInfo.primaryContact.email))
+      val expectedAddAssumedReportingUserSameEmail = expectedAddAssumedReportingUser.copy(to = List(aSubscriptionInfo.primaryContact.email))
 
       when(mockEmailConnector.send(any())(any())).thenReturn(Future.successful(Done))
 
-      underTest.sendAddAssumedReportingEmails(subscriptionInfoSameEmil, platformOperatorSummary, dateTime, assumedReportingSummary).futureValue
+      underTest.sendAddAssumedReportingEmails(aSubscriptionInfo, aPlatformOperatorSummary, dateTime, anAssumedReportSummary).futureValue
 
-      verify(mockEmailConnector, times(1)).send(eqTo(expectedAddAssumedReportingUserSameEmail))(any())
       verify(mockEmailConnector, never()).send(eqTo(expectedAddAssumedReportingPlatformOperatorSameEmail))(any())
+      verify(mockEmailConnector, times(1)).send(eqTo(expectedAddAssumedReportingUserSameEmail))(any())
     }
   }
 
-
   ".sendUpdateAssumedReportingEmails(...)" - {
-
-    val dateTime: Instant = Instant.parse("2100-12-31T00:00:00Z")
-    val checksCompletedDateTime = "12:00am GMT on 31 December 2100"
-
-    val expectedIndividual = IndividualContact(Individual("first", "last"), "user.email", None)
-    val subscriptionInfo = SubscriptionInfo("DPRS123", true, None, expectedIndividual, None)
-
-    val expectedUpdateAssumedReportingUser = UpdateAssumedReportingUser("user.email", "first last", checksCompletedDateTime, "assumingOperator", operatorName, "2024")
-    val expectedUpdateAssumedReportingPlatformOperator = UpdateAssumedReportingPlatformOperator("po.email", "primaryContactName", checksCompletedDateTime, "assumingOperator", operatorName, "2024")
-
-    val reportingPeriod = Year.of(2024)
-
-    val assumedReportingSummary = AssumedReportSummary(operatorId, operatorName, "assumingOperator", reportingPeriod)
-    val platformOperatorSummary = PlatformOperatorSummary(operatorId, operatorName, "primaryContactName", "po.email", hasReportingNotifications = false)
-
+    val expectedUpdateAssumedReportingPlatformOperator = UpdateAssumedReportingPlatformOperator(
+      email = aPlatformOperator.primaryContactDetails.emailAddress,
+      platformOperatorContactName = aPlatformOperator.primaryContactDetails.contactName,
+      checksCompletedDateTime = completedDateTime,
+      assumingPlatformOperator = anAssumedReportSummary.assumingOperatorName,
+      businessName = anAssumedReportSummary.operatorName,
+      reportingPeriod = anAssumedReportSummary.reportingPeriod.toString
+    )
+    val expectedUpdateAssumedReportingUser = UpdateAssumedReportingUser(
+      email = aSubscriptionInfo.primaryContact.email,
+      name = aSubscriptionInfo.primaryContactName,
+      checksCompletedDateTime = completedDateTime,
+      assumingPlatformOperator = anAssumedReportSummary.assumingOperatorName,
+      businessName = anAssumedReportSummary.operatorName,
+      reportingPeriod = Year.now.toString
+    )
 
     "non-matching emails must send both UpdateAssumedReportingUser UpdateAssumedReportingPlatformOperator" in {
       when(mockEmailConnector.send(any())(any())).thenReturn(Future.successful(Done))
 
-      underTest.sendUpdateAssumedReportingEmails(subscriptionInfo, platformOperatorSummary, dateTime, assumedReportingSummary).futureValue
+      underTest.sendUpdateAssumedReportingEmails(aSubscriptionInfo, aPlatformOperator, dateTime, anAssumedReportSummary).futureValue
 
-      verify(mockEmailConnector, times(1)).send(eqTo(expectedUpdateAssumedReportingUser))(any())
       verify(mockEmailConnector, times(1)).send(eqTo(expectedUpdateAssumedReportingPlatformOperator))(any())
+      verify(mockEmailConnector, times(1)).send(eqTo(expectedUpdateAssumedReportingUser))(any())
     }
 
     "matching emails must send only UpdateAssumedReportingUser" in {
-
-      val expectedIndividualSameEmail = expectedIndividual.copy(email = "po.email")
-      val subscriptionInfoSameEmil = subscriptionInfo.copy(primaryContact = expectedIndividualSameEmail)
-
-      val expectedUpdateAssumedReportingUserSameEmail = expectedUpdateAssumedReportingUser.copy(to = List("po.email"))
-      val expectedUpdateAssumedReportingPlatformOperatorSameEmail = expectedUpdateAssumedReportingPlatformOperator.copy(to = List("po.email"))
+      val expectedUpdateAssumedReportingUserSameEmail = expectedUpdateAssumedReportingUser.copy(to = List(aSubscriptionInfo.primaryContact.email))
+      val expectedUpdateAssumedReportingPlatformOperatorSameEmail = expectedUpdateAssumedReportingPlatformOperator.copy(to = List(aSubscriptionInfo.primaryContact.email))
 
       when(mockEmailConnector.send(any())(any())).thenReturn(Future.successful(Done))
 
-      underTest.sendUpdateAssumedReportingEmails(subscriptionInfoSameEmil, platformOperatorSummary, dateTime, assumedReportingSummary).futureValue
+      underTest.sendUpdateAssumedReportingEmails(aSubscriptionInfo, aPlatformOperator, dateTime, anAssumedReportSummary).futureValue
 
       verify(mockEmailConnector, times(1)).send(eqTo(expectedUpdateAssumedReportingUserSameEmail))(any())
       verify(mockEmailConnector, never()).send(eqTo(expectedUpdateAssumedReportingPlatformOperatorSameEmail))(any())
     }
   }
 
+  ".sendDeleteAssumedReportingEmails(...)" - {
+    val expectedDeleteAssumedReportingPlatformOperator = DeleteAssumedReportingPlatformOperator(
+      email = aPlatformOperator.primaryContactDetails.emailAddress,
+      platformOperatorContactName = aPlatformOperator.primaryContactDetails.contactName,
+      checksCompletedDateTime = completedDateTime,
+      assumingPlatformOperator = anAssumedReportingSubmission.assumingOperator.name,
+      businessName = anAssumedReportingSubmission.operatorName,
+      reportingPeriod = anAssumedReportingSubmission.reportingPeriod.toString
+    )
+    val expectedDeleteAssumedReportingUser = DeleteAssumedReportingUser(
+      email = aSubscriptionInfo.primaryContact.email,
+      name = aSubscriptionInfo.primaryContactName,
+      checksCompletedDateTime = completedDateTime,
+      assumingPlatformOperator = anAssumedReportingSubmission.assumingOperator.name,
+      businessName = anAssumedReportingSubmission.operatorName,
+      reportingPeriod = anAssumedReportingSubmission.reportingPeriod.toString
+    )
+
+    "non-matching emails must send both DeleteAssumedReportingUser DeleteAssumedReportingPlatformOperator" in {
+      when(mockEmailConnector.send(any())(any())).thenReturn(Future.successful(Done))
+
+      underTest.sendDeleteAssumedReportingEmails(aSubscriptionInfo, aPlatformOperator, anAssumedReportingSubmission, dateTime).futureValue
+
+      verify(mockEmailConnector, times(1)).send(eqTo(expectedDeleteAssumedReportingPlatformOperator))(any())
+      verify(mockEmailConnector, times(1)).send(eqTo(expectedDeleteAssumedReportingUser))(any())
+    }
+
+    "matching emails must send only DeleteAssumedReportingUser" in {
+      val expectedDeleteAssumedReportingPlatformOperatorSameEmail = expectedDeleteAssumedReportingPlatformOperator.copy(to = List(aSubscriptionInfo.primaryContact.email))
+      val expectedDeleteAssumedReportingUserSameEmail = expectedDeleteAssumedReportingUser.copy(to = List(aSubscriptionInfo.primaryContact.email))
+
+      when(mockEmailConnector.send(any())(any())).thenReturn(Future.successful(Done))
+
+      underTest.sendDeleteAssumedReportingEmails(aSubscriptionInfo, aPlatformOperator, anAssumedReportingSubmission, dateTime).futureValue
+
+      verify(mockEmailConnector, never()).send(eqTo(expectedDeleteAssumedReportingPlatformOperatorSameEmail))(any())
+      verify(mockEmailConnector, times(1)).send(eqTo(expectedDeleteAssumedReportingUserSameEmail))(any())
+    }
+  }
 }

@@ -16,13 +16,14 @@
 
 package builders
 
-import models.subscription.{Organisation, OrganisationContact}
+import models.operator.TinDetails
+import models.operator.TinType.Other
 
-object OrganisationContactBuilder {
+object TinDetailsBuilder {
 
-  val anOrganisationContact: OrganisationContact = OrganisationContact(
-    organisation = Organisation("default-name"),
-    email = "default.organisation.email@example.com",
-    phone = None,
+  val aTinDetails: TinDetails = TinDetails(
+    tin = "default-tin",
+    tinType = Other,
+    issuedBy = "GB"
   )
 }

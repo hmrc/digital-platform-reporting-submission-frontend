@@ -52,9 +52,18 @@ object DateTimeFormats {
       .toFormatter()
   }
 
-  val EmailDateTimeFormatter: DateTimeFormatter = DateTimeFormatter
-    .ofPattern("h:mma z 'on' d MMMM yyyy")
-    .withZone(ZoneId.of("GMT"))
+  val EmailDateTimeFormatter: DateTimeFormatter = {
+    val lookup = new java.util.HashMap[java.lang.Long, String]()
+    lookup.put(0L, "am")
+    lookup.put(1L, "pm")
+
+    DateTimeFormatterBuilder()
+      .appendPattern("h:mm")
+      .appendText(ChronoField.AMPM_OF_DAY, lookup)
+      .appendPattern(" z 'on' d MMMM yyyy")
+      .toFormatter()
+      .withZone(ZoneId.of("GMT"))
+  }
 
   def formatInstant(instant: Instant, formatter: DateTimeFormatter): String =
     formatter.format(instant.atZone(ZoneOffset.UTC).withZoneSameInstant(ZoneId.of("Europe/London")))

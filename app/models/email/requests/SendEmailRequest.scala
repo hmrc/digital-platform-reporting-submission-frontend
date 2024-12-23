@@ -31,11 +31,11 @@ object SendEmailRequest {
 }
 
 final case class AddAssumedReportingUser(to: List[String],
-                                              templateId: String,
-                                              parameters: Map[String, String]) extends SendEmailRequest
+                                         templateId: String,
+                                         parameters: Map[String, String]) extends SendEmailRequest
 
 object AddAssumedReportingUser {
-  val AddAssumedReportingUserTemplateId: String = "dprs_add_assumed_reporting_user"
+  private val AddAssumedReportingUserTemplateId: String = "dprs_add_assumed_reporting_user"
   implicit val format: OFormat[AddAssumedReportingUser] = Json.format[AddAssumedReportingUser]
 
   def apply(email: String,
@@ -56,11 +56,11 @@ object AddAssumedReportingUser {
 }
 
 final case class AddAssumedReportingPlatformOperator(to: List[String],
-                                                templateId: String,
-                                                parameters: Map[String, String]) extends SendEmailRequest
+                                                     templateId: String,
+                                                     parameters: Map[String, String]) extends SendEmailRequest
 
 object AddAssumedReportingPlatformOperator {
-  val AddAssumedReportingPlatformOperatorTemplateId: String = "dprs_add_assumed_reporting_platform_operator"
+  private val AddAssumedReportingPlatformOperatorTemplateId: String = "dprs_add_assumed_reporting_platform_operator"
   implicit val format: OFormat[AddAssumedReportingPlatformOperator] = Json.format[AddAssumedReportingPlatformOperator]
 
   def apply(email: String,
@@ -76,17 +76,17 @@ object AddAssumedReportingPlatformOperator {
       "checksCompletedDateTime" -> checksCompletedDateTime,
       "assumingPlatformOperator" -> assumingPlatformOperator,
       "poBusinessName" -> businessName,
-      "reportingPeriod" -> reportingPeriod)
+      "reportingPeriod" -> reportingPeriod
+    )
   )
-
 }
 
 final case class UpdateAssumedReportingUser(to: List[String],
-                                         templateId: String,
-                                         parameters: Map[String, String]) extends SendEmailRequest
+                                            templateId: String,
+                                            parameters: Map[String, String]) extends SendEmailRequest
 
 object UpdateAssumedReportingUser {
-  val UpdateAssumedReportingUserTemplateId: String = "dprs_update_assumed_reporting_user"
+  private val UpdateAssumedReportingUserTemplateId: String = "dprs_update_assumed_reporting_user"
   implicit val format: OFormat[UpdateAssumedReportingUser] = Json.format[UpdateAssumedReportingUser]
 
   def apply(email: String,
@@ -102,16 +102,17 @@ object UpdateAssumedReportingUser {
       "checksCompletedDateTime" -> checksCompletedDateTime,
       "assumingPlatformOperator" -> assumingPlatformOperator,
       "poBusinessName" -> businessName,
-      "reportingPeriod" -> reportingPeriod)
+      "reportingPeriod" -> reportingPeriod
+    )
   )
 }
 
 final case class UpdateAssumedReportingPlatformOperator(to: List[String],
-                                                     templateId: String,
-                                                     parameters: Map[String, String]) extends SendEmailRequest
+                                                        templateId: String,
+                                                        parameters: Map[String, String]) extends SendEmailRequest
 
 object UpdateAssumedReportingPlatformOperator {
-  val UpdateAssumedReportingPlatformOperatorTemplateId: String = "dprs_update_assumed_reporting_platform_operator"
+  private val UpdateAssumedReportingPlatformOperatorTemplateId: String = "dprs_update_assumed_reporting_platform_operator"
   implicit val format: OFormat[UpdateAssumedReportingPlatformOperator] = Json.format[UpdateAssumedReportingPlatformOperator]
 
   def apply(email: String,
@@ -127,10 +128,59 @@ object UpdateAssumedReportingPlatformOperator {
       "checksCompletedDateTime" -> checksCompletedDateTime,
       "assumingPlatformOperator" -> assumingPlatformOperator,
       "poBusinessName" -> businessName,
-      "reportingPeriod" -> reportingPeriod)
+      "reportingPeriod" -> reportingPeriod
+    )
   )
-
 }
 
+final case class DeleteAssumedReportingUser(to: List[String],
+                                            templateId: String,
+                                            parameters: Map[String, String]) extends SendEmailRequest
 
+object DeleteAssumedReportingUser {
+  private val DeleteAssumedReportingUserTemplateId: String = "dprs_delete_assumed_reporting_user"
+  implicit val format: OFormat[DeleteAssumedReportingUser] = Json.format[DeleteAssumedReportingUser]
 
+  def apply(email: String,
+            name: String,
+            checksCompletedDateTime: String,
+            assumingPlatformOperator: String,
+            businessName: String,
+            reportingPeriod: String): DeleteAssumedReportingUser = DeleteAssumedReportingUser(
+    to = List(email),
+    templateId = DeleteAssumedReportingUserTemplateId,
+    parameters = Map(
+      "userPrimaryContactName" -> name,
+      "checksCompletedDateTime" -> checksCompletedDateTime,
+      "assumingPlatformOperator" -> assumingPlatformOperator,
+      "poBusinessName" -> businessName,
+      "reportingPeriod" -> reportingPeriod
+    )
+  )
+}
+
+final case class DeleteAssumedReportingPlatformOperator(to: List[String],
+                                                        templateId: String,
+                                                        parameters: Map[String, String]) extends SendEmailRequest
+
+object DeleteAssumedReportingPlatformOperator {
+  private val DeleteAssumedReportingPlatformOperatorTemplateId: String = "dprs_delete_assumed_reporting_platform_operator"
+  implicit val format: OFormat[DeleteAssumedReportingPlatformOperator] = Json.format[DeleteAssumedReportingPlatformOperator]
+
+  def apply(email: String,
+            platformOperatorContactName: String,
+            checksCompletedDateTime: String,
+            assumingPlatformOperator: String,
+            businessName: String,
+            reportingPeriod: String): DeleteAssumedReportingPlatformOperator = DeleteAssumedReportingPlatformOperator(
+    to = List(email),
+    templateId = DeleteAssumedReportingPlatformOperatorTemplateId,
+    parameters = Map(
+      "poPrimaryContactName" -> platformOperatorContactName,
+      "checksCompletedDateTime" -> checksCompletedDateTime,
+      "assumingPlatformOperator" -> assumingPlatformOperator,
+      "poBusinessName" -> businessName,
+      "reportingPeriod" -> reportingPeriod
+    )
+  )
+}
