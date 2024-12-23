@@ -48,7 +48,7 @@ class CheckContactDetailsPageSpec
 
     val emptyAnswers = UserAnswers("userId", "operatorId")
 
-    "must go to Reporting Period when the answer is yes" in {
+    "must go to Reportable Period when the answer is yes" in {
 
       val answers = emptyAnswers.set(page, true).success.value
       page.nextPage(NormalMode, answers) mustEqual routes.ReportingPeriodController.onPageLoad(NormalMode, "operatorId")

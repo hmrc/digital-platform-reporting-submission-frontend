@@ -27,18 +27,13 @@
 @(operatorId: String, businessName: String)(implicit request: Request[_], messages: Messages)
 
 @layout(
-    pageTitle = titleNoForm(messages("assumed.selectPlatformOperator.single.title")),
-    showBackLink = false
+    pageTitle = titleNoForm(messages("assumed.selectPlatformOperator.single.title"))
 ) {
 
     @formHelper(action = routes.SelectPlatformOperatorController.onSubmit) {
 
         <h1 class="govuk-heading-xl">@messages("assumed.selectPlatformOperator.single.heading", businessName, operatorId)</h1>
 
-        <p class="govuk-body">
-            @messages("assumed.selectPlatformOperator.single.p1")
-            <a href="@appConfig.addOperatorUrl" class="govuk-link">@messages("assumed.selectPlatformOperator.single.link.text")</a>.
-        </p>
 
         <input type="hidden" id="value" name="value" value="@operatorId" />
 

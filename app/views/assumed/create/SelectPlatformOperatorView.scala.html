@@ -54,10 +54,6 @@
             .asAccessibleAutocomplete(Some(AccessibleAutocomplete(showAllValues = true)))
         )
 
-        <p class="govuk-body">
-            @messages("assumed.selectPlatformOperator.p1")
-            <a href="@appConfig.addOperatorUrl" class="govuk-link">@messages("assumed.selectPlatformOperator.p1.link.text")</a>.
-        </p>
 
         @govukButton(
             ButtonViewModel(messages("site.continue"))
