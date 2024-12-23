@@ -143,3 +143,23 @@
 	fill: var(--col-header-hover-color);
 	stroke: var(--col-header-hover-color);
 }
+
+
+@media print {
+  .govuk-link {
+    pointer-events: none !important;
+    cursor: default !important;
+    text-decoration: none !important;
+    color: black !important;
+  }
+  #print-this-page, .hmrc-sign-out-nav, .govuk-footer, #back-link  {
+    display: none !important;
+  }
+  .govuk-grid-column-two-thirds {
+    width:100%;
+  }
+  a[href]:after {
+    content: none !important;
+  }
+}
+

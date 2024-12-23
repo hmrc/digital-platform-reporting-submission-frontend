@@ -47,7 +47,7 @@ object AssumedReportCreatedSummary {
         value = ValueViewModel(HtmlFormat.escape(summary.assumingOperatorName).toString)
       ),
       SummaryListRowViewModel(
-        key = messages("assumedReportSummary.updatedAt"),
+        key = messages("assumedReportSummary.createdAt"),
         value = ValueViewModel(DateTimeFormats.formatInstant(updated, DateTimeFormats.fullDateTimeFormatter))
       )
     ))

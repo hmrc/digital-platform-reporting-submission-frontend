@@ -19,6 +19,7 @@
 @this(
         layout: templates.Layout,
         formHelper: FormWithCSRF,
+        govukDetails: GovukDetails,
         govukButton: GovukButton
 )
 
@@ -32,7 +33,11 @@
 
     <p class="govuk-body">@messages("assumed.start.p2")</p>
 
-    <p class="govuk-body">@messages("assumed.start.p3")</p>
+    @govukDetails(Details(
+        summary = Text(messages("assumed.start.details.heading")),
+        content = HtmlContent(s"""<p class="govuk-body"> ${messages("assumed.start.details.p1")} </p> """)
+    ))
+
 
     <h2 class="govuk-heading-m">@messages("assumed.start.beforeYouContinue")</h2>
 
@@ -42,10 +47,11 @@
         <li>@messages("assumed.start.beforeYouContinue.bullet1")</li>
         <li>@messages("assumed.start.beforeYouContinue.bullet2")</li>
         <li>@messages("assumed.start.beforeYouContinue.bullet3")</li>
-        <li>@messages("assumed.start.beforeYouContinue.bullet4")</li>
     </ul>
 
     <p class="govuk-body">@messages("assumed.start.beforeYouContinue.p2")</p>
+
+    <p class="govuk-body">@messages("assumed.start.beforeYouContinue.p3")</p>
 
     @formHelper(action = routes.StartController.onSubmit(operatorId)) {
         @govukButton(ButtonViewModel("assumed.start.startSubmission"))

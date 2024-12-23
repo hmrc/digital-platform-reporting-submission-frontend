@@ -28,10 +28,6 @@ object AssumedReportSummaryList {
   def list(summary: AssumedReportingSubmissionSummary)(implicit messages: Messages): SummaryList =
     SummaryList(rows = Seq(
       Some(SummaryListRowViewModel(
-        key = messages("assumedReportSummary.platformOperator"),
-        value = ValueViewModel(HtmlFormat.escape(summary.operatorName).toString)
-      )),
-      Some(SummaryListRowViewModel(
         key = messages("assumedReportSummary.reportingPeriod"),
         value = ValueViewModel(summary.reportingPeriod.toString)
       )),

@@ -77,7 +77,7 @@ class ViewSubmissionsViewModelSpec extends AnyFreeSpec with Matchers with Option
 
   ".apply" - {
 
-    "must include a list of reporting period select items from the first legislative year to the current year" in {
+    "must include a list of reportable period select items from the first legislative year to the current year" in {
 
       val expectedReportingPeriods = (2024 to thisYear.getValue).map(_.toString)
 
@@ -347,7 +347,7 @@ class ViewSubmissionsViewModelSpec extends AnyFreeSpec with Matchers with Option
         )
       }
 
-      "must include `Reporting period` as the sort option when it is in the filter" in {
+      "must include `Reportable period` as the sort option when it is in the filter" in {
 
         val filter = defaultFilter.copy(sortBy = ReportingPeriod)
         val submissionsSummary = SubmissionsSummary(submissions, viewSubmissionsPageSize * 2, true, 0)
@@ -407,7 +407,7 @@ class ViewSubmissionsViewModelSpec extends AnyFreeSpec with Matchers with Option
 
     "submission date sort link must set sort order to Submission Date" - {
 
-      "must include reporting period and statuses, but not page number, when they are in the filter" in {
+      "must include reportable period and statuses, but not page number, when they are in the filter" in {
 
         val filter = defaultFilter.copy(
           reportingPeriod = Some(Year.of(2024)),
@@ -479,9 +479,9 @@ class ViewSubmissionsViewModelSpec extends AnyFreeSpec with Matchers with Option
       }
     }
 
-    "reporting period sort link must set sort by to Reporting Period" - {
+    "reportable period sort link must set sort by to Reportable Period" - {
 
-      "and must include reporting period and statuses, but not page number, when they are in the filter" in {
+      "and must include reportable period and statuses, but not page number, when they are in the filter" in {
 
         val filter = defaultFilter.copy(
           reportingPeriod = Some(Year.of(2024)),
@@ -504,7 +504,7 @@ class ViewSubmissionsViewModelSpec extends AnyFreeSpec with Matchers with Option
         ))
       }
 
-      "must set sort order to Descending when the filter is currently sorted by reporting period ascending" in {
+      "must set sort order to Descending when the filter is currently sorted by reportable period ascending" in {
 
         val filter = defaultFilter.copy(sortBy = ReportingPeriod, sortOrder = Ascending)
         val submissions = (1 to viewSubmissionsPageSize).map(i => submission.copy(submissionId = i.toString))
@@ -520,7 +520,7 @@ class ViewSubmissionsViewModelSpec extends AnyFreeSpec with Matchers with Option
         ))
       }
 
-      "must set sort order to Descending when the filter is currently sorted by something other than reporting period" in {
+      "must set sort order to Descending when the filter is currently sorted by something other than reportable period" in {
 
         val filter = defaultFilter.copy(sortBy = SubmissionDate, sortOrder = Descending)
         val submissions = (1 to viewSubmissionsPageSize).map(i => submission.copy(submissionId = i.toString))
@@ -536,7 +536,7 @@ class ViewSubmissionsViewModelSpec extends AnyFreeSpec with Matchers with Option
         ))
       }
 
-      "must set sort order to Ascending when the filter is currently sorted by reporting period descending" in {
+      "must set sort order to Ascending when the filter is currently sorted by reportable period descending" in {
 
         val filter = defaultFilter.copy(sortBy = ReportingPeriod, sortOrder = Descending)
         val submissions = (1 to viewSubmissionsPageSize).map(i => submission.copy(submissionId = i.toString))
