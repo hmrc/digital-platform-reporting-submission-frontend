@@ -38,4 +38,3 @@ bin
 .bsp
 project/metals.sbt
 /test-files
-coverage

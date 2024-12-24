@@ -1,147 +1,31 @@
-@import 'lib/govuk-frontend/dist/govuk/helpers/all';
-
 .js-visible {
-	display: none !important;
+  display: none !important;
 }
 .js-enabled .js-visible {
-	display: inline-block !important;
+  display: inline-block !important;
 }
 
 .autocomplete__wrapper {
-	max-width: 11.5em;
+  max-width: 11.5em;
 }
 
 // Ensure the error styling is presented (powered by adding the govuk-input-error class in js)
 // This can't be done just by adding the class due to conflicting specificity
 .autocomplete__input.govuk-input--error {
-	border-color: #d4351c;
+  border-color: #d4351c;
 }
 // Ensure the down arrow for 'show all' option sits above the input so it is visible
 // (there was a change - possibly either input or page background which effectively hid the arrow due to its z-index)
 .autocomplete__dropdown-arrow-down {
-	z-index: 0;
-	pointer-events: none;
+  z-index: 0;
+  pointer-events: none;
 }
 // Constrain the input (and drop-down) so they site with the other address inputs
 // important to do this on the wrapper rather than the input itself otherwise the down-arrow will be floating by itself
-@media (min-width: 40.0625em) {
-	.autocomplete__wrapper {
-		width: 75% !important;
-	}
-}
-
-/*
- * @philsherry broke things from here down.
- * This is the CSS for the sortable table columns.
- * Based off the work of Adrian Roselli.
- * @see https://adrianroselli.com/2021/04/sortable-table-columns.html
- */
-:root {
-	--col-header-color: #333;
-	--col-header-hover-color: #fff;
-}
-
-@media screen and (-ms-high-contrast: active),
-	screen and (forced-colors: active) {
-	:root {
-		--col-header-color: ButtonText;
-		--col-header-hover-color: CanvasText;
-		--col-header-hover-color: WindowText;
-	}
-}
-
-#SVGsprites {
-	display: none;
-}
-
-[data-module='table-sorts'] {
-	@include govuk-font-tabular-numbers;
-	@include govuk-text-break-word;
-	table-layout: fixed;
-}
-
-[data-sorted='ASC'],
-[data-sorted='DSC'] {
-	background-color: rgba(255, 255, 0, 0.15);
-}
-
-/* Constrain some widths in the fixed layout. */
-[data-module='table-sorts'] .govuk-table__header:nth-child(1) {
-	width: 10%;
-}
-
-/* Reset header cells which have buttons in them. */
-.govuk-table__header[data-column] {
-	padding-top: 0;
-}
-
-.govuk-table__header .govuk-button {
-	cursor: pointer;
-	display: grid;
-	grid-template-areas: 't a x' 't d x';
-	grid-template-columns: minmax(2em, max-content) 0.65em auto;
-	min-width: 4.5em;
-	padding-block: 0;
-	padding-inline: 0;
-	text-align: left;
-	white-space: nowrap;
-	width: 100%;
-}
-
-.govuk-table__header .govuk-button span {
-	grid-area: t;
-	padding: 10px 20px 10px 0;
-}
-
-.govuk-table__header .govuk-button .asc {
-	align-self: center;
-	grid-area: a;
-}
-
-.govuk-table__header .govuk-button .des {
-	align-self: center;
-	grid-area: d;
-}
-
-.govuk-table__header .govuk-button::after {
-	content: '';
-	grid-area: x;
-}
-
-.govuk-table__header .govuk-button:focus,
-.govuk-table__header .govuk-button:hover {
-	color: var(--col-header-color);
-}
-
-.govuk-table__header .govuk-button svg.sort {
-	fill: transparent;
-	max-height: 1.2em;
-	max-width: 0.65em;
-	stroke: var(--col-header-color);
-}
-
-[aria-sort='ascending'] .govuk-button svg.asc {
-	fill: var(--col-header-color);
-	stroke: var(--col-header-color);
-}
-
-[aria-sort='descending'] .govuk-button svg.des {
-	fill: var(--col-header-color);
-	stroke: var(--col-header-color);
-}
-
-.govuk-table__header:focus .govuk-button svg.sort,
-.govuk-table__header:hover .govuk-button svg.sort,
-.govuk-table__header:focus-within .govuk-button svg.sort {
-	stroke: var(--col-header-hover-color);
-}
-
-[aria-sort='ascending'] .govuk-button:focus svg.asc,
-[aria-sort='ascending'] .govuk-button:hover svg.asc,
-[aria-sort='descending'] .govuk-button:focus svg.des,
-[aria-sort='descending'] .govuk-button:hover svg.des {
-	fill: var(--col-header-hover-color);
-	stroke: var(--col-header-hover-color);
+@media (min-width: 40.0625em){
+  .autocomplete__wrapper {
+    width: 75%!important;
+  }
 }
 
 
@@ -162,4 +46,3 @@
     content: none !important;
   }
 }
-

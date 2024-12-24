@@ -3,12 +3,13 @@
 echo "Applying migrations..."
 echo ""
 
-cd migrations || exit
-for file in *.sh; do
-  echo "Applying migration ${file}"
-  chmod u+x "${file}"
-  /bin/bash "${file}"
-  rm -rf "${file}"
+cd migrations
+for file in *.sh
+do
+    echo "Applying migration $file"
+    chmod u+x $file
+    /bin/bash $file
+    rm -rf $file
 done
 
 echo ""

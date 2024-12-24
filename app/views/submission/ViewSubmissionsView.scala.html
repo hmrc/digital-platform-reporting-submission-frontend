@@ -111,27 +111,13 @@
 
                     @govukWarningText(WarningText(content = Text(messages("viewSubmissions.errors"))))
 
-                    @*
-                     * Sonarqube will suggest using an `output` here instead,
-                     * but then Safari reads everything out twice.
-                     *@
-                    <div aria-live="polite" class="govuk-visually-hidden" id="sort-order-live" role="status"></div>
-
-                    <table class="govuk-table" data-module="table-sorts" id="xml-subs">
+                    <table class="govuk-table">
                         <thead class="govuk-table__head">
                             <tr class="govuk-table__row">
                                 <th class="govuk-table__header" scope="col">@messages("viewSubmissions.status")</th>
-                                <th class="govuk-table__header" data-column="upload-date" scope="col">
-                                    <a href="@viewModel.submissionDateSort.href" class="govuk-link--no-underline govuk-link--no-visited-state" data-link="sort-link">
-                                        @viewModel.submissionDateSort.text
-                                    </a>
-                                </th>
+                                <th class="govuk-table__header" scope="col">@viewModel.submissionDateSort.text</th>
                                 <th class="govuk-table__header" scope="col">@messages("viewSubmissions.platformOperator")</th>
-                                <th class="govuk-table__header" data-column="reporting-year" scope="col">
-                                    <a href="@viewModel.reportingPeriodSort.href" class="govuk-link--no-underline govuk-link--no-visited-state" data-link="sort-link">
-                                        @viewModel.reportingPeriodSort.text
-                                    </a>
-                                </th>
+                                <th class="govuk-table__header" scope="col">@viewModel.reportingPeriodSort.text</th>
                                 <th class="govuk-table__header" scope="col">@messages("viewSubmissions.fileName")</th>
                                 <th class="govuk-table__header" scope="col">@messages("viewSubmissions.action")</th>
                             </tr>
