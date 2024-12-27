@@ -490,3 +490,6 @@ submissionsExist.p1 = You cannot add assumed reporting details for {0} for {1}. 
 submissionsExist.p2 = You can tell HMRC if another platform operator will report for {0} by submitting this as an XML file instead.
 submissionsExist.viewSubmissions = View submissions you have made for {0}
 submissionsExist.manage = Return to manage your digital platform reporting
+
+submissionsDisabled.title = Submissions are not available
+submissionsDisabled.heading = Submissions are not available
