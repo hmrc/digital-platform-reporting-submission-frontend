@@ -95,6 +95,23 @@ class ReportingPeriodControllerSpec extends SpecBase with MockitoSugar with Befo
       }
     }
 
+    "must redirect to SubmissionsDisabled for a GET when submissions are disabled" in {
+
+      val application =
+        applicationBuilder(userAnswers = Some(emptyUserAnswers))
+          .configure("features.submissions-enabled" -> false)
+          .build()
+
+      running(application) {
+        val request = FakeRequest(GET, reportingPeriodRoute)
+
+        val result = route(application, request).value
+
+        status(result) mustEqual SEE_OTHER
+        redirectLocation(result).value mustEqual baseRoutes.SubmissionsDisabledController.onPageLoad().url
+      }
+    }
+
     "must record whether any XML submissions exist for this PO and year, then redirect to the next page when valid data is submitted" - {
 
       val expectedViewSubmissionsRequest = ViewSubmissionsRequest(
@@ -429,6 +446,25 @@ class ReportingPeriodControllerSpec extends SpecBase with MockitoSugar with Befo
         status(result) mustEqual SEE_OTHER
 
         redirectLocation(result).value mustEqual baseRoutes.JourneyRecoveryController.onPageLoad().url
+      }
+    }
+
+    "must redirect to Submissions Disabled for a POST when submissions are disabled" in {
+
+      val application =
+        applicationBuilder(userAnswers = None)
+          .configure("features.submissions-enabled" -> false)
+          .build()
+
+      running(application) {
+        val request =
+          FakeRequest(POST, reportingPeriodRoute)
+            .withFormUrlEncodedBody(("value", validAnswer.toString))
+
+        val result = route(application, request).value
+
+        status(result) mustEqual SEE_OTHER
+        redirectLocation(result).value mustEqual baseRoutes.SubmissionsDisabledController.onPageLoad().url
       }
     }
   }

@@ -36,6 +36,7 @@ import scala.concurrent.{ExecutionContext, Future}
 class SelectPlatformOperatorController @Inject()(
                                                   override val messagesApi: MessagesApi,
                                                   identify: IdentifierAction,
+                                                  checkSubmissionsAllowed: CheckSubmissionsAllowedAction,
                                                   val controllerComponents: MessagesControllerComponents,
                                                   formProvider: SelectPlatformOperatorFormProvider,
                                                   view: SelectPlatformOperatorView,
@@ -44,7 +45,7 @@ class SelectPlatformOperatorController @Inject()(
                                                   sessionRepository: SessionRepository
                                                 )(implicit ec: ExecutionContext) extends FrontendBaseController with I18nSupport {
 
-  def onPageLoad: Action[AnyContent] = identify.async { implicit request =>
+  def onPageLoad: Action[AnyContent] = (identify andThen checkSubmissionsAllowed).async { implicit request =>
     connector.viewPlatformOperators.map { operatorInfo =>
       val operators = operatorInfo.platformOperators.map(PlatformOperatorSummary(_))
       val form = formProvider(operators.map(_.operatorId).toSet)
@@ -57,7 +58,7 @@ class SelectPlatformOperatorController @Inject()(
     }
   }
 
-  def onSubmit: Action[AnyContent] = identify.async { implicit request =>
+  def onSubmit: Action[AnyContent] = (identify andThen checkSubmissionsAllowed).async { implicit request =>
     connector.viewPlatformOperators.flatMap { operatorInfo =>
       val operators = operatorInfo.platformOperators.map(PlatformOperatorSummary(_))
       val form = formProvider(operators.map(_.operatorId).toSet)

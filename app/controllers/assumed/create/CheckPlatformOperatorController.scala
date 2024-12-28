@@ -18,7 +18,7 @@ package controllers.assumed.create
 
 import com.google.inject.Inject
 import connectors.PlatformOperatorConnector
-import controllers.actions.{DataRequiredAction, DataRetrievalActionProvider, IdentifierAction}
+import controllers.actions.*
 import forms.CheckPlatformOperatorFormProvider
 import models.confirmed.ConfirmedDetails
 import models.operator.responses.PlatformOperator
@@ -42,6 +42,7 @@ class CheckPlatformOperatorController @Inject()(
                                                  identify: IdentifierAction,
                                                  getData: DataRetrievalActionProvider,
                                                  requireData: DataRequiredAction,
+                                                 checkSubmissionsAllowed: CheckSubmissionsAllowedAction,
                                                  val controllerComponents: MessagesControllerComponents,
                                                  connector: PlatformOperatorConnector,
                                                  formProvider: CheckPlatformOperatorFormProvider,
@@ -52,7 +53,7 @@ class CheckPlatformOperatorController @Inject()(
                                                  countriesList: CountriesList
                                                )(implicit ec: ExecutionContext) extends FrontendBaseController with I18nSupport {
 
-  def onPageLoad(operatorId: String): Action[AnyContent] = (identify andThen getData(operatorId) andThen requireData).async {
+  def onPageLoad(operatorId: String): Action[AnyContent] = (identify andThen checkSubmissionsAllowed andThen getData(operatorId) andThen requireData).async {
     implicit request =>
       connector.viewPlatformOperator(operatorId).map { operator =>
 
@@ -69,7 +70,7 @@ class CheckPlatformOperatorController @Inject()(
       }
   }
 
-  def onSubmit(operatorId: String): Action[AnyContent] = (identify andThen getData(operatorId) andThen requireData).async { implicit request =>
+  def onSubmit(operatorId: String): Action[AnyContent] = (identify andThen checkSubmissionsAllowed andThen getData(operatorId) andThen requireData).async { implicit request =>
     formProvider().bindFromRequest().fold(
       formWithErrors => {
         connector.viewPlatformOperator(operatorId).map { operator =>

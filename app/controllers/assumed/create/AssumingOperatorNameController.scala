@@ -38,6 +38,7 @@ class AssumingOperatorNameController @Inject()(
                                                 identify: IdentifierAction,
                                                 getData: DataRetrievalActionProvider,
                                                 requireData: DataRequiredAction,
+                                                checkSubmissionsAllowed: CheckSubmissionsAllowedAction,
                                                 formProvider: AssumingOperatorNameFormProvider,
                                                 val controllerComponents: MessagesControllerComponents,
                                                 view: AssumingOperatorNameView
@@ -45,35 +46,37 @@ class AssumingOperatorNameController @Inject()(
   extends FrontendBaseController with I18nSupport with AnswerExtractor {
 
 
-  def onPageLoad(mode: Mode, operatorId: String): Action[AnyContent] = (identify andThen getData(operatorId) andThen requireData) { implicit request =>
-    getAnswer(PlatformOperatorSummaryQuery) { operator =>
-
-      val form = formProvider(operator.operatorName)
-
-      val preparedForm = request.userAnswers.get(AssumingOperatorNamePage) match {
-        case None => form
-        case Some(value) => form.fill(value)
+  def onPageLoad(mode: Mode, operatorId: String): Action[AnyContent] =
+    (identify andThen checkSubmissionsAllowed andThen getData(operatorId) andThen requireData) { implicit request =>
+      getAnswer(PlatformOperatorSummaryQuery) { operator =>
+  
+        val form = formProvider(operator.operatorName)
+  
+        val preparedForm = request.userAnswers.get(AssumingOperatorNamePage) match {
+          case None => form
+          case Some(value) => form.fill(value)
+        }
+  
+        Ok(view(preparedForm, mode, operator))
       }
-
-      Ok(view(preparedForm, mode, operator))
     }
-  }
 
-  def onSubmit(mode: Mode, operatorId: String): Action[AnyContent] = (identify andThen getData(operatorId) andThen requireData).async { implicit request =>
-    getAnswerAsync(PlatformOperatorSummaryQuery) { operator =>
-
-      val form = formProvider(operator.operatorName)
-
-      form.bindFromRequest().fold(
-        formWithErrors =>
-          Future.successful(BadRequest(view(formWithErrors, mode, operator))),
-
-        value =>
-          for {
-            updatedAnswers <- Future.fromTry(request.userAnswers.set(AssumingOperatorNamePage, value))
-            _ <- sessionRepository.set(updatedAnswers)
-          } yield Redirect(AssumingOperatorNamePage.nextPage(mode, updatedAnswers))
-      )
+  def onSubmit(mode: Mode, operatorId: String): Action[AnyContent] =
+    (identify andThen checkSubmissionsAllowed andThen getData(operatorId) andThen requireData).async { implicit request =>
+      getAnswerAsync(PlatformOperatorSummaryQuery) { operator =>
+  
+        val form = formProvider(operator.operatorName)
+  
+        form.bindFromRequest().fold(
+          formWithErrors =>
+            Future.successful(BadRequest(view(formWithErrors, mode, operator))),
+  
+          value =>
+            for {
+              updatedAnswers <- Future.fromTry(request.userAnswers.set(AssumingOperatorNamePage, value))
+              _ <- sessionRepository.set(updatedAnswers)
+            } yield Redirect(AssumingOperatorNamePage.nextPage(mode, updatedAnswers))
+        )
+      }
     }
-  }
 }

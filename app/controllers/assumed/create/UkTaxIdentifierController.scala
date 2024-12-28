@@ -36,41 +36,44 @@ class UkTaxIdentifierController @Inject()(
                                            identify: IdentifierAction,
                                            getData: DataRetrievalActionProvider,
                                            requireData: DataRequiredAction,
+                                           checkSubmissionsAllowed: CheckSubmissionsAllowedAction,
                                            formProvider: UkTaxIdentifierFormProvider,
                                            val controllerComponents: MessagesControllerComponents,
                                            view: UkTaxIdentifierView
                                          )(implicit ec: ExecutionContext)
   extends FrontendBaseController with I18nSupport with AnswerExtractor {
 
-  def onPageLoad(mode: Mode, operatorId: String): Action[AnyContent] = (identify andThen getData(operatorId) andThen requireData) { implicit request =>
-    getAnswer(AssumingOperatorNamePage) { assumingOperatorName =>
+  def onPageLoad(mode: Mode, operatorId: String): Action[AnyContent] =
+    (identify andThen checkSubmissionsAllowed andThen getData(operatorId) andThen requireData) { implicit request =>
+      getAnswer(AssumingOperatorNamePage) { assumingOperatorName =>
 
-      val form = formProvider(assumingOperatorName)
+        val form = formProvider(assumingOperatorName)
 
-      val preparedForm = request.userAnswers.get(UkTaxIdentifierPage) match {
-        case None => form
-        case Some(value) => form.fill(value)
+        val preparedForm = request.userAnswers.get(UkTaxIdentifierPage) match {
+          case None => form
+          case Some(value) => form.fill(value)
+        }
+
+        Ok(view(preparedForm, mode, operatorId, assumingOperatorName))
       }
-
-      Ok(view(preparedForm, mode, operatorId, assumingOperatorName))
     }
-  }
 
-  def onSubmit(mode: Mode, operatorId: String): Action[AnyContent] = (identify andThen getData(operatorId) andThen requireData).async { implicit request =>
-    getAnswerAsync(AssumingOperatorNamePage) { assumingOperatorName =>
+  def onSubmit(mode: Mode, operatorId: String): Action[AnyContent] =
+    (identify andThen checkSubmissionsAllowed andThen getData(operatorId) andThen requireData).async { implicit request =>
+      getAnswerAsync(AssumingOperatorNamePage) { assumingOperatorName =>
 
-      val form = formProvider(assumingOperatorName)
-      
-      form.bindFromRequest().fold(
-        formWithErrors =>
-          Future.successful(BadRequest(view(formWithErrors, mode, operatorId, assumingOperatorName))),
+        val form = formProvider(assumingOperatorName)
 
-        value =>
-          for {
-            updatedAnswers <- Future.fromTry(request.userAnswers.set(UkTaxIdentifierPage, value))
-            _ <- sessionRepository.set(updatedAnswers)
-          } yield Redirect(UkTaxIdentifierPage.nextPage(mode, updatedAnswers))
-      )
+        form.bindFromRequest().fold(
+          formWithErrors =>
+            Future.successful(BadRequest(view(formWithErrors, mode, operatorId, assumingOperatorName))),
+
+          value =>
+            for {
+              updatedAnswers <- Future.fromTry(request.userAnswers.set(UkTaxIdentifierPage, value))
+              _ <- sessionRepository.set(updatedAnswers)
+            } yield Redirect(UkTaxIdentifierPage.nextPage(mode, updatedAnswers))
+        )
+      }
     }
-  }
 }

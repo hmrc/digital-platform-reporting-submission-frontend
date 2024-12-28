@@ -33,6 +33,7 @@ class SubmissionConfirmationController @Inject()(
                                             identify: IdentifierAction,
                                             getData: DataRetrievalActionProvider,
                                             requireData: DataRequiredAction,
+                                            checkSubmissionsAllowed: CheckSubmissionsAllowedAction,
                                             val controllerComponents: MessagesControllerComponents,
                                             view: SubmissionConfirmationView,
                                             clock: Clock
@@ -40,7 +41,7 @@ class SubmissionConfirmationController @Inject()(
   extends FrontendBaseController with I18nSupport with AnswerExtractor {
 
   def onPageLoad(operatorId: String, reportingPeriod: Year): Action[AnyContent] =
-    (identify andThen getData(operatorId, Some(reportingPeriod)) andThen requireData) { implicit request =>
+    (identify andThen checkSubmissionsAllowed andThen getData(operatorId, Some(reportingPeriod)) andThen requireData) { implicit request =>
       getAnswer(AssumedReportSummaryQuery) { assumedReport =>
         val summaryList = AssumedReportCreatedSummary.list(assumedReport, clock.instant())
         Ok(view(operatorId, summaryList))

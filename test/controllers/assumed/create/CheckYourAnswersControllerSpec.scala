@@ -80,6 +80,23 @@ class CheckYourAnswersControllerSpec extends SpecBase with SummaryListFluency wi
       }
     }
 
+    "must redirect to SubmissionsDisabled for a GET when submissions are disabled" in {
+
+      val application =
+        applicationBuilder(userAnswers = Some(emptyUserAnswers))
+          .configure("features.submissions-enabled" -> false)
+          .build()
+
+      running(application) {
+        val request = FakeRequest(GET, routes.CheckYourAnswersController.onPageLoad(operatorId).url)
+
+        val result = route(application, request).value
+        
+        status(result) mustEqual SEE_OTHER
+        redirectLocation(result).value mustEqual baseRoutes.SubmissionsDisabledController.onPageLoad().url
+      }
+    }
+
     "must redirect to Journey Recovery for a GET if no existing data is found" in {
 
       val application = applicationBuilder(userAnswers = None).build()
@@ -239,6 +256,22 @@ class CheckYourAnswersControllerSpec extends SpecBase with SummaryListFluency wi
         verify(mockAssumedReportingConnector).submit(eqTo(assumedReportingSubmissionRequest))(using any())
         verify(mockAuditService).audit(eqTo(expectedAuditEvent))(using any(), any())
         verify(mockSessionRepository, never).set(any())
+      }
+      
+      "must redirect to SubmissionsDisabled when submissions are disabled" in {
+
+        val application = applicationBuilder(userAnswers = Some(emptyUserAnswers))
+          .configure("features.submissions-enabled" -> false)
+          .build()
+
+        running(application) {
+          val request = FakeRequest(routes.CheckYourAnswersController.onSubmit(operatorId))
+          val result = route(application, request).value
+
+          status(result) mustEqual SEE_OTHER
+          redirectLocation(result).value mustEqual baseRoutes.SubmissionsDisabledController.onPageLoad().url
+        }
+
       }
     }
   }

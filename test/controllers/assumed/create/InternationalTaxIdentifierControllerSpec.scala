@@ -78,6 +78,23 @@ class InternationalTaxIdentifierControllerSpec extends SpecBase with MockitoSuga
       }
     }
 
+    "must redirect to SubmissionsDisabled for a GET when submissions are disabled" in {
+
+      val application =
+        applicationBuilder(userAnswers = Some(baseAnswers))
+          .configure("features.submissions-enabled" -> false)
+          .build()
+
+      running(application) {
+        val request = FakeRequest(GET, internationalTaxIdentifierRoute)
+
+        val result = route(application, request).value
+
+        status(result) mustEqual SEE_OTHER
+        redirectLocation(result).value mustEqual baseRoutes.SubmissionsDisabledController.onPageLoad().url
+      }
+    }
+
     "must redirect to the next page when valid data is submitted" in {
 
       val mockSessionRepository = mock[SessionRepository]

@@ -19,6 +19,7 @@ package controllers.assumed.create
 import base.SpecBase
 import config.FrontendAppConfig
 import connectors.PlatformOperatorConnector
+import controllers.routes as baseRoutes
 import forms.CheckPlatformOperatorFormProvider
 import models.operator.responses.PlatformOperator
 import models.operator.{AddressDetails, ContactDetails}
@@ -109,6 +110,23 @@ class CheckPlatformOperatorControllerSpec extends SpecBase with SummaryListFluen
 
         status(result) mustEqual OK
         contentAsString(result) mustEqual view(form, operatorList, primaryContactList, None, "operatorId", "operatorName")(request, implicitly).toString
+      }
+    }
+
+    "must redirect to SubmissionsDisabled for a GET when submissions are disabled" in {
+
+      val application =
+        applicationBuilder(userAnswers = Some(baseAnswers))
+          .configure("features.submissions-enabled" -> false)
+          .build()
+
+      running(application) {
+        val request = FakeRequest(GET, routes.CheckPlatformOperatorController.onPageLoad(operatorId).url)
+
+        val result = route(application, request).value
+
+        status(result) mustEqual SEE_OTHER
+        redirectLocation(result).value mustEqual baseRoutes.SubmissionsDisabledController.onPageLoad().url
       }
     }
 
@@ -294,6 +312,21 @@ class CheckPlatformOperatorControllerSpec extends SpecBase with SummaryListFluen
 
         verify(mockSessionRepository, times(1)).set(expectedAnswers)
         verify(mockConfirmedDetailsService, never()).confirmBusinessDetailsFor(any())(using any())
+      }
+
+      "must redirect to SubmissionsDisabled when submissions are disabled" in {
+        val application = applicationBuilder(userAnswers = Some(baseAnswers))
+          .configure("features.submissions-enabled" -> false)
+          .build()
+
+        running(application) {
+          val request = FakeRequest(POST, routes.CheckPlatformOperatorController.onPageLoad(operatorId).url)
+            .withFormUrlEncodedBody("value" -> "false")
+          val result = route(application, request).value
+
+          status(result) mustEqual SEE_OTHER
+          redirectLocation(result).value mustEqual baseRoutes.SubmissionsDisabledController.onPageLoad().url
+        }
       }
     }
   }

@@ -18,7 +18,7 @@ package controllers.assumed.create
 
 import com.google.inject.Inject
 import connectors.PlatformOperatorConnector
-import controllers.actions.{DataRequiredAction, DataRetrievalActionProvider, IdentifierAction}
+import controllers.actions.*
 import forms.CheckReportingNotificationsFormProvider
 import models.NormalMode
 import models.confirmed.ConfirmedDetails
@@ -38,6 +38,7 @@ class CheckReportingNotificationsController @Inject()(
                                                        identify: IdentifierAction,
                                                        getData: DataRetrievalActionProvider,
                                                        requireData: DataRequiredAction,
+                                                       checkSubmissionsAllowed: CheckSubmissionsAllowedAction,
                                                        val controllerComponents: MessagesControllerComponents,
                                                        platformOperatorConnector: PlatformOperatorConnector,
                                                        formProvider: CheckReportingNotificationsFormProvider,
@@ -47,7 +48,7 @@ class CheckReportingNotificationsController @Inject()(
                                                        view: CheckReportingNotificationsView
                                                      )(implicit ec: ExecutionContext) extends FrontendBaseController with I18nSupport {
 
-  def onPageLoad(operatorId: String): Action[AnyContent] = (identify andThen getData(operatorId) andThen requireData).async {
+  def onPageLoad(operatorId: String): Action[AnyContent] = (identify andThen checkSubmissionsAllowed andThen getData(operatorId) andThen requireData).async {
     implicit request =>
       platformOperatorConnector.viewPlatformOperator(operatorId).map { operator =>
 
@@ -61,7 +62,7 @@ class CheckReportingNotificationsController @Inject()(
       }
   }
 
-  def onSubmit(operatorId: String): Action[AnyContent] = (identify andThen getData(operatorId) andThen requireData).async { implicit request =>
+  def onSubmit(operatorId: String): Action[AnyContent] = (identify andThen checkSubmissionsAllowed andThen getData(operatorId) andThen requireData).async { implicit request =>
     formProvider().bindFromRequest().fold(
       formWithErrors => {
         platformOperatorConnector.viewPlatformOperator(operatorId).map { operator =>

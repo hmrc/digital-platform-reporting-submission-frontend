@@ -34,12 +34,12 @@ import scala.concurrent.Future
 
 class TaxResidentInUkControllerSpec extends SpecBase with MockitoSugar {
 
-  val formProvider = new TaxResidentInUkFormProvider()
+  private val formProvider = new TaxResidentInUkFormProvider()
   private val assumingOperatorName = "name"
   private val form = formProvider(assumingOperatorName)
   private val baseAnswers = emptyUserAnswers.set(AssumingOperatorNamePage, assumingOperatorName).success.value
 
-  lazy val taxResidentInUkRoute = routes.TaxResidentInUkController.onPageLoad(NormalMode, operatorId).url
+  private lazy val taxResidentInUkRoute = routes.TaxResidentInUkController.onPageLoad(NormalMode, operatorId).url
 
   "TaxResidentInUk Controller" - {
 
@@ -74,6 +74,23 @@ class TaxResidentInUkControllerSpec extends SpecBase with MockitoSugar {
 
         status(result) mustEqual OK
         contentAsString(result) mustEqual view(form.fill(true), NormalMode, operatorId, assumingOperatorName)(request, messages(application)).toString
+      }
+    }
+
+    "must redirect to SubmissionsDisabled for a GET when submissions are disabled" in {
+
+      val application =
+        applicationBuilder(userAnswers = Some(baseAnswers))
+          .configure("features.submissions-enabled" -> false)
+          .build()
+
+      running(application) {
+        val request = FakeRequest(GET, taxResidentInUkRoute)
+
+        val result = route(application, request).value
+
+        status(result) mustEqual SEE_OTHER
+        redirectLocation(result).value mustEqual baseRoutes.SubmissionsDisabledController.onPageLoad().url
       }
     }
 
