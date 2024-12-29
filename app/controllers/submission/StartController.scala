@@ -36,6 +36,7 @@ import scala.concurrent.{ExecutionContext, Future}
 
 class StartController @Inject()(override val messagesApi: MessagesApi,
                                 identify: IdentifierAction,
+                                checkSubmissionsAllowed: CheckSubmissionsAllowedAction,
                                 val controllerComponents: MessagesControllerComponents,
                                 view: StartPageView,
                                 submissionConnector: SubmissionConnector,
@@ -47,32 +48,34 @@ class StartController @Inject()(override val messagesApi: MessagesApi,
                                (using ExecutionContext)
   extends FrontendBaseController with I18nSupport with AnswerExtractor {
 
-  def onPageLoad(operatorId: String): Action[AnyContent] = (identify andThen getData(operatorId)).async { implicit request =>
-    request.userAnswers
-      .map(_ => Future.successful(Ok(view(operatorId))))
-      .getOrElse {
-        platformOperatorConnector.viewPlatformOperator(operatorId).flatMap { operator =>
-          val summary = PlatformOperatorSummary(operator)
-          for {
-            answers <- Future.fromTry(UserAnswers(request.userId, operatorId).set(PlatformOperatorSummaryQuery, summary))
-            _ <- sessionRepository.set(answers)
-          } yield Ok(view(operatorId))
-        }.recover {
-          case PlatformOperatorNotFoundFailure => Redirect(controllers.routes.JourneyRecoveryController.onPageLoad()) // TODO change this when the choose PO pages exist
+  def onPageLoad(operatorId: String): Action[AnyContent] =
+    (identify andThen checkSubmissionsAllowed andThen getData(operatorId)).async { implicit request =>
+      request.userAnswers
+        .map(_ => Future.successful(Ok(view(operatorId))))
+        .getOrElse {
+          platformOperatorConnector.viewPlatformOperator(operatorId).flatMap { operator =>
+            val summary = PlatformOperatorSummary(operator)
+            for {
+              answers <- Future.fromTry(UserAnswers(request.userId, operatorId).set(PlatformOperatorSummaryQuery, summary))
+              _ <- sessionRepository.set(answers)
+            } yield Ok(view(operatorId))
+          }.recover {
+            case PlatformOperatorNotFoundFailure => Redirect(controllers.routes.JourneyRecoveryController.onPageLoad()) // TODO change this when the choose PO pages exist
+          }
         }
-      }
-  }
-
-  def onSubmit(operatorId: String): Action[AnyContent] = (identify andThen getData(operatorId) andThen requireData).async { implicit request =>
-    confirmedDetailsService.confirmedDetailsFor(operatorId).flatMap {
-      case ConfirmedDetails(true, true, true) => getAnswerAsync(PlatformOperatorSummaryQuery) { summary =>
-        submissionConnector.start(operatorId, summary.operatorName, None).map { submission =>
-          Redirect(routes.UploadController.onPageLoad(operatorId, submission._id))
-        }
-      }
-      case ConfirmedDetails(true, true, false) => Future.successful(Redirect(routes.CheckContactDetailsController.onPageLoad(operatorId)))
-      case ConfirmedDetails(true, false, _) => Future.successful(Redirect(routes.CheckReportingNotificationsController.onSubmit(operatorId)))
-      case ConfirmedDetails(false, _, _) => Future.successful(Redirect(routes.CheckPlatformOperatorController.onPageLoad(operatorId)))
     }
-  }
+
+  def onSubmit(operatorId: String): Action[AnyContent] =
+    (identify andThen checkSubmissionsAllowed andThen getData(operatorId) andThen requireData).async { implicit request =>
+      confirmedDetailsService.confirmedDetailsFor(operatorId).flatMap {
+        case ConfirmedDetails(true, true, true) => getAnswerAsync(PlatformOperatorSummaryQuery) { summary =>
+          submissionConnector.start(operatorId, summary.operatorName, None).map { submission =>
+            Redirect(routes.UploadController.onPageLoad(operatorId, submission._id))
+          }
+        }
+        case ConfirmedDetails(true, true, false) => Future.successful(Redirect(routes.CheckContactDetailsController.onPageLoad(operatorId)))
+        case ConfirmedDetails(true, false, _) => Future.successful(Redirect(routes.CheckReportingNotificationsController.onSubmit(operatorId)))
+        case ConfirmedDetails(false, _, _) => Future.successful(Redirect(routes.CheckPlatformOperatorController.onPageLoad(operatorId)))
+      }
+    }
 }

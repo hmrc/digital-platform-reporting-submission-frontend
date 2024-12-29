@@ -19,6 +19,7 @@ package controllers.submission
 import base.SpecBase
 import connectors.PlatformOperatorConnector.PlatformOperatorNotFoundFailure
 import connectors.{PlatformOperatorConnector, SubmissionConnector}
+import controllers.routes as baseRoutes
 import models.UserAnswers
 import models.operator.responses.PlatformOperator
 import models.operator.{AddressDetails, ContactDetails}
@@ -79,6 +80,20 @@ class StartControllerSpec extends SpecBase with MockitoSugar with BeforeAndAfter
 
         verify(mockPlatformOperatorConnector, never()).viewPlatformOperator(any())(any())
         verify(mockSessionRepository, never()).set(any())
+      }
+
+      "must redirect to SubmissionsDisabled for a GET when submissions are disabled" in {
+        val application = applicationBuilder(userAnswers = Some(baseAnswers))
+          .configure("features.submissions-enabled" -> false)
+          .build()
+
+        running(application) {
+          val request = FakeRequest(routes.StartController.onPageLoad(operatorId))
+          val result = route(application, request).value
+
+          status(result) mustEqual SEE_OTHER
+          redirectLocation(result).value mustEqual baseRoutes.SubmissionsDisabledController.onPageLoad().url
+        }
       }
 
       "must save a platform operator summary and return OK and the correct view for a GET when user answers do not exist" in {
@@ -223,6 +238,21 @@ class StartControllerSpec extends SpecBase with MockitoSugar with BeforeAndAfter
 
         verify(mockSubmissionConnector, times(1)).start(eqTo(operatorId), eqTo(platformOperatorSummary.operatorName), eqTo(None))(using any())
         verify(mockConfirmedDetailsService, times(1)).confirmedDetailsFor(eqTo(operatorId))(using any())
+      }
+
+      "must redirect to SubmissionsDisabled when submissions are disabled" in {
+        
+        val application = applicationBuilder(userAnswers = None)
+          .configure("features.submissions-enabled" -> false)
+          .build()
+
+        running(application) {
+          val request = FakeRequest(routes.StartController.onSubmit(operatorId))
+          val result = route(application, request).value
+
+          status(result) mustEqual SEE_OTHER
+          redirectLocation(result).value mustEqual baseRoutes.SubmissionsDisabledController.onPageLoad().url
+        }
       }
     }
   }

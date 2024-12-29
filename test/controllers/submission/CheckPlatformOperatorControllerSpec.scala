@@ -19,6 +19,7 @@ package controllers.submission
 import base.SpecBase
 import config.FrontendAppConfig
 import connectors.{PlatformOperatorConnector, SubmissionConnector}
+import controllers.routes as baseRoutes
 import forms.CheckPlatformOperatorFormProvider
 import models.DefaultCountriesList
 import models.operator.responses.PlatformOperator
@@ -110,6 +111,23 @@ class CheckPlatformOperatorControllerSpec extends SpecBase with SummaryListFluen
           contentAsString(result) mustEqual view(form, operatorList, primaryContactList, None, "operatorId", "operatorName")(request, implicitly).toString
         }
       }
+
+      "must redirect to SubmissionsDisabled for a GET when submissions are disabled" in {
+
+        val application =
+          applicationBuilder(userAnswers = Some(baseAnswers))
+            .configure("features.submissions-enabled" -> false)
+            .build()
+
+        running(application) {
+          val request = FakeRequest(GET, routes.CheckPlatformOperatorController.onPageLoad(operatorId).url)
+
+          val result = route(application, request).value
+
+          status(result) mustEqual SEE_OTHER
+          redirectLocation(result).value mustEqual baseRoutes.SubmissionsDisabledController.onPageLoad().url
+        }
+      }
     }
 
     "onSubmit(...)" - {
@@ -165,6 +183,25 @@ class CheckPlatformOperatorControllerSpec extends SpecBase with SummaryListFluen
           status(result) mustEqual BAD_REQUEST
           contentAsString(result) mustEqual
             view(formWithErrors, operatorList, primaryContactList, None, "operatorId", "operatorName")(request, implicitly).toString
+        }
+      }
+
+      "must redirect to SubmissionsDisabled for a POST when submissions are disabled" in {
+
+        val application =
+          applicationBuilder(userAnswers = Some(baseAnswers))
+            .configure("features.submissions-enabled" -> false)
+            .build()
+
+        running(application) {
+          val request =
+            FakeRequest(POST, routes.CheckPlatformOperatorController.onPageLoad(operatorId).url)
+              .withFormUrlEncodedBody("value" -> "operatorId")
+
+          val result = route(application, request).value
+
+          status(result) mustEqual SEE_OTHER
+          redirectLocation(result).value mustEqual baseRoutes.SubmissionsDisabledController.onPageLoad().url
         }
       }
 

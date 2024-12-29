@@ -380,6 +380,26 @@ class UploadControllerSpec extends SpecBase with MockitoSugar with BeforeAndAfte
           verify(mockSubmissionConnector, never()).get(any())(using any())
         }
       }
+      
+      "when submissions are disabled" - {
+
+        "must redirect to SubmissionsDisabled" in {
+
+          val application = applicationBuilder(userAnswers = None)
+            .configure("features.submissions-enabled" -> false)
+            .build()
+
+          running(application) {
+            val request = FakeRequest(routes.UploadController.onPageLoad(operatorId, "id"))
+            val result = route(application, request).value
+
+            status(result) mustEqual SEE_OTHER
+            redirectLocation(result).value mustEqual controllers.routes.SubmissionsDisabledController.onPageLoad().url
+          }
+
+          verify(mockSubmissionConnector, never()).get(any())(using any())
+        }
+      }
     }
 
     "onRedirect" - {

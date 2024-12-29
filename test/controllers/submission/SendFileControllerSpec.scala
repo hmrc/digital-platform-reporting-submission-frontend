@@ -18,6 +18,7 @@ package controllers.submission
 
 import base.SpecBase
 import connectors.SubmissionConnector
+import controllers.routes as baseRoutes
 import models.submission.Submission
 import models.submission.Submission.State.{Approved, Ready, Rejected, Submitted, UploadFailed, Uploading, Validated}
 import models.submission.Submission.SubmissionType
@@ -386,6 +387,24 @@ class SendFileControllerSpec extends SpecBase with MockitoSugar with BeforeAndAf
           verify(mockSubmissionConnector, never()).get(any())(using any())
         }
       }
+
+      "when submissions are disabled" - {
+
+        "must redirect to SubmissionsDisabled" in {
+          val application = applicationBuilder(userAnswers = Some(emptyUserAnswers))
+            .configure("features.submissions-enabled" -> false)
+            .build()
+
+          running(application) {
+
+            val request = FakeRequest(GET, routes.SendFileController.onPageLoad(operatorId, "id").url)
+            val result = route(application, request).value
+
+            status(result) mustEqual SEE_OTHER
+            redirectLocation(result).value mustEqual baseRoutes.SubmissionsDisabledController.onPageLoad().url
+          }
+        }
+      }
     }
 
     "onSubmit" - {
@@ -705,6 +724,24 @@ class SendFileControllerSpec extends SpecBase with MockitoSugar with BeforeAndAf
           }
 
           verify(mockSubmissionConnector, never()).get(any())(using any())
+        }
+      }
+
+      "when submissions are disabled" - {
+
+        "must redirect to SubmissionsDisabled" in {
+
+          val application = applicationBuilder(userAnswers = None)
+            .configure("features.submissions-enabled" -> false)
+            .build()
+
+          running(application) {
+            val request = FakeRequest(routes.SendFileController.onSubmit(operatorId, "id"))
+            val result = route(application, request).value
+
+            status(result) mustEqual SEE_OTHER
+            redirectLocation(result).value mustEqual baseRoutes.SubmissionsDisabledController.onPageLoad().url
+          }
         }
       }
     }
