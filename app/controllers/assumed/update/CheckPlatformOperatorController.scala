@@ -18,7 +18,7 @@ package controllers.assumed.update
 
 import com.google.inject.Inject
 import connectors.PlatformOperatorConnector
-import controllers.actions.{DataRequiredAction, DataRetrievalActionProvider, IdentifierAction}
+import controllers.actions.*
 import forms.CheckPlatformOperatorFormProvider
 import models.operator.responses.PlatformOperator
 import models.{CountriesList, NormalMode}
@@ -40,6 +40,7 @@ class CheckPlatformOperatorController @Inject()(
                                                  identify: IdentifierAction,
                                                  getData: DataRetrievalActionProvider,
                                                  requireData: DataRequiredAction,
+                                                 checkSubmissionsAllowed: CheckSubmissionsAllowedAction,
                                                  val controllerComponents: MessagesControllerComponents,
                                                  connector: PlatformOperatorConnector,
                                                  formProvider: CheckPlatformOperatorFormProvider,
@@ -50,7 +51,7 @@ class CheckPlatformOperatorController @Inject()(
                                                )(implicit ec: ExecutionContext) extends FrontendBaseController with I18nSupport {
 
   def onPageLoad(operatorId: String, reportingPeriod: Year): Action[AnyContent] =
-    (identify andThen getData(operatorId, Some(reportingPeriod)) andThen requireData).async {
+    (identify andThen checkSubmissionsAllowed andThen getData(operatorId, Some(reportingPeriod)) andThen requireData).async {
       implicit request =>
         connector.viewPlatformOperator(operatorId).map { operator =>
 
@@ -69,7 +70,7 @@ class CheckPlatformOperatorController @Inject()(
     }
 
   def onSubmit(operatorId: String, reportingPeriod: Year): Action[AnyContent] =
-    (identify andThen getData(operatorId, Some(reportingPeriod)) andThen requireData).async {
+    (identify andThen checkSubmissionsAllowed andThen getData(operatorId, Some(reportingPeriod)) andThen requireData).async {
       implicit request =>
 
         val form = formProvider()

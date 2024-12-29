@@ -38,6 +38,7 @@ class TaxResidentInUkController @Inject()(
                                          identify: IdentifierAction,
                                          getData: DataRetrievalActionProvider,
                                          requireData: DataRequiredAction,
+                                         checkSubmissionsAllowed: CheckSubmissionsAllowedAction,
                                          formProvider: TaxResidentInUkFormProvider,
                                          val controllerComponents: MessagesControllerComponents,
                                          view: TaxResidentInUkView
@@ -45,7 +46,7 @@ class TaxResidentInUkController @Inject()(
   extends FrontendBaseController with I18nSupport with AnswerExtractor {
 
   def onPageLoad(operatorId: String, reportingPeriod: Year): Action[AnyContent] =
-    (identify andThen getData(operatorId, Some(reportingPeriod)) andThen requireData) { implicit request =>
+    (identify andThen checkSubmissionsAllowed andThen getData(operatorId, Some(reportingPeriod)) andThen requireData) { implicit request =>
       getAnswer(AssumingOperatorNamePage) { assumingOperatorName =>
   
         val form = formProvider(assumingOperatorName)
@@ -60,7 +61,7 @@ class TaxResidentInUkController @Inject()(
     }
 
   def onSubmit(operatorId: String, reportingPeriod: Year): Action[AnyContent] =
-    (identify andThen getData(operatorId, Some(reportingPeriod)) andThen requireData).async { implicit request =>
+    (identify andThen checkSubmissionsAllowed andThen getData(operatorId, Some(reportingPeriod)) andThen requireData).async { implicit request =>
       getAnswerAsync(AssumingOperatorNamePage) { assumingOperatorName =>
   
         val form = formProvider(assumingOperatorName)

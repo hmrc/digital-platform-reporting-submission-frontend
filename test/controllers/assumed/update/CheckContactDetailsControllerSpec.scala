@@ -18,6 +18,7 @@ package controllers.assumed.update
 
 import base.SpecBase
 import connectors.SubscriptionConnector
+import controllers.routes as baseRoutes
 import forms.CheckContactDetailsFormProvider
 import models.subscription.*
 import models.{NormalMode, UserAnswers}
@@ -177,6 +178,23 @@ class CheckContactDetailsControllerSpec extends SpecBase with SummaryListFluency
       }
     }
 
+    "must redirect to SubmissionsDisabled for a GET when submissions are disabled" - {
+
+      val application =
+        applicationBuilder(userAnswers = Some(emptyUserAnswers))
+          .configure("features.submissions-enabled" -> false)
+          .build()
+
+      running(application) {
+        val request = FakeRequest(GET, routes.CheckContactDetailsController.onPageLoad(operatorId, reportingPeriod).url)
+
+        val result = route(application, request).value
+
+        status(result) mustEqual SEE_OTHER
+        redirectLocation(result).value mustEqual baseRoutes.SubmissionsDisabledController.onPageLoad().url
+      }
+    }
+
     "must return BadRequest and errors when an invalid answer is submitted" in {
 
       val contact = IndividualContact(Individual("first", "last"), "email", None)
@@ -244,6 +262,25 @@ class CheckContactDetailsControllerSpec extends SpecBase with SummaryListFluency
 
         val answers = answersCaptor.getValue
         answers.get(page).value mustEqual true
+      }
+    }
+
+    "must redirect to SubmissionsDisabled for a POST when submissions are disabled" in {
+
+      val application =
+        applicationBuilder(userAnswers = Some(emptyUserAnswers))
+          .configure("features.submissions-enabled" -> false)
+          .build()
+
+      running(application) {
+        val request =
+          FakeRequest(POST, routes.CheckContactDetailsController.onPageLoad(operatorId, reportingPeriod).url)
+            .withFormUrlEncodedBody("value" -> "invalid value")
+
+        val result = route(application, request).value
+
+        status(result) mustEqual SEE_OTHER
+        redirectLocation(result).value mustEqual baseRoutes.SubmissionsDisabledController.onPageLoad().url
       }
     }
   }

@@ -37,6 +37,7 @@ class AssumingOperatorNameController @Inject()(
                                                 identify: IdentifierAction,
                                                 getData: DataRetrievalActionProvider,
                                                 requireData: DataRequiredAction,
+                                                checkSubmissionsAllowed: CheckSubmissionsAllowedAction,
                                                 formProvider: AssumingOperatorNameFormProvider,
                                                 val controllerComponents: MessagesControllerComponents,
                                                 view: AssumingOperatorNameView
@@ -44,7 +45,7 @@ class AssumingOperatorNameController @Inject()(
   extends FrontendBaseController with I18nSupport with AnswerExtractor {
 
   def onPageLoad(operatorId: String, reportingPeriod: Year): Action[AnyContent] =
-    (identify andThen getData(operatorId, Some(reportingPeriod)) andThen requireData) { implicit request =>
+    (identify andThen checkSubmissionsAllowed andThen getData(operatorId, Some(reportingPeriod)) andThen requireData) { implicit request =>
       getAnswer(PlatformOperatorNameQuery) { operatorName =>
   
         val form = formProvider(operatorName)
@@ -59,7 +60,7 @@ class AssumingOperatorNameController @Inject()(
     }
 
   def onSubmit(operatorId: String, reportingPeriod: Year): Action[AnyContent] =
-    (identify andThen getData(operatorId, Some(reportingPeriod)) andThen requireData).async { implicit request =>
+    (identify andThen checkSubmissionsAllowed andThen getData(operatorId, Some(reportingPeriod)) andThen requireData).async { implicit request =>
       getAnswerAsync(PlatformOperatorNameQuery) { operatorName =>
   
         val form = formProvider(operatorName)
