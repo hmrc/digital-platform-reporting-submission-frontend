@@ -14,8 +14,12 @@
  * limitations under the License.
  *@
 
+@import config.FrontendAppConfig
+@import controllers.assumed.routes as assumedRoutes
+
 @this(
-    layout: templates.Layout
+    layout: templates.Layout,
+    appConfig: FrontendAppConfig
 )
 
 @()(implicit request: Request[_], messages: Messages)
@@ -26,4 +30,15 @@
 ) {
 
     <h1 class="govuk-heading-xl">@messages("assumedReportingDisabled.heading")</h1>
+
+    <p class="govuk-body">@messages("assumedReportingDisabled.p1")</p>
+
+    <p class="govuk-body">
+        @messages("assumedReportingDisabled.p2")
+        <a href="@assumedRoutes.ViewAssumedReportsController.onPageLoad().url" class="govuk-link">@messages("assumedReportingDisabled.p2.link.text")</a>.
+    </p>
+
+    <p class="govuk-body">
+        <a href="@appConfig.manageHomepageUrl" class="govuk-link">@messages("assumedReportingDisabled.p3.link.text")</a>
+    </p>
 }

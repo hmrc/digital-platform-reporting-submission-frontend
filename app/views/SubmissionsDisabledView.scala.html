@@ -14,8 +14,12 @@
  * limitations under the License.
  *@
 
+@import config.FrontendAppConfig
+@import controllers.submission.routes as submissionRoutes
+
 @this(
-    layout: templates.Layout
+    layout: templates.Layout,
+    appConfig: FrontendAppConfig
 )
 
 @()(implicit request: Request[_], messages: Messages)
@@ -26,4 +30,15 @@
 ) {
 
     <h1 class="govuk-heading-xl">@messages("submissionsDisabled.heading")</h1>
+
+    <p class="govuk-body">@messages("submissionsDisabled.p1")</p>
+
+    <p class="govuk-body">
+        @messages("submissionsDisabled.p2")
+        <a href="@submissionRoutes.ViewSubmissionsController.onPageLoad().url" class="govuk-link">@messages("submissionsDisabled.p2.link.text")</a>.
+    </p>
+
+    <p class="govuk-body">
+        <a href="@appConfig.manageHomepageUrl" class="govuk-link">@messages("submissionsDisabled.p3.link.text")</a>
+    </p>
 }
