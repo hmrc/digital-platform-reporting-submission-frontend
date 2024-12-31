@@ -19,7 +19,7 @@ package controllers.assumed.remove
 import connectors.AssumedReportingConnector
 import connectors.AssumedReportingConnector.DeleteAssumedReportFailure
 import controllers.AnswerExtractor
-import controllers.actions.{DataRequiredAction, DataRetrievalActionProvider, IdentifierAction}
+import controllers.actions.*
 import controllers.assumed.routes as assumedRoutes
 import forms.RemoveAssumedReportFormProvider
 import models.audit.DeleteAssumedReportEvent
@@ -40,6 +40,7 @@ class RemoveAssumedReportController @Inject()(override val messagesApi: Messages
                                               identify: IdentifierAction,
                                               getData: DataRetrievalActionProvider,
                                               requireData: DataRequiredAction,
+                                              checkAssumedReportingAllowed: CheckAssumedReportingAllowedAction,
                                               formProvider: RemoveAssumedReportFormProvider,
                                               view: RemoveAssumedReportView,
                                               connector: AssumedReportingConnector,
@@ -49,63 +50,65 @@ class RemoveAssumedReportController @Inject()(override val messagesApi: Messages
 
   private val form = formProvider()
 
-  def onPageLoad(operatorId: String, reportingPeriod: Year): Action[AnyContent] = (identify andThen getData(operatorId) andThen requireData) {
-    implicit request =>
-      getAnswer(AssumedReportSummariesQuery) { summaries =>
-        summaries.find(_.reportingPeriod == reportingPeriod).map { summary =>
-          val summaryList = AssumedReportSummaryList.list(summary)
+  def onPageLoad(operatorId: String, reportingPeriod: Year): Action[AnyContent] =
+    (identify andThen checkAssumedReportingAllowed andThen getData(operatorId) andThen requireData) {
+      implicit request =>
+        getAnswer(AssumedReportSummariesQuery) { summaries =>
+          summaries.find(_.reportingPeriod == reportingPeriod).map { summary =>
+            val summaryList = AssumedReportSummaryList.list(summary)
 
-          Ok(view(form, summaryList, operatorId, summary.operatorName, reportingPeriod))
-        }.getOrElse(NotFound)
-      }
-  }
+            Ok(view(form, summaryList, operatorId, summary.operatorName, reportingPeriod))
+          }.getOrElse(NotFound)
+        }
+    }
 
-  def onSubmit(operatorId: String, reportingPeriod: Year): Action[AnyContent] = (identify andThen getData(operatorId) andThen requireData).async {
-    implicit request =>
-      getAnswerAsync(AssumedReportSummariesQuery) { summaries =>
-        summaries.find(_.reportingPeriod == reportingPeriod).map { summary =>
-          
-          form.bindFromRequest().fold(
-            formWithErrors => {
-              val summaryList = AssumedReportSummaryList.list(summary)
-              Future.successful(BadRequest(view(formWithErrors, summaryList, operatorId, summary.operatorName, reportingPeriod)))
-            },
-            answer => 
-              if (answer) {
-                connector.delete(operatorId, reportingPeriod)
-                  .map { _ =>
-                    val auditEvent = DeleteAssumedReportEvent(
-                      dprsId = request.dprsId,
-                      operatorId = operatorId,
-                      operatorName = summary.operatorName,
-                      conversationId = summary.submissionId,
-                      statusCode = 200,
-                      processedAt = Instant.now(clock)
-                    )
-                    
-                    auditService.audit(auditEvent)
-                    
-                    Redirect(routes.AssumedReportRemovedController.onPageLoad(operatorId, reportingPeriod))
-                  }.recover {
-                    case ex: DeleteAssumedReportFailure =>
+  def onSubmit(operatorId: String, reportingPeriod: Year): Action[AnyContent] =
+    (identify andThen checkAssumedReportingAllowed andThen getData(operatorId) andThen requireData).async {
+      implicit request =>
+        getAnswerAsync(AssumedReportSummariesQuery) { summaries =>
+          summaries.find(_.reportingPeriod == reportingPeriod).map { summary =>
+
+            form.bindFromRequest().fold(
+              formWithErrors => {
+                val summaryList = AssumedReportSummaryList.list(summary)
+                Future.successful(BadRequest(view(formWithErrors, summaryList, operatorId, summary.operatorName, reportingPeriod)))
+              },
+              answer =>
+                if (answer) {
+                  connector.delete(operatorId, reportingPeriod)
+                    .map { _ =>
                       val auditEvent = DeleteAssumedReportEvent(
                         dprsId = request.dprsId,
                         operatorId = operatorId,
                         operatorName = summary.operatorName,
                         conversationId = summary.submissionId,
-                        statusCode = ex.status,
+                        statusCode = 200,
                         processedAt = Instant.now(clock)
                       )
 
                       auditService.audit(auditEvent)
-                    
-                      throw ex
-                  }
-              } else {
-                Future.successful(Redirect(assumedRoutes.ViewAssumedReportsController.onPageLoad()))
-              }
-          )
-        }.getOrElse(Future.successful(NotFound))
-      }
-  }
+
+                      Redirect(routes.AssumedReportRemovedController.onPageLoad(operatorId, reportingPeriod))
+                    }.recover {
+                      case ex: DeleteAssumedReportFailure =>
+                        val auditEvent = DeleteAssumedReportEvent(
+                          dprsId = request.dprsId,
+                          operatorId = operatorId,
+                          operatorName = summary.operatorName,
+                          conversationId = summary.submissionId,
+                          statusCode = ex.status,
+                          processedAt = Instant.now(clock)
+                        )
+
+                        auditService.audit(auditEvent)
+
+                        throw ex
+                    }
+                } else {
+                  Future.successful(Redirect(assumedRoutes.ViewAssumedReportsController.onPageLoad()))
+                }
+            )
+          }.getOrElse(Future.successful(NotFound))
+        }
+    }
 }

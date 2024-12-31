@@ -37,6 +37,7 @@ class AddressController @Inject()(
                                    identify: IdentifierAction,
                                    getData: DataRetrievalActionProvider,
                                    requireData: DataRequiredAction,
+                                   checkAssumedReportingAllowed: CheckAssumedReportingAllowedAction,
                                    formProvider: AddressFormProvider,
                                    val controllerComponents: MessagesControllerComponents,
                                    view: AddressView
@@ -44,7 +45,7 @@ class AddressController @Inject()(
   extends FrontendBaseController with I18nSupport with AnswerExtractor {
 
   def onPageLoad(operatorId: String, reportingPeriod: Year): Action[AnyContent] =
-    (identify andThen getData(operatorId, Some(reportingPeriod)) andThen requireData) { implicit request =>
+    (identify andThen checkAssumedReportingAllowed andThen getData(operatorId, Some(reportingPeriod)) andThen requireData) { implicit request =>
       getAnswer(AssumingOperatorNamePage) { assumingOperatorName =>
   
         val form = formProvider(assumingOperatorName)
@@ -59,7 +60,7 @@ class AddressController @Inject()(
     }
 
   def onSubmit(operatorId: String, reportingPeriod: Year): Action[AnyContent] =
-    (identify andThen getData(operatorId, Some(reportingPeriod)) andThen requireData).async { implicit request =>
+    (identify andThen checkAssumedReportingAllowed andThen getData(operatorId, Some(reportingPeriod)) andThen requireData).async { implicit request =>
       getAnswerAsync(AssumingOperatorNamePage) { assumingOperatorName =>
 
         val form = formProvider(assumingOperatorName)

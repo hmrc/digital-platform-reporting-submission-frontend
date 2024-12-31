@@ -18,7 +18,7 @@ package controllers.assumed.create
 
 import com.google.inject.Inject
 import connectors.SubscriptionConnector
-import controllers.actions.{DataRequiredAction, DataRetrievalActionProvider, IdentifierAction}
+import controllers.actions.*
 import forms.CheckContactDetailsFormProvider
 import models.NormalMode
 import models.confirmed.ConfirmedDetails
@@ -40,6 +40,7 @@ class CheckContactDetailsController @Inject()(override val messagesApi: Messages
                                               identify: IdentifierAction,
                                               getData: DataRetrievalActionProvider,
                                               requireData: DataRequiredAction,
+                                              checkAssumedReportingAllowed: CheckAssumedReportingAllowedAction,
                                               val controllerComponents: MessagesControllerComponents,
                                               formProvider: CheckContactDetailsFormProvider,
                                               page: CheckContactDetailsPage,
@@ -49,7 +50,7 @@ class CheckContactDetailsController @Inject()(override val messagesApi: Messages
                                               confirmedDetailsService: ConfirmedDetailsService)
                                              (implicit ec: ExecutionContext) extends FrontendBaseController with I18nSupport {
 
-  def onPageLoad(operatorId: String): Action[AnyContent] = (identify andThen getData(operatorId) andThen requireData).async {
+  def onPageLoad(operatorId: String): Action[AnyContent] = (identify andThen checkAssumedReportingAllowed andThen getData(operatorId) andThen requireData).async {
     implicit request =>
       subscriptionConnector.getSubscription.map { subscriptionInfo =>
         val list = summaryList(subscriptionInfo)
@@ -58,7 +59,7 @@ class CheckContactDetailsController @Inject()(override val messagesApi: Messages
       }
   }
 
-  def onSubmit(operatorId: String): Action[AnyContent] = (identify andThen getData(operatorId) andThen requireData).async { implicit request =>
+  def onSubmit(operatorId: String): Action[AnyContent] = (identify andThen checkAssumedReportingAllowed andThen getData(operatorId) andThen requireData).async { implicit request =>
     formProvider().bindFromRequest().fold(
       formWithErrors => {
         subscriptionConnector.getSubscription.map { subscriptionInfo =>

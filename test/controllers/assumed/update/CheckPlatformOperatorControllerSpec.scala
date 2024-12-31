@@ -18,6 +18,7 @@ package controllers.assumed.update
 
 import base.SpecBase
 import connectors.PlatformOperatorConnector
+import controllers.routes as baseRoutes
 import forms.CheckPlatformOperatorFormProvider
 import models.operator.responses.PlatformOperator
 import models.operator.{AddressDetails, ContactDetails}
@@ -110,6 +111,23 @@ class CheckPlatformOperatorControllerSpec extends SpecBase with SummaryListFluen
       }
     }
 
+    "must redirect to AssumedReportingDisabled for a GET when submissions are disabled" in {
+
+      val application =
+        applicationBuilder(userAnswers = Some(baseAnswers))
+          .configure("features.submissions-enabled" -> false)
+          .build()
+
+      running(application) {
+        val request = FakeRequest(GET, routes.CheckPlatformOperatorController.onPageLoad(operatorId, reportingPeriod).url)
+
+        val result = route(application, request).value
+
+        status(result) mustEqual SEE_OTHER
+        redirectLocation(result).value mustEqual baseRoutes.AssumedReportingDisabledController.onPageLoad().url
+      }
+    }
+
     "must return BadRequest and errors when an invalid answer is submitted" in {
 
       val operator = PlatformOperator(
@@ -191,6 +209,25 @@ class CheckPlatformOperatorControllerSpec extends SpecBase with SummaryListFluen
 
         val answers = answersCaptor.getValue
         answers.get(page).value mustEqual true
+      }
+    }
+
+    "must redirect to AssumedReportingDisabled when submissions are disabled" in {
+      
+      val application =
+        applicationBuilder(userAnswers = Some(baseAnswers))
+          .configure("features.submissions-enabled" -> false)
+          .build()
+
+      running(application) {
+        val request =
+          FakeRequest(POST, routes.CheckPlatformOperatorController.onPageLoad(operatorId, reportingPeriod).url)
+            .withFormUrlEncodedBody("value" -> "true")
+
+        val result = route(application, request).value
+
+        status(result) mustEqual SEE_OTHER
+        redirectLocation(result).value mustEqual baseRoutes.AssumedReportingDisabledController.onPageLoad().url
       }
     }
   }

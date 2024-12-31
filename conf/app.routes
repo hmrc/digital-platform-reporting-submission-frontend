@@ -16,6 +16,8 @@ GET         /submission/account/signed-out                          controllers.
 
 GET         /submission/unauthorised                                controllers.UnauthorisedController.onPageLoad()
 
+GET         /submission/unavailable                                 controllers.SubmissionsDisabledController.onPageLoad()
+GET         /assumed-reporting/unavailable                          controllers.AssumedReportingDisabledController.onPageLoad()
 
 ->          /submission/hmrc-frontend                               hmrcfrontend.Routes
 ->          /submission                                             submissions.Routes

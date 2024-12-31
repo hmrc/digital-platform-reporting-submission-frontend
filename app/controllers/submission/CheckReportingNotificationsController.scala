@@ -19,7 +19,7 @@ package controllers.submission
 import config.FrontendAppConfig
 import connectors.{PlatformOperatorConnector, SubmissionConnector}
 import controllers.AnswerExtractor
-import controllers.actions.{DataRequiredAction, DataRetrievalActionProvider, IdentifierAction}
+import controllers.actions.*
 import forms.CheckReportingNotificationsFormProvider
 import models.confirmed.ConfirmedDetails
 import play.api.i18n.{I18nSupport, MessagesApi}
@@ -36,6 +36,7 @@ class CheckReportingNotificationsController @Inject()(override val messagesApi: 
                                                       identify: IdentifierAction,
                                                       getData: DataRetrievalActionProvider,
                                                       requireData: DataRequiredAction,
+                                                      checkSubmissionsAllowed: CheckSubmissionsAllowedAction,
                                                       val controllerComponents: MessagesControllerComponents,
                                                       platformOperatorConnector: PlatformOperatorConnector,
                                                       submissionConnector: SubmissionConnector,
@@ -46,41 +47,43 @@ class CheckReportingNotificationsController @Inject()(override val messagesApi: 
                                                      (implicit ec: ExecutionContext)
   extends FrontendBaseController with I18nSupport with AnswerExtractor {
 
-  def onPageLoad(operatorId: String): Action[AnyContent] = (identify andThen getData(operatorId) andThen requireData).async {
-    implicit request =>
-      platformOperatorConnector.viewPlatformOperator(operatorId).map { operator =>
-
-        if (operator.notifications.isEmpty) {
-          Redirect(routes.ReportingNotificationRequiredController.onPageLoad(operatorId))
-        } else {
-          val form = formProvider()
-
-          Ok(view(form, operator.notifications, operatorId, operator.operatorName))
-        }
-      }
-  }
-
-  def onSubmit(operatorId: String): Action[AnyContent] = (identify andThen getData(operatorId) andThen requireData).async { implicit request =>
-    formProvider().bindFromRequest().fold(
-      formWithErrors => {
+  def onPageLoad(operatorId: String): Action[AnyContent] =
+    (identify andThen checkSubmissionsAllowed andThen getData(operatorId) andThen requireData).async {
+      implicit request =>
         platformOperatorConnector.viewPlatformOperator(operatorId).map { operator =>
-          BadRequest(view(formWithErrors, operator.notifications, operatorId, operator.operatorName))
-        }
-      },
-      answer => if (answer) {
-        confirmedDetailsService.confirmReportingNotificationsFor(operatorId).flatMap {
-          case ConfirmedDetails(true, true, true) => getAnswerAsync(PlatformOperatorSummaryQuery) { summary =>
-            submissionConnector.start(operatorId, summary.operatorName, None).map { submission =>
-              Redirect(routes.UploadController.onPageLoad(operatorId, submission._id))
-            }
+  
+          if (operator.notifications.isEmpty) {
+            Redirect(routes.ReportingNotificationRequiredController.onPageLoad(operatorId))
+          } else {
+            val form = formProvider()
+  
+            Ok(view(form, operator.notifications, operatorId, operator.operatorName))
           }
-          case ConfirmedDetails(true, true, false) => Future.successful(Redirect(routes.CheckContactDetailsController.onPageLoad(operatorId)))
-          case ConfirmedDetails(true, false, _) => Future.successful(Redirect(routes.CheckReportingNotificationsController.onSubmit(operatorId)))
-          case ConfirmedDetails(false, _, _) => Future.successful(Redirect(routes.CheckPlatformOperatorController.onPageLoad(operatorId)))
         }
-      } else {
-        Future.successful(Redirect(appConfig.manageHomepageUrl))
-      }
-    )
-  }
+    }
+
+  def onSubmit(operatorId: String): Action[AnyContent] =
+    (identify andThen checkSubmissionsAllowed andThen getData(operatorId) andThen requireData).async { implicit request =>
+      formProvider().bindFromRequest().fold(
+        formWithErrors => {
+          platformOperatorConnector.viewPlatformOperator(operatorId).map { operator =>
+            BadRequest(view(formWithErrors, operator.notifications, operatorId, operator.operatorName))
+          }
+        },
+        answer => if (answer) {
+          confirmedDetailsService.confirmReportingNotificationsFor(operatorId).flatMap {
+            case ConfirmedDetails(true, true, true) => getAnswerAsync(PlatformOperatorSummaryQuery) { summary =>
+              submissionConnector.start(operatorId, summary.operatorName, None).map { submission =>
+                Redirect(routes.UploadController.onPageLoad(operatorId, submission._id))
+              }
+            }
+            case ConfirmedDetails(true, true, false) => Future.successful(Redirect(routes.CheckContactDetailsController.onPageLoad(operatorId)))
+            case ConfirmedDetails(true, false, _) => Future.successful(Redirect(routes.CheckReportingNotificationsController.onSubmit(operatorId)))
+            case ConfirmedDetails(false, _, _) => Future.successful(Redirect(routes.CheckPlatformOperatorController.onPageLoad(operatorId)))
+          }
+        } else {
+          Future.successful(Redirect(appConfig.manageHomepageUrl))
+        }
+      )
+    }
 }

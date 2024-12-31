@@ -19,6 +19,7 @@ package controllers.assumed.create
 import base.SpecBase
 import connectors.PlatformOperatorConnector
 import connectors.PlatformOperatorConnector.PlatformOperatorNotFoundFailure
+import controllers.routes as baseRoutes
 import models.operator.responses.PlatformOperator
 import models.operator.{AddressDetails, ContactDetails}
 import models.{NormalMode, UserAnswers}
@@ -75,6 +76,23 @@ class StartControllerSpec extends SpecBase with MockitoSugar with BeforeAndAfter
         contentAsString(result) mustEqual view(operatorId)(request, messages(application)).toString
         verify(mockPlatformOperatorConnector, never()).viewPlatformOperator(any())(any())
         verify(mockSessionRepository, never()).set(any())
+      }
+    }
+
+    "must redirect to AssumedReportingDisabled for a GET when submissions are disabled" in {
+
+      val application =
+        applicationBuilder(userAnswers = Some(baseAnswers))
+          .configure("features.submissions-enabled" -> false)
+          .build()
+
+      running(application) {
+        val request = FakeRequest(GET, routes.StartController.onPageLoad(operatorId).url)
+
+        val result = route(application, request).value
+        
+        status(result) mustEqual SEE_OTHER
+        redirectLocation(result).value mustEqual baseRoutes.AssumedReportingDisabledController.onPageLoad().url
       }
     }
 
@@ -214,6 +232,21 @@ class StartControllerSpec extends SpecBase with MockitoSugar with BeforeAndAfter
 
           status(result) mustEqual SEE_OTHER
           redirectLocation(result).value mustEqual routes.ReportingPeriodController.onSubmit(NormalMode, operatorId).url
+        }
+      }
+
+      "must redirect to AssumedReportingDisabled when submissions are disabled" in {
+        
+        val application = applicationBuilder(userAnswers = Some(baseAnswers))
+          .configure("features.submissions-enabled" -> false)
+          .build()
+
+        running(application) {
+          val request = FakeRequest(routes.StartController.onSubmit(operatorId))
+          val result = route(application, request).value
+
+          status(result) mustEqual SEE_OTHER
+          redirectLocation(result).value mustEqual baseRoutes.AssumedReportingDisabledController.onPageLoad().url
         }
       }
     }

@@ -19,11 +19,11 @@ package controllers.assumed.update
 import base.SpecBase
 import controllers.routes as baseRoutes
 import forms.InternationalTaxIdentifierFormProvider
-import models.{Country, DefaultCountriesList, NormalMode, UserAnswers}
+import models.{Country, DefaultCountriesList}
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.when
 import org.scalatestplus.mockito.MockitoSugar
-import pages.assumed.update.{AssumingOperatorNamePage, InternationalTaxIdentifierPage, TaxResidencyCountryPage}
+import pages.assumed.update.{InternationalTaxIdentifierPage, TaxResidencyCountryPage}
 import play.api.inject.bind
 import play.api.test.FakeRequest
 import play.api.test.Helpers.*
@@ -77,6 +77,23 @@ class InternationalTaxIdentifierControllerSpec extends SpecBase with MockitoSuga
 
         status(result) mustEqual OK
         contentAsString(result) mustEqual view(form.fill("answer"), operatorId, reportingPeriod, country)(request, messages(application)).toString
+      }
+    }
+
+    "must redirect to AssumedReportingDisabled for a GET when submissions are disabled" in {
+
+      val application =
+        applicationBuilder(userAnswers = Some(baseAnswers))
+          .configure("features.submissions-enabled" -> false)
+          .build()
+
+      running(application) {
+        val request = FakeRequest(GET, internationalTaxIdentifierRoute)
+
+        val result = route(application, request).value
+
+        status(result) mustEqual SEE_OTHER
+        redirectLocation(result).value mustEqual baseRoutes.AssumedReportingDisabledController.onPageLoad().url
       }
     }
 
@@ -153,6 +170,25 @@ class InternationalTaxIdentifierControllerSpec extends SpecBase with MockitoSuga
 
         status(result) mustEqual SEE_OTHER
         redirectLocation(result).value mustEqual baseRoutes.JourneyRecoveryController.onPageLoad().url
+      }
+    }
+
+    "must redirect to AssumedReportingDisabled for a POST when submissions are disabled" in {
+
+      val application =
+        applicationBuilder(userAnswers = None)
+          .configure("features.submissions-enabled" -> false)
+          .build()
+
+      running(application) {
+        val request =
+          FakeRequest(POST, internationalTaxIdentifierRoute)
+            .withFormUrlEncodedBody(("value", "answer"))
+
+        val result = route(application, request).value
+
+        status(result) mustEqual SEE_OTHER
+        redirectLocation(result).value mustEqual baseRoutes.AssumedReportingDisabledController.onPageLoad().url
       }
     }
   }

@@ -18,7 +18,7 @@ package controllers.assumed.update
 
 import com.google.inject.Inject
 import connectors.SubscriptionConnector
-import controllers.actions.{DataRequiredAction, DataRetrievalActionProvider, IdentifierAction}
+import controllers.actions.*
 import forms.CheckContactDetailsFormProvider
 import models.subscription.{IndividualContact, OrganisationContact, SubscriptionInfo}
 import pages.assumed.update.CheckContactDetailsPage
@@ -38,6 +38,7 @@ class CheckContactDetailsController @Inject()(
                                                identify: IdentifierAction,
                                                getData: DataRetrievalActionProvider,
                                                requireData: DataRequiredAction,
+                                               checkAssumedReportingAllowed: CheckAssumedReportingAllowedAction,
                                                val controllerComponents: MessagesControllerComponents,
                                                formProvider: CheckContactDetailsFormProvider,
                                                page: CheckContactDetailsPage,
@@ -47,7 +48,7 @@ class CheckContactDetailsController @Inject()(
                                              )(implicit ec: ExecutionContext) extends FrontendBaseController with I18nSupport {
 
   def onPageLoad(operatorId: String, reportingPeriod: Year): Action[AnyContent] =
-    (identify andThen getData(operatorId, Some(reportingPeriod)) andThen requireData).async {
+    (identify andThen checkAssumedReportingAllowed andThen getData(operatorId, Some(reportingPeriod)) andThen requireData).async {
       implicit request =>
         connector.getSubscription.map { subscriptionInfo =>
           val list = summaryList(subscriptionInfo)
@@ -56,24 +57,25 @@ class CheckContactDetailsController @Inject()(
         }
     }
 
-  def onSubmit(operatorId: String, reportingPeriod: Year): Action[AnyContent] = (identify andThen getData(operatorId, Some(reportingPeriod)) andThen requireData).async {
-    implicit request =>
-      
-      val form = formProvider()
-      
-      form.bindFromRequest().fold(
-        formWithErrors => {
-          connector.getSubscription.map { subscriptionInfo =>
-            val list = summaryList(subscriptionInfo)
-            BadRequest(view(formWithErrors, list, operatorId, reportingPeriod))
-          }
-        },
-        answer => for {
-          updatedAnswers <- Future.fromTry(request.userAnswers.set(page, answer))
-          _              <- sessionRepository.set(updatedAnswers)
-        } yield Redirect(page.nextPage(reportingPeriod, updatedAnswers))
-      )
-  }
+  def onSubmit(operatorId: String, reportingPeriod: Year): Action[AnyContent] =
+    (identify andThen checkAssumedReportingAllowed andThen getData(operatorId, Some(reportingPeriod)) andThen requireData).async {
+      implicit request =>
+        
+        val form = formProvider()
+        
+        form.bindFromRequest().fold(
+          formWithErrors => {
+            connector.getSubscription.map { subscriptionInfo =>
+              val list = summaryList(subscriptionInfo)
+              BadRequest(view(formWithErrors, list, operatorId, reportingPeriod))
+            }
+          },
+          answer => for {
+            updatedAnswers <- Future.fromTry(request.userAnswers.set(page, answer))
+            _              <- sessionRepository.set(updatedAnswers)
+          } yield Redirect(page.nextPage(reportingPeriod, updatedAnswers))
+        )
+    }
 
   private def summaryList(subscription: SubscriptionInfo)(implicit messages: Messages): SummaryList = {
     subscription.primaryContact match {

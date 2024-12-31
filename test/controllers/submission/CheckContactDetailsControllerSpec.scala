@@ -19,6 +19,7 @@ package controllers.submission
 import base.SpecBase
 import config.FrontendAppConfig
 import connectors.{SubmissionConnector, SubscriptionConnector}
+import controllers.routes as baseRoutes
 import forms.CheckContactDetailsFormProvider
 import models.subscription.*
 import org.mockito.ArgumentMatchers.{any, eq as eqTo}
@@ -178,6 +179,21 @@ class CheckContactDetailsControllerSpec extends SpecBase with SummaryListFluency
       }
     }
 
+    "must redirect to SubmissionsDisabled for a GET when submissions are disabled" - {
+
+      val application = applicationBuilder(userAnswers = Some(aUserAnswers))
+        .configure("features.submissions-enabled" -> false)
+        .build()
+
+      running(application) {
+        val request = FakeRequest(GET, routes.CheckContactDetailsController.onPageLoad(operatorId).url)
+        val result = route(application, request).value
+        
+        status(result) mustEqual SEE_OTHER
+        redirectLocation(result).value mustEqual baseRoutes.SubmissionsDisabledController.onPageLoad().url
+      }
+    }
+
     "onSubmit(...)" - {
       "must return BadRequest and errors when an invalid answer is submitted" in {
         val contact = IndividualContact(Individual("first", "last"), "email", None)
@@ -214,6 +230,23 @@ class CheckContactDetailsControllerSpec extends SpecBase with SummaryListFluency
 
           status(result) mustEqual BAD_REQUEST
           contentAsString(result) mustEqual view(formWithErrors, summaryList, "operatorId")(request, implicitly).toString
+        }
+      }
+
+      "must redirect to SubmissionsDisabled for a POST when submissions are disabled" in {
+
+        val application = applicationBuilder(userAnswers = Some(baseAnswers))
+          .configure("features.submissions-enabled" -> false)
+          .build()
+
+        running(application) {
+          val request = FakeRequest(POST, routes.CheckContactDetailsController.onPageLoad(operatorId).url)
+            .withFormUrlEncodedBody("value" -> "true")
+
+          val result = route(application, request).value
+
+          status(result) mustEqual SEE_OTHER
+          redirectLocation(result).value mustEqual baseRoutes.SubmissionsDisabledController.onPageLoad().url
         }
       }
 

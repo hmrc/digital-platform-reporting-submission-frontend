@@ -18,6 +18,7 @@ package controllers.assumed.create
 
 import base.SpecBase
 import connectors.PlatformOperatorConnector
+import controllers.routes as baseRoutes
 import forms.assumed.SelectPlatformOperatorFormProvider
 import models.operator.responses.{PlatformOperator, ViewPlatformOperatorsResponse}
 import models.operator.{AddressDetails, ContactDetails}
@@ -135,6 +136,23 @@ class SelectPlatformOperatorControllerSpec extends SpecBase with MockitoSugar wi
       }
     }
 
+    "must redirect to AssumedReportingDisabled for a GET when submissions are disabled" - {
+
+      val application =
+        applicationBuilder(userAnswers = None)
+          .configure("features.submissions-enabled" -> false)
+          .build()
+
+      running(application) {
+        val request = FakeRequest(GET, selectPlatformOperatorRoute)
+
+        val result = route(application, request).value
+
+        status(result) mustEqual SEE_OTHER
+        redirectLocation(result).value mustEqual baseRoutes.AssumedReportingDisabledController.onPageLoad().url
+      }
+    }
+
     "must save the platform operator summary and redirect to the next page when valid data is submitted" in {
 
       val viewOperatorInfo = ViewPlatformOperatorsResponse(Seq(operator1))
@@ -199,6 +217,25 @@ class SelectPlatformOperatorControllerSpec extends SpecBase with MockitoSugar wi
 
         status(result) mustEqual BAD_REQUEST
         contentAsString(result) mustEqual view(boundForm, viewModels)(request, messages(application)).toString
+      }
+    }
+
+    "must redirect to AssumedReportingDisabled for a POST when submissions are disabled" in {
+
+      val application =
+        applicationBuilder(userAnswers = None)
+          .configure("features.submissions-enabled" -> false)
+          .build()
+
+      running(application) {
+        val request =
+          FakeRequest(POST, selectPlatformOperatorRoute)
+            .withFormUrlEncodedBody(("value", "invalid value"))
+
+        val result = route(application, request).value
+
+        status(result) mustEqual SEE_OTHER
+        redirectLocation(result).value mustEqual baseRoutes.AssumedReportingDisabledController.onPageLoad().url
       }
     }
   }

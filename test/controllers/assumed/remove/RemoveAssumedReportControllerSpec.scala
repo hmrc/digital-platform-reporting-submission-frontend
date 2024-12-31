@@ -20,6 +20,7 @@ import base.SpecBase
 import connectors.AssumedReportingConnector
 import connectors.AssumedReportingConnector.DeleteAssumedReportFailure
 import controllers.assumed.routes as assumedRoutes
+import controllers.routes as baseRoutes
 import forms.RemoveAssumedReportFormProvider
 import models.audit.DeleteAssumedReportEvent
 import models.submission.{AssumedReportingSubmissionSummary, SubmissionStatus}
@@ -95,6 +96,26 @@ class RemoveAssumedReportControllerSpec extends SpecBase with MockitoSugar with 
           status(result) mustEqual NOT_FOUND
         }
       }
+
+      "must redirect to AssumedReportingDisabled for a GET when submissions are disabled" in {
+
+        val application =
+          applicationBuilder(userAnswers = Some(baseAnswers))
+            .configure("features.submissions-enabled" -> false)
+            .build()
+
+        running(application) {
+          given Messages = messages(application)
+
+          val request = FakeRequest(routes.RemoveAssumedReportController.onPageLoad("operatorId", Year.of(2024)))
+
+          val result = route(application, request).value
+
+          status(result) mustEqual SEE_OTHER
+          redirectLocation(result).value mustEqual baseRoutes.AssumedReportingDisabledController.onPageLoad().url
+        }
+      }
+
     }
 
     "for a POST" - {
@@ -199,6 +220,25 @@ class RemoveAssumedReportControllerSpec extends SpecBase with MockitoSugar with 
 
           verify(mockConnector).delete(eqTo("operatorId"), eqTo(Year.of(2024)))(using any())
           verify(mockAuditService).audit(eqTo(expectedAuditEvent))(using any(), any())
+        }
+      }
+
+      "must redirect to AssumedReportingDisabled when submissions are disabled" in {
+
+        val application =
+          applicationBuilder(userAnswers = Some(baseAnswers))
+            .configure("features.submissions-enabled" -> false)
+            .build()
+
+        running(application) {
+          val request =
+            FakeRequest(routes.RemoveAssumedReportController.onSubmit("operatorId", Year.of(2024)))
+              .withFormUrlEncodedBody("value" -> "")
+
+          val result = route(application, request).value
+
+          status(result) mustEqual SEE_OTHER
+          redirectLocation(result).value mustEqual baseRoutes.AssumedReportingDisabledController.onPageLoad().url
         }
       }
     }

@@ -19,6 +19,7 @@ package controllers.submission
 import base.SpecBase
 import config.FrontendAppConfig
 import connectors.{PlatformOperatorConnector, SubmissionConnector}
+import controllers.routes as baseRoutes
 import forms.CheckReportingNotificationsFormProvider
 import models.operator.responses.{NotificationDetails, PlatformOperator}
 import models.operator.{AddressDetails, ContactDetails, NotificationType}
@@ -41,7 +42,6 @@ import views.html.submission.CheckReportingNotificationsView
 
 import java.time.Instant
 import scala.concurrent.Future
-
 
 class CheckReportingNotificationsControllerSpec extends SpecBase with SummaryListFluency with MockitoSugar with BeforeAndAfterEach {
 
@@ -89,6 +89,23 @@ class CheckReportingNotificationsControllerSpec extends SpecBase with SummaryLis
 
           status(result) mustEqual OK
           contentAsString(result) mustEqual view(form, Seq(notification), "operatorId", "operatorName")(request, messages(application)).toString
+        }
+      }
+      
+      "must redirect to SubmissionsDisabled for a GET when submissions are disabled" in {
+        
+        val application =
+          applicationBuilder(userAnswers = Some(baseAnswers))
+            .configure("features.submissions-enabled" -> false)
+            .build()
+
+        running(application) {
+          val request = FakeRequest(GET, routes.CheckReportingNotificationsController.onPageLoad(operatorId).url)
+
+          val result = route(application, request).value
+
+          status(result) mustEqual SEE_OTHER
+          redirectLocation(result).value mustEqual baseRoutes.SubmissionsDisabledController.onPageLoad().url
         }
       }
 
@@ -158,6 +175,25 @@ class CheckReportingNotificationsControllerSpec extends SpecBase with SummaryLis
 
           status(result) mustEqual BAD_REQUEST
           contentAsString(result) mustEqual view(formWithErrors, Seq(notification), "operatorId", "operatorName")(request, messages(application)).toString
+        }
+      }
+
+      "must redirect to SubmissionsDisabled for a POST when submissions are disabled" in {
+
+        val application =
+          applicationBuilder(userAnswers = Some(baseAnswers))
+            .configure("features.submissions-enabled" -> false)
+            .build()
+
+        running(application) {
+          val request =
+            FakeRequest(POST, routes.CheckReportingNotificationsController.onPageLoad(operatorId).url)
+              .withFormUrlEncodedBody("value" -> "invalid value")
+
+          val result = route(application, request).value
+
+          status(result) mustEqual SEE_OTHER
+          redirectLocation(result).value mustEqual baseRoutes.SubmissionsDisabledController.onPageLoad().url
         }
       }
 

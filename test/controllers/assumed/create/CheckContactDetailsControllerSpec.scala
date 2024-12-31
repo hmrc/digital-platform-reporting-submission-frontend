@@ -19,6 +19,7 @@ package controllers.assumed.create
 import base.SpecBase
 import config.FrontendAppConfig
 import connectors.SubscriptionConnector
+import controllers.routes as baseRoutes
 import forms.CheckContactDetailsFormProvider
 import models.subscription.*
 import models.{NormalMode, UserAnswers}
@@ -177,6 +178,23 @@ class CheckContactDetailsControllerSpec extends SpecBase with SummaryListFluency
           status(result) mustEqual OK
           contentAsString(result) mustEqual view(form, summaryList, "operatorId")(request, implicitly).toString
         }
+      }
+    }
+
+    "must redirect to AssumedReportingDisabled when submissions are disabled" in {
+
+      val application =
+        applicationBuilder(userAnswers = Some(emptyUserAnswers))
+          .configure("features.submissions-enabled" -> false)
+          .build()
+
+      running(application) {
+        val request = FakeRequest(GET, routes.CheckContactDetailsController.onPageLoad(operatorId).url)
+
+        val result = route(application, request).value
+
+        status(result) mustEqual SEE_OTHER
+        redirectLocation(result).value mustEqual baseRoutes.AssumedReportingDisabledController.onPageLoad().url
       }
     }
 
@@ -348,6 +366,25 @@ class CheckContactDetailsControllerSpec extends SpecBase with SummaryListFluency
 
         verify(mockSessionRepository, times(1)).set(expectedAnswers)
         verify(mockConfirmedDetailsService, times(1)).confirmContactDetailsFor(eqTo(operatorId))(using any())
+      }
+
+      "must redirect to AssumedReportingDisabled when submissions are disabled" in {
+
+        val application =
+          applicationBuilder(userAnswers = Some(emptyUserAnswers))
+            .configure("features.submissions-enabled" -> false)
+            .build()
+
+        running(application) {
+          val request =
+            FakeRequest(POST, routes.CheckContactDetailsController.onPageLoad(operatorId).url)
+              .withFormUrlEncodedBody("value" -> "invalid value")
+
+          val result = route(application, request).value
+
+          status(result) mustEqual SEE_OTHER
+          redirectLocation(result).value mustEqual baseRoutes.AssumedReportingDisabledController.onPageLoad().url
+        }
       }
     }
   }

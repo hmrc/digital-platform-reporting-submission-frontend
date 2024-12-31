@@ -45,6 +45,7 @@ class CheckYourAnswersController @Inject()(
                                             identify: IdentifierAction,
                                             getData: DataRetrievalActionProvider,
                                             requireData: DataRequiredAction,
+                                            checkAssumedReportingAllowed: CheckAssumedReportingAllowedAction,
                                             val controllerComponents: MessagesControllerComponents,
                                             view: CheckYourAnswersView,
                                             userAnswersService: UserAnswersService,
@@ -56,7 +57,7 @@ class CheckYourAnswersController @Inject()(
                                           )(using ExecutionContext)
   extends FrontendBaseController with I18nSupport with AnswerExtractor {
 
-  def onPageLoad(operatorId: String): Action[AnyContent] = (identify andThen getData(operatorId) andThen requireData) {
+  def onPageLoad(operatorId: String): Action[AnyContent] = (identify andThen checkAssumedReportingAllowed andThen getData(operatorId) andThen requireData) {
     implicit request =>
 
       val list = SummaryListViewModel(
@@ -77,7 +78,7 @@ class CheckYourAnswersController @Inject()(
       Ok(view(list, operatorId))
   }
 
-  def onSubmit(operatorId: String): Action[AnyContent] = (identify andThen getData(operatorId) andThen requireData).async {
+  def onSubmit(operatorId: String): Action[AnyContent] = (identify andThen checkAssumedReportingAllowed andThen getData(operatorId) andThen requireData).async {
     implicit request =>
       getAnswerAsync(PlatformOperatorSummaryQuery) { platformOperator =>
         

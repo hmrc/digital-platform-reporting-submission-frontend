@@ -19,7 +19,7 @@ package controllers.submission
 import config.FrontendAppConfig
 import connectors.{SubmissionConnector, SubscriptionConnector}
 import controllers.AnswerExtractor
-import controllers.actions.{DataRequiredAction, DataRetrievalActionProvider, IdentifierAction}
+import controllers.actions.*
 import forms.CheckContactDetailsFormProvider
 import models.confirmed.ConfirmedDetails
 import models.subscription.{IndividualContact, OrganisationContact, SubscriptionInfo}
@@ -40,6 +40,7 @@ class CheckContactDetailsController @Inject()(override val messagesApi: Messages
                                               identify: IdentifierAction,
                                               getData: DataRetrievalActionProvider,
                                               requireData: DataRequiredAction,
+                                              checkSubmissionsAllowed: CheckSubmissionsAllowedAction,
                                               val controllerComponents: MessagesControllerComponents,
                                               formProvider: CheckContactDetailsFormProvider,
                                               view: CheckContactDetailsView,
@@ -50,40 +51,42 @@ class CheckContactDetailsController @Inject()(override val messagesApi: Messages
                                              (implicit ec: ExecutionContext)
   extends FrontendBaseController with I18nSupport with AnswerExtractor with Logging {
 
-  def onPageLoad(operatorId: String): Action[AnyContent] = (identify andThen getData(operatorId) andThen requireData).async { implicit request =>
-    connector.getSubscription.map { subscriptionInfo =>
-      val list = summaryList(subscriptionInfo)
-      val form = formProvider()
-      Ok(view(form, list, operatorId))
+  def onPageLoad(operatorId: String): Action[AnyContent] =
+    (identify andThen checkSubmissionsAllowed andThen getData(operatorId) andThen requireData).async { implicit request =>
+      connector.getSubscription.map { subscriptionInfo =>
+        val list = summaryList(subscriptionInfo)
+        val form = formProvider()
+        Ok(view(form, list, operatorId))
+      }
     }
-  }
 
-  def onSubmit(operatorId: String): Action[AnyContent] = (identify andThen getData(operatorId) andThen requireData).async { implicit request =>
-    getAnswerAsync(PlatformOperatorSummaryQuery) { summary =>
-      formProvider().bindFromRequest().fold(
-        formWithErrors => {
-          connector.getSubscription.map { subscriptionInfo =>
-            val list = summaryList(subscriptionInfo)
-            BadRequest(view(formWithErrors, list, operatorId))
+  def onSubmit(operatorId: String): Action[AnyContent] =
+    (identify andThen checkSubmissionsAllowed andThen getData(operatorId) andThen requireData).async { implicit request =>
+      getAnswerAsync(PlatformOperatorSummaryQuery) { summary =>
+        formProvider().bindFromRequest().fold(
+          formWithErrors => {
+            connector.getSubscription.map { subscriptionInfo =>
+              val list = summaryList(subscriptionInfo)
+              BadRequest(view(formWithErrors, list, operatorId))
+            }
+          },
+          answer => if (answer) {
+            confirmedDetailsService.confirmContactDetailsFor(operatorId).flatMap {
+              case ConfirmedDetails(true, true, true) =>
+                submissionConnector.start(operatorId, summary.operatorName, None).map { submission =>
+                  Redirect(routes.UploadController.onPageLoad(operatorId, submission._id))
+                }
+              case ConfirmedDetails(true, true, false) => Future.successful(Redirect(routes.CheckContactDetailsController.onPageLoad(operatorId)))
+              case ConfirmedDetails(true, false, _) => Future.successful(Redirect(routes.CheckReportingNotificationsController.onSubmit(operatorId)))
+              case ConfirmedDetails(false, _, _) => Future.successful(Redirect(routes.CheckPlatformOperatorController.onPageLoad(operatorId)))
+            }
           }
-        },
-        answer => if (answer) {
-          confirmedDetailsService.confirmContactDetailsFor(operatorId).flatMap {
-            case ConfirmedDetails(true, true, true) =>
-              submissionConnector.start(operatorId, summary.operatorName, None).map { submission =>
-                Redirect(routes.UploadController.onPageLoad(operatorId, submission._id))
-              }
-            case ConfirmedDetails(true, true, false) => Future.successful(Redirect(routes.CheckContactDetailsController.onPageLoad(operatorId)))
-            case ConfirmedDetails(true, false, _) => Future.successful(Redirect(routes.CheckReportingNotificationsController.onSubmit(operatorId)))
-            case ConfirmedDetails(false, _, _) => Future.successful(Redirect(routes.CheckPlatformOperatorController.onPageLoad(operatorId)))
+          else {
+            Future.successful(Redirect(appConfig.manageHomepageUrl))
           }
-        }
-        else {
-          Future.successful(Redirect(appConfig.manageHomepageUrl))
-        }
-      )
+        )
+      }
     }
-  }
 
   private def summaryList(subscription: SubscriptionInfo)(implicit messages: Messages): SummaryList = {
     subscription.primaryContact match {

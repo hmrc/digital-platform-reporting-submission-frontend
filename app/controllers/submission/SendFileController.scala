@@ -37,23 +37,25 @@ class SendFileController @Inject()(
                                     identify: IdentifierAction,
                                     getData: DataRetrievalActionProvider,
                                     requireData: DataRequiredAction,
+                                    checkSubmissionsAllowed: CheckSubmissionsAllowedAction,
                                     val controllerComponents: MessagesControllerComponents,
                                     view: SendFileView,
                                     submissionConnector: SubmissionConnector
                                   )(using ExecutionContext) extends FrontendBaseController with I18nSupport {
 
-  def onPageLoad(operatorId: String, submissionId: String): Action[AnyContent] = (identify andThen getData(operatorId) andThen requireData).async {
-    implicit request =>
-      submissionConnector.get(submissionId).flatMap {
-        _.map { submission =>
-          handleSubmission(operatorId, submission) { case state: Validated =>
-            Future.successful(Ok(view(operatorId, submissionId, getSummaryList(submissionId, state.fileName, state.reportingPeriod, submission))))
+  def onPageLoad(operatorId: String, submissionId: String): Action[AnyContent] =
+    (identify andThen checkSubmissionsAllowed andThen getData(operatorId) andThen requireData).async {
+      implicit request =>
+        submissionConnector.get(submissionId).flatMap {
+          _.map { submission =>
+            handleSubmission(operatorId, submission) { case state: Validated =>
+              Future.successful(Ok(view(operatorId, submissionId, getSummaryList(submissionId, state.fileName, state.reportingPeriod, submission))))
+            }
+          }.getOrElse {
+            Future.successful(Redirect(controllers.routes.JourneyRecoveryController.onPageLoad()))
           }
-        }.getOrElse {
-          Future.successful(Redirect(controllers.routes.JourneyRecoveryController.onPageLoad()))
         }
-      }
-  }
+    }
 
   private def getSummaryList(submissionId: String, fileName: String, reportingPeriod: Year, submission: Submission)(using Messages): SummaryList =
     SummaryList(
@@ -81,20 +83,21 @@ class SendFileController @Inject()(
       classes = "govuk-!-margin-bottom-8"
     )
 
-  def onSubmit(operatorId: String, submissionId: String): Action[AnyContent] = (identify andThen getData(operatorId) andThen requireData).async {
-    implicit request =>
-      submissionConnector.get(submissionId).flatMap {
-        _.map { submission =>
-          handleSubmission(operatorId, submission) { case _: Validated =>
-            submissionConnector.submit(submissionId).map { _ =>
-              Redirect(routes.CheckFileController.onPageLoad(operatorId, submissionId))
+  def onSubmit(operatorId: String, submissionId: String): Action[AnyContent] =
+    (identify andThen checkSubmissionsAllowed andThen getData(operatorId) andThen requireData).async {
+      implicit request =>
+        submissionConnector.get(submissionId).flatMap {
+          _.map { submission =>
+            handleSubmission(operatorId, submission) { case _: Validated =>
+              submissionConnector.submit(submissionId).map { _ =>
+                Redirect(routes.CheckFileController.onPageLoad(operatorId, submissionId))
+              }
             }
+          }.getOrElse {
+            Future.successful(Redirect(controllers.routes.JourneyRecoveryController.onPageLoad()))
           }
-        }.getOrElse {
-          Future.successful(Redirect(controllers.routes.JourneyRecoveryController.onPageLoad()))
         }
-      }
-  }
+    }
 
   private def handleSubmission(operatorId: String, submission: Submission)(f: PartialFunction[Submission.State, Future[Result]]): Future[Result] =
     f.lift(submission.state).getOrElse {

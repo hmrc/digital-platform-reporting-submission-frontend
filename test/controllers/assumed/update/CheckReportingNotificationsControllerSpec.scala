@@ -18,6 +18,7 @@ package controllers.assumed.update
 
 import base.SpecBase
 import connectors.PlatformOperatorConnector
+import controllers.routes as baseRoutes
 import forms.CheckReportingNotificationsFormProvider
 import models.operator.responses.{NotificationDetails, PlatformOperator}
 import models.operator.{AddressDetails, ContactDetails, NotificationType}
@@ -124,6 +125,23 @@ class CheckReportingNotificationsControllerSpec extends SpecBase with SummaryLis
       }
     }
 
+    "must redirect to AssumedReportingDisabled for a GET when submissions are disabled" in {
+
+      val application =
+        applicationBuilder(userAnswers = Some(baseAnswers))
+          .configure("features.submissions-enabled" -> false)
+          .build()
+
+      running(application) {
+        val request = FakeRequest(GET, routes.CheckReportingNotificationsController.onPageLoad(operatorId, reportingPeriod).url)
+
+        val result = route(application, request).value
+
+        status(result) mustEqual SEE_OTHER
+        redirectLocation(result).value mustEqual baseRoutes.AssumedReportingDisabledController.onPageLoad().url
+      }
+    }
+
     "must return BadRequest and errors when an invalid answer is submitted" in {
 
       val notification = NotificationDetails(NotificationType.Epo, None, None, 2024, Instant.now)
@@ -188,6 +206,25 @@ class CheckReportingNotificationsControllerSpec extends SpecBase with SummaryLis
 
         val answers = answersCaptor.getValue
         answers.get(page).value mustEqual true
+      }
+    }
+
+    "must redirect to AssumedReportingDisabled when submissions are disabled" in {
+
+      val application =
+        applicationBuilder(userAnswers = Some(baseAnswers))
+          .configure("features.submissions-enabled" -> false)
+          .build()
+
+      running(application) {
+        val request =
+          FakeRequest(POST, routes.CheckReportingNotificationsController.onPageLoad(operatorId, reportingPeriod).url)
+            .withFormUrlEncodedBody("value" -> "true")
+
+        val result = route(application, request).value
+
+        status(result) mustEqual SEE_OTHER
+        redirectLocation(result).value mustEqual baseRoutes.AssumedReportingDisabledController.onPageLoad().url
       }
     }
   }

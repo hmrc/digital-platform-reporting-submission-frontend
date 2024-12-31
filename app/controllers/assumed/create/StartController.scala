@@ -19,7 +19,7 @@ package controllers.assumed.create
 import connectors.PlatformOperatorConnector
 import connectors.PlatformOperatorConnector.PlatformOperatorNotFoundFailure
 import controllers.AnswerExtractor
-import controllers.actions.{DataRequiredAction, DataRetrievalActionProvider, IdentifierAction}
+import controllers.actions.*
 import models.confirmed.ConfirmedDetails
 import models.{NormalMode, UserAnswers}
 import pages.assumed.create.StartPage
@@ -39,6 +39,7 @@ class StartController @Inject()(override val messagesApi: MessagesApi,
                                 identify: IdentifierAction,
                                 getData: DataRetrievalActionProvider,
                                 requireData: DataRequiredAction,
+                                checkAssumedReportingAllowed: CheckAssumedReportingAllowedAction,
                                 sessionRepository: SessionRepository,
                                 platformOperatorConnector: PlatformOperatorConnector,
                                 confirmedDetailsService: ConfirmedDetailsService,
@@ -47,7 +48,7 @@ class StartController @Inject()(override val messagesApi: MessagesApi,
                                (implicit ec: ExecutionContext)
   extends FrontendBaseController with I18nSupport with AnswerExtractor {
 
-  def onPageLoad(operatorId: String): Action[AnyContent] = (identify andThen getData(operatorId)).async { implicit request =>
+  def onPageLoad(operatorId: String): Action[AnyContent] = (identify andThen checkAssumedReportingAllowed andThen getData(operatorId)).async { implicit request =>
     request.userAnswers
       .map(_ => Future.successful(Ok(view(operatorId))))
       .getOrElse {
@@ -64,7 +65,7 @@ class StartController @Inject()(override val messagesApi: MessagesApi,
       }
   }
 
-  def onSubmit(operatorId: String): Action[AnyContent] = (identify andThen getData(operatorId) andThen requireData).async { implicit request =>
+  def onSubmit(operatorId: String): Action[AnyContent] = (identify andThen checkAssumedReportingAllowed andThen getData(operatorId) andThen requireData).async { implicit request =>
     confirmedDetailsService.confirmedDetailsFor(operatorId).map {
       case ConfirmedDetails(true, true, true) => Redirect(routes.ReportingPeriodController.onPageLoad(NormalMode, operatorId))
       case ConfirmedDetails(true, true, false) => Redirect(routes.CheckContactDetailsController.onPageLoad(operatorId))

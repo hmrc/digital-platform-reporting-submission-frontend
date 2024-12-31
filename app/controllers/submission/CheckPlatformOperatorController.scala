@@ -42,6 +42,7 @@ class CheckPlatformOperatorController @Inject()(override val messagesApi: Messag
                                                 identify: IdentifierAction,
                                                 getData: DataRetrievalActionProvider,
                                                 requireData: DataRequiredAction,
+                                                checkSubmissionsAllowed: CheckSubmissionsAllowedAction,
                                                 val controllerComponents: MessagesControllerComponents,
                                                 platformOperatorConnector: PlatformOperatorConnector,
                                                 submissionConnector: SubmissionConnector,
@@ -53,29 +54,15 @@ class CheckPlatformOperatorController @Inject()(override val messagesApi: Messag
                                                (implicit ec: ExecutionContext)
   extends FrontendBaseController with I18nSupport with AnswerExtractor {
 
-  def onPageLoad(operatorId: String): Action[AnyContent] = (identify andThen getData(operatorId) andThen requireData).async {
-    implicit request =>
-      platformOperatorConnector.viewPlatformOperator(operatorId).map { operator =>
-
-        val form = formProvider()
-
-        Ok(view(
-          form,
-          platformOperatorList(operator),
-          primaryContactList(operator),
-          secondaryContactList(operator),
-          operator.operatorId,
-          operator.operatorName
-        ))
-      }
-  }
-
-  def onSubmit(operatorId: String): Action[AnyContent] = (identify andThen getData(operatorId) andThen requireData).async { implicit request =>
-    formProvider().bindFromRequest().fold(
-      formWithErrors => {
+  def onPageLoad(operatorId: String): Action[AnyContent] =
+    (identify andThen checkSubmissionsAllowed andThen getData(operatorId) andThen requireData).async {
+      implicit request =>
         platformOperatorConnector.viewPlatformOperator(operatorId).map { operator =>
-          BadRequest(view(
-            formWithErrors,
+  
+          val form = formProvider()
+  
+          Ok(view(
+            form,
             platformOperatorList(operator),
             primaryContactList(operator),
             secondaryContactList(operator),
@@ -83,23 +70,39 @@ class CheckPlatformOperatorController @Inject()(override val messagesApi: Messag
             operator.operatorName
           ))
         }
-      },
-      answer => if (answer) {
-        confirmedDetailsService.confirmBusinessDetailsFor(operatorId).flatMap {
-          case ConfirmedDetails(true, true, true) => getAnswerAsync(PlatformOperatorSummaryQuery) { summary =>
-            submissionConnector.start(operatorId, summary.operatorName, None).map { submission =>
-              Redirect(routes.UploadController.onPageLoad(operatorId, submission._id))
-            }
+    }
+
+  def onSubmit(operatorId: String): Action[AnyContent] =
+    (identify andThen checkSubmissionsAllowed andThen getData(operatorId) andThen requireData).async { implicit request =>
+      formProvider().bindFromRequest().fold(
+        formWithErrors => {
+          platformOperatorConnector.viewPlatformOperator(operatorId).map { operator =>
+            BadRequest(view(
+              formWithErrors,
+              platformOperatorList(operator),
+              primaryContactList(operator),
+              secondaryContactList(operator),
+              operator.operatorId,
+              operator.operatorName
+            ))
           }
-          case ConfirmedDetails(true, true, false) => Future.successful(Redirect(routes.CheckContactDetailsController.onPageLoad(operatorId)))
-          case ConfirmedDetails(true, false, _) => Future.successful(Redirect(routes.CheckReportingNotificationsController.onSubmit(operatorId)))
-          case ConfirmedDetails(false, _, _) => Future.successful(Redirect(routes.CheckPlatformOperatorController.onPageLoad(operatorId)))
+        },
+        answer => if (answer) {
+          confirmedDetailsService.confirmBusinessDetailsFor(operatorId).flatMap {
+            case ConfirmedDetails(true, true, true) => getAnswerAsync(PlatformOperatorSummaryQuery) { summary =>
+              submissionConnector.start(operatorId, summary.operatorName, None).map { submission =>
+                Redirect(routes.UploadController.onPageLoad(operatorId, submission._id))
+              }
+            }
+            case ConfirmedDetails(true, true, false) => Future.successful(Redirect(routes.CheckContactDetailsController.onPageLoad(operatorId)))
+            case ConfirmedDetails(true, false, _) => Future.successful(Redirect(routes.CheckReportingNotificationsController.onSubmit(operatorId)))
+            case ConfirmedDetails(false, _, _) => Future.successful(Redirect(routes.CheckPlatformOperatorController.onPageLoad(operatorId)))
+          }
+        } else {
+          Future.successful(Redirect(appConfig.manageHomepageUrl))
         }
-      } else {
-        Future.successful(Redirect(appConfig.manageHomepageUrl))
-      }
-    )
-  }
+      )
+    }
 
   private def platformOperatorList(operator: PlatformOperator)(implicit messages: Messages): SummaryList =
     SummaryListViewModel(

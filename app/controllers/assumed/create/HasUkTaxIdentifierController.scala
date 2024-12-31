@@ -37,6 +37,7 @@ class HasUkTaxIdentifierController @Inject()(
                                               identify: IdentifierAction,
                                               getData: DataRetrievalActionProvider,
                                               requireData: DataRequiredAction,
+                                              checkAssumedReportingAllowed: CheckAssumedReportingAllowedAction,
                                               formProvider: HasUkTaxIdentifierFormProvider,
                                               val controllerComponents: MessagesControllerComponents,
                                               view: HasUkTaxIdentifierView
@@ -44,35 +45,37 @@ class HasUkTaxIdentifierController @Inject()(
   extends FrontendBaseController with I18nSupport with AnswerExtractor {
 
 
-  def onPageLoad(mode: Mode, operatorId: String): Action[AnyContent] = (identify andThen getData(operatorId) andThen requireData) { implicit request =>
-    getAnswer(AssumingOperatorNamePage) { assumingOperatorName =>
-
-      val form = formProvider(assumingOperatorName)
-
-      val preparedForm = request.userAnswers.get(HasUkTaxIdentifierPage) match {
-        case None => form
-        case Some(value) => form.fill(value)
+  def onPageLoad(mode: Mode, operatorId: String): Action[AnyContent] =
+    (identify andThen checkAssumedReportingAllowed andThen getData(operatorId) andThen requireData) { implicit request =>
+      getAnswer(AssumingOperatorNamePage) { assumingOperatorName =>
+  
+        val form = formProvider(assumingOperatorName)
+  
+        val preparedForm = request.userAnswers.get(HasUkTaxIdentifierPage) match {
+          case None => form
+          case Some(value) => form.fill(value)
+        }
+  
+        Ok(view(preparedForm, mode, operatorId, assumingOperatorName))
       }
-
-      Ok(view(preparedForm, mode, operatorId, assumingOperatorName))
     }
-  }
 
-  def onSubmit(mode: Mode, operatorId: String): Action[AnyContent] = (identify andThen getData(operatorId) andThen requireData).async { implicit request =>
-    getAnswerAsync(AssumingOperatorNamePage) { assumingOperatorName =>
-
-      val form = formProvider(assumingOperatorName)
-      
-      form.bindFromRequest().fold(
-        formWithErrors =>
-          Future.successful(BadRequest(view(formWithErrors, mode, operatorId, assumingOperatorName))),
-
-        value =>
-          for {
-            updatedAnswers <- Future.fromTry(request.userAnswers.set(HasUkTaxIdentifierPage, value))
-            _ <- sessionRepository.set(updatedAnswers)
-          } yield Redirect(HasUkTaxIdentifierPage.nextPage(mode, updatedAnswers))
-      )
+  def onSubmit(mode: Mode, operatorId: String): Action[AnyContent] =
+    (identify andThen checkAssumedReportingAllowed andThen getData(operatorId) andThen requireData).async { implicit request =>
+      getAnswerAsync(AssumingOperatorNamePage) { assumingOperatorName =>
+  
+        val form = formProvider(assumingOperatorName)
+        
+        form.bindFromRequest().fold(
+          formWithErrors =>
+            Future.successful(BadRequest(view(formWithErrors, mode, operatorId, assumingOperatorName))),
+  
+          value =>
+            for {
+              updatedAnswers <- Future.fromTry(request.userAnswers.set(HasUkTaxIdentifierPage, value))
+              _ <- sessionRepository.set(updatedAnswers)
+            } yield Redirect(HasUkTaxIdentifierPage.nextPage(mode, updatedAnswers))
+        )
+      }
     }
-  }
 }

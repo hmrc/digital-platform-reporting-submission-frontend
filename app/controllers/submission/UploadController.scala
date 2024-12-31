@@ -17,13 +17,11 @@
 package controllers.submission
 
 import connectors.SubmissionConnector
-import controllers.AnswerExtractor
 import controllers.actions.*
 import models.submission.Submission
 import models.submission.Submission.State.{Approved, Ready, Rejected, Submitted, UploadFailed, Uploading, Validated}
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents, Result}
-import queries.PlatformOperatorSummaryQuery
 import services.UpscanService
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import views.html.submission.UploadView
@@ -36,43 +34,46 @@ class UploadController @Inject()(
                                   identify: IdentifierAction,
                                   getData: DataRetrievalActionProvider,
                                   requireData: DataRequiredAction,
+                                  checkSubmissionsAllowed: CheckSubmissionsAllowedAction,
                                   val controllerComponents: MessagesControllerComponents,
                                   view: UploadView,
                                   submissionConnector: SubmissionConnector,
                                   upscanService: UpscanService
                                 )(using ExecutionContext) extends FrontendBaseController with I18nSupport {
 
-  def onPageLoad(operatorId: String, submissionId: String): Action[AnyContent] = (identify andThen getData(operatorId) andThen requireData).async {
-    implicit request =>
-      submissionConnector.get(submissionId).flatMap {
-        _.map { submission =>
-          handleSubmission(operatorId, submission) {
-            case Ready =>
-              upscanService.initiate(operatorId, request.dprsId, submissionId).map { uploadRequest =>
-                Ok(view(uploadRequest))
-              }
+  def onPageLoad(operatorId: String, submissionId: String): Action[AnyContent] =
+    (identify andThen checkSubmissionsAllowed andThen getData(operatorId) andThen requireData).async {
+      implicit request =>
+        submissionConnector.get(submissionId).flatMap {
+          _.map { submission =>
+            handleSubmission(operatorId, submission) {
+              case Ready =>
+                upscanService.initiate(operatorId, request.dprsId, submissionId).map { uploadRequest =>
+                  Ok(view(uploadRequest))
+                }
+            }
+          }.getOrElse {
+            Future.successful(Redirect(controllers.routes.JourneyRecoveryController.onPageLoad()))
           }
-        }.getOrElse {
-          Future.successful(Redirect(controllers.routes.JourneyRecoveryController.onPageLoad()))
         }
-      }
-  }
+    }
 
-  def onRedirect(operatorId: String, submissionId: String): Action[AnyContent] = (identify andThen getData(operatorId) andThen requireData).async {
-    implicit request =>
-      submissionConnector.get(submissionId).flatMap {
-        _.map { submission =>
-          handleSubmission(operatorId, submission) {
-            case _: Validated | _: UploadFailed =>
-              submissionConnector.start(operatorId, submission.operatorName, Some(submissionId)).map { _ =>
-                Redirect(routes.UploadController.onPageLoad(operatorId, submissionId))
-              }
+  def onRedirect(operatorId: String, submissionId: String): Action[AnyContent] =
+    (identify andThen checkSubmissionsAllowed andThen getData(operatorId) andThen requireData).async {
+      implicit request =>
+        submissionConnector.get(submissionId).flatMap {
+          _.map { submission =>
+            handleSubmission(operatorId, submission) {
+              case _: Validated | _: UploadFailed =>
+                submissionConnector.start(operatorId, submission.operatorName, Some(submissionId)).map { _ =>
+                  Redirect(routes.UploadController.onPageLoad(operatorId, submissionId))
+                }
+            }
+          }.getOrElse {
+            Future.successful(Redirect(controllers.routes.JourneyRecoveryController.onPageLoad()))
           }
-        }.getOrElse {
-          Future.successful(Redirect(controllers.routes.JourneyRecoveryController.onPageLoad()))
         }
-      }
-  }
+    }
 
   private def handleSubmission(operatorId: String, submission: Submission)(f: PartialFunction[Submission.State, Future[Result]]): Future[Result] =
     f.lift(submission.state).getOrElse {

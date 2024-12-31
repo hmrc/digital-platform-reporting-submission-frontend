@@ -39,6 +39,7 @@ class ReportingPeriodController @Inject()(
                                            identify: IdentifierAction,
                                            getData: DataRetrievalActionProvider,
                                            requireData: DataRequiredAction,
+                                           checkAssumedReportingAllowed: CheckAssumedReportingAllowedAction,
                                            formProvider: ReportingPeriodFormProvider,
                                            val controllerComponents: MessagesControllerComponents,
                                            view: ReportingPeriodView,
@@ -46,48 +47,50 @@ class ReportingPeriodController @Inject()(
                                          )(implicit ec: ExecutionContext)
   extends FrontendBaseController with I18nSupport with AnswerExtractor {
 
-  def onPageLoad(mode: Mode, operatorId: String): Action[AnyContent] = (identify andThen getData(operatorId) andThen requireData) { implicit request =>
+  def onPageLoad(mode: Mode, operatorId: String): Action[AnyContent] =
+    (identify andThen checkAssumedReportingAllowed andThen getData(operatorId) andThen requireData) { implicit request =>
 
-    val form = formProvider()
-
-    val preparedForm = request.userAnswers.get(ReportingPeriodPage) match {
-      case None => form
-      case Some(value) => form.fill(value)
+      val form = formProvider()
+  
+      val preparedForm = request.userAnswers.get(ReportingPeriodPage) match {
+        case None => form
+        case Some(value) => form.fill(value)
+      }
+  
+      Ok(view(preparedForm, mode, operatorId))
     }
 
-    Ok(view(preparedForm, mode, operatorId))
-  }
-
-  def onSubmit(mode: Mode, operatorId: String): Action[AnyContent] = (identify andThen getData(operatorId) andThen requireData).async { implicit request =>
+  def onSubmit(mode: Mode, operatorId: String): Action[AnyContent] =
+    (identify andThen checkAssumedReportingAllowed andThen getData(operatorId) andThen requireData).async { implicit request =>
+    
+      val form = formProvider()
   
-    val form = formProvider()
-
-    form.bindFromRequest().fold(
-      formWithErrors => Future.successful(BadRequest(view(formWithErrors, mode, operatorId))),
-      reportingPeriod => {
-        
-        val viewSubmissionsRequest = ViewSubmissionsRequest(
-          assumedReporting = false,
-          pageNumber = 1,
-          sortBy = SortBy.SubmissionDate,
-          sortOrder = SortOrder.Descending,
-          reportingPeriod = Some(reportingPeriod.getValue),
-          operatorId = Some(operatorId),
-          statuses = SubmissionStatus.values
-        )
-        
-        for {
-          deliveredSubmissions                <- connector.listDeliveredSubmissions(viewSubmissionsRequest)
-          undeliveredSubmissions              <- connector.listUndeliveredSubmissions
-          matchingUndeliveredSubmissionExists = undeliveredSubmissions.exists(s => s.operatorId == operatorId && s.reportingPeriod == reportingPeriod)
-          submissionsExist                    = deliveredSubmissions.exists(_.deliveredSubmissionRecordCount > 0) || matchingUndeliveredSubmissionExists
-          updatedAnswers                      <- Future.fromTry(request.userAnswers
-                                                    .set(ReportingPeriodPage, reportingPeriod)
-                                                    .flatMap(_.set(SubmissionsExistQuery, submissionsExist))
-                                                  )
-          _                                   <- sessionRepository.set(updatedAnswers)
-        } yield Redirect(ReportingPeriodPage.nextPage(mode, updatedAnswers))
-      }
-    )
-  }
+      form.bindFromRequest().fold(
+        formWithErrors => Future.successful(BadRequest(view(formWithErrors, mode, operatorId))),
+        reportingPeriod => {
+          
+          val viewSubmissionsRequest = ViewSubmissionsRequest(
+            assumedReporting = false,
+            pageNumber = 1,
+            sortBy = SortBy.SubmissionDate,
+            sortOrder = SortOrder.Descending,
+            reportingPeriod = Some(reportingPeriod.getValue),
+            operatorId = Some(operatorId),
+            statuses = SubmissionStatus.values
+          )
+          
+          for {
+            deliveredSubmissions                <- connector.listDeliveredSubmissions(viewSubmissionsRequest)
+            undeliveredSubmissions              <- connector.listUndeliveredSubmissions
+            matchingUndeliveredSubmissionExists = undeliveredSubmissions.exists(s => s.operatorId == operatorId && s.reportingPeriod == reportingPeriod)
+            submissionsExist                    = deliveredSubmissions.exists(_.deliveredSubmissionRecordCount > 0) || matchingUndeliveredSubmissionExists
+            updatedAnswers                      <- Future.fromTry(request.userAnswers
+                                                      .set(ReportingPeriodPage, reportingPeriod)
+                                                      .flatMap(_.set(SubmissionsExistQuery, submissionsExist))
+                                                    )
+            _                                   <- sessionRepository.set(updatedAnswers)
+          } yield Redirect(ReportingPeriodPage.nextPage(mode, updatedAnswers))
+        }
+      )
+    }
 }
