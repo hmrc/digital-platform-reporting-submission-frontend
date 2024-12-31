@@ -188,7 +188,6 @@ class CheckContactDetailsControllerSpec extends SpecBase with SummaryListFluency
       running(application) {
         val request = FakeRequest(GET, routes.CheckContactDetailsController.onPageLoad(operatorId).url)
         val result = route(application, request).value
-        val view = application.injector.instanceOf[CheckContactDetailsView]
         
         status(result) mustEqual SEE_OTHER
         redirectLocation(result).value mustEqual baseRoutes.SubmissionsDisabledController.onPageLoad().url

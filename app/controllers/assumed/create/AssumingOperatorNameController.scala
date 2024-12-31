@@ -38,7 +38,7 @@ class AssumingOperatorNameController @Inject()(
                                                 identify: IdentifierAction,
                                                 getData: DataRetrievalActionProvider,
                                                 requireData: DataRequiredAction,
-                                                checkSubmissionsAllowed: CheckSubmissionsAllowedAction,
+                                                checkAssumedReportingAllowed: CheckAssumedReportingAllowedAction,
                                                 formProvider: AssumingOperatorNameFormProvider,
                                                 val controllerComponents: MessagesControllerComponents,
                                                 view: AssumingOperatorNameView
@@ -47,7 +47,7 @@ class AssumingOperatorNameController @Inject()(
 
 
   def onPageLoad(mode: Mode, operatorId: String): Action[AnyContent] =
-    (identify andThen checkSubmissionsAllowed andThen getData(operatorId) andThen requireData) { implicit request =>
+    (identify andThen checkAssumedReportingAllowed andThen getData(operatorId) andThen requireData) { implicit request =>
       getAnswer(PlatformOperatorSummaryQuery) { operator =>
   
         val form = formProvider(operator.operatorName)
@@ -62,7 +62,7 @@ class AssumingOperatorNameController @Inject()(
     }
 
   def onSubmit(mode: Mode, operatorId: String): Action[AnyContent] =
-    (identify andThen checkSubmissionsAllowed andThen getData(operatorId) andThen requireData).async { implicit request =>
+    (identify andThen checkAssumedReportingAllowed andThen getData(operatorId) andThen requireData).async { implicit request =>
       getAnswerAsync(PlatformOperatorSummaryQuery) { operator =>
   
         val form = formProvider(operator.operatorName)

@@ -36,7 +36,7 @@ class UkTaxIdentifierController @Inject()(
                                            identify: IdentifierAction,
                                            getData: DataRetrievalActionProvider,
                                            requireData: DataRequiredAction,
-                                           checkSubmissionsAllowed: CheckSubmissionsAllowedAction,
+                                           checkAssumedReportingAllowed: CheckAssumedReportingAllowedAction,
                                            formProvider: UkTaxIdentifierFormProvider,
                                            val controllerComponents: MessagesControllerComponents,
                                            view: UkTaxIdentifierView
@@ -44,7 +44,7 @@ class UkTaxIdentifierController @Inject()(
   extends FrontendBaseController with I18nSupport with AnswerExtractor {
 
   def onPageLoad(mode: Mode, operatorId: String): Action[AnyContent] =
-    (identify andThen checkSubmissionsAllowed andThen getData(operatorId) andThen requireData) { implicit request =>
+    (identify andThen checkAssumedReportingAllowed andThen getData(operatorId) andThen requireData) { implicit request =>
       getAnswer(AssumingOperatorNamePage) { assumingOperatorName =>
 
         val form = formProvider(assumingOperatorName)
@@ -59,7 +59,7 @@ class UkTaxIdentifierController @Inject()(
     }
 
   def onSubmit(mode: Mode, operatorId: String): Action[AnyContent] =
-    (identify andThen checkSubmissionsAllowed andThen getData(operatorId) andThen requireData).async { implicit request =>
+    (identify andThen checkAssumedReportingAllowed andThen getData(operatorId) andThen requireData).async { implicit request =>
       getAnswerAsync(AssumingOperatorNamePage) { assumingOperatorName =>
 
         val form = formProvider(assumingOperatorName)

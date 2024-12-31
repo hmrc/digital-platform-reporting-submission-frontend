@@ -80,7 +80,7 @@ class CheckYourAnswersControllerSpec extends SpecBase with SummaryListFluency wi
       }
     }
 
-    "must redirect to SubmissionsDisabled for a GET when submissions are disabled" in {
+    "must redirect to AssumedReportingDisabled for a GET when submissions are disabled" in {
 
       val application =
         applicationBuilder(userAnswers = Some(emptyUserAnswers))
@@ -93,7 +93,7 @@ class CheckYourAnswersControllerSpec extends SpecBase with SummaryListFluency wi
         val result = route(application, request).value
         
         status(result) mustEqual SEE_OTHER
-        redirectLocation(result).value mustEqual baseRoutes.SubmissionsDisabledController.onPageLoad().url
+        redirectLocation(result).value mustEqual baseRoutes.AssumedReportingDisabledController.onPageLoad().url
       }
     }
 
@@ -258,7 +258,7 @@ class CheckYourAnswersControllerSpec extends SpecBase with SummaryListFluency wi
         verify(mockSessionRepository, never).set(any())
       }
       
-      "must redirect to SubmissionsDisabled when submissions are disabled" in {
+      "must redirect to AssumedReportingDisabled when submissions are disabled" in {
 
         val application = applicationBuilder(userAnswers = Some(emptyUserAnswers))
           .configure("features.submissions-enabled" -> false)
@@ -269,7 +269,7 @@ class CheckYourAnswersControllerSpec extends SpecBase with SummaryListFluency wi
           val result = route(application, request).value
 
           status(result) mustEqual SEE_OTHER
-          redirectLocation(result).value mustEqual baseRoutes.SubmissionsDisabledController.onPageLoad().url
+          redirectLocation(result).value mustEqual baseRoutes.AssumedReportingDisabledController.onPageLoad().url
         }
 
       }

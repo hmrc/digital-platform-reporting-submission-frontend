@@ -37,7 +37,7 @@ class RegisteredCountryController @Inject()(
                                              identify: IdentifierAction,
                                              getData: DataRetrievalActionProvider,
                                              requireData: DataRequiredAction,
-                                             checkSubmissionsAllowed: CheckSubmissionsAllowedAction,
+                                             checkAssumedReportingAllowed: CheckAssumedReportingAllowedAction,
                                              formProvider: RegisteredCountryFormProvider,
                                              val controllerComponents: MessagesControllerComponents,
                                              view: RegisteredCountryView
@@ -46,7 +46,7 @@ class RegisteredCountryController @Inject()(
 
 
   def onPageLoad(mode: Mode, operatorId: String): Action[AnyContent] =
-    (identify andThen checkSubmissionsAllowed andThen getData(operatorId) andThen requireData) { implicit request =>
+    (identify andThen checkAssumedReportingAllowed andThen getData(operatorId) andThen requireData) { implicit request =>
       getAnswer(AssumingOperatorNamePage) { assumingOperatorName =>
   
         val form = formProvider(assumingOperatorName)
@@ -61,7 +61,7 @@ class RegisteredCountryController @Inject()(
     }
 
   def onSubmit(mode: Mode, operatorId: String): Action[AnyContent] =
-    (identify andThen checkSubmissionsAllowed andThen getData(operatorId) andThen requireData).async { implicit request =>
+    (identify andThen checkAssumedReportingAllowed andThen getData(operatorId) andThen requireData).async { implicit request =>
       getAnswerAsync(AssumingOperatorNamePage) { assumingOperatorName =>
   
         val form = formProvider(assumingOperatorName)

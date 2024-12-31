@@ -38,7 +38,7 @@ class CheckContactDetailsController @Inject()(
                                                identify: IdentifierAction,
                                                getData: DataRetrievalActionProvider,
                                                requireData: DataRequiredAction,
-                                               checkSubmissionsAllowed: CheckSubmissionsAllowedAction,
+                                               checkAssumedReportingAllowed: CheckAssumedReportingAllowedAction,
                                                val controllerComponents: MessagesControllerComponents,
                                                formProvider: CheckContactDetailsFormProvider,
                                                page: CheckContactDetailsPage,
@@ -48,7 +48,7 @@ class CheckContactDetailsController @Inject()(
                                              )(implicit ec: ExecutionContext) extends FrontendBaseController with I18nSupport {
 
   def onPageLoad(operatorId: String, reportingPeriod: Year): Action[AnyContent] =
-    (identify andThen checkSubmissionsAllowed andThen getData(operatorId, Some(reportingPeriod)) andThen requireData).async {
+    (identify andThen checkAssumedReportingAllowed andThen getData(operatorId, Some(reportingPeriod)) andThen requireData).async {
       implicit request =>
         connector.getSubscription.map { subscriptionInfo =>
           val list = summaryList(subscriptionInfo)
@@ -58,7 +58,7 @@ class CheckContactDetailsController @Inject()(
     }
 
   def onSubmit(operatorId: String, reportingPeriod: Year): Action[AnyContent] =
-    (identify andThen checkSubmissionsAllowed andThen getData(operatorId, Some(reportingPeriod)) andThen requireData).async {
+    (identify andThen checkAssumedReportingAllowed andThen getData(operatorId, Some(reportingPeriod)) andThen requireData).async {
       implicit request =>
         
         val form = formProvider()

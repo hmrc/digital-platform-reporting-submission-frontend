@@ -37,7 +37,7 @@ class InternationalTaxIdentifierController @Inject()(
                                         identify: IdentifierAction,
                                         getData: DataRetrievalActionProvider,
                                         requireData: DataRequiredAction,
-                                        checkSubmissionsAllowed: CheckSubmissionsAllowedAction,
+                                        checkAssumedReportingAllowed: CheckAssumedReportingAllowedAction,
                                         formProvider: InternationalTaxIdentifierFormProvider,
                                         val controllerComponents: MessagesControllerComponents,
                                         view: InternationalTaxIdentifierView
@@ -45,7 +45,7 @@ class InternationalTaxIdentifierController @Inject()(
   extends FrontendBaseController with I18nSupport with AnswerExtractor {
 
   def onPageLoad(mode: Mode, operatorId: String): Action[AnyContent] =
-    (identify andThen checkSubmissionsAllowed andThen getData(operatorId) andThen requireData) { implicit request =>
+    (identify andThen checkAssumedReportingAllowed andThen getData(operatorId) andThen requireData) { implicit request =>
       getAnswer(TaxResidencyCountryPage) { country =>
   
         val form = formProvider(country)
@@ -60,7 +60,7 @@ class InternationalTaxIdentifierController @Inject()(
     }
   
   def onSubmit(mode: Mode, operatorId: String): Action[AnyContent] =
-    (identify andThen checkSubmissionsAllowed andThen getData(operatorId) andThen requireData).async { implicit request =>
+    (identify andThen checkAssumedReportingAllowed andThen getData(operatorId) andThen requireData).async { implicit request =>
       getAnswerAsync(TaxResidencyCountryPage) { country =>
   
         val form = formProvider(country)

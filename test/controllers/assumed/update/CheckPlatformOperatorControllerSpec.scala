@@ -111,7 +111,7 @@ class CheckPlatformOperatorControllerSpec extends SpecBase with SummaryListFluen
       }
     }
 
-    "must redirect to SubmissionsDisabled for a GET when submissions are disabled" in {
+    "must redirect to AssumedReportingDisabled for a GET when submissions are disabled" in {
 
       val application =
         applicationBuilder(userAnswers = Some(baseAnswers))
@@ -124,7 +124,7 @@ class CheckPlatformOperatorControllerSpec extends SpecBase with SummaryListFluen
         val result = route(application, request).value
 
         status(result) mustEqual SEE_OTHER
-        redirectLocation(result).value mustEqual baseRoutes.SubmissionsDisabledController.onPageLoad().url
+        redirectLocation(result).value mustEqual baseRoutes.AssumedReportingDisabledController.onPageLoad().url
       }
     }
 
@@ -212,7 +212,7 @@ class CheckPlatformOperatorControllerSpec extends SpecBase with SummaryListFluen
       }
     }
 
-    "must redirect to SubmissionsDisabled when submissions are disabled" in {
+    "must redirect to AssumedReportingDisabled when submissions are disabled" in {
       
       val application =
         applicationBuilder(userAnswers = Some(baseAnswers))
@@ -227,7 +227,7 @@ class CheckPlatformOperatorControllerSpec extends SpecBase with SummaryListFluen
         val result = route(application, request).value
 
         status(result) mustEqual SEE_OTHER
-        redirectLocation(result).value mustEqual baseRoutes.SubmissionsDisabledController.onPageLoad().url
+        redirectLocation(result).value mustEqual baseRoutes.AssumedReportingDisabledController.onPageLoad().url
       }
     }
   }

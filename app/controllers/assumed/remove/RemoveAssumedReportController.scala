@@ -40,7 +40,7 @@ class RemoveAssumedReportController @Inject()(override val messagesApi: Messages
                                               identify: IdentifierAction,
                                               getData: DataRetrievalActionProvider,
                                               requireData: DataRequiredAction,
-                                              checkSubmissionsAllowed: CheckSubmissionsAllowedAction,
+                                              checkAssumedReportingAllowed: CheckAssumedReportingAllowedAction,
                                               formProvider: RemoveAssumedReportFormProvider,
                                               view: RemoveAssumedReportView,
                                               connector: AssumedReportingConnector,
@@ -51,7 +51,7 @@ class RemoveAssumedReportController @Inject()(override val messagesApi: Messages
   private val form = formProvider()
 
   def onPageLoad(operatorId: String, reportingPeriod: Year): Action[AnyContent] =
-    (identify andThen checkSubmissionsAllowed andThen getData(operatorId) andThen requireData) {
+    (identify andThen checkAssumedReportingAllowed andThen getData(operatorId) andThen requireData) {
       implicit request =>
         getAnswer(AssumedReportSummariesQuery) { summaries =>
           summaries.find(_.reportingPeriod == reportingPeriod).map { summary =>
@@ -63,7 +63,7 @@ class RemoveAssumedReportController @Inject()(override val messagesApi: Messages
     }
 
   def onSubmit(operatorId: String, reportingPeriod: Year): Action[AnyContent] =
-    (identify andThen checkSubmissionsAllowed andThen getData(operatorId) andThen requireData).async {
+    (identify andThen checkAssumedReportingAllowed andThen getData(operatorId) andThen requireData).async {
       implicit request =>
         getAnswerAsync(AssumedReportSummariesQuery) { summaries =>
           summaries.find(_.reportingPeriod == reportingPeriod).map { summary =>

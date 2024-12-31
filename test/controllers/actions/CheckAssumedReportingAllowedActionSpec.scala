@@ -30,7 +30,7 @@ import play.api.test.FakeRequest
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-class CheckSubmissionsAllowedActionSpec extends SpecBase with MockitoSugar with BeforeAndAfterEach {
+class CheckAssumedReportingAllowedActionSpec extends SpecBase with MockitoSugar with BeforeAndAfterEach {
 
   private val mockAppConfig = mock[FrontendAppConfig]
 
@@ -39,14 +39,14 @@ class CheckSubmissionsAllowedActionSpec extends SpecBase with MockitoSugar with 
     super.beforeEach()
   }
 
-  class Harness() extends CheckSubmissionsAllowedAction(mockAppConfig) {
+  class Harness() extends CheckAssumedReportingAllowedAction(mockAppConfig) {
     def callFilter[A](request: IdentifierRequest[A]): Future[Option[Result]] = filter(request)
   }
 
   private val action = new Harness()
   private val identifierRequest = IdentifierRequest(FakeRequest(), "userId", "dprsId")
 
-  "Check Submissions Allowed" - {
+  "Check Assumed Reporting Allowed" - {
 
     "must return None when submissions are enabled" in {
       when(mockAppConfig.submissionsEnabled).thenReturn(true)
@@ -54,10 +54,10 @@ class CheckSubmissionsAllowedActionSpec extends SpecBase with MockitoSugar with 
       result must not be defined
     }
 
-    "must return a redirect to Submissions Disabled when submissions are not enabled" in {
+    "must return a redirect to Assumed Reporting Disabled when submissions are not enabled" in {
       when(mockAppConfig.submissionsEnabled).thenReturn(false)
       val result = action.callFilter(identifierRequest).futureValue
-      result.value mustEqual Redirect(routes.SubmissionsDisabledController.onPageLoad())
+      result.value mustEqual Redirect(routes.AssumedReportingDisabledController.onPageLoad())
     }
   }
 }

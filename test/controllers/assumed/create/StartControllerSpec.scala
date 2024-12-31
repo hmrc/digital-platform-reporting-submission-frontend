@@ -79,7 +79,7 @@ class StartControllerSpec extends SpecBase with MockitoSugar with BeforeAndAfter
       }
     }
 
-    "must redirect to SubmissionsDisabled for a GET when submissions are disabled" in {
+    "must redirect to AssumedReportingDisabled for a GET when submissions are disabled" in {
 
       val application =
         applicationBuilder(userAnswers = Some(baseAnswers))
@@ -92,7 +92,7 @@ class StartControllerSpec extends SpecBase with MockitoSugar with BeforeAndAfter
         val result = route(application, request).value
         
         status(result) mustEqual SEE_OTHER
-        redirectLocation(result).value mustEqual baseRoutes.SubmissionsDisabledController.onPageLoad().url
+        redirectLocation(result).value mustEqual baseRoutes.AssumedReportingDisabledController.onPageLoad().url
       }
     }
 
@@ -235,7 +235,7 @@ class StartControllerSpec extends SpecBase with MockitoSugar with BeforeAndAfter
         }
       }
 
-      "must redirect to SubmissionsDisabled when submissions are disabled" in {
+      "must redirect to AssumedReportingDisabled when submissions are disabled" in {
         
         val application = applicationBuilder(userAnswers = Some(baseAnswers))
           .configure("features.submissions-enabled" -> false)
@@ -246,7 +246,7 @@ class StartControllerSpec extends SpecBase with MockitoSugar with BeforeAndAfter
           val result = route(application, request).value
 
           status(result) mustEqual SEE_OTHER
-          redirectLocation(result).value mustEqual baseRoutes.SubmissionsDisabledController.onPageLoad().url
+          redirectLocation(result).value mustEqual baseRoutes.AssumedReportingDisabledController.onPageLoad().url
         }
       }
     }
