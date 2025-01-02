@@ -188,7 +188,7 @@ class CheckContactDetailsControllerSpec extends SpecBase with SummaryListFluency
       running(application) {
         val request = FakeRequest(GET, routes.CheckContactDetailsController.onPageLoad(operatorId).url)
         val result = route(application, request).value
-        
+
         status(result) mustEqual SEE_OTHER
         redirectLocation(result).value mustEqual baseRoutes.SubmissionsDisabledController.onPageLoad().url
       }
@@ -242,7 +242,6 @@ class CheckContactDetailsControllerSpec extends SpecBase with SummaryListFluency
         running(application) {
           val request = FakeRequest(POST, routes.CheckContactDetailsController.onPageLoad(operatorId).url)
             .withFormUrlEncodedBody("value" -> "true")
-
           val result = route(application, request).value
 
           status(result) mustEqual SEE_OTHER
@@ -263,7 +262,7 @@ class CheckContactDetailsControllerSpec extends SpecBase with SummaryListFluency
           val appConfig = application.injector.instanceOf[FrontendAppConfig]
 
           status(result) mustEqual SEE_OTHER
-          redirectLocation(result).value mustEqual appConfig.manageHomepageUrl
+          redirectLocation(result).value mustEqual appConfig.updateContactDetailsUrl
         }
 
         verify(mockSubmissionConnector, never()).start(any(), any(), any())(using any())

@@ -53,21 +53,17 @@ class CheckPlatformOperatorController @Inject()(
                                                  countriesList: CountriesList
                                                )(implicit ec: ExecutionContext) extends FrontendBaseController with I18nSupport {
 
-  def onPageLoad(operatorId: String): Action[AnyContent] = (identify andThen checkAssumedReportingAllowed andThen getData(operatorId) andThen requireData).async {
-    implicit request =>
-      connector.viewPlatformOperator(operatorId).map { operator =>
-
-        val form = formProvider()
-
-        Ok(view(
-          form,
-          platformOperatorList(operator),
-          primaryContactList(operator),
-          secondaryContactList(operator),
-          operator.operatorId,
-          operator.operatorName
-        ))
-      }
+  def onPageLoad(operatorId: String): Action[AnyContent] = (identify andThen checkAssumedReportingAllowed andThen getData(operatorId) andThen requireData).async { implicit request =>
+    connector.viewPlatformOperator(operatorId).map { operator =>
+      Ok(view(
+        formProvider(),
+        platformOperatorList(operator),
+        primaryContactList(operator),
+        secondaryContactList(operator),
+        operator.operatorId,
+        operator.operatorName
+      ))
+    }
   }
 
   def onSubmit(operatorId: String): Action[AnyContent] = (identify andThen checkAssumedReportingAllowed andThen getData(operatorId) andThen requireData).async { implicit request =>

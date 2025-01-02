@@ -16,17 +16,18 @@
 
 package pages.assumed.create
 
-import controllers.assumed.create.routes
 import config.FrontendAppConfig
-import models.{NormalMode, UserAnswers}
-import org.mockito.ArgumentMatchers.eq as eqTo
+import controllers.assumed.create.routes
+import models.NormalMode
+import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito
 import org.mockito.Mockito.when
-import org.scalatest.{BeforeAndAfterEach, OptionValues, TryValues}
 import org.scalatest.freespec.AnyFreeSpec
 import org.scalatest.matchers.must.Matchers
+import org.scalatest.{BeforeAndAfterEach, OptionValues, TryValues}
 import org.scalatestplus.mockito.MockitoSugar
 import play.api.mvc.Call
+import support.builders.UserAnswersBuilder.anEmptyUserAnswers
 
 class CheckPlatformOperatorPageSpec
   extends AnyFreeSpec
@@ -45,19 +46,18 @@ class CheckPlatformOperatorPageSpec
   }
 
   ".nextPage" - {
-
-    val emptyAnswers = UserAnswers("userId", "operatorId")
-
     "must go to Check Reporting Notifications when the answer is yes" in {
-
-      val answers = emptyAnswers.set(page, true).success.value
-      page.nextPage(NormalMode, answers) mustEqual routes.CheckReportingNotificationsController.onPageLoad("operatorId")
+      val answers = anEmptyUserAnswers.set(page, true).success.value
+      page.nextPage(NormalMode, answers) mustEqual routes.CheckReportingNotificationsController.onPageLoad(answers.operatorId)
     }
 
     "must go to update the operator when the answer is no" in {
-      
-      val answers = emptyAnswers.set(page, false).success.value
-      page.nextPage(NormalMode, answers) mustEqual Call("GET", mockAppConfig.manageHomepageUrl)
+      val answers = anEmptyUserAnswers.set(page, false).success.value
+      val expectedUrl = s"/platform-operator/${answers.operatorId}/check-your-answers"
+
+      when(mockAppConfig.updateOperatorUrl(any())).thenReturn(expectedUrl)
+
+      page.nextPage(NormalMode, answers) mustEqual Call("GET", expectedUrl)
     }
   }
 }

@@ -82,7 +82,7 @@ class CheckContactDetailsController @Inject()(override val messagesApi: Messages
             }
           }
           else {
-            Future.successful(Redirect(appConfig.manageHomepageUrl))
+            Future.successful(Redirect(appConfig.updateContactDetailsUrl))
           }
         )
       }

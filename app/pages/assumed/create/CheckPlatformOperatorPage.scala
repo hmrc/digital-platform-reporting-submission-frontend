@@ -32,7 +32,7 @@ class CheckPlatformOperatorPage @Inject()(appConfig: FrontendAppConfig) extends 
 
   override protected def nextPageNormalMode(answers: UserAnswers): Call =
     answers.get(this).map {
-      case true  => routes.CheckReportingNotificationsController.onPageLoad(answers.operatorId)
-      case false => Call("GET", appConfig.manageHomepageUrl)
+      case true => routes.CheckReportingNotificationsController.onPageLoad(answers.operatorId)
+      case false => Call("GET", appConfig.updateOperatorUrl(answers.operatorId))
     }.getOrElse(baseRoutes.JourneyRecoveryController.onPageLoad())
 }

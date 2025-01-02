@@ -91,9 +91,9 @@ class CheckReportingNotificationsControllerSpec extends SpecBase with SummaryLis
           contentAsString(result) mustEqual view(form, Seq(notification), "operatorId", "operatorName")(request, messages(application)).toString
         }
       }
-      
+
       "must redirect to SubmissionsDisabled for a GET when submissions are disabled" in {
-        
+
         val application =
           applicationBuilder(userAnswers = Some(baseAnswers))
             .configure("features.submissions-enabled" -> false)
@@ -201,15 +201,13 @@ class CheckReportingNotificationsControllerSpec extends SpecBase with SummaryLis
         val application = applicationBuilder(userAnswers = Some(baseAnswers)).build()
 
         running(application) {
-          val request =
-            FakeRequest(POST, routes.CheckReportingNotificationsController.onPageLoad(operatorId).url)
-              .withFormUrlEncodedBody("value" -> "false")
-
+          val request = FakeRequest(POST, routes.CheckReportingNotificationsController.onPageLoad(operatorId).url)
+            .withFormUrlEncodedBody("value" -> "false")
           val appConfig = application.injector.instanceOf[FrontendAppConfig]
           val result = route(application, request).value
 
           status(result) mustEqual SEE_OTHER
-          redirectLocation(result).value mustEqual appConfig.manageHomepageUrl
+          redirectLocation(result).value mustEqual appConfig.viewNotificationsUrl(operatorId)
         }
       }
 

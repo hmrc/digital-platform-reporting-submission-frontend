@@ -55,21 +55,17 @@ class CheckPlatformOperatorController @Inject()(override val messagesApi: Messag
   extends FrontendBaseController with I18nSupport with AnswerExtractor {
 
   def onPageLoad(operatorId: String): Action[AnyContent] =
-    (identify andThen checkSubmissionsAllowed andThen getData(operatorId) andThen requireData).async {
-      implicit request =>
-        platformOperatorConnector.viewPlatformOperator(operatorId).map { operator =>
-  
-          val form = formProvider()
-  
-          Ok(view(
-            form,
-            platformOperatorList(operator),
-            primaryContactList(operator),
-            secondaryContactList(operator),
-            operator.operatorId,
-            operator.operatorName
-          ))
-        }
+    (identify andThen checkSubmissionsAllowed andThen getData(operatorId) andThen requireData).async { implicit request =>
+      platformOperatorConnector.viewPlatformOperator(operatorId).map { operator =>
+        Ok(view(
+          formProvider(),
+          platformOperatorList(operator),
+          primaryContactList(operator),
+          secondaryContactList(operator),
+          operator.operatorId,
+          operator.operatorName
+        ))
+      }
     }
 
   def onSubmit(operatorId: String): Action[AnyContent] =
@@ -99,7 +95,7 @@ class CheckPlatformOperatorController @Inject()(override val messagesApi: Messag
             case ConfirmedDetails(false, _, _) => Future.successful(Redirect(routes.CheckPlatformOperatorController.onPageLoad(operatorId)))
           }
         } else {
-          Future.successful(Redirect(appConfig.manageHomepageUrl))
+          Future.successful(Redirect(appConfig.updateOperatorUrl(operatorId)))
         }
       )
     }
