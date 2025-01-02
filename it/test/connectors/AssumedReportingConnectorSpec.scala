@@ -77,7 +77,7 @@ class AssumedReportingConnectorSpec
           issuedBy = "GB"
         )
       ),
-      registeredCountry = Country.gb,
+      registeredCountry = Country.GB,
       address = "address"
     )
 
@@ -138,7 +138,7 @@ class AssumedReportingConnectorSpec
           issuedBy = "GB"
         )
       ),
-      registeredCountry = Country.gb,
+      registeredCountry = Country.GB,
       address = "address"
     )
 

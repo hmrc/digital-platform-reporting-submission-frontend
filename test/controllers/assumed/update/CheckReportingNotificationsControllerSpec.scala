@@ -50,7 +50,7 @@ class CheckReportingNotificationsControllerSpec extends SpecBase with SummaryLis
   private val form = CheckReportingNotificationsFormProvider()()
   private val mockConnector = mock[PlatformOperatorConnector]
   private val mockRepository = mock[SessionRepository]
-  private val operatorSummary = PlatformOperatorSummary("operatorId", "operatorName", true)
+  private val operatorSummary = PlatformOperatorSummary("operatorId", "operatorName", "primaryContactName", "test@test.com", hasReportingNotifications = true)
   private val baseAnswers = emptyUserAnswers.copy(reportingPeriod = Some(reportingPeriod)).set(PlatformOperatorSummaryQuery, operatorSummary).success.value
 
   override def beforeEach(): Unit = {

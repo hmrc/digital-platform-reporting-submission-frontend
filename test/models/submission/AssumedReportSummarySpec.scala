@@ -50,7 +50,7 @@ class AssumedReportSummarySpec extends AnyFreeSpec with Matchers with TryValues 
       val answers =
         emptyAnswers
           .set(AssumingOperatorNamePage, "assumingOperator").success.value
-          .set(PlatformOperatorSummaryQuery, PlatformOperatorSummary("operatorId", "operatorName", true)).success.value
+          .set(PlatformOperatorSummaryQuery, PlatformOperatorSummary("operatorId", "operatorName", "primaryContactName", "test@test.com", hasReportingNotifications = true)).success.value
           .set(ReportingPeriodQuery, Year.of(2024)).success.value
 
       val expectedSummary = AssumedReportSummary("operatorId", "operatorName", "assumingOperator", Year.of(2024))

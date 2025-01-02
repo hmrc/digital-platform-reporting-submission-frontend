@@ -16,15 +16,19 @@
 
 package models.subscription
 
-import play.api.libs.json._
+import play.api.libs.json.*
 
-final case class SubscriptionInfo(
-                                   id: String,
-                                   gbUser: Boolean,
-                                   tradingName: Option[String],
-                                   primaryContact: Contact,
-                                   secondaryContact: Option[OrganisationContact]
-                                 )
+final case class SubscriptionInfo(id: String,
+                                  gbUser: Boolean,
+                                  tradingName: Option[String],
+                                  primaryContact: Contact,
+                                  secondaryContact: Option[OrganisationContact]) {
+
+  lazy val primaryContactName: String = primaryContact match {
+    case ic: IndividualContact => s"${ic.individual.firstName} ${ic.individual.lastName}"
+    case oc: OrganisationContact => oc.organisation.name
+  }
+}
 
 object SubscriptionInfo {
 

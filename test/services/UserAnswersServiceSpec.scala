@@ -50,7 +50,7 @@ class UserAnswersServiceSpec
         operatorId = "operatorId",
         assumingOperator = AssumingPlatformOperator(
           name = "assumingOperator",
-          residentCountry = Country.gb,
+          residentCountry = Country.GB,
           tinDetails = Seq(
             TinDetails(
               tin = "tin1",
@@ -83,7 +83,7 @@ class UserAnswersServiceSpec
         operatorId = "operatorId",
         assumingOperator = AssumingPlatformOperator(
           name = "assumingOperator",
-          residentCountry = Country.gb,
+          residentCountry = Country.GB,
           tinDetails = Seq.empty,
           registeredCountry = Country("US", "United States"),
           address = "address"
@@ -117,7 +117,7 @@ class UserAnswersServiceSpec
               issuedBy = "US"
             )
           ),
-          registeredCountry = Country.gb,
+          registeredCountry = Country.GB,
           address = "address"
         ),
         reportingPeriod = Year.of(2024)
@@ -145,7 +145,7 @@ class UserAnswersServiceSpec
           name = "assumingOperator",
           residentCountry = Country("US", "United States"),
           tinDetails = Seq.empty,
-          registeredCountry = Country.gb,
+          registeredCountry = Country.GB,
           address = "address"
         ),
         reportingPeriod = Year.of(2024)
@@ -176,7 +176,7 @@ class UserAnswersServiceSpec
         operatorName = "operatorName",
         assumingOperator = AssumingPlatformOperator(
           name = "assumingOperator",
-          residentCountry = Country.gb,
+          residentCountry = Country.GB,
           tinDetails = Seq(
             TinDetails(
               tin = "tin1",
@@ -217,7 +217,7 @@ class UserAnswersServiceSpec
         operatorName = "operatorName",
         assumingOperator = AssumingPlatformOperator(
           name = "assumingOperator",
-          residentCountry = Country.gb,
+          residentCountry = Country.GB,
           tinDetails = Seq.empty,
           registeredCountry = Country("US", "United States"),
           address = "address"
@@ -260,7 +260,7 @@ class UserAnswersServiceSpec
               issuedBy = "US"
             )
           ),
-          registeredCountry = Country.gb,
+          registeredCountry = Country.GB,
           address = "address"
         ),
         reportingPeriod = Year.of(2024),
@@ -295,7 +295,7 @@ class UserAnswersServiceSpec
           name = "assumingOperator",
           residentCountry = Country("US", "United States"),
           tinDetails = Seq.empty,
-          registeredCountry = Country.gb,
+          registeredCountry = Country.GB,
           address = "address"
         ),
         reportingPeriod = Year.of(2024),

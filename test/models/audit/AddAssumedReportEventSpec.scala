@@ -45,9 +45,9 @@ class AddAssumedReportEventSpec extends AnyFreeSpec with Matchers {
       operatorId = operatorId,
       assumingOperator = AssumingPlatformOperator(
         name = assumingOperatorName,
-        residentCountry = Country.gb,
+        residentCountry = Country.GB,
         tinDetails = Nil,
-        registeredCountry = Country.gb,
+        registeredCountry = Country.GB,
         address = address
       ),
       reportingPeriod = Year.of(2024)
