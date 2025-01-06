@@ -48,18 +48,14 @@ class CheckReportingNotificationsController @Inject()(override val messagesApi: 
   extends FrontendBaseController with I18nSupport with AnswerExtractor {
 
   def onPageLoad(operatorId: String): Action[AnyContent] =
-    (identify andThen checkSubmissionsAllowed andThen getData(operatorId) andThen requireData).async {
-      implicit request =>
-        platformOperatorConnector.viewPlatformOperator(operatorId).map { operator =>
-  
-          if (operator.notifications.isEmpty) {
-            Redirect(routes.ReportingNotificationRequiredController.onPageLoad(operatorId))
-          } else {
-            val form = formProvider()
-  
-            Ok(view(form, operator.notifications, operatorId, operator.operatorName))
-          }
+    (identify andThen checkSubmissionsAllowed andThen getData(operatorId) andThen requireData).async { implicit request =>
+      platformOperatorConnector.viewPlatformOperator(operatorId).map { operator =>
+        if (operator.notifications.isEmpty) {
+          Redirect(routes.ReportingNotificationRequiredController.onPageLoad(operatorId))
+        } else {
+          Ok(view(formProvider(), operator.notifications, operatorId, operator.operatorName))
         }
+      }
     }
 
   def onSubmit(operatorId: String): Action[AnyContent] =
@@ -82,7 +78,7 @@ class CheckReportingNotificationsController @Inject()(override val messagesApi: 
             case ConfirmedDetails(false, _, _) => Future.successful(Redirect(routes.CheckPlatformOperatorController.onPageLoad(operatorId)))
           }
         } else {
-          Future.successful(Redirect(appConfig.manageHomepageUrl))
+          Future.successful(Redirect(appConfig.viewNotificationsUrl(operatorId)))
         }
       )
     }
