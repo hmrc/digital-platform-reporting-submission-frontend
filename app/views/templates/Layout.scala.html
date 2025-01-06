@@ -42,21 +42,19 @@
 
 @head = {
 
-    @hmrcHead(
-        headBlock = if(timeout) { Some(
-            hmrcTimeoutDialog(TimeoutDialog(
-                timeout             = Some(appConfig.timeout),
-                countdown           = Some(appConfig.countdown),
-                keepAliveUrl        = Some(routes.KeepAliveController.keepAlive().url),
-                keepAliveButtonText = Some(messages("timeout.keepAlive")),
-                signOutUrl          = Some(controllers.auth.routes.AuthController.signOut().url),
-                signOutButtonText   = Some(messages("timeout.signOut")),
-                title               = Some(messages("timeout.title")),
-                message             = Some(messages("timeout.message")),
-                language            = Some(messages.lang.code)
-            )))
-        } else None
-    )
+    @if(timeout) {
+        @hmrcTimeoutDialog(TimeoutDialog(
+            timeout             = Some(appConfig.timeout),
+            countdown           = Some(appConfig.countdown),
+            keepAliveUrl        = Some(routes.KeepAliveController.keepAlive().url),
+            keepAliveButtonText = Some(messages("timeout.keepAlive")),
+            signOutUrl          = Some(controllers.auth.routes.AuthController.signOut().url),
+            signOutButtonText   = Some(messages("timeout.signOut")),
+            title               = Some(messages("timeout.title")),
+            message             = Some(messages("timeout.message")),
+            language            = Some(messages.lang.code)
+        ))
+    }
 
     @autocompleteCss()
     <link href="@routes.Assets.versioned("stylesheets/application.css")" media="all" rel="stylesheet" type="text/css" />
@@ -69,7 +67,7 @@
 
 @scripts = {
     @autocompleteJavascript()
-    <script src='@controllers.routes.Assets.versioned("javascripts/_autocomplete.js")'></script>
+    <script src='@controllers.routes.Assets.versioned("javascripts/_autocomplete.js")' @CSPNonce.attr></script>
 }
 
 @hmrcStandardPage(HmrcStandardPageParams(
