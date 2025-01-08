@@ -32,12 +32,13 @@
     <h1 class="govuk-heading-xl">@messages("assumedReportRemoved.heading")</h1>
 
     @govukSummaryList(summaryList)
-
-    @if(userEmail.trim.toLowerCase != poEmail.trim.toLowerCase) {
-        <p class="govuk-body govuk-!-margin-bottom-4">@messages("assumedReportRemoved.two.emails", userEmail, poEmail)</p>
-    } else {
-        <p class="govuk-body govuk-!-margin-bottom-4">@messages("assumedReportRemoved.one.email", userEmail)</p>
-    }
+    <p class="govuk-body govuk-!-margin-bottom-4">
+        @if(userEmail.trim.toLowerCase != poEmail.trim.toLowerCase) {
+            @messages("assumedReportRemoved.two.emails", userEmail, poEmail)</p>
+        } else {
+            @messages("assumedReportRemoved.one.email", userEmail)
+        }
+    </p>
     <p class="govuk-body">
         <a href="@routes.ViewAssumedReportsController.onPageLoad()" class="govuk-button">@messages("assumedReportRemoved.button")</a>
     </p>

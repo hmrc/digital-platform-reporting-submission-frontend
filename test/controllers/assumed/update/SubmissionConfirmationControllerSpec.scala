@@ -31,7 +31,7 @@ import queries.AssumedReportSummaryQuery
 import viewmodels.checkAnswers.assumed.update.AssumedReportUpdatedSummaryList
 import views.html.assumed.update.SubmissionConfirmationView
 import org.mockito.ArgumentMatchers.{any, eq as eqTo}
-import org.mockito.Mockito.{never, verify, when}
+import org.mockito.Mockito.{never, times, verify, when}
 import org.mockito.Mockito
 import org.scalatest.BeforeAndAfterEach
 import org.scalatestplus.mockito.MockitoSugar
@@ -46,6 +46,10 @@ class SubmissionConfirmationControllerSpec extends SpecBase with MockitoSugar wi
   private val mockPlatformOperatorConnector = mock[PlatformOperatorConnector]
   private val mockSubscriptionConnector = mock[SubscriptionConnector]
 
+  override def beforeEach(): Unit = {
+    super.beforeEach()
+    Mockito.reset(mockSubscriptionConnector, mockPlatformOperatorConnector)
+  }
 
   "SubmissionConfirmation Controller" - {
     val contact = IndividualContact(Individual("first", "last"), "tax1@team.com", None)
@@ -103,6 +107,73 @@ class SubmissionConfirmationControllerSpec extends SpecBase with MockitoSugar wi
           contentAsString(result) mustEqual view(operatorId, summaryList, subscription.primaryContact.email, operator.primaryContactDetails.emailAddress)(request, implicitly).toString
         }
       }
+
+
+      "must return the future failed if getSubscription fails" in {
+
+        val reportingPeriod = Year.of(2024)
+        val summary = AssumedReportSummary(operatorId, operatorName, "assumingOperator", reportingPeriod)
+        val answers =
+          emptyUserAnswers
+            .copy(reportingPeriod = Some(reportingPeriod))
+            .set(AssumedReportSummaryQuery, summary).success.value
+
+        val application =
+          applicationBuilder(userAnswers = Some(answers))
+            .overrides(bind[Clock].toInstance(fixedClock),
+              bind[PlatformOperatorConnector].toInstance(mockPlatformOperatorConnector),
+              bind[SubscriptionConnector].toInstance(mockSubscriptionConnector))
+            .build()
+
+        when(mockSubscriptionConnector.getSubscription(any())).thenReturn(Future.failed(new RuntimeException()))
+        when(mockPlatformOperatorConnector.viewPlatformOperator(any())(any())).thenReturn(Future.successful(operator))
+
+        running(application) {
+          given Messages = messages(application)
+
+          val request = FakeRequest(routes.SubmissionConfirmationController.onPageLoad(operatorId, reportingPeriod))
+          val result = route(application, request).value.failed.futureValue
+
+          verify(mockSubscriptionConnector, times(1)).getSubscription(any())
+          verify(mockPlatformOperatorConnector, times(0)).viewPlatformOperator(any())(any())
+
+        }
+      }
+
+
+      "must return the future failed if viewPlatformOperator fails" in {
+
+        val reportingPeriod = Year.of(2024)
+        val summary = AssumedReportSummary(operatorId, operatorName, "assumingOperator", reportingPeriod)
+        val answers =
+          emptyUserAnswers
+            .copy(reportingPeriod = Some(reportingPeriod))
+            .set(AssumedReportSummaryQuery, summary).success.value
+
+        val application =
+          applicationBuilder(userAnswers = Some(answers))
+            .overrides(bind[Clock].toInstance(fixedClock),
+              bind[PlatformOperatorConnector].toInstance(mockPlatformOperatorConnector),
+              bind[SubscriptionConnector].toInstance(mockSubscriptionConnector))
+            .build()
+
+        when(mockSubscriptionConnector.getSubscription(any())).thenReturn(Future.successful(subscription))
+        when(mockPlatformOperatorConnector.viewPlatformOperator(any())(any())).thenReturn(Future.failed(new RuntimeException()))
+
+        running(application) {
+          given Messages = messages(application)
+
+          val request = FakeRequest(routes.SubmissionConfirmationController.onPageLoad(operatorId, reportingPeriod))
+          val result = route(application, request).value.failed.futureValue
+
+          verify(mockSubscriptionConnector, times(1)).getSubscription(any())
+          verify(mockPlatformOperatorConnector, times(1)).viewPlatformOperator(any())(any())
+
+        }
+      }
+      
+      
+      
     }
   }
 }

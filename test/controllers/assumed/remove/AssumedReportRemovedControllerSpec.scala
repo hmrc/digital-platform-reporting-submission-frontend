@@ -20,8 +20,8 @@ import base.SpecBase
 import connectors.{PlatformOperatorConnector, SubscriptionConnector}
 import models.operator.responses.PlatformOperator
 import models.submission.{AssumedReportingSubmissionSummary, SubmissionStatus}
-import models.subscription._
-import models.operator._
+import models.subscription.*
+import models.operator.*
 import models.operator.{AddressDetails, ContactDetails}
 import play.api.i18n.Messages
 import play.api.inject.bind
@@ -30,8 +30,8 @@ import play.api.test.Helpers.*
 import queries.AssumedReportSummariesQuery
 import viewmodels.checkAnswers.assumed.remove.AssumedReportRemovedSummaryList
 import views.html.assumed.remove.AssumedReportRemovedView
-import org.mockito.ArgumentMatchers.{any, eq as eqTo}
-import org.mockito.Mockito.{never, verify, when}
+import org.mockito.ArgumentMatchers.any
+import org.mockito.Mockito.{times, verify, when}
 import org.mockito.Mockito
 import org.scalatest.BeforeAndAfterEach
 import org.scalatestplus.mockito.MockitoSugar
@@ -48,7 +48,12 @@ class AssumedReportRemovedControllerSpec extends SpecBase with MockitoSugar with
   private val mockPlatformOperatorConnector = mock[PlatformOperatorConnector]
   private val mockSubscriptionConnector = mock[SubscriptionConnector]
   private val baseAnswers = emptyUserAnswers.set(AssumedReportSummariesQuery, Seq(submission1, submission2)).success.value
-
+  
+  override def beforeEach(): Unit = {
+    super.beforeEach()
+    Mockito.reset( mockSubscriptionConnector, mockPlatformOperatorConnector)
+  }
+  
   "Assumed Report Removed Controller" - {
 
     val contact = IndividualContact(Individual("first", "last"), "tax1@team.com", None)
@@ -121,5 +126,67 @@ class AssumedReportRemovedControllerSpec extends SpecBase with MockitoSugar with
         status(result) mustEqual NOT_FOUND
       }
     }
+
+
+    "must return the future failed if getSubscription fails" in {
+
+      val application =
+        applicationBuilder(userAnswers = Some(baseAnswers))
+          .overrides(bind[Clock].toInstance(fixedClock),
+            bind[PlatformOperatorConnector].toInstance(mockPlatformOperatorConnector),
+            bind[SubscriptionConnector].toInstance(mockSubscriptionConnector))
+          .build()
+
+      when(mockSubscriptionConnector.getSubscription(any())).thenReturn(Future.failed(new RuntimeException()))
+      when(mockPlatformOperatorConnector.viewPlatformOperator(any())(any())).thenReturn(Future.successful(operator))
+
+      running(application) {
+        given Messages = messages(application)
+
+        val request = FakeRequest(routes.AssumedReportRemovedController.onPageLoad(operatorId, Year.of(2024)))
+
+        val result = route(application, request).value.failed.futureValue
+
+
+        verify(mockSubscriptionConnector, times(1)).getSubscription(any())
+        verify(mockPlatformOperatorConnector, times(0)).viewPlatformOperator(any())(any())
+
+      }
+    }
+
+
+    "must return the future failed if viewPlatformOperator fails" in {
+
+
+      val application =
+        applicationBuilder(userAnswers = Some(baseAnswers))
+          .overrides(bind[Clock].toInstance(fixedClock),
+            bind[PlatformOperatorConnector].toInstance(mockPlatformOperatorConnector),
+            bind[SubscriptionConnector].toInstance(mockSubscriptionConnector))
+          .build()
+
+      when(mockSubscriptionConnector.getSubscription(any())).thenReturn(Future.successful(subscription))
+      when(mockPlatformOperatorConnector.viewPlatformOperator(any())(any())).thenReturn(Future.failed(new RuntimeException()))
+
+      running(application) {
+        given Messages = messages(application)
+
+        val request = FakeRequest(routes.AssumedReportRemovedController.onPageLoad(operatorId, Year.of(2024)))
+
+        val result = route(application, request).value.failed.futureValue
+
+
+        verify(mockSubscriptionConnector, times(1)).getSubscription(any())
+        verify(mockPlatformOperatorConnector, times(1)).viewPlatformOperator(any())(any())
+        
+
+      }
+    }
+    
+    
+    
+    
+    
+    
   }
 }

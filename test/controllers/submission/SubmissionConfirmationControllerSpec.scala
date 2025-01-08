@@ -28,7 +28,7 @@ import models.submission.Submission.UploadFailureReason.SchemaValidationError
 import models.subscription.*
 import org.mockito.ArgumentMatchers.{any, eq as eqTo}
 import org.mockito.Mockito
-import org.mockito.Mockito.{never, verify, when}
+import org.mockito.Mockito.{never, times, verify, when}
 import org.scalatest.BeforeAndAfterEach
 import org.scalatestplus.mockito.MockitoSugar
 import play.api.i18n.Messages
@@ -418,7 +418,76 @@ class SubmissionConfirmationControllerSpec extends SpecBase with MockitoSugar wi
 
             verify(mockSubmissionConnector).get(eqTo("id"))(using any())
           }
+
+
+          "must retrun future failed when called get subscription" in {
+
+            val application = applicationBuilder(userAnswers = None)
+              .overrides(
+                bind[SubmissionConnector].toInstance(mockSubmissionConnector),
+                bind[PlatformOperatorConnector].toInstance(mockConnector),
+                bind[SubscriptionConnector].toInstance(mockSubscriptionConnector)
+              )
+              .build()
+
+            val submission = Submission(
+              _id = "id",
+              submissionType = SubmissionType.Xml,
+              dprsId = "dprsId",
+              operatorId = "operatorId",
+              operatorName = operatorName,
+              assumingOperatorName = None,
+              state = Rejected("test.xml", Year.of(2024)),
+              created = now,
+              updated = now
+            )
+            when(mockSubscriptionConnector.getSubscription(any())).thenReturn(Future.failed(new RuntimeException()))
+            when(mockConnector.viewPlatformOperator(any())(any())).thenReturn(Future.successful(operator))
+            when(mockSubmissionConnector.get(any())(using any())).thenReturn(Future.successful(Some(submission)))
+
+            running(application) {
+              val request = FakeRequest(routes.SubmissionConfirmationController.onPageLoad(operatorId, "id"))
+              val result = route(application, request).value.failed.futureValue
+            }
+            verify(mockSubscriptionConnector, times(1)).getSubscription(any())
+            verify(mockConnector, times(0)).viewPlatformOperator(any())(any())
+          }
         }
+
+        "must retrun future failed when called view Platform operator" in {
+
+          val application = applicationBuilder(userAnswers = None)
+            .overrides(
+              bind[SubmissionConnector].toInstance(mockSubmissionConnector),
+              bind[PlatformOperatorConnector].toInstance(mockConnector),
+              bind[SubscriptionConnector].toInstance(mockSubscriptionConnector)
+            )
+            .build()
+
+          val submission = Submission(
+            _id = "id",
+            submissionType = SubmissionType.Xml,
+            dprsId = "dprsId",
+            operatorId = "operatorId",
+            operatorName = operatorName,
+            assumingOperatorName = None,
+            state = Rejected("test.xml", Year.of(2024)),
+            created = now,
+            updated = now
+          )
+          when(mockSubscriptionConnector.getSubscription(any())).thenReturn(Future.successful(subscription))
+          when(mockConnector.viewPlatformOperator(any())(any())).thenReturn(Future.failed(new RuntimeException()))
+          when(mockSubmissionConnector.get(any())(using any())).thenReturn(Future.successful(Some(submission)))
+
+          running(application) {
+            val request = FakeRequest(routes.SubmissionConfirmationController.onPageLoad(operatorId, "id"))
+            val result = route(application, request).value.failed.futureValue
+          }
+          verify(mockSubscriptionConnector, times(1)).getSubscription(any())
+          verify(mockConnector, times(1)).viewPlatformOperator(any())(any())
+
+        }
+        
       }
     }
   }

@@ -45,11 +45,13 @@
     </div>
 
     @govukSummaryList(summaryList)
-    @if(userEmail.trim.toLowerCase != poEmail.trim.toLowerCase) {
-        <p class="govuk-body govuk-!-margin-bottom-4">@messages("submissionConfirmation.two.emails", userEmail, poEmail)</p>
-    } else {
-        <p class="govuk-body govuk-!-margin-bottom-4">@messages("submissionConfirmation.one.email", userEmail)</p>
-    }
+    <p class="govuk-body govuk-!-margin-bottom-4">
+        @if(userEmail.trim.toLowerCase != poEmail.trim.toLowerCase) {
+            @messages("submissionConfirmation.two.emails", userEmail, poEmail)</p>
+        } else {
+           @messages("submissionConfirmation.one.email", userEmail)
+        }
+    </p>
 
     <h2 class="govuk-heading-m">@messages("submissionConfirmation.h2")</h2>
     <p class="govuk-body govuk-!-margin-bottom-4">@messages("submissionConfirmation.p2")</p>

@@ -36,11 +36,13 @@
     </div>
 
     @govukSummaryList(summaryList)
-    @if(userEmail.trim.toLowerCase != poEmail.trim.toLowerCase) {
-        <p class="govuk-body govuk-!-margin-bottom-4">@messages("assumedReportingConfirmation.two.emails", userEmail, poEmail)</p>
-    } else {
-        <p class="govuk-body govuk-!-margin-bottom-4">@messages("assumedReportingConfirmation.one.email", userEmail)</p>
-    }
+    <p class="govuk-body govuk-!-margin-bottom-4">
+        @if(userEmail.trim.toLowerCase != poEmail.trim.toLowerCase) {
+            @messages("assumedReportingConfirmation.two.emails", userEmail, poEmail)</p>
+        } else {
+            @messages("assumedReportingConfirmation.one.email", userEmail)
+        }
+    </p>
 
     <p class="govuk-body">
         <a class="govuk-link" href="@assumedRoutes.ViewAssumedReportsController.onPageLoad().url">@messages("assumedReportingConfirmation.returnHistory")</a>
