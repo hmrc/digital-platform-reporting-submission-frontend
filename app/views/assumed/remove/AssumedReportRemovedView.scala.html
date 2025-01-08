@@ -22,7 +22,7 @@
         govukSummaryList: GovukSummaryList
 )
 
-@(summaryList: SummaryList, operatorId: String, reportingPeriod: Year)(implicit request: Request[_], messages: Messages)
+@(summaryList: SummaryList, operatorId: String, reportingPeriod: Year, userEmail: String, poEmail:String)(implicit request: Request[_], messages: Messages)
 
 @layout(
     pageTitle = titleNoForm(messages("assumedReportRemoved.title")),
@@ -33,6 +33,11 @@
 
     @govukSummaryList(summaryList)
 
+    @if(userEmail.trim.toLowerCase != poEmail.trim.toLowerCase) {
+        <p class="govuk-body govuk-!-margin-bottom-4">@messages("assumedReportRemoved.two.emails", userEmail, poEmail)</p>
+    } else {
+        <p class="govuk-body govuk-!-margin-bottom-4">@messages("assumedReportRemoved.one.email", userEmail)</p>
+    }
     <p class="govuk-body">
         <a href="@routes.ViewAssumedReportsController.onPageLoad()" class="govuk-button">@messages("assumedReportRemoved.button")</a>
     </p>

@@ -17,6 +17,7 @@
 package controllers.assumed.create
 
 import com.google.inject.Inject
+import connectors.{PlatformOperatorConnector, SubscriptionConnector}
 import controllers.AnswerExtractor
 import controllers.actions.*
 import play.api.i18n.{I18nSupport, MessagesApi}
@@ -27,6 +28,7 @@ import viewmodels.checkAnswers.assumed.create.AssumedReportCreatedSummary
 import views.html.assumed.create.SubmissionConfirmationView
 
 import java.time.{Clock, Year}
+import scala.concurrent.{ExecutionContext, Future}
 
 class SubmissionConfirmationController @Inject()(
                                             override val messagesApi: MessagesApi,
@@ -34,17 +36,23 @@ class SubmissionConfirmationController @Inject()(
                                             getData: DataRetrievalActionProvider,
                                             requireData: DataRequiredAction,
                                             checkAssumedReportingAllowed: CheckAssumedReportingAllowedAction,
+                                            subscriptionConnector: SubscriptionConnector,
+                                            platformOperatorConnector: PlatformOperatorConnector,
                                             val controllerComponents: MessagesControllerComponents,
                                             view: SubmissionConfirmationView,
                                             clock: Clock
-                                          )
+                                          ) (using ExecutionContext)
   extends FrontendBaseController with I18nSupport with AnswerExtractor {
 
   def onPageLoad(operatorId: String, reportingPeriod: Year): Action[AnyContent] =
-    (identify andThen checkAssumedReportingAllowed andThen getData(operatorId, Some(reportingPeriod)) andThen requireData) { implicit request =>
-      getAnswer(AssumedReportSummaryQuery) { assumedReport =>
-        val summaryList = AssumedReportCreatedSummary.list(assumedReport, clock.instant())
-        Ok(view(operatorId, summaryList))
+    (identify andThen checkAssumedReportingAllowed andThen getData(operatorId, Some(reportingPeriod)) andThen requireData) async { implicit request =>
+      subscriptionConnector.getSubscription.flatMap { subscriptionInfo =>
+        platformOperatorConnector.viewPlatformOperator(operatorId).map { poDetails =>
+          getAnswer(AssumedReportSummaryQuery) { assumedReport =>
+            val summaryList = AssumedReportCreatedSummary.list(assumedReport, clock.instant())
+            Ok(view(operatorId, summaryList, subscriptionInfo.primaryContact.email, poDetails.primaryContactDetails.emailAddress))
+          }
+        }
       }
-  }
+    }
 }

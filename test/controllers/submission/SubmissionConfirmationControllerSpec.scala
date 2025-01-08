@@ -146,7 +146,7 @@ class SubmissionConfirmationControllerSpec extends SpecBase with MockitoSugar wi
               )
             }
             status(result) mustEqual OK
-            contentAsString(result) mustEqual view(form, operatorId, operatorName, "id", expectedSummaryList)(request, messages(application)).toString
+            contentAsString(result) mustEqual view(form, operatorId, operatorName, "id", expectedSummaryList, subscription.primaryContact.email, operator.primaryContactDetails.emailAddress)(request, messages(application)).toString
           }
 
           verify(mockSubmissionConnector).get(eqTo("id"))(using any())

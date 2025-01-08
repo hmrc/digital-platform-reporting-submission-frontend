@@ -139,6 +139,8 @@ checkFile.return = Return to manage your digital platform reporting
 
 submissionConfirmation.title = File successfully sent
 submissionConfirmation.heading = File successfully sent
+submissionConfirmation.two.emails = We have sent a confirmation email to {0} and {1}.
+submissionConfirmation.one.email = We have sent a confirmation email to {0}.
 submissionConfirmation.p2 = We will contact you if we have any questions about your reports.
 submissionConfirmation.h2 = What happens next
 submissionConfirmation.p3 = You can
@@ -358,6 +360,8 @@ assumedReportingConfirmation.heading = Assumed reporting details successfully su
 assumedReportingConfirmation.heading.updated = Assumed reporting details successfully updated
 assumedReportingConfirmation.returnHistory = Return to assumed reporting history
 assumedReportingConfirmation.p1 = {0} has been chosen to report on behalf of {1} during the {2} Reporting Period.
+assumedReportingConfirmation.two.emails = We have sent a confirmation email to {0} and {1}.
+assumedReportingConfirmation.one.email = We have sent a confirmation email to {0}.
 assumedReportingConfirmation.return = Return to manage your digital platform reporting
 assumedReportingConfirmation.print = Print this page
 
@@ -482,6 +486,8 @@ assumedReportSummary.createdAt = Report created
 
 assumedReportRemoved.title = Assumed reporting details have been successfully deleted
 assumedReportRemoved.heading = Assumed reporting details have been successfully deleted
+assumedReportRemoved.one.email = We have sent a confirmation email to {0}.
+assumedReportRemoved.return = Return to manage your digital platform reporting
 assumedReportRemoved.button = Return to assumed reporting history
 
 submissionsExist.title = You have already told HMRC about this reportable period

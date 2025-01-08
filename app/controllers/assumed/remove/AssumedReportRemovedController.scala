@@ -16,6 +16,7 @@
 
 package controllers.assumed.remove
 
+import connectors.{PlatformOperatorConnector, SubscriptionConnector}
 import controllers.actions.{DataRequiredAction, DataRetrievalActionProvider, IdentifierAction}
 import controllers.AnswerExtractor
 import play.api.i18n.{I18nSupport, MessagesApi}
@@ -27,25 +28,33 @@ import views.html.assumed.remove.AssumedReportRemovedView
 
 import java.time.{Clock, Year}
 import javax.inject.Inject
+import scala.concurrent.ExecutionContext
 
 class AssumedReportRemovedController @Inject()(override val messagesApi: MessagesApi,
                                                val controllerComponents: MessagesControllerComponents,
                                                identify: IdentifierAction,
                                                getData: DataRetrievalActionProvider,
                                                requireData: DataRequiredAction,
+                                               subscriptionConnector: SubscriptionConnector,
+                                               platformOperatorConnector: PlatformOperatorConnector,
                                                view: AssumedReportRemovedView,
-                                               clock: Clock)
+                                               clock: Clock) (using ExecutionContext)
   extends FrontendBaseController with I18nSupport with AnswerExtractor {
 
-  def onPageLoad(operatorId: String, reportingPeriod: Year): Action[AnyContent] = (identify andThen getData(operatorId) andThen requireData) {
+  def onPageLoad(operatorId: String, reportingPeriod: Year): Action[AnyContent] = (identify andThen getData(operatorId) andThen requireData) async {
     implicit request =>
-      getAnswer(AssumedReportSummariesQuery) { summaries =>
 
-        summaries.find(_.reportingPeriod == reportingPeriod).map { summary =>
-          val summaryList = AssumedReportRemovedSummaryList.list(summary, clock.instant())
+      subscriptionConnector.getSubscription.flatMap { subscriptionInfo =>
+        platformOperatorConnector.viewPlatformOperator(operatorId).map { poDetails =>
+          getAnswer(AssumedReportSummariesQuery) { summaries =>
 
-          Ok(view(summaryList, operatorId, reportingPeriod))
-        }.getOrElse(NotFound)
+            summaries.find(_.reportingPeriod == reportingPeriod).map { summary =>
+              val summaryList = AssumedReportRemovedSummaryList.list(summary, clock.instant())
+
+              Ok(view(summaryList, operatorId, reportingPeriod, subscriptionInfo.primaryContact.email, poDetails.primaryContactDetails.emailAddress))
+            }.getOrElse(NotFound)
+          }
+        }
       }
   }
 }

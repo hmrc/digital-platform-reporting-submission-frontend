@@ -17,7 +17,12 @@
 package controllers.assumed.remove
 
 import base.SpecBase
-import models.submission.{SubmissionStatus, AssumedReportingSubmissionSummary}
+import connectors.{PlatformOperatorConnector, SubscriptionConnector}
+import models.operator.responses.PlatformOperator
+import models.submission.{AssumedReportingSubmissionSummary, SubmissionStatus}
+import models.subscription._
+import models.operator._
+import models.operator.{AddressDetails, ContactDetails}
 import play.api.i18n.Messages
 import play.api.inject.bind
 import play.api.test.FakeRequest
@@ -25,26 +30,59 @@ import play.api.test.Helpers.*
 import queries.AssumedReportSummariesQuery
 import viewmodels.checkAnswers.assumed.remove.AssumedReportRemovedSummaryList
 import views.html.assumed.remove.AssumedReportRemovedView
+import org.mockito.ArgumentMatchers.{any, eq as eqTo}
+import org.mockito.Mockito.{never, verify, when}
+import org.mockito.Mockito
+import org.scalatest.BeforeAndAfterEach
+import org.scalatestplus.mockito.MockitoSugar
 
+import scala.concurrent.Future
 import java.time.{Clock, Instant, Year, ZoneId}
 
-class AssumedReportRemovedControllerSpec extends SpecBase {
+class AssumedReportRemovedControllerSpec extends SpecBase with MockitoSugar with BeforeAndAfterEach {
 
   private val now = Instant.now()
   private val fixedClock = Clock.fixed(now, ZoneId.systemDefault())
   private val submission1 = AssumedReportingSubmissionSummary("submissionId1", "file1", "operatorId", "operatorName", Year.of(2024), now, SubmissionStatus.Success, Some("assuming"), Some("caseId1"), isDeleted = false)
   private val submission2 = AssumedReportingSubmissionSummary("submissionId2", "file2", "operatorId", "operatorName", Year.of(2025), now, SubmissionStatus.Success, Some("assuming"), Some("caseId2"), isDeleted = false)
-
+  private val mockPlatformOperatorConnector = mock[PlatformOperatorConnector]
+  private val mockSubscriptionConnector = mock[SubscriptionConnector]
   private val baseAnswers = emptyUserAnswers.set(AssumedReportSummariesQuery, Seq(submission1, submission2)).success.value
 
   "Assumed Report Removed Controller" - {
 
+    val contact = IndividualContact(Individual("first", "last"), "tax1@team.com", None)
+
+    val subscription :SubscriptionInfo = SubscriptionInfo(
+      id = "dprsId",
+      gbUser = true,
+      tradingName = None,
+      primaryContact = contact,
+      secondaryContact = None
+    )
+
+    val operator = PlatformOperator(
+      operatorId = "operatorId",
+      operatorName = "operatorName",
+      tinDetails = Nil,
+      businessName = None,
+      tradingName = None,
+      primaryContactDetails = ContactDetails(None, "name", "tax2@team.com"),
+      secondaryContactDetails = None,
+      addressDetails = AddressDetails("line 1", None, None, None, None, Some("GB")),
+      notifications = Nil
+    )
     "must return OK and the correct view for a GET of a known reportable period" in {
 
       val application =
         applicationBuilder(userAnswers = Some(baseAnswers))
-          .overrides(bind[Clock].toInstance(fixedClock))
+          .overrides(bind[Clock].toInstance(fixedClock),
+            bind[PlatformOperatorConnector].toInstance(mockPlatformOperatorConnector),
+            bind[SubscriptionConnector].toInstance(mockSubscriptionConnector))
           .build()
+
+      when(mockSubscriptionConnector.getSubscription(any())).thenReturn(Future.successful(subscription))
+      when(mockPlatformOperatorConnector.viewPlatformOperator(any())(any())).thenReturn(Future.successful(operator))
 
       running(application) {
         given Messages = messages(application)
@@ -57,7 +95,7 @@ class AssumedReportRemovedControllerSpec extends SpecBase {
         val summaryList = AssumedReportRemovedSummaryList.list(submission1, now)
 
         status(result) mustEqual OK
-        contentAsString(result) mustEqual view(summaryList, operatorId, Year.of(2024))(request, implicitly).toString
+        contentAsString(result) mustEqual view(summaryList, operatorId, Year.of(2024), subscription.primaryContact.email, operator.primaryContactDetails.emailAddress)(request, implicitly).toString
       }
     }
     
@@ -65,9 +103,14 @@ class AssumedReportRemovedControllerSpec extends SpecBase {
 
       val application =
         applicationBuilder(userAnswers = Some(baseAnswers))
-          .overrides(bind[Clock].toInstance(fixedClock))
+          .overrides(bind[Clock].toInstance(fixedClock),
+            bind[PlatformOperatorConnector].toInstance(mockPlatformOperatorConnector),
+            bind[SubscriptionConnector].toInstance(mockSubscriptionConnector))
           .build()
 
+      when(mockSubscriptionConnector.getSubscription(any())).thenReturn(Future.successful(subscription))
+      when(mockPlatformOperatorConnector.viewPlatformOperator(any())(any())).thenReturn(Future.successful(operator))
+      
       running(application) {
         given Messages = messages(application)
 

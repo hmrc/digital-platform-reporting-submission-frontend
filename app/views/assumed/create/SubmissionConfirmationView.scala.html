@@ -24,7 +24,7 @@
         govukSummaryList: GovukSummaryList
 )
 
-@(operatorId: String, summaryList: SummaryList)(implicit request: Request[_], messages: Messages)
+@(operatorId: String, summaryList: SummaryList, userEmail: String, poEmail:String)(implicit request: Request[_], messages: Messages)
 
 @layout(pageTitle = titleNoForm(messages("assumedReportingConfirmation.title")), showBackLink = false) {
 
@@ -36,6 +36,11 @@
 
     @govukSummaryList(summaryList)
 
+    @if(userEmail.trim.toLowerCase != poEmail.trim.toLowerCase) {
+        <p class="govuk-body govuk-!-margin-bottom-4">@messages("assumedReportingConfirmation.two.emails", userEmail, poEmail)</p>
+    } else {
+        <p class="govuk-body govuk-!-margin-bottom-4">@messages("assumedReportingConfirmation.one.email", userEmail)</p>
+    }
     <p class="govuk-body">
 
         <a class="govuk-link" href="@appConfig.manageHomepageUrl">@messages("assumedReportingConfirmation.return")</a>

@@ -17,6 +17,11 @@
 package controllers.assumed.update
 
 import base.SpecBase
+import connectors.{PlatformOperatorConnector, SubscriptionConnector}
+import models.operator.responses.PlatformOperator
+import models.subscription._
+import models.operator._
+import models.operator.{AddressDetails, ContactDetails}
 import models.submission.AssumedReportSummary
 import play.api.i18n.Messages
 import play.api.inject.bind
@@ -25,15 +30,45 @@ import play.api.test.Helpers.*
 import queries.AssumedReportSummaryQuery
 import viewmodels.checkAnswers.assumed.update.AssumedReportUpdatedSummaryList
 import views.html.assumed.update.SubmissionConfirmationView
+import org.mockito.ArgumentMatchers.{any, eq as eqTo}
+import org.mockito.Mockito.{never, verify, when}
+import org.mockito.Mockito
+import org.scalatest.BeforeAndAfterEach
+import org.scalatestplus.mockito.MockitoSugar
 
 import java.time.{Clock, Instant, Year, ZoneId}
+import scala.concurrent.Future
 
-class SubmissionConfirmationControllerSpec extends SpecBase {
+class SubmissionConfirmationControllerSpec extends SpecBase with MockitoSugar with BeforeAndAfterEach {
 
   private val now = Instant.now()
   private val fixedClock = Clock.fixed(now, ZoneId.systemDefault())
+  private val mockPlatformOperatorConnector = mock[PlatformOperatorConnector]
+  private val mockSubscriptionConnector = mock[SubscriptionConnector]
+
 
   "SubmissionConfirmation Controller" - {
+    val contact = IndividualContact(Individual("first", "last"), "tax1@team.com", None)
+
+    val subscription: SubscriptionInfo = SubscriptionInfo(
+      id = "dprsId",
+      gbUser = true,
+      tradingName = None,
+      primaryContact = contact,
+      secondaryContact = None
+    )
+
+    val operator = PlatformOperator(
+      operatorId = "operatorId",
+      operatorName = "operatorName",
+      tinDetails = Nil,
+      businessName = None,
+      tradingName = None,
+      primaryContactDetails = ContactDetails(None, "name", "tax2@team.com"),
+      secondaryContactDetails = None,
+      addressDetails = AddressDetails("line 1", None, None, None, None, Some("GB")),
+      notifications = Nil
+    )
 
     "onPageLoad" - {
       
@@ -48,9 +83,14 @@ class SubmissionConfirmationControllerSpec extends SpecBase {
 
         val application =
           applicationBuilder(userAnswers = Some(answers))
-            .overrides(bind[Clock].toInstance(fixedClock))
+            .overrides(bind[Clock].toInstance(fixedClock),
+              bind[PlatformOperatorConnector].toInstance(mockPlatformOperatorConnector),
+              bind[SubscriptionConnector].toInstance(mockSubscriptionConnector))
             .build()
-        
+
+        when(mockSubscriptionConnector.getSubscription(any())).thenReturn(Future.successful(subscription))
+        when(mockPlatformOperatorConnector.viewPlatformOperator(any())(any())).thenReturn(Future.successful(operator))
+
         running(application) {
           given Messages = messages(application)
           
@@ -60,7 +100,7 @@ class SubmissionConfirmationControllerSpec extends SpecBase {
           val summaryList = AssumedReportUpdatedSummaryList.list(summary, now)
           
           status(result) mustEqual OK
-          contentAsString(result) mustEqual view(operatorId, summaryList)(request, implicitly).toString
+          contentAsString(result) mustEqual view(operatorId, summaryList, subscription.primaryContact.email, operator.primaryContactDetails.emailAddress)(request, implicitly).toString
         }
       }
     }
