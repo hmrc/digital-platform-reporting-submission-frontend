@@ -43,10 +43,7 @@
     }
 }
 
-@layout(
-    pageTitle = title(form, titleText),
-    showBackLink = false
-) {
+@layout(pageTitle = title(form, titleText)) {
 
     @formHelper(action = routes.CheckReportingNotificationsController.onSubmit(operatorId), Symbol("autoComplete") -> "off") {
 
