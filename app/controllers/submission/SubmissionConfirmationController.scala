@@ -16,8 +16,9 @@
 
 package controllers.submission
 
+import cats.data.OptionT
 import config.FrontendAppConfig
-import connectors.SubmissionConnector
+import connectors.{PlatformOperatorConnector, SubmissionConnector, SubscriptionConnector}
 import controllers.actions.*
 import forms.SubmissionConfirmationFormProvider
 import models.submission.Submission
@@ -42,20 +43,37 @@ class SubmissionConfirmationController @Inject()(
                                                   val controllerComponents: MessagesControllerComponents,
                                                   view: SubmissionConfirmationView,
                                                   submissionConnector: SubmissionConnector,
+                                                  subscriptionConnector: SubscriptionConnector,
+                                                  platformOperatorConnector: PlatformOperatorConnector,
                                                   formProvider: SubmissionConfirmationFormProvider
                                                 )(using ExecutionContext) extends FrontendBaseController with I18nSupport {
 
   def onPageLoad(operatorId: String, submissionId: String): Action[AnyContent] = identify.async {
     implicit request =>
-      submissionConnector.get(submissionId).flatMap {
-        _.map { submission =>
-          handleSubmission(operatorId, submission) { case state: Approved =>
-            Future.successful(Ok(view(formProvider(submission.operatorName), operatorId, submission.operatorName, submissionId, getSummaryList(state.fileName, submission, state, submission.updated, request.dprsId))))
-          }
-        }.getOrElse {
-          Future.successful(Redirect(controllers.routes.JourneyRecoveryController.onPageLoad()))
+      (for {
+        subm <- submissionConnector.get(submissionId)
+        subcriptionInfo <- subscriptionConnector.getSubscription
+        poDetails <- platformOperatorConnector.viewPlatformOperator(operatorId)
+      } yield {
+        subm match {
+          case Some(submission) =>
+            handleSubmission(operatorId, submission) {
+              case state: Approved =>
+                Future.successful(Ok(view(
+                  formProvider(submission.operatorName),
+                  operatorId,
+                  submission.operatorName,
+                  submissionId,
+                  getSummaryList(state.fileName, submission, state, submission.updated, request.dprsId),
+                  subcriptionInfo.primaryContact.email,
+                  poDetails.primaryContactDetails.emailAddress
+                )))
+            }
+
+          case None =>
+            Future.successful(Redirect(controllers.routes.JourneyRecoveryController.onPageLoad()))
         }
-      }
+      }).flatten
   }
   
   private def getSummaryList(fileName: String, submission: Submission, state: Approved, checksCompleted: Instant, dprsId: String)(using Messages): SummaryList =
