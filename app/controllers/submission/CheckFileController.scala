@@ -61,7 +61,6 @@ class CheckFileController @Inject()(
         ),
           SummaryListRow(
           key = Key(content = Text(Messages("checkFile.autoCheck"))),
-          //value = Value(content = Text(Messages("checkFile.pending")),
           value = Value(content = HtmlContent(s"""<strong class="govuk-tag govuk-tag--yellow"> ${Messages("checkFile.pending")} </strong>""".stripMargin)),
 
         )
