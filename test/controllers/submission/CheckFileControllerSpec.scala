@@ -31,7 +31,7 @@ import play.api.i18n.Messages
 import play.api.inject.bind
 import play.api.test.FakeRequest
 import play.api.test.Helpers.*
-import uk.gov.hmrc.govukfrontend.views.Aliases.{Key, SummaryList, SummaryListRow, Value}
+import uk.gov.hmrc.govukfrontend.views.Aliases.{HtmlContent, Key, SummaryList, SummaryListRow, Value}
 import uk.gov.hmrc.govukfrontend.views.viewmodels.content.Text
 import uk.gov.hmrc.http.StringContextOps
 import views.html.submission.CheckFileView
@@ -90,7 +90,7 @@ class CheckFileControllerSpec extends SpecBase with MockitoSugar with BeforeAndA
                 ),
                 SummaryListRow(
                   key = Key(content = Text(Messages("checkFile.autoCheck"))),
-                  value = Value(content = Text(Messages("checkFile.pending"))),
+                  value = Value(content = HtmlContent(s"""<strong class="govuk-tag govuk-tag--yellow"> ${Messages("checkFile.pending")} </strong>""".stripMargin)),
                   )
               )
             )
