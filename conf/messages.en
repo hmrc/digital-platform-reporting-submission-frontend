@@ -214,7 +214,7 @@ internationalTaxIdentifier.hint = Enter the combination of numbers and letters o
 internationalTaxIdentifier.checkYourAnswersLabel = Tax identification number
 internationalTaxIdentifier.error.required = Enter the tax identification number issued by {0}
 internationalTaxIdentifier.error.length = Tax identification number must be {0} characters or less
-internationalTaxIdentifier.error.format = Tax identification number must only include letters, numbers, hyphens, spaces, commas, full stops, ampersands, underscores and apostrophes
+internationalTaxIdentifier.error.format = Tax identification number must only include letters, numbers, hyphens, spaces, commas, full stops, ampersands, underscores, parentheses and apostrophes
 internationalTaxIdentifier.change.hidden = the tax identification number issued by {0}
 
 assumingOperatorName.title = What is the name of the platform operator that will report?
@@ -223,7 +223,7 @@ assumingOperatorName.p1 = They are called the assuming platform operator.
 assumingOperatorName.checkYourAnswersLabel = Assuming platform operator
 assumingOperatorName.error.required = Enter the platform operator’s name
 assumingOperatorName.error.length = Name must be {0} characters or less
-assumingOperatorName.error.format = Name must only include letters, numbers, hyphens, spaces, commas, full stops, ampersands, underscores and apostrophes
+assumingOperatorName.error.format = Name must only include letters, numbers, hyphens, spaces, commas, full stops, ampersands, underscores, parentheses and apostrophes
 assumingOperatorName.change.hidden = the platform operator
 
 registeredCountry.title = What country is the platform operator’s main address in?
@@ -262,7 +262,7 @@ address.title = What is the platform operator’s main address?
 address.heading = What is the main address for {0}?
 address.error.required = Enter the main address for {0}
 address.error.length = Address must be {0} characters or less
-address.error.format = Address must only include letters, numbers, hyphens, spaces, commas, full stops, ampersands, underscores and apostrophes
+address.error.format = Address must only include letters, numbers, hyphens, spaces, commas, full stops, ampersands, underscores, parentheses and apostrophes
 
 ukTaxIdentifier.title = Enter a tax identification number for the platform operator
 ukTaxIdentifier.heading = Enter a tax identification number for {0}
@@ -270,7 +270,7 @@ ukTaxIdentifier.p1 = This could be a Unique Taxpayer Reference (UTR), Company Re
 ukTaxIdentifier.checkYourAnswersLabel = Tax identification number for {0}
 ukTaxIdentifier.error.required = Enter a tax identification number for {0}
 ukTaxIdentifier.error.length = Tax identification number must be {0} characters or less
-ukTaxIdentifier.error.format = Name must only include letters, numbers, hyphens, spaces, commas, full stops, ampersands, underscores and apostrophes
+ukTaxIdentifier.error.format = Name must only include letters, numbers, hyphens, spaces, commas, full stops, ampersands, underscores, parentheses and apostrophes
 ukTaxIdentifier.change.hidden = the tax identification number for {0}
 
 ukTaxIdentifiers.checkAnswers.utr = UTR

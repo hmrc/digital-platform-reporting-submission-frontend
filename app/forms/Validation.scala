@@ -20,6 +20,6 @@ import scala.util.matching.Regex
 
 object Validation {
 
-  val textInputPattern: Regex = """[0-9A-Za-zÀ-ÅÇ-ÖØ-Ýà-åç-öø-ýÿĀ-ľŁ-ňŊ-őŔ-ſ'’ \-.,_&]+""".r.anchored
-  val addressInputPattern: Regex = """[0-9A-Za-zÀ-ÅÇ-ÖØ-Ýà-åç-öø-ýÿĀ-ľŁ-ňŊ-őŔ-ſ'’ \-.,_&\r\n]+""".r.anchored
+  val textInputPattern: Regex = """[0-9A-Za-zÀ-ÅÇ-ÖØ-Ýà-åç-öø-ýÿĀ-ľŁ-ňŊ-őŔ-ſ'’ \-.,_&)(]+""".r.anchored
+  val addressInputPattern: Regex = """[0-9A-Za-zÀ-ÅÇ-ÖØ-Ýà-åç-öø-ýÿĀ-ľŁ-ňŊ-őŔ-ſ'’ \-.,_&)(\r\n]+""".r.anchored
 }
