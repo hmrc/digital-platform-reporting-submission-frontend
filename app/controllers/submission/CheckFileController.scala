@@ -22,10 +22,11 @@ import models.submission.Submission
 import models.submission.Submission.State.{Approved, Ready, Rejected, Submitted, UploadFailed, Uploading, Validated}
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents, Result}
-import uk.gov.hmrc.govukfrontend.views.Aliases.{Key, SummaryList, Text, Value}
+import uk.gov.hmrc.govukfrontend.views.Aliases.{Key, HtmlContent, SummaryList, Text, Value}
 import uk.gov.hmrc.govukfrontend.views.viewmodels.summarylist.SummaryListRow
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import views.html.submission.CheckFileView
+import viewmodels.govuk.tag._
 
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
@@ -60,10 +61,11 @@ class CheckFileController @Inject()(
         ),
           SummaryListRow(
           key = Key(content = Text(Messages("checkFile.autoCheck"))),
-          value = Value(content = Text(Messages("checkFile.pending")),
+          value = Value(content = HtmlContent(s"""<strong class="govuk-tag govuk-tag--yellow"> ${Messages("checkFile.pending")} </strong>""".stripMargin)),
+
         )
       )
-    ))
+    )
 
   private def handleSubmission(operatorId: String, submission: Submission)(f: PartialFunction[Submission.State, Future[Result]]): Future[Result] =
     f.lift(submission.state).getOrElse {
