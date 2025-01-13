@@ -65,6 +65,9 @@ object DateTimeFormats {
       .withZone(ZoneId.of("GMT"))
   }
 
+  val dateTimeGmtFormatter = DateTimeFormatter.ofPattern("dd MMM yyyy HH:mm 'GMT'")
+    
   def formatInstant(instant: Instant, formatter: DateTimeFormatter): String =
     formatter.format(instant.atZone(ZoneOffset.UTC).withZoneSameInstant(ZoneId.of("Europe/London")))
+  
 }
