@@ -80,4 +80,12 @@ class DateTimeFormatsSpec extends AnyFreeSpec with Matchers {
       DateTimeFormats.EmailDateTimeFormatter.format(dateTime) mustEqual "12:01pm GMT on 1 June 2024"
     }
   }
+
+  "dateTimeGmtFormatter" - {
+    "must format to GMT date correctly" in {
+      val dateTime = ZonedDateTime.of(2025, 1, 13, 13, 1, 0, 0, ZoneId.of("Europe/London"))
+      DateTimeFormats.dateTimeGmtFormatter.format(dateTime) mustEqual "13 Jan 2025 13:01 GMT"
+    }
+  }
+  
 }
