@@ -45,6 +45,11 @@ object ViewUtils {
     LocalDateTime.from(instant.atZone(ZoneId.systemDefault())).format(formatter)
   }
 
+  def dateTime(instant: Instant): String = {
+    val formatter = DateTimeFormatter.ofPattern("dd MMM yyyy HH:mm 'GMT'")
+    LocalDateTime.from(instant.atZone(ZoneId.systemDefault())).format(formatter)
+  }
+
   def countrySelectItems(countries: Seq[Country]): Seq[SelectItem] =
     SelectItem(value = None, text = "") +:
       countries.map {

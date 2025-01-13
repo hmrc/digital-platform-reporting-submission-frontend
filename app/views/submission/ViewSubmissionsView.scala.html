@@ -124,7 +124,7 @@
                         @summary.deliveredSubmissions.map { submission =>
                             <tr class="govuk-table__row">
                                 <td class="govuk-table__cell">@govukTag(submission.statusTag)</td>
-                                <td class="govuk-table__cell">@shortDate(submission.submissionDateTime)</td>
+                                <td class="govuk-table__cell">@dateTime(submission.submissionDateTime)</td>
                                 <td class="govuk-table__cell">@submission.operatorName<br/>@submission.operatorId</td>
                                 <td class="govuk-table__cell">@submission.reportingPeriod</td>
                                 <td class="govuk-table__cell">@submission.fileName</td>
