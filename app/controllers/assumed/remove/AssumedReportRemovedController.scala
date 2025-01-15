@@ -17,11 +17,13 @@
 package controllers.assumed.remove
 
 import connectors.{PlatformOperatorConnector, SubscriptionConnector}
-import controllers.actions.{DataRequiredAction, DataRetrievalActionProvider, IdentifierAction}
 import controllers.AnswerExtractor
+import controllers.actions.{DataRequiredAction, DataRetrievalActionProvider, IdentifierAction}
+import models.email.EmailsSentResult
+import models.pageviews.assumed.remove.AssumedReportRemovedViewModel
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
-import queries.AssumedReportSummariesQuery
+import queries.{AssumedReportSummariesQuery, SentAddAssumedReportingEmailsQuery, SentDeleteAssumedReportingEmailsQuery}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import viewmodels.checkAnswers.assumed.remove.AssumedReportRemovedSummaryList
 import views.html.assumed.remove.AssumedReportRemovedView
@@ -38,23 +40,21 @@ class AssumedReportRemovedController @Inject()(override val messagesApi: Message
                                                subscriptionConnector: SubscriptionConnector,
                                                platformOperatorConnector: PlatformOperatorConnector,
                                                view: AssumedReportRemovedView,
-                                               clock: Clock) (using ExecutionContext)
+                                               clock: Clock)(using ExecutionContext)
   extends FrontendBaseController with I18nSupport with AnswerExtractor {
 
-  def onPageLoad(operatorId: String, reportingPeriod: Year): Action[AnyContent] = (identify andThen getData(operatorId) andThen requireData) async {
-    implicit request =>
-
+  def onPageLoad(operatorId: String, reportingPeriod: Year): Action[AnyContent] =
+    (identify andThen getData(operatorId) andThen requireData) async { implicit request =>
       subscriptionConnector.getSubscription.flatMap { subscriptionInfo =>
-        platformOperatorConnector.viewPlatformOperator(operatorId).map { poDetails =>
+        platformOperatorConnector.viewPlatformOperator(operatorId).map { platformOperator =>
           getAnswer(AssumedReportSummariesQuery) { summaries =>
-
             summaries.find(_.reportingPeriod == reportingPeriod).map { summary =>
               val summaryList = AssumedReportRemovedSummaryList.list(summary, clock.instant())
-
-              Ok(view(summaryList, operatorId, reportingPeriod, subscriptionInfo.primaryContact.email, poDetails.primaryContactDetails.emailAddress))
+              val emailsSentResult = request.userAnswers.get(SentDeleteAssumedReportingEmailsQuery).getOrElse(EmailsSentResult(false, None))
+              Ok(view(AssumedReportRemovedViewModel(summaryList, subscriptionInfo, platformOperator, emailsSentResult)))
             }.getOrElse(NotFound)
           }
         }
       }
-  }
+    }
 }

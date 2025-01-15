@@ -17,8 +17,8 @@
 package controllers.assumed.create
 
 import com.google.inject.Inject
+import connectors.AssumedReportingConnector
 import connectors.AssumedReportingConnector.SubmitAssumedReportingFailure
-import connectors.{AssumedReportingConnector, SubscriptionConnector}
 import controllers.AnswerExtractor
 import controllers.actions.*
 import models.audit.AddAssumedReportEvent
@@ -28,7 +28,7 @@ import models.{CountriesList, UserAnswers}
 import play.api.Logging
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
-import queries.{AssumedReportSummaryQuery, PlatformOperatorSummaryQuery}
+import queries.{AssumedReportSummaryQuery, PlatformOperatorSummaryQuery, SentAddAssumedReportingEmailsQuery}
 import repositories.SessionRepository
 import services.UserAnswersService.BuildAssumedReportingSubmissionFailure
 import services.{AuditService, EmailService, UserAnswersService}
@@ -50,7 +50,6 @@ class CheckYourAnswersController @Inject()(override val messagesApi: MessagesApi
                                            view: CheckYourAnswersView,
                                            userAnswersService: UserAnswersService,
                                            connector: AssumedReportingConnector,
-                                           subscriptionConnector: SubscriptionConnector,
                                            sessionRepository: SessionRepository,
                                            auditService: AuditService,
                                            emailService: EmailService,
@@ -93,14 +92,12 @@ class CheckYourAnswersController @Inject()(override val messagesApi: MessagesApi
               submission <- submit(submissionRequest, platformOperator)
               summary <- AssumedReportSummary(request.userAnswers).map(Future.successful).getOrElse(Future.failed(Exception("unable to build an assumed report summary")))
               emptyAnswers = UserAnswers(request.userId, operatorId, Some(summary.reportingPeriod))
-              answers <- Future.fromTry(emptyAnswers.set(AssumedReportSummaryQuery, summary))
-              _ <- sessionRepository.set(answers)
-              subscription <- subscriptionConnector.getSubscription
-              _ <- emailService.sendAddAssumedReportingEmails(subscription, platformOperator, submission.created, summary)
+              emailsSentResult <- emailService.sendAddAssumedReportingEmails(platformOperator, submission.created, summary)
+              answersWithSummary <- Future.fromTry(emptyAnswers.set(AssumedReportSummaryQuery, summary))
+              answersWithEmailSentResult <- Future.fromTry(answersWithSummary.set(SentAddAssumedReportingEmailsQuery, emailsSentResult))
+              _ <- sessionRepository.set(answersWithEmailSentResult)
             } yield Redirect(routes.SubmissionConfirmationController.onPageLoad(operatorId, summary.reportingPeriod))).recover {
               case error: SubmitAssumedReportingFailure => logger.warn("Failed to submit assumed reporting", error)
-                throw error
-              case error => logger.warn("Add assumed reporting emails not sent", error)
                 throw error
             }
           }

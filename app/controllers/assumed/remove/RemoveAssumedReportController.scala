@@ -16,8 +16,8 @@
 
 package controllers.assumed.remove
 
+import connectors.AssumedReportingConnector
 import connectors.AssumedReportingConnector.DeleteAssumedReportFailure
-import connectors.{AssumedReportingConnector, PlatformOperatorConnector, SubscriptionConnector}
 import controllers.actions.*
 import controllers.assumed.remove.routes.AssumedReportRemovedController
 import controllers.assumed.routes.ViewAssumedReportsController
@@ -26,11 +26,11 @@ import controllers.{AnswerExtractor, routes as baseRoutes}
 import forms.RemoveAssumedReportFormProvider
 import models.audit.DeleteAssumedReportEvent
 import models.submission.{AssumedReportingSubmission, AssumedReportingSubmissionSummary}
-import org.apache.pekko.Done
 import play.api.Logging
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
-import queries.AssumedReportSummariesQuery
+import queries.{AssumedReportSummariesQuery, SentDeleteAssumedReportingEmailsQuery}
+import repositories.SessionRepository
 import services.{AuditService, EmailService}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import viewmodels.checkAnswers.assumed.remove.AssumedReportSummaryList
@@ -49,10 +49,9 @@ class RemoveAssumedReportController @Inject()(override val messagesApi: Messages
                                               formProvider: RemoveAssumedReportFormProvider,
                                               view: RemoveAssumedReportView,
                                               assumedReportingConnector: AssumedReportingConnector,
-                                              platformOperatorConnector: PlatformOperatorConnector,
-                                              subscriptionConnector: SubscriptionConnector,
                                               auditService: AuditService,
                                               emailService: EmailService,
+                                              sessionRepository: SessionRepository,
                                               clock: Clock)
                                              (using ExecutionContext)
   extends FrontendBaseController with I18nSupport with AnswerExtractor with Logging {
@@ -77,7 +76,7 @@ class RemoveAssumedReportController @Inject()(override val messagesApi: Messages
           answer =>
             if (answer) {
               assumedReportingConnector.get(operatorId, reportingPeriod).flatMap {
-                case Some(assumedReportingSubmission) => assumedReportingConnector.delete(operatorId, reportingPeriod).map { _ =>
+                case Some(assumedReportingSubmission) => assumedReportingConnector.delete(operatorId, reportingPeriod).flatMap { _ =>
                   val deletionInstant = Instant.now(clock)
                   val auditEvent = DeleteAssumedReportEvent(
                     dprsId = request.dprsId,
@@ -90,16 +89,14 @@ class RemoveAssumedReportController @Inject()(override val messagesApi: Messages
 
                   auditService.audit(auditEvent)
 
-                  (for {
-                    platformOperator <- platformOperatorConnector.viewPlatformOperator(operatorId)
-                    subscriptionInfo <- subscriptionConnector.getSubscription
-                    _ <- emailService.sendDeleteAssumedReportingEmails(subscriptionInfo, platformOperator, assumedReportingSubmission, deletionInstant)
-                  } yield Done).recover {
-                    case error => logger.warn("Update assumed reporting emails not sent", error)
+                  for {
+                    emailsSentResult <- emailService.sendDeleteAssumedReportingEmails(operatorId, assumedReportingSubmission, deletionInstant)
+                    answersWithSentEmails <- Future.fromTry(request.userAnswers.set(SentDeleteAssumedReportingEmailsQuery, emailsSentResult))
+                    _ <- sessionRepository.set(answersWithSentEmails)
+                  } yield {
+                    Redirect(AssumedReportRemovedController.onPageLoad(operatorId, reportingPeriod))
                   }
-
-                  Redirect(AssumedReportRemovedController.onPageLoad(operatorId, reportingPeriod))
-                }.recover {
+                }.recoverWith {
                   case ex: DeleteAssumedReportFailure =>
                     auditService.audit(DeleteAssumedReportEvent(
                       dprsId = request.dprsId,
@@ -110,7 +107,7 @@ class RemoveAssumedReportController @Inject()(override val messagesApi: Messages
                       processedAt = Instant.now(clock)
                     ))
 
-                    throw ex
+                    Future.failed(ex)
                 }
 
                 case None => Future.successful(Redirect(JourneyRecoveryController.onPageLoad()))

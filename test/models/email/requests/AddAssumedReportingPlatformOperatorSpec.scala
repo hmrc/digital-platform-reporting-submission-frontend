@@ -17,30 +17,33 @@
 package models.email.requests
 
 import base.SpecBase
+import builders.AssumedReportSummaryBuilder.anAssumedReportSummary
+import builders.PlatformOperatorSummaryBuilder.aPlatformOperatorSummary
+
+import java.time.Instant
 
 class AddAssumedReportingPlatformOperatorSpec extends SpecBase {
+
+  private val completedDateTime: Instant = Instant.parse("2100-12-31T00:01:00Z")
+  private val completedDateTimeString = "12:01am GMT on 31 December 2100"
 
   ".apply(...)" - {
     "must create AddAssumedReportingPlatformOperator object" in {
       AddAssumedReportingPlatformOperator.apply(
-        email = "some.email@example.com",
-        platformOperatorContactName = "some-contact-name",
-        checksCompletedDateTime = "9:15am (GMT) on 17th November 2024",
-        assumingPlatformOperator = "some-assuming-platform-operator",
-        businessName = "some-business-name",
-        reportingPeriod = "2024"
+        platformOperatorSummary = aPlatformOperatorSummary,
+        assumedReportSummary = anAssumedReportSummary,
+        createdInstant = completedDateTime
       ) mustBe AddAssumedReportingPlatformOperator(
-        to = List("some.email@example.com"),
+        to = List(aPlatformOperatorSummary.operatorPrimaryContactEmail),
         templateId = "dprs_add_assumed_reporting_platform_operator",
         parameters = Map(
-          "poPrimaryContactName" -> "some-contact-name",
-          "checksCompletedDateTime" -> "9:15am (GMT) on 17th November 2024",
-          "assumingPlatformOperator" -> "some-assuming-platform-operator",
-          "poBusinessName" -> "some-business-name",
-          "reportingPeriod" -> "2024"
+          "poPrimaryContactName" -> aPlatformOperatorSummary.operatorPrimaryContactName,
+          "checksCompletedDateTime" -> completedDateTimeString,
+          "assumingPlatformOperator" -> anAssumedReportSummary.assumingOperatorName,
+          "poBusinessName" -> anAssumedReportSummary.operatorName,
+          "reportingPeriod" -> anAssumedReportSummary.reportingPeriod.toString
         )
       )
     }
   }
-
 }

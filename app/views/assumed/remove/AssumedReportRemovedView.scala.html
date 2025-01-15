@@ -15,32 +15,53 @@
  *@
 
 @import controllers.assumed.routes
+@import models.pageviews.assumed.remove.AssumedReportRemovedViewModel
 @import uk.gov.hmrc.govukfrontend.views.html.components.GovukWarningText
 
 @this(
-        layout: templates.Layout,
-        govukSummaryList: GovukSummaryList
+    layout: templates.Layout,
+    govukSummaryList: GovukSummaryList,
+    govukWarning: GovukWarningText
 )
 
-@(summaryList: SummaryList, operatorId: String, reportingPeriod: Year, userEmail: String, poEmail:String)(implicit request: Request[_], messages: Messages)
+@(viewModel: AssumedReportRemovedViewModel)(implicit request: Request[_], messages: Messages)
 
-@layout(
-    pageTitle = titleNoForm(messages("assumedReportRemoved.title")),
-    showBackLink = false
-) {
-    
+@heading = {
     <h1 class="govuk-heading-xl">@messages("assumedReportRemoved.heading")</h1>
+}
 
-    @govukSummaryList(summaryList)
-    <p class="govuk-body govuk-!-margin-bottom-4">
-        @if(userEmail.trim.toLowerCase != poEmail.trim.toLowerCase) {
-            @messages("assumedReportRemoved.two.emails", userEmail, poEmail)</p>
-        } else {
-            @messages("assumedReportRemoved.one.email", userEmail)
-        }
-    </p>
+@assumedReportingHistory = {
     <p class="govuk-body">
         <a href="@routes.ViewAssumedReportsController.onPageLoad()" class="govuk-button">@messages("assumedReportRemoved.button")</a>
     </p>
+}
 
+@printThisPage = {
+    <p id="print-this-page" class="govuk-list govuk-link print-link hmrc-!-js-visible govuk-!-display-none-print">
+        <a class="govuk-link hmrc-!-js-visible" data-module="hmrc-print-link" href="#" >@messages("assumedReportingConfirmation.print")</a>
+    </p>
+}
+
+@pageBodyContent = {
+    @if(viewModel.sentEmails.size == 2) {
+        <p class="govuk-body govuk-!-margin-bottom-4">@messages("assumedReportRemoved.two.emails", viewModel.userEmail, viewModel.poEmail)</p>
+    } else if(viewModel.sentEmails.size == 1) {
+        <p class="govuk-body govuk-!-margin-bottom-4">@messages("assumedReportRemoved.one.email", viewModel.sentEmails.head)</p>
+    } else {
+        @govukWarning(WarningText(
+            iconFallbackText = Some("Warning"),
+            content = messages("assumedReportRemoved.emailNotSent.warning")
+        ))
+        @printThisPage
+    }
+}
+
+@layout(pageTitle = titleNoForm(messages("assumedReportRemoved.title")), showBackLink = false) {
+    @heading
+
+    @govukSummaryList(viewModel.summaryList)
+
+    @pageBodyContent
+
+    @assumedReportingHistory
 }

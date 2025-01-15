@@ -35,20 +35,20 @@ import scala.util.control.NonFatal
 class EmailConnector @Inject()(appConfig: FrontendAppConfig, httpClient: HttpClientV2)
                               (implicit ec: ExecutionContext) extends Logging {
 
-  def send(sendEmailRequest: SendEmailRequest)(implicit hc: HeaderCarrier): Future[Done] =
+  def send(sendEmailRequest: SendEmailRequest)(implicit hc: HeaderCarrier): Future[Boolean] =
     httpClient.post(url"${appConfig.emailServiceUrl}/hmrc/email")
       .withBody(Json.toJson(sendEmailRequest))
       .execute[HttpResponse]
       .flatMap { response =>
         response.status match {
-          case ACCEPTED => Future.successful(Done)
+          case ACCEPTED => Future.successful(true)
           case status =>
             logger.warn(s"Send email failed with status: $status")
-            Future.successful(Done)
+            Future.successful(false)
         }
       }.recoverWith {
         case NonFatal(e) =>
           logger.warn("Error sending email", e)
-          Future.successful(Done)
+          Future.successful(false)
       }
 }

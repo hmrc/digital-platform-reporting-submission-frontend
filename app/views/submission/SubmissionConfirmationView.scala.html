@@ -26,17 +26,12 @@
         govukButton: GovukButton,
         govukErrorSummary: GovukErrorSummary,
         govukRadios: GovukRadios,
-        govukSummaryList: GovukSummaryList,
-        formHelper: FormWithCSRF
+        govukSummaryList: GovukSummaryList
 )
 
-@(form: Form[_], operatorId: String, operatorName: String, submissionId: String, summaryList: SummaryList, userEmail: String, poEmail:String)(implicit request: Request[_], messages: Messages)
+@(operatorId: String, operatorName: String, submissionId: String, summaryList: SummaryList, userEmail: String, poEmail:String)(implicit request: Request[_], messages: Messages)
 
 @layout(pageTitle = titleNoForm(messages("submissionConfirmation.title")), showBackLink = false) {
-
-    @if(form.errors.nonEmpty) {
-      @govukErrorSummary(ErrorSummaryViewModel(form))
-    }
 
     <div class="govuk-panel govuk-panel--confirmation govuk-!-margin-bottom-8">
       <h1 class="govuk-panel__title">
@@ -47,7 +42,7 @@
     @govukSummaryList(summaryList)
     <p class="govuk-body govuk-!-margin-bottom-4">
         @if(userEmail.trim.toLowerCase != poEmail.trim.toLowerCase) {
-            @messages("submissionConfirmation.two.emails", userEmail, poEmail)</p>
+            @messages("submissionConfirmation.two.emails", userEmail, poEmail)
         } else {
            @messages("submissionConfirmation.one.email", userEmail)
         }

@@ -17,27 +17,31 @@
 package models.email.requests
 
 import base.SpecBase
+import builders.AssumedReportSummaryBuilder.anAssumedReportSummary
+import builders.PlatformOperatorBuilder.aPlatformOperator
+
+import java.time.Instant
 
 class UpdateAssumedReportingPlatformOperatorSpec extends SpecBase {
+
+  private val completedDateTime: Instant = Instant.parse("2100-12-31T00:01:00Z")
+  private val completedDateTimeString = "12:01am GMT on 31 December 2100"
 
   ".apply(...)" - {
     "must create UpdateAssumedReportingPlatformOperator object" in {
       UpdateAssumedReportingPlatformOperator.apply(
-        email = "some.email@example.com",
-        platformOperatorContactName = "some-platform-operator-contact-name",
-        checksCompletedDateTime = "9:15am (GMT) on 17th November 2024",
-        assumingPlatformOperator = "some-platform-operator",
-        businessName = "some-business-name",
-        reportingPeriod = "2024"
+        platformOperator = aPlatformOperator,
+        assumedReportSummary = anAssumedReportSummary,
+        updatedInstant = completedDateTime
       ) mustBe UpdateAssumedReportingPlatformOperator(
-        to = List("some.email@example.com"),
+        to = List(aPlatformOperator.primaryContactDetails.emailAddress),
         templateId = "dprs_update_assumed_reporting_platform_operator",
         parameters = Map(
-          "poPrimaryContactName" -> "some-platform-operator-contact-name",
-          "checksCompletedDateTime" -> "9:15am (GMT) on 17th November 2024",
-          "assumingPlatformOperator" -> "some-platform-operator",
-          "poBusinessName" -> "some-business-name",
-          "reportingPeriod" -> "2024"
+          "poPrimaryContactName" -> aPlatformOperator.primaryContactDetails.contactName,
+          "checksCompletedDateTime" -> completedDateTimeString,
+          "assumingPlatformOperator" -> anAssumedReportSummary.assumingOperatorName,
+          "poBusinessName" -> anAssumedReportSummary.operatorName,
+          "reportingPeriod" -> anAssumedReportSummary.reportingPeriod.toString
         )
       )
     }

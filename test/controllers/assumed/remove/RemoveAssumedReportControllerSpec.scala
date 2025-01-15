@@ -18,14 +18,13 @@ package controllers.assumed.remove
 
 import base.SpecBase
 import builders.AssumedReportingSubmissionBuilder.anAssumedReportingSubmission
-import builders.PlatformOperatorBuilder.aPlatformOperator
-import builders.SubscriptionInfoBuilder.aSubscriptionInfo
+import connectors.AssumedReportingConnector
 import connectors.AssumedReportingConnector.DeleteAssumedReportFailure
-import connectors.{AssumedReportingConnector, PlatformOperatorConnector, SubscriptionConnector}
 import controllers.assumed.routes as assumedRoutes
 import controllers.routes as baseRoutes
 import forms.RemoveAssumedReportFormProvider
 import models.audit.DeleteAssumedReportEvent
+import models.email.EmailsSentResult
 import models.submission.{AssumedReportingSubmissionSummary, SubmissionStatus}
 import org.apache.pekko.Done
 import org.mockito.ArgumentMatchers.{any, eq as eqTo}
@@ -37,7 +36,8 @@ import play.api.i18n.Messages
 import play.api.inject.bind
 import play.api.test.FakeRequest
 import play.api.test.Helpers.*
-import queries.AssumedReportSummariesQuery
+import queries.{AssumedReportSummariesQuery, SentDeleteAssumedReportingEmailsQuery}
+import repositories.SessionRepository
 import services.{AuditService, EmailService}
 import viewmodels.checkAnswers.assumed.remove.AssumedReportSummaryList
 import views.html.assumed.remove.RemoveAssumedReportView
@@ -58,13 +58,12 @@ class RemoveAssumedReportControllerSpec extends SpecBase with MockitoSugar with 
   private val form = RemoveAssumedReportFormProvider()()
 
   private val mockAssumedReportingConnector = mock[AssumedReportingConnector]
-  private val mockPlatformOperatorConnector = mock[PlatformOperatorConnector]
-  private val mockSubscriptionConnector = mock[SubscriptionConnector]
   private val mockAuditService = mock[AuditService]
   private val mockEmailService = mock[EmailService]
+  private val mockSessionRepository = mock[SessionRepository]
 
   override def beforeEach(): Unit = {
-    Mockito.reset(mockAssumedReportingConnector, mockPlatformOperatorConnector, mockSubscriptionConnector, mockAuditService, mockEmailService)
+    Mockito.reset(mockAssumedReportingConnector, mockAuditService, mockEmailService, mockSessionRepository)
     super.beforeEach()
   }
 
@@ -129,18 +128,17 @@ class RemoveAssumedReportControllerSpec extends SpecBase with MockitoSugar with 
       "must delete the submission, send an audit event, send emails, and redirect to Assumed Report Removed when the answer is yes" in {
         when(mockAssumedReportingConnector.get(any(), any())(using any())).thenReturn(Future.successful(Some(anAssumedReportingSubmission)))
         when(mockAssumedReportingConnector.delete(any(), any())(using any())).thenReturn(Future.successful(Done))
-        when(mockPlatformOperatorConnector.viewPlatformOperator(any())(any())).thenReturn(Future.successful(aPlatformOperator))
-        when(mockSubscriptionConnector.getSubscription(any())).thenReturn(Future.successful(aSubscriptionInfo))
-        when(mockEmailService.sendDeleteAssumedReportingEmails(any(), any(), any(), any())(using any())).thenReturn(Future.successful(Done))
+        when(mockEmailService.sendDeleteAssumedReportingEmails(any(), any(), any())(using any())).thenReturn(Future.successful(EmailsSentResult(true, None)))
+        when(mockSessionRepository.set(any())).thenReturn(Future.successful(true))
 
         val expectedAuditEvent = DeleteAssumedReportEvent("dprsId", operatorId, operatorName, "submissionId1", OK, now)
+        val expectedUserAnswer = baseAnswers.set(SentDeleteAssumedReportingEmailsQuery, EmailsSentResult(true, None)).success.value
 
         val application = applicationBuilder(userAnswers = Some(baseAnswers)).overrides(
           bind[AssumedReportingConnector].toInstance(mockAssumedReportingConnector),
-          bind[PlatformOperatorConnector].toInstance(mockPlatformOperatorConnector),
-          bind[SubscriptionConnector].toInstance(mockSubscriptionConnector),
           bind[AuditService].toInstance(mockAuditService),
           bind[EmailService].toInstance(mockEmailService),
+          bind[SessionRepository].toInstance(mockSessionRepository),
           bind[Clock].toInstance(stubClock)
         ).build()
 
@@ -155,9 +153,9 @@ class RemoveAssumedReportControllerSpec extends SpecBase with MockitoSugar with 
 
         verify(mockAssumedReportingConnector).get(eqTo(operatorId), eqTo(currentYear))(using any())
         verify(mockAssumedReportingConnector).delete(eqTo(operatorId), eqTo(currentYear))(using any())
-        verify(mockPlatformOperatorConnector).viewPlatformOperator(eqTo(operatorId))(any())
         verify(mockAuditService).audit(eqTo(expectedAuditEvent))(using any(), any())
-        verify(mockEmailService).sendDeleteAssumedReportingEmails(eqTo(aSubscriptionInfo), eqTo(aPlatformOperator), eqTo(anAssumedReportingSubmission), eqTo(now))(using any())
+        verify(mockEmailService).sendDeleteAssumedReportingEmails(eqTo(operatorId), eqTo(anAssumedReportingSubmission), eqTo(now))(using any())
+        verify(mockSessionRepository).set(expectedUserAnswer)
       }
 
       "must not delete the submission, or audit the event, and redirect to View Submissions when the answer is no" in {
@@ -207,8 +205,6 @@ class RemoveAssumedReportControllerSpec extends SpecBase with MockitoSugar with 
 
         val application = applicationBuilder(userAnswers = Some(baseAnswers)).overrides(
           bind[AssumedReportingConnector].toInstance(mockAssumedReportingConnector),
-          bind[PlatformOperatorConnector].toInstance(mockPlatformOperatorConnector),
-          bind[SubscriptionConnector].toInstance(mockSubscriptionConnector),
           bind[AuditService].toInstance(mockAuditService),
           bind[EmailService].toInstance(mockEmailService),
           bind[Clock].toInstance(stubClock)
@@ -224,8 +220,7 @@ class RemoveAssumedReportControllerSpec extends SpecBase with MockitoSugar with 
         verify(mockAssumedReportingConnector).get(eqTo(operatorId), eqTo(currentYear))(using any())
         verify(mockAssumedReportingConnector).delete(eqTo(operatorId), eqTo(currentYear))(using any())
         verify(mockAuditService).audit(eqTo(expectedAuditEvent))(using any(), any())
-        verify(mockPlatformOperatorConnector, never()).viewPlatformOperator(any())(any())
-        verify(mockEmailService, never()).sendDeleteAssumedReportingEmails(any(), any(), any(), any())(using any())
+        verify(mockEmailService, never()).sendDeleteAssumedReportingEmails(any(), any(), any())(using any())
       }
 
       "must redirect to AssumedReportingDisabled when submissions are disabled" in {

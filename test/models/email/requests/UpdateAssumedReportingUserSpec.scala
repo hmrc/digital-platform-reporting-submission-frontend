@@ -17,27 +17,31 @@
 package models.email.requests
 
 import base.SpecBase
+import builders.AssumedReportSummaryBuilder.anAssumedReportSummary
+import builders.SubscriptionInfoBuilder.aSubscriptionInfo
+
+import java.time.Instant
 
 class UpdateAssumedReportingUserSpec extends SpecBase {
+
+  private val completedDateTime: Instant = Instant.parse("2100-12-31T00:01:00Z")
+  private val completedDateTimeString = "12:01am GMT on 31 December 2100"
 
   ".apply(...)" - {
     "must create UpdateAssumedReportingUser object" in {
       UpdateAssumedReportingUser.apply(
-        email = "some.email@example.com",
-        name = "some-primary-contact-name",
-        checksCompletedDateTime = "9:15am (GMT) on 17th November 2024",
-        assumingPlatformOperator = "some-platform-operator",
-        businessName = "some-business-name",
-        reportingPeriod = "2024"
+        subscriptionInfo = aSubscriptionInfo,
+        assumedReportSummary = anAssumedReportSummary,
+        updatedInstant = completedDateTime
       ) mustBe UpdateAssumedReportingUser(
-        to = List("some.email@example.com"),
+        to = List(aSubscriptionInfo.primaryContact.email),
         templateId = "dprs_update_assumed_reporting_user",
         parameters = Map(
-          "userPrimaryContactName" -> "some-primary-contact-name",
-          "checksCompletedDateTime" -> "9:15am (GMT) on 17th November 2024",
-          "assumingPlatformOperator" -> "some-platform-operator",
-          "poBusinessName" -> "some-business-name",
-          "reportingPeriod" -> "2024"
+          "userPrimaryContactName" -> aSubscriptionInfo.primaryContactName,
+          "checksCompletedDateTime" -> completedDateTimeString,
+          "assumingPlatformOperator" -> anAssumedReportSummary.assumingOperatorName,
+          "poBusinessName" -> anAssumedReportSummary.operatorName,
+          "reportingPeriod" -> anAssumedReportSummary.reportingPeriod.toString
         )
       )
     }

@@ -18,30 +18,33 @@ package controllers.assumed.create
 
 import base.SpecBase
 import connectors.{PlatformOperatorConnector, SubscriptionConnector}
+import models.email.EmailsSentResult
 import models.operator.responses.PlatformOperator
 import models.operator.{AddressDetails, ContactDetails}
+import models.pageviews.assumed.create.SubmissionConfirmationViewModel
 import models.submission.AssumedReportSummary
 import models.subscription.{Individual, IndividualContact, SubscriptionInfo}
+import org.mockito.ArgumentMatchers.any
+import org.mockito.Mockito
+import org.mockito.Mockito.{times, verify, when}
+import org.scalatest.BeforeAndAfterEach
+import org.scalatestplus.mockito.MockitoSugar
 import play.api.i18n.Messages
 import play.api.inject.bind
 import play.api.test.FakeRequest
 import play.api.test.Helpers.*
-import org.mockito.ArgumentMatchers.{any, eq as eqTo}
-import org.mockito.Mockito.{never, times, verify, when}
-import org.mockito.Mockito
-import org.scalatest.BeforeAndAfterEach
-import org.scalatestplus.mockito.MockitoSugar
-import queries.AssumedReportSummaryQuery
+import queries.{AssumedReportSummaryQuery, SentAddAssumedReportingEmailsQuery}
 import viewmodels.checkAnswers.assumed.create.AssumedReportCreatedSummary
 import views.html.assumed.create.SubmissionConfirmationView
 
-import scala.concurrent.Future
 import java.time.{Clock, Instant, Year, ZoneId}
+import scala.concurrent.Future
 
 
 class SubmissionConfirmationControllerSpec extends SpecBase with MockitoSugar with BeforeAndAfterEach {
 
   private val now = Instant.now()
+  private val year2024 = 2024
   private val fixedClock = Clock.fixed(now, ZoneId.systemDefault())
 
   private val mockPlatformOperatorConnector = mock[PlatformOperatorConnector]
@@ -49,8 +52,9 @@ class SubmissionConfirmationControllerSpec extends SpecBase with MockitoSugar wi
 
   override def beforeEach(): Unit = {
     super.beforeEach()
-    Mockito.reset( mockSubscriptionConnector, mockPlatformOperatorConnector)
+    Mockito.reset(mockSubscriptionConnector, mockPlatformOperatorConnector)
   }
+
   "SubmissionConfirmation Controller" - {
 
     "onPageLoad" - {
@@ -74,41 +78,69 @@ class SubmissionConfirmationControllerSpec extends SpecBase with MockitoSugar wi
         addressDetails = AddressDetails("line 1", None, None, None, None, Some("GB")),
         notifications = Nil
       )
-      "must return OK and the correct view" in {
 
-        val reportingPeriod = Year.of(2024)
+      "must return OK and the correct view when email is sent" in {
+        val reportingPeriod = Year.of(year2024)
         val summary = AssumedReportSummary(operatorId, operatorName, "assumingOperator", reportingPeriod)
-        val answers =
-          emptyUserAnswers
-            .copy(reportingPeriod = Some(reportingPeriod))
-            .set(AssumedReportSummaryQuery, summary).success.value
+        val answers = emptyUserAnswers
+          .copy(reportingPeriod = Some(reportingPeriod))
+          .set(AssumedReportSummaryQuery, summary).success.value
+          .set(SentAddAssumedReportingEmailsQuery, EmailsSentResult(true, None)).success.value
 
-        val application =
-          applicationBuilder(userAnswers = Some(answers))
-            .overrides(bind[Clock].toInstance(fixedClock),
-              bind[PlatformOperatorConnector].toInstance(mockPlatformOperatorConnector),
-              bind[SubscriptionConnector].toInstance(mockSubscriptionConnector))
-            .build()
+        val application = applicationBuilder(userAnswers = Some(answers)).overrides(bind[Clock].toInstance(fixedClock),
+            bind[PlatformOperatorConnector].toInstance(mockPlatformOperatorConnector),
+            bind[SubscriptionConnector].toInstance(mockSubscriptionConnector))
+          .build()
 
         when(mockSubscriptionConnector.getSubscription(any())).thenReturn(Future.successful(subscription))
         when(mockPlatformOperatorConnector.viewPlatformOperator(any())(any())).thenReturn(Future.successful(operator))
 
         running(application) {
           given Messages = messages(application)
-          
+
           val request = FakeRequest(routes.SubmissionConfirmationController.onPageLoad(operatorId, reportingPeriod))
           val result = route(application, request).value
           val view = application.injector.instanceOf[SubmissionConfirmationView]
           val summaryList = AssumedReportCreatedSummary.list(summary, now)
-          
+
           status(result) mustEqual OK
-          contentAsString(result) mustEqual view(operatorId, summaryList, subscription.primaryContact.email, operator.primaryContactDetails.emailAddress)(request, implicitly).toString
+          contentAsString(result) mustEqual
+            view(SubmissionConfirmationViewModel(summaryList, subscription, operator, EmailsSentResult(true, None)))(request, implicitly).toString
+        }
+      }
+
+      "must return OK and the correct view when emails not sent" in {
+        val reportingPeriod = Year.of(year2024)
+        val summary = AssumedReportSummary(operatorId, operatorName, "assumingOperator", reportingPeriod)
+        val answers = emptyUserAnswers
+          .copy(reportingPeriod = Some(reportingPeriod))
+          .set(AssumedReportSummaryQuery, summary).success.value
+          .set(SentAddAssumedReportingEmailsQuery, EmailsSentResult(false, None)).success.value
+
+        val application = applicationBuilder(userAnswers = Some(answers)).overrides(bind[Clock].toInstance(fixedClock),
+            bind[PlatformOperatorConnector].toInstance(mockPlatformOperatorConnector),
+            bind[SubscriptionConnector].toInstance(mockSubscriptionConnector))
+          .build()
+
+        when(mockSubscriptionConnector.getSubscription(any())).thenReturn(Future.successful(subscription))
+        when(mockPlatformOperatorConnector.viewPlatformOperator(any())(any())).thenReturn(Future.successful(operator))
+
+        running(application) {
+          given Messages = messages(application)
+
+          val request = FakeRequest(routes.SubmissionConfirmationController.onPageLoad(operatorId, reportingPeriod))
+          val result = route(application, request).value
+          val view = application.injector.instanceOf[SubmissionConfirmationView]
+          val summaryList = AssumedReportCreatedSummary.list(summary, now)
+
+          status(result) mustEqual OK
+          contentAsString(result) mustEqual
+            view(SubmissionConfirmationViewModel(summaryList, subscription, operator, EmailsSentResult(false, None)))(request, implicitly).toString
         }
       }
 
       "must return the future failed if getSubscription fails" in {
-
-        val reportingPeriod = Year.of(2024)
+        val reportingPeriod = Year.of(year2024)
         val summary = AssumedReportSummary(operatorId, operatorName, "assumingOperator", reportingPeriod)
         val answers =
           emptyUserAnswers
@@ -126,21 +158,17 @@ class SubmissionConfirmationControllerSpec extends SpecBase with MockitoSugar wi
         when(mockPlatformOperatorConnector.viewPlatformOperator(any())(any())).thenReturn(Future.successful(operator))
 
         running(application) {
-          given Messages = messages(application)
-
           val request = FakeRequest(routes.SubmissionConfirmationController.onPageLoad(operatorId, reportingPeriod))
-          val result = route(application, request).value.failed.futureValue
+          route(application, request).value.failed.futureValue
 
           verify(mockSubscriptionConnector, times(1)).getSubscription(any())
           verify(mockPlatformOperatorConnector, times(0)).viewPlatformOperator(any())(any())
-
         }
       }
 
-
       "must return the future failed if viewPlatformOperator fails" in {
 
-        val reportingPeriod = Year.of(2024)
+        val reportingPeriod = Year.of(year2024)
         val summary = AssumedReportSummary(operatorId, operatorName, "assumingOperator", reportingPeriod)
         val answers =
           emptyUserAnswers

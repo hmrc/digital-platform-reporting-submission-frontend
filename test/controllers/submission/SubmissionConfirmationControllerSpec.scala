@@ -18,7 +18,6 @@ package controllers.submission
 
 import base.SpecBase
 import connectors.{PlatformOperatorConnector, SubmissionConnector, SubscriptionConnector}
-import forms.SubmissionConfirmationFormProvider
 import models.operator.responses.PlatformOperator
 import models.operator.{AddressDetails, ContactDetails}
 import models.submission.Submission
@@ -28,7 +27,7 @@ import models.submission.Submission.UploadFailureReason.SchemaValidationError
 import models.subscription.*
 import org.mockito.ArgumentMatchers.{any, eq as eqTo}
 import org.mockito.Mockito
-import org.mockito.Mockito.{never, times, verify, when}
+import org.mockito.Mockito.{times, verify, when}
 import org.scalatest.BeforeAndAfterEach
 import org.scalatestplus.mockito.MockitoSugar
 import play.api.i18n.Messages
@@ -112,9 +111,9 @@ class SubmissionConfirmationControllerSpec extends SpecBase with MockitoSugar wi
             val request = FakeRequest(routes.SubmissionConfirmationController.onPageLoad(operatorId, "id"))
             val result = route(application, request).value
             val view = application.injector.instanceOf[SubmissionConfirmationView]
-            val form = application.injector.instanceOf[SubmissionConfirmationFormProvider].apply(operatorName)
 
             given Messages = messages(application)
+
             val expectedSummaryList = {
               SummaryList(
                 rows = Seq(
@@ -146,7 +145,7 @@ class SubmissionConfirmationControllerSpec extends SpecBase with MockitoSugar wi
               )
             }
             status(result) mustEqual OK
-            contentAsString(result) mustEqual view(form, operatorId, operatorName, "id", expectedSummaryList, subscription.primaryContact.email, operator.primaryContactDetails.emailAddress)(request, messages(application)).toString
+            contentAsString(result) mustEqual view(operatorId, operatorName, "id", expectedSummaryList, subscription.primaryContact.email, operator.primaryContactDetails.emailAddress)(request, messages(application)).toString
           }
 
           verify(mockSubmissionConnector).get(eqTo("id"))(using any())
@@ -201,7 +200,7 @@ class SubmissionConfirmationControllerSpec extends SpecBase with MockitoSugar wi
               created = now,
               updated = now
             )
-            
+
             when(mockSubscriptionConnector.getSubscription(any())).thenReturn(Future.successful(subscription))
             when(mockConnector.viewPlatformOperator(any())(any())).thenReturn(Future.successful(operator))
             when(mockSubmissionConnector.get(any())(using any())).thenReturn(Future.successful(Some(submission)))
@@ -280,7 +279,7 @@ class SubmissionConfirmationControllerSpec extends SpecBase with MockitoSugar wi
               created = now,
               updated = now
             )
-            
+
             when(mockSubscriptionConnector.getSubscription(any())).thenReturn(Future.successful(subscription))
             when(mockConnector.viewPlatformOperator(any())(any())).thenReturn(Future.successful(operator))
             when(mockSubmissionConnector.get(any())(using any())).thenReturn(Future.successful(Some(submission)))
@@ -487,7 +486,7 @@ class SubmissionConfirmationControllerSpec extends SpecBase with MockitoSugar wi
           verify(mockConnector, times(1)).viewPlatformOperator(any())(any())
 
         }
-        
+
       }
     }
   }

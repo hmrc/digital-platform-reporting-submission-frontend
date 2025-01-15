@@ -17,30 +17,33 @@
 package models.email.requests
 
 import base.SpecBase
+import builders.AssumedReportingSubmissionBuilder.anAssumedReportingSubmission
+import builders.PlatformOperatorBuilder.aPlatformOperator
+
+import java.time.Instant
 
 class DeleteAssumedReportingPlatformOperatorSpec extends SpecBase {
+
+  private val completedDateTime: Instant = Instant.parse("2100-12-31T00:01:00Z")
+  private val completedDateTimeString = "12:01am GMT on 31 December 2100"
 
   ".apply(...)" - {
     "must create DeleteAssumedReportingPlatformOperator object" in {
       DeleteAssumedReportingPlatformOperator.apply(
-        email = "some.email@example.com",
-        platformOperatorContactName = "some-contact-name",
-        checksCompletedDateTime = "9:15am (GMT) on 17th November 2024",
-        assumingPlatformOperator = "some-assuming-platform-operator",
-        businessName = "some-business-name",
-        reportingPeriod = "2024"
+        platformOperator = aPlatformOperator,
+        assumedReportingSubmission = anAssumedReportingSubmission,
+        deletedInstant = completedDateTime
       ) mustBe DeleteAssumedReportingPlatformOperator(
-        to = List("some.email@example.com"),
+        to = List(aPlatformOperator.primaryContactDetails.emailAddress),
         templateId = "dprs_delete_assumed_reporting_platform_operator",
         parameters = Map(
-          "poPrimaryContactName" -> "some-contact-name",
-          "checksCompletedDateTime" -> "9:15am (GMT) on 17th November 2024",
-          "assumingPlatformOperator" -> "some-assuming-platform-operator",
-          "poBusinessName" -> "some-business-name",
-          "reportingPeriod" -> "2024"
+          "poPrimaryContactName" -> aPlatformOperator.primaryContactDetails.contactName,
+          "checksCompletedDateTime" -> completedDateTimeString,
+          "assumingPlatformOperator" -> anAssumedReportingSubmission.assumingOperator.name,
+          "poBusinessName" -> anAssumedReportingSubmission.operatorName,
+          "reportingPeriod" -> anAssumedReportingSubmission.reportingPeriod.toString
         )
       )
     }
   }
-
 }

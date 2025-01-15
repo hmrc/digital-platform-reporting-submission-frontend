@@ -16,7 +16,14 @@
 
 package models.email.requests
 
+import models.operator.responses.PlatformOperator
+import models.submission.{AssumedReportSummary, AssumedReportingSubmission}
+import models.subscription.SubscriptionInfo
 import play.api.libs.json.{Json, OFormat}
+import utils.DateTimeFormats.EmailDateTimeFormatter
+import viewmodels.PlatformOperatorSummary
+
+import java.time.Instant
 
 sealed trait SendEmailRequest {
   def to: List[String]
@@ -38,20 +45,17 @@ object AddAssumedReportingUser {
   private val AddAssumedReportingUserTemplateId: String = "dprs_add_assumed_reporting_user"
   implicit val format: OFormat[AddAssumedReportingUser] = Json.format[AddAssumedReportingUser]
 
-  def apply(email: String,
-            name: String,
-            checksCompletedDateTime: String,
-            assumingPlatformOperator: String,
-            businessName: String,
-            reportingPeriod: String): AddAssumedReportingUser = AddAssumedReportingUser(
-    to = List(email),
+  def apply(subscriptionInfo: SubscriptionInfo,
+            assumedReportSummary: AssumedReportSummary,
+            createdInstant: Instant): AddAssumedReportingUser = AddAssumedReportingUser(
+    to = List(subscriptionInfo.primaryContact.email),
     templateId = AddAssumedReportingUserTemplateId,
     parameters = Map(
-      "userPrimaryContactName" -> name,
-      "checksCompletedDateTime" -> checksCompletedDateTime,
-      "assumingPlatformOperator" -> assumingPlatformOperator,
-      "poBusinessName" -> businessName,
-      "reportingPeriod" -> reportingPeriod)
+      "userPrimaryContactName" -> subscriptionInfo.primaryContactName,
+      "checksCompletedDateTime" -> EmailDateTimeFormatter.format(createdInstant),
+      "assumingPlatformOperator" -> assumedReportSummary.assumingOperatorName,
+      "poBusinessName" -> assumedReportSummary.operatorName,
+      "reportingPeriod" -> assumedReportSummary.reportingPeriod.toString)
   )
 }
 
@@ -63,20 +67,17 @@ object AddAssumedReportingPlatformOperator {
   private val AddAssumedReportingPlatformOperatorTemplateId: String = "dprs_add_assumed_reporting_platform_operator"
   implicit val format: OFormat[AddAssumedReportingPlatformOperator] = Json.format[AddAssumedReportingPlatformOperator]
 
-  def apply(email: String,
-            platformOperatorContactName: String,
-            checksCompletedDateTime: String,
-            assumingPlatformOperator: String,
-            businessName: String,
-            reportingPeriod: String): AddAssumedReportingPlatformOperator = AddAssumedReportingPlatformOperator(
-    to = List(email),
+  def apply(platformOperatorSummary: PlatformOperatorSummary,
+            assumedReportSummary: AssumedReportSummary,
+            createdInstant: Instant): AddAssumedReportingPlatformOperator = AddAssumedReportingPlatformOperator(
+    to = List(platformOperatorSummary.operatorPrimaryContactEmail),
     templateId = AddAssumedReportingPlatformOperatorTemplateId,
     parameters = Map(
-      "poPrimaryContactName" -> platformOperatorContactName,
-      "checksCompletedDateTime" -> checksCompletedDateTime,
-      "assumingPlatformOperator" -> assumingPlatformOperator,
-      "poBusinessName" -> businessName,
-      "reportingPeriod" -> reportingPeriod
+      "poPrimaryContactName" -> platformOperatorSummary.operatorPrimaryContactName,
+      "checksCompletedDateTime" -> EmailDateTimeFormatter.format(createdInstant),
+      "assumingPlatformOperator" -> assumedReportSummary.assumingOperatorName,
+      "poBusinessName" -> assumedReportSummary.operatorName,
+      "reportingPeriod" -> assumedReportSummary.reportingPeriod.toString
     )
   )
 }
@@ -89,20 +90,17 @@ object UpdateAssumedReportingUser {
   private val UpdateAssumedReportingUserTemplateId: String = "dprs_update_assumed_reporting_user"
   implicit val format: OFormat[UpdateAssumedReportingUser] = Json.format[UpdateAssumedReportingUser]
 
-  def apply(email: String,
-            name: String,
-            checksCompletedDateTime: String,
-            assumingPlatformOperator: String,
-            businessName: String,
-            reportingPeriod: String): UpdateAssumedReportingUser = UpdateAssumedReportingUser(
-    to = List(email),
+  def apply(subscriptionInfo: SubscriptionInfo,
+            assumedReportSummary: AssumedReportSummary,
+            updatedInstant: Instant): UpdateAssumedReportingUser = UpdateAssumedReportingUser(
+    to = List(subscriptionInfo.primaryContact.email),
     templateId = UpdateAssumedReportingUserTemplateId,
     parameters = Map(
-      "userPrimaryContactName" -> name,
-      "checksCompletedDateTime" -> checksCompletedDateTime,
-      "assumingPlatformOperator" -> assumingPlatformOperator,
-      "poBusinessName" -> businessName,
-      "reportingPeriod" -> reportingPeriod
+      "userPrimaryContactName" -> subscriptionInfo.primaryContactName,
+      "checksCompletedDateTime" -> EmailDateTimeFormatter.format(updatedInstant),
+      "assumingPlatformOperator" -> assumedReportSummary.assumingOperatorName,
+      "poBusinessName" -> assumedReportSummary.operatorName,
+      "reportingPeriod" -> assumedReportSummary.reportingPeriod.toString
     )
   )
 }
@@ -115,20 +113,17 @@ object UpdateAssumedReportingPlatformOperator {
   private val UpdateAssumedReportingPlatformOperatorTemplateId: String = "dprs_update_assumed_reporting_platform_operator"
   implicit val format: OFormat[UpdateAssumedReportingPlatformOperator] = Json.format[UpdateAssumedReportingPlatformOperator]
 
-  def apply(email: String,
-            platformOperatorContactName: String,
-            checksCompletedDateTime: String,
-            assumingPlatformOperator: String,
-            businessName: String,
-            reportingPeriod: String): UpdateAssumedReportingPlatformOperator = UpdateAssumedReportingPlatformOperator(
-    to = List(email),
+  def apply(platformOperator: PlatformOperator,
+            assumedReportSummary: AssumedReportSummary,
+            updatedInstant: Instant): UpdateAssumedReportingPlatformOperator = UpdateAssumedReportingPlatformOperator(
+    to = List(platformOperator.primaryContactDetails.emailAddress),
     templateId = UpdateAssumedReportingPlatformOperatorTemplateId,
     parameters = Map(
-      "poPrimaryContactName" -> platformOperatorContactName,
-      "checksCompletedDateTime" -> checksCompletedDateTime,
-      "assumingPlatformOperator" -> assumingPlatformOperator,
-      "poBusinessName" -> businessName,
-      "reportingPeriod" -> reportingPeriod
+      "poPrimaryContactName" -> platformOperator.primaryContactDetails.contactName,
+      "checksCompletedDateTime" -> EmailDateTimeFormatter.format(updatedInstant),
+      "assumingPlatformOperator" -> assumedReportSummary.assumingOperatorName,
+      "poBusinessName" -> assumedReportSummary.operatorName,
+      "reportingPeriod" -> assumedReportSummary.reportingPeriod.toString
     )
   )
 }
@@ -141,20 +136,17 @@ object DeleteAssumedReportingUser {
   private val DeleteAssumedReportingUserTemplateId: String = "dprs_delete_assumed_reporting_user"
   implicit val format: OFormat[DeleteAssumedReportingUser] = Json.format[DeleteAssumedReportingUser]
 
-  def apply(email: String,
-            name: String,
-            checksCompletedDateTime: String,
-            assumingPlatformOperator: String,
-            businessName: String,
-            reportingPeriod: String): DeleteAssumedReportingUser = DeleteAssumedReportingUser(
-    to = List(email),
+  def apply(subscriptionInfo: SubscriptionInfo,
+            assumedReportingSubmission: AssumedReportingSubmission,
+            deletedInstant: Instant): DeleteAssumedReportingUser = DeleteAssumedReportingUser(
+    to = List(subscriptionInfo.primaryContact.email),
     templateId = DeleteAssumedReportingUserTemplateId,
     parameters = Map(
-      "userPrimaryContactName" -> name,
-      "checksCompletedDateTime" -> checksCompletedDateTime,
-      "assumingPlatformOperator" -> assumingPlatformOperator,
-      "poBusinessName" -> businessName,
-      "reportingPeriod" -> reportingPeriod
+      "userPrimaryContactName" -> subscriptionInfo.primaryContactName,
+      "checksCompletedDateTime" -> EmailDateTimeFormatter.format(deletedInstant),
+      "assumingPlatformOperator" -> assumedReportingSubmission.assumingOperator.name,
+      "poBusinessName" -> assumedReportingSubmission.operatorName,
+      "reportingPeriod" -> assumedReportingSubmission.reportingPeriod.toString
     )
   )
 }
@@ -167,20 +159,17 @@ object DeleteAssumedReportingPlatformOperator {
   private val DeleteAssumedReportingPlatformOperatorTemplateId: String = "dprs_delete_assumed_reporting_platform_operator"
   implicit val format: OFormat[DeleteAssumedReportingPlatformOperator] = Json.format[DeleteAssumedReportingPlatformOperator]
 
-  def apply(email: String,
-            platformOperatorContactName: String,
-            checksCompletedDateTime: String,
-            assumingPlatformOperator: String,
-            businessName: String,
-            reportingPeriod: String): DeleteAssumedReportingPlatformOperator = DeleteAssumedReportingPlatformOperator(
-    to = List(email),
+  def apply(platformOperator: PlatformOperator,
+            assumedReportingSubmission: AssumedReportingSubmission,
+            deletedInstant: Instant): DeleteAssumedReportingPlatformOperator = DeleteAssumedReportingPlatformOperator(
+    to = List(platformOperator.primaryContactDetails.emailAddress),
     templateId = DeleteAssumedReportingPlatformOperatorTemplateId,
     parameters = Map(
-      "poPrimaryContactName" -> platformOperatorContactName,
-      "checksCompletedDateTime" -> checksCompletedDateTime,
-      "assumingPlatformOperator" -> assumingPlatformOperator,
-      "poBusinessName" -> businessName,
-      "reportingPeriod" -> reportingPeriod
+      "poPrimaryContactName" -> platformOperator.primaryContactDetails.contactName,
+      "checksCompletedDateTime" -> EmailDateTimeFormatter.format(deletedInstant),
+      "assumingPlatformOperator" -> assumedReportingSubmission.assumingOperator.name,
+      "poBusinessName" -> assumedReportingSubmission.operatorName,
+      "reportingPeriod" -> assumedReportingSubmission.reportingPeriod.toString
     )
   )
 }
