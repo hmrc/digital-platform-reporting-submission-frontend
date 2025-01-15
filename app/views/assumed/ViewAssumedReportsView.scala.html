@@ -15,6 +15,7 @@
  *@
 
 @import config.FrontendAppConfig
+@import views.html.helper.CSPNonce
 @import controllers.assumed.create.routes
 @import models.submission.AssumedReportingSubmissionSummary
 @import uk.gov.hmrc.govukfrontend.views.html.components.GovukTag
@@ -27,9 +28,20 @@
 
 @(summaries: Seq[AssumedReportingSubmissionSummary])(implicit request: Request[_], messages: Messages)
 
+@scripts = {
+    <script src='@controllers.routes.Assets.versioned("javascripts/jquery-3.6.3.min.js")' @{CSPNonce.attr}></script>
+    <script src='@controllers.routes.Assets.versioned("javascripts/moj-frontend.min.js")' @{CSPNonce.attr}></script>
+}
+
+@css = {
+    <link href='@controllers.routes.Assets.versioned("stylesheets/moj-frontend.min.css")' media="all" rel="stylesheet" type="text/css" />
+}
+
 @layout(
     pageTitle = titleNoForm(messages("viewAssumedReports.title")),
-    fullWidth = true
+    fullWidth = true,
+    additionalScripts = Some(scripts),
+    additionalCss = Some(css)
 ) {
 
     <h1 class="govuk-heading-xl">@messages("viewAssumedReports.heading")</h1>
@@ -38,14 +50,15 @@
         <p class="govuk-body">@messages("viewAssumedReports.noReports")</p>
     } else {
 
-        <table class="govuk-table">
+        <table id="mar-submissions" class="govuk-table" data-module="moj-sortable-table">
+            <caption class="govuk-table__caption govuk-table__caption--m govuk-visually-hidden">@messages("viewAssumedReports.heading")</caption>
             <thead class="govuk-table__head">
                 <tr class="govuk-table__row">
-                    <th class="govuk-table__header" scope="col">@messages("viewAssumedReports.submissionDate")</th>
-                    <th class="govuk-table__header" scope="col">@messages("viewAssumedReports.platformOperator")</th>
-                    <th class="govuk-table__header" scope="col">@messages("viewAssumedReports.reportingPeriod")</th>
-                    <th class="govuk-table__header" scope="col">@messages("viewAssumedReports.assumingReporter")</th>
-                    <th class="govuk-table__header" scope="col">@messages("viewAssumedReports.action")</th>
+                    <th class="govuk-table__header" scope="col" aria-sort="ascending">@messages("viewAssumedReports.submissionDate")</th>
+                    <th class="govuk-table__header" scope="col" aria-sort="none">@messages("viewAssumedReports.platformOperator")</th>
+                    <th class="govuk-table__header reporting-period-col-width" scope="col" aria-sort="none">@messages("viewAssumedReports.reportingPeriod")</th>
+                    <th class="govuk-table__header" scope="col" aria-sort="none">@messages("viewAssumedReports.assumingReporter")</th>
+                    <th class="govuk-table__header action-col-width" scope="col">@messages("viewAssumedReports.action")</th>
                 </tr>
             </thead>
 

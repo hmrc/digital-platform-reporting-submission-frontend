@@ -15,6 +15,7 @@
  *@
 
 @import config.FrontendAppConfig
+@import views.html.helper.CSPNonce
 @import controllers.submission.routes
 @import models.submission.{SubmissionStatus, SubmissionsSummary}
 @import uk.gov.hmrc.govukfrontend.views.Implicits.RichSelect
@@ -38,9 +39,20 @@
 
 @(form: Form[_], viewModel: ViewSubmissionsViewModel)(implicit request: Request[_], messages: Messages)
 
+@scripts = {
+    <script src='@controllers.routes.Assets.versioned("javascripts/jquery-3.6.3.min.js")' @{CSPNonce.attr}></script>
+    <script src='@controllers.routes.Assets.versioned("javascripts/moj-frontend.min.js")' @{CSPNonce.attr}></script>
+}
+
+@css = {
+    <link href='@controllers.routes.Assets.versioned("stylesheets/moj-frontend.min.css")' media="all" rel="stylesheet" type="text/css" />
+}
+
 @layout(
     pageTitle = viewModel.pageTitle,
-    fullWidth = true
+    fullWidth = true,
+    additionalScripts = Some(scripts),
+    additionalCss = Some(css)
 ) {
 
     <h1 class="govuk-heading-xl">@messages("viewSubmissions.heading")</h1>
@@ -111,14 +123,15 @@
 
                     @govukWarningText(WarningText(content = Text(messages("viewSubmissions.errors"))))
 
-                    <table class="govuk-table">
+                    <table id="xml-submissions" class="govuk-table" data-module="moj-sortable-table">
+                        <caption class="govuk-table__caption govuk-table__caption--m govuk-visually-hidden">@messages("viewSubmissions.heading")</caption>
                         <thead class="govuk-table__head">
                             <tr class="govuk-table__row">
-                                <th class="govuk-table__header" scope="col">@messages("viewSubmissions.status")</th>
-                                <th class="govuk-table__header" scope="col">@viewModel.submissionDateSort.text</th>
-                                <th class="govuk-table__header" scope="col">@messages("viewSubmissions.platformOperator")</th>
-                                <th class="govuk-table__header" scope="col">@viewModel.reportingPeriodSort.text</th>
-                                <th class="govuk-table__header" scope="col">@messages("viewSubmissions.fileName")</th>
+                                <th class="govuk-table__header" scope="col" aria-sort="ascending">@messages("viewSubmissions.status")</th>
+                                <th class="govuk-table__header" scope="col" aria-sort="none">@viewModel.submissionDateSort.text</th>
+                                <th class="govuk-table__header" scope="col" aria-sort="none">@messages("viewSubmissions.platformOperator")</th>
+                                <th class="govuk-table__header reporting-period-col-width" scope="col" aria-sort="none">@viewModel.reportingPeriodSort.text</th>
+                                <th class="govuk-table__header" scope="col" aria-sort="none">@messages("viewSubmissions.fileName")</th>
                                 <th class="govuk-table__header" scope="col">@messages("viewSubmissions.action")</th>
                             </tr>
                         </thead>
