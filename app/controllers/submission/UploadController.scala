@@ -16,21 +16,28 @@
 
 package controllers.submission
 
+import config.FrontendAppConfig
 import connectors.SubmissionConnector
 import controllers.actions.*
 import models.submission.Submission
 import models.submission.Submission.State.{Approved, Ready, Rejected, Submitted, UploadFailed, Uploading, Validated}
+import models.submission.Submission.UploadFailureReason
+import models.submission.Submission.UploadFailureReason.SchemaValidationError
+import org.apache.pekko.actor.ActorSystem
+import org.apache.pekko
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents, Result}
 import services.UpscanService
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import views.html.submission.UploadView
 
+import scala.concurrent.duration.*
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
 class UploadController @Inject()(
                                   override val messagesApi: MessagesApi,
+                                  config: FrontendAppConfig,
                                   identify: IdentifierAction,
                                   getData: DataRetrievalActionProvider,
                                   requireData: DataRequiredAction,
@@ -38,7 +45,8 @@ class UploadController @Inject()(
                                   val controllerComponents: MessagesControllerComponents,
                                   view: UploadView,
                                   submissionConnector: SubmissionConnector,
-                                  upscanService: UpscanService
+                                  upscanService: UpscanService,
+                                  actorSystem: ActorSystem
                                 )(using ExecutionContext) extends FrontendBaseController with I18nSupport {
 
   def onPageLoad(operatorId: String, submissionId: String): Action[AnyContent] =
@@ -64,7 +72,11 @@ class UploadController @Inject()(
         submissionConnector.get(submissionId).flatMap {
           _.map { submission =>
             handleSubmission(operatorId, submission) {
-              case _: Validated | _: UploadFailed =>
+              case _: Validated =>
+                submissionConnector.start(operatorId, submission.operatorName, Some(submissionId)).map { _ =>
+                  Redirect(routes.UploadController.onPageLoad(operatorId, submissionId))
+                }
+              case state: UploadFailed if state.reason.isInstanceOf[SchemaValidationError] =>
                 submissionConnector.start(operatorId, submission.operatorName, Some(submissionId)).map { _ =>
                   Redirect(routes.UploadController.onPageLoad(operatorId, submissionId))
                 }
@@ -75,14 +87,13 @@ class UploadController @Inject()(
         }
     }
 
-  private def handleSubmission(operatorId: String, submission: Submission)(f: PartialFunction[Submission.State, Future[Result]]): Future[Result] =
-    f.lift(submission.state).getOrElse {
+  private def handleSubmission(operatorId: String, submission: Submission)(f: PartialFunction[Submission.State, Future[Result]]): Future[Result] = {
+    pekko.pattern.after(config.upscanCallbackDelayInSeconds.seconds, actorSystem.scheduler) {
+      f.lift(submission.state).getOrElse {
 
       val redirectLocation = submission.state match {
-        case Ready =>
+        case Ready | Uploading =>
           routes.UploadController.onPageLoad(operatorId, submission._id)
-        case Uploading =>
-          routes.UploadingController.onPageLoad(operatorId, submission._id)
         case _: UploadFailed =>
           routes.UploadFailedController.onPageLoad(operatorId, submission._id)
         case _: Validated =>
@@ -97,6 +108,8 @@ class UploadController @Inject()(
           controllers.routes.JourneyRecoveryController.onPageLoad()
       }
 
-      Future.successful(Redirect(redirectLocation))
+        Future.successful(Redirect(redirectLocation))
+      }
     }
+  }
 }
