@@ -220,7 +220,7 @@ class SubmissionConfirmationControllerSpec extends SpecBase with MockitoSugar wi
 
         "when the submission is in an uploading state" - {
 
-          "must redirect to the uploading page" in {
+          "must redirect to the upload page" in {
 
             val application = applicationBuilder(userAnswers = None)
               .overrides(
@@ -250,7 +250,7 @@ class SubmissionConfirmationControllerSpec extends SpecBase with MockitoSugar wi
               val result = route(application, request).value
 
               status(result) mustEqual SEE_OTHER
-              redirectLocation(result).value mustEqual routes.UploadingController.onPageLoad(operatorId, "id").url
+              redirectLocation(result).value mustEqual routes.UploadController.onPageLoad(operatorId, "id").url
             }
 
             verify(mockSubmissionConnector).get(eqTo("id"))(using any())

@@ -54,7 +54,7 @@
   <form action="@uploadRequest.href" method="post" id="uploadForm" enctype="multipart/form-data">
     <input type="hidden" id="processingMessage" value="@messages("upload.fileCheck")" />
 
-    @govukErrorSummary(ErrorSummaryViewModel.withoutForm(Map("file-input" -> messages(error.errorMessageKey))))
+    @govukErrorSummary(ErrorSummaryViewModel.withoutForm(Map("file-input" -> messages(error.errorMessageKey))).withAttribute( "id" -> "error-summary"))
 
     @for(field <- uploadRequest.fields) {
       <input type="hidden" name="@field._1" value="@field._2"/>

@@ -71,11 +71,11 @@ class UploadController @Inject()(
         submissionConnector.get(submissionId).flatMap {
           _.map { submission =>
             handleSubmission(operatorId, submission) {
-              case state: UploadFailed if state.reason == InvalidArgument =>
-                submissionConnector.startUpload(submissionId).map { _ =>
+              case _: Validated =>
+                submissionConnector.start(operatorId, submission.operatorName, Some(submissionId)).map { _ =>
                   Redirect(routes.UploadController.onPageLoad(operatorId, submissionId))
                 }
-              case _: Validated | _: UploadFailed =>
+              case state: UploadFailed if state.reason != InvalidArgument =>
                 submissionConnector.start(operatorId, submission.operatorName, Some(submissionId)).map { _ =>
                   Redirect(routes.UploadController.onPageLoad(operatorId, submissionId))
                 }
