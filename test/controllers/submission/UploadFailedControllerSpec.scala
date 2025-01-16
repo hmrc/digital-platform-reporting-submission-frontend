@@ -274,7 +274,7 @@ class UploadFailedControllerSpec extends SpecBase with MockitoSugar with BeforeA
             val result = route(application, request).value
 
             status(result) mustEqual SEE_OTHER
-            redirectLocation(result).value mustEqual routes.UploadingController.onPageLoad(operatorId, "id").url
+            redirectLocation(result).value mustEqual routes.UploadController.onPageLoad(operatorId, "id").url
           }
 
           verify(mockUpscanService, never()).initiate(any(), any(), any())(using any())

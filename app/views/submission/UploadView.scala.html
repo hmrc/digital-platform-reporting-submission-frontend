@@ -16,6 +16,7 @@
 
 @import models.upscan.UpscanInitiateResponse.UploadRequest
 @import uk.gov.hmrc.govukfrontend.views.html.components.GovukFileUpload
+@import views.html.helper.CSPNonce
 
 @this(
         layout: templates.Layout,
@@ -25,11 +26,25 @@
 
 @(uploadRequest: UploadRequest)(implicit request: Request[_], messages: Messages)
 
-@layout(pageTitle = titleNoForm(messages("upload.title"))) {
+@scripts = {
+    <script src='@controllers.routes.Assets.versioned("javascripts/jquery-3.6.3.min.js")' @{CSPNonce.attr}></script>
+    <script src='@controllers.routes.Assets.versioned("javascripts/upload-spinner.js")' @CSPNonce.attr></script>
+}
+
+@css = {
+    <link href="@routes.Assets.versioned("stylesheets/spinner.css")" media="all" rel="stylesheet" type="text/css" />
+}
+
+@layout(
+    pageTitle = titleNoForm(messages("upload.title")),
+    additionalScripts = Some(scripts),
+    additionalCss = Some(css)
+) {
 
   <h1 class="govuk-heading-xl">@messages("upload.heading")</h1>
 
-  <form action="@uploadRequest.href" method="post" enctype="multipart/form-data">
+  <form action="@uploadRequest.href" method="post" id="uploadForm" enctype="multipart/form-data">
+    <input type="hidden" id="processingMessage" value="@messages("upload.fileCheck")" />
 
     @for(field <- uploadRequest.fields) {
       <input type="hidden" name="@field._1" value="@field._2"/>
@@ -48,10 +63,14 @@
       attributes = Map("accept" -> ".xml")
     ))
 
+    <div id="processing" aria-live="polite" role="status" class= govuk-!-margin-top-5">
+    </div>
+
     @govukButton(
       ButtonViewModel(
         messages("upload.button")
       )
+      .withAttribute( "id" -> "submit")
       .preventingDoubleClick()
     )
   </form>
