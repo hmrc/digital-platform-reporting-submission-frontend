@@ -487,6 +487,7 @@ assumedReportSummary.createdAt = Report created
 assumedReportRemoved.title = Assumed reporting details have been successfully deleted
 assumedReportRemoved.heading = Assumed reporting details have been successfully deleted
 assumedReportRemoved.one.email = We have sent a confirmation email to {0}.
+assumedReportRemoved.two.emails = We have sent a confirmation email to {0} and {1}.
 assumedReportRemoved.return = Return to manage your digital platform reporting
 assumedReportRemoved.button = Return to assumed reporting history
 
