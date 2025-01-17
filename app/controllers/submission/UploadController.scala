@@ -88,7 +88,7 @@ class UploadController @Inject()(
     }
 
   private def handleSubmission(operatorId: String, submission: Submission)(f: PartialFunction[Submission.State, Future[Result]]): Future[Result] = {
-    pekko.pattern.after(config.upscanCallbackDelayInSeconds.milliseconds, actorSystem.scheduler) {
+    pekko.pattern.after(config.upscanCallbackDelayInSeconds.seconds, actorSystem.scheduler) {
       f.lift(submission.state).getOrElse {
 
       val redirectLocation = submission.state match {
