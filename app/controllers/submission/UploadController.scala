@@ -21,7 +21,8 @@ import connectors.SubmissionConnector
 import controllers.actions.*
 import models.submission.Submission
 import models.submission.Submission.State.{Approved, Ready, Rejected, Submitted, UploadFailed, Uploading, Validated}
-import models.submission.Submission.UploadFailureReason.{InvalidArgument, InvalidFileNameExtension, PlatformOperatorIdMismatch}
+import models.submission.Submission.UploadFailureReason
+import models.submission.Submission.UploadFailureReason.SchemaValidationError
 import org.apache.pekko.actor.ActorSystem
 import org.apache.pekko
 import play.api.i18n.{I18nSupport, MessagesApi}
@@ -75,10 +76,7 @@ class UploadController @Inject()(
                 submissionConnector.start(operatorId, submission.operatorName, Some(submissionId)).map { _ =>
                   Redirect(routes.UploadController.onPageLoad(operatorId, submissionId))
                 }
-              case state: UploadFailed if (
-                state.reason != InvalidArgument &
-                  !state.reason.isInstanceOf[PlatformOperatorIdMismatch] &
-                  state.reason != InvalidFileNameExtension) =>
+              case state: UploadFailed if state.reason.isInstanceOf[SchemaValidationError] =>
                 submissionConnector.start(operatorId, submission.operatorName, Some(submissionId)).map { _ =>
                   Redirect(routes.UploadController.onPageLoad(operatorId, submissionId))
                 }
