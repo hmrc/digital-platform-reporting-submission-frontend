@@ -16,40 +16,66 @@
 
 @import controllers.assumed.create.routes as createRoutes
 @import config.FrontendAppConfig
-@import java.time.Year
 @import controllers.assumed.routes as assumedRoutes
+@import models.pageviews.assumed.update.SubmissionConfirmationViewModel
 
 @this(
-        layout: templates.Layout,
-        appConfig: FrontendAppConfig,
-        govukSummaryList: GovukSummaryList
+    layout: templates.Layout,
+    appConfig: FrontendAppConfig,
+    govukSummaryList: GovukSummaryList,
+    govukWarning: GovukWarningText
 )
 
-@(operatorId: String, summaryList: SummaryList, userEmail: String, poEmail:String)(implicit request: Request[_], messages: Messages)
+@(viewModel: SubmissionConfirmationViewModel)(implicit request: Request[_], messages: Messages)
 
-@layout(pageTitle = titleNoForm(messages("assumedReportingConfirmation.title.updated")), showBackLink = false) {
-
+@heading = {
     <div class="govuk-panel govuk-panel--confirmation govuk-!-margin-bottom-8">
         <h1 class="govuk-panel__title">
             @messages("assumedReportingConfirmation.heading.updated")
         </h1>
     </div>
+}
 
-    @govukSummaryList(summaryList)
-    <p class="govuk-body govuk-!-margin-bottom-4">
-        @if(userEmail.trim.toLowerCase != poEmail.trim.toLowerCase) {
-            @messages("assumedReportingConfirmation.two.emails", userEmail, poEmail)</p>
-        } else {
-            @messages("assumedReportingConfirmation.one.email", userEmail)
-        }
-    </p>
-
+@assumedReportingHistory = {
     <p class="govuk-body">
         <a class="govuk-link" href="@assumedRoutes.ViewAssumedReportsController.onPageLoad().url">@messages("assumedReportingConfirmation.returnHistory")</a>
     </p>
+}
 
+@returnToManage = {
     <p class="govuk-body">
-
         <a class="govuk-link" href="@appConfig.manageHomepageUrl">@messages("assumedReportingConfirmation.return")</a>
     </p>
+}
+
+@printThisPage = {
+    <p id="print-this-page" class="govuk-list govuk-link print-link hmrc-!-js-visible govuk-!-display-none-print">
+        <a class="govuk-link hmrc-!-js-visible" data-module="hmrc-print-link" href="#" >@messages("assumedReportingConfirmation.print")</a>
+    </p>
+}
+
+@pageBodyContent = {
+    @if(viewModel.sentEmails.size == 2) {
+        <p class="govuk-body govuk-!-margin-bottom-4">@messages("assumedReportingConfirmation.two.emails", viewModel.userEmail, viewModel.poEmail)</p>
+    } else if(viewModel.sentEmails.size == 1) {
+        <p class="govuk-body govuk-!-margin-bottom-4">@messages("assumedReportingConfirmation.one.email", viewModel.sentEmails.head)</p>
+    } else {
+        @govukWarning(WarningText(
+            iconFallbackText = Some("Warning"),
+            content = messages("assumedReportingConfirmation.emailNotSent.warning")
+        ))
+        @printThisPage
+    }
+}
+
+@layout(pageTitle = titleNoForm(messages("assumedReportingConfirmation.title.updated")), showBackLink = false) {
+    @heading
+
+    @govukSummaryList(viewModel.summaryList)
+
+    @pageBodyContent
+
+    @assumedReportingHistory
+
+    @returnToManage
 }

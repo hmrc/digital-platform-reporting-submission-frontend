@@ -362,6 +362,7 @@ assumedReportingConfirmation.returnHistory = Return to assumed reporting history
 assumedReportingConfirmation.p1 = {0} has been chosen to report on behalf of {1} during the {2} Reporting Period.
 assumedReportingConfirmation.two.emails = We have sent a confirmation email to {0} and {1}.
 assumedReportingConfirmation.one.email = We have sent a confirmation email to {0}.
+assumedReportingConfirmation.emailNotSent.warning = You will not be emailed a confirmation of this.
 assumedReportingConfirmation.return = Return to manage your digital platform reporting
 assumedReportingConfirmation.print = Print this page
 
@@ -488,7 +489,7 @@ assumedReportRemoved.title = Assumed reporting details have been successfully de
 assumedReportRemoved.heading = Assumed reporting details have been successfully deleted
 assumedReportRemoved.one.email = We have sent a confirmation email to {0}.
 assumedReportRemoved.two.emails = We have sent a confirmation email to {0} and {1}.
-assumedReportRemoved.return = Return to manage your digital platform reporting
+assumedReportRemoved.emailNotSent.warning = You will not be emailed a confirmation of this.
 assumedReportRemoved.button = Return to assumed reporting history
 
 submissionsExist.title = You have already told HMRC about this reportable period

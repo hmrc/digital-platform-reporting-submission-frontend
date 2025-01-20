@@ -17,27 +17,31 @@
 package models.email.requests
 
 import base.SpecBase
+import builders.AssumedReportingSubmissionBuilder.anAssumedReportingSubmission
+import builders.SubscriptionInfoBuilder.aSubscriptionInfo
+
+import java.time.Instant
 
 class DeleteAssumedReportingUserSpec extends SpecBase {
+
+  private val completedDateTime: Instant = Instant.parse("2100-12-31T00:01:00Z")
+  private val completedDateTimeString = "12:01am GMT on 31 December 2100"
 
   ".apply(...)" - {
     "must create DeleteAssumedReportingUser object" in {
       DeleteAssumedReportingUser.apply(
-        email = "some.email@example.com",
-        name = "some-name",
-        checksCompletedDateTime = "9:15am (GMT) on 17th November 2024",
-        assumingPlatformOperator = "some-platform-operator-name",
-        businessName = "some-business-name",
-        reportingPeriod = "2024"
+        subscriptionInfo = aSubscriptionInfo,
+        assumedReportingSubmission = anAssumedReportingSubmission,
+        deletedInstant = completedDateTime
       ) mustBe DeleteAssumedReportingUser(
-        to = List("some.email@example.com"),
+        to = List(aSubscriptionInfo.primaryContact.email),
         templateId = "dprs_delete_assumed_reporting_user",
         parameters = Map(
-          "userPrimaryContactName" -> "some-name",
-          "checksCompletedDateTime" -> "9:15am (GMT) on 17th November 2024",
-          "assumingPlatformOperator" -> "some-platform-operator-name",
-          "poBusinessName" -> "some-business-name",
-          "reportingPeriod" -> "2024"
+          "userPrimaryContactName" -> aSubscriptionInfo.primaryContactName,
+          "checksCompletedDateTime" -> completedDateTimeString,
+          "assumingPlatformOperator" -> anAssumedReportingSubmission.assumingOperator.name,
+          "poBusinessName" -> anAssumedReportingSubmission.operatorName,
+          "reportingPeriod" -> anAssumedReportingSubmission.reportingPeriod.toString
         )
       )
     }

@@ -17,12 +17,11 @@
 package controllers.assumed.update
 
 import base.SpecBase
-import builders.PlatformOperatorBuilder.aPlatformOperator
-import builders.SubscriptionInfoBuilder.aSubscriptionInfo
 import cats.data.NonEmptyChain
-import connectors.{AssumedReportingConnector, PlatformOperatorConnector, SubscriptionConnector}
+import connectors.AssumedReportingConnector
 import controllers.routes as baseRoutes
 import models.audit.UpdateAssumedReportEvent
+import models.email.EmailsSentResult
 import models.submission.*
 import models.submission.Submission.State.Submitted
 import models.submission.Submission.SubmissionType
@@ -57,15 +56,13 @@ class CheckYourAnswersControllerSpec extends SpecBase with SummaryListFluency wi
   private val mockUserAnswersService: UserAnswersService = mock[UserAnswersService]
   private val mockSessionRepository: SessionRepository = mock[SessionRepository]
   private val mockAuditService: AuditService = mock[AuditService]
-  private val mockSubscriptionConnector = mock[SubscriptionConnector]
-  private val mockPlatformOperatorConnector = mock[PlatformOperatorConnector]
   private val mockEmailService = mock[EmailService]
 
   private val now: Instant = Instant.now()
 
   override def beforeEach(): Unit = {
     super.beforeEach()
-    Mockito.reset(mockAssumedReportingConnector, mockUserAnswersService, mockSessionRepository, mockAuditService, mockPlatformOperatorConnector, mockSubscriptionConnector, mockEmailService)
+    Mockito.reset(mockAssumedReportingConnector, mockUserAnswersService, mockSessionRepository, mockAuditService, mockEmailService)
   }
 
   private val dprsId = "dprsId"
@@ -146,8 +143,6 @@ class CheckYourAnswersControllerSpec extends SpecBase with SummaryListFluency wi
           bind[UserAnswersService].toInstance(mockUserAnswersService),
           bind[SessionRepository].toInstance(mockSessionRepository),
           bind[AuditService].toInstance(mockAuditService),
-          bind[PlatformOperatorConnector].toInstance(mockPlatformOperatorConnector),
-          bind[SubscriptionConnector].toInstance(mockSubscriptionConnector),
           bind[EmailService].toInstance(mockEmailService),
           bind[CountriesList].toInstance(countriesList)
         ).build()
@@ -155,9 +150,7 @@ class CheckYourAnswersControllerSpec extends SpecBase with SummaryListFluency wi
         when(mockUserAnswersService.toAssumedReportingSubmission(any())).thenReturn(Right(assumedReportingSubmissionRequest))
         when(mockAssumedReportingConnector.submit(any())(using any())).thenReturn(Future.successful(submission))
         when(mockSessionRepository.set(any())).thenReturn(Future.successful(true))
-        when(mockPlatformOperatorConnector.viewPlatformOperator(any())(any())).thenReturn(Future.successful(aPlatformOperator))
-        when(mockSubscriptionConnector.getSubscription(any())).thenReturn(Future.successful(aSubscriptionInfo))
-        when(mockEmailService.sendUpdateAssumedReportingEmails(any(), any(), any(), any())(using any())).thenReturn(Future.successful(Done))
+        when(mockEmailService.sendUpdateAssumedReportingEmails(any(), any(), any())(using any())).thenReturn(Future.successful(EmailsSentResult(true, Some(true))))
 
         running(application) {
           val request = FakeRequest(routes.CheckYourAnswersController.onSubmit(operatorId, reportingPeriod))
@@ -175,12 +168,11 @@ class CheckYourAnswersControllerSpec extends SpecBase with SummaryListFluency wi
 
         val answersCaptor: ArgumentCaptor[UserAnswers] = ArgumentCaptor.forClass(classOf[UserAnswers])
         verify(mockSessionRepository, times(1)).set(answersCaptor.capture())
-        verify(mockSubscriptionConnector, times(1)).getSubscription(any())
-        verify(mockPlatformOperatorConnector, times(1)).viewPlatformOperator(eqTo(operatorId))(any())
-        verify(mockEmailService, times(1)).sendUpdateAssumedReportingEmails(eqTo(aSubscriptionInfo), eqTo(aPlatformOperator), eqTo(submission.updated), any())(using any())
+        verify(mockEmailService, times(1)).sendUpdateAssumedReportingEmails(eqTo(operatorId), eqTo(AssumedReportSummary(operatorId, operatorName, "assumingOperatorName", Year.of(2024))), eqTo(submission.updated))(using any())
 
         val finalAnswers = answersCaptor.getValue
         finalAnswers.get(AssumedReportSummaryQuery).value mustEqual AssumedReportSummary(operatorId, operatorName, "assumingOperatorName", Year.of(2024))
+        finalAnswers.get(SentUpdateAssumedReportingEmailsQuery).value mustEqual EmailsSentResult(true, Some(true))
         finalAnswers.get(ReportingPeriodQuery) must not be defined
         finalAnswers.get(PlatformOperatorNameQuery) must not be defined
         finalAnswers.get(AssumingOperatorNamePage) must not be defined
@@ -199,7 +191,6 @@ class CheckYourAnswersControllerSpec extends SpecBase with SummaryListFluency wi
           bind[UserAnswersService].toInstance(mockUserAnswersService),
           bind[SessionRepository].toInstance(mockSessionRepository),
           bind[CountriesList].toInstance(countriesList),
-          bind[SubscriptionConnector].toInstance(mockSubscriptionConnector),
           bind[EmailService].toInstance(mockEmailService)
         ).build()
 
@@ -214,8 +205,7 @@ class CheckYourAnswersControllerSpec extends SpecBase with SummaryListFluency wi
 
         verify(mockAssumedReportingConnector, never()).submit(any())(using any())
         verify(mockSessionRepository, never()).set(any())
-        verify(mockSubscriptionConnector, never()).getSubscription(any())
-        verify(mockEmailService, never()).sendUpdateAssumedReportingEmails(any(), any(), any(), any())(using any())
+        verify(mockEmailService, never()).sendUpdateAssumedReportingEmails(any(), any(), any())(using any())
       }
     }
 

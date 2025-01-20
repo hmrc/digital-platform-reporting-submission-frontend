@@ -17,91 +17,88 @@
 package services
 
 import com.google.inject.Inject
-import connectors.EmailConnector
+import connectors.{EmailConnector, PlatformOperatorConnector, SubscriptionConnector}
+import models.email.EmailsSentResult
 import models.email.requests.*
-import models.operator.responses.PlatformOperator
 import models.submission.{AssumedReportSummary, AssumedReportingSubmission}
-import models.subscription.SubscriptionInfo
-import org.apache.pekko.Done
+import play.api.Logging
 import uk.gov.hmrc.http.HeaderCarrier
-import utils.DateTimeFormats.EmailDateTimeFormatter
 import viewmodels.PlatformOperatorSummary
 
 import java.time.Instant
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
-class EmailService @Inject()(emailConnector: EmailConnector) {
+class EmailService @Inject()(emailConnector: EmailConnector,
+                             subscriptionConnector: SubscriptionConnector,
+                             platformOperatorConnector: PlatformOperatorConnector)
+                            (using ExecutionContext) extends Logging {
 
-  def sendAddAssumedReportingEmails(subscriptionInfo: SubscriptionInfo,
-                                    platformOperatorSummary: PlatformOperatorSummary,
+  def sendAddAssumedReportingEmails(platformOperatorSummary: PlatformOperatorSummary,
                                     createdInstant: Instant,
                                     assumedReportSummary: AssumedReportSummary)
-                                   (using HeaderCarrier): Future[Done] = {
-    val checksCompletedDateTime = EmailDateTimeFormatter.format(createdInstant)
-    if (!matchingEmails(subscriptionInfo.primaryContact.email, platformOperatorSummary.operatorPrimaryContactEmail)) {
-      emailConnector.send(AddAssumedReportingPlatformOperator(
-        platformOperatorSummary.operatorPrimaryContactEmail,
-        platformOperatorSummary.operatorPrimaryContactName,
-        checksCompletedDateTime,
-        assumedReportSummary.assumingOperatorName,
-        assumedReportSummary.operatorName,
-        assumedReportSummary.reportingPeriod.toString))
+                                   (using HeaderCarrier): Future[EmailsSentResult] = {
+    (for {
+      subscriptionInfo <- subscriptionConnector.getSubscription
+      emailSentResult <- {
+        val poEmailSent = if (!matchingEmails(subscriptionInfo.primaryContact.email, platformOperatorSummary.operatorPrimaryContactEmail)) {
+          Some(emailConnector.send(AddAssumedReportingPlatformOperator(platformOperatorSummary, assumedReportSummary, createdInstant)))
+        } else None
+        val userEmailSent = emailConnector.send(AddAssumedReportingUser(subscriptionInfo, assumedReportSummary, createdInstant))
+        for {
+          userResult <- userEmailSent
+          poResult <- poEmailSent.map(_.map(Some(_))).getOrElse(Future.successful(None))
+        } yield EmailsSentResult(userResult, poResult)
+      }
+    } yield emailSentResult).recover {
+      case error => logger.warn("Add assumed reporting emails not sent", error)
+        EmailsSentResult(false, None)
     }
-    emailConnector.send(AddAssumedReportingUser(
-      subscriptionInfo.primaryContact.email,
-      subscriptionInfo.primaryContactName,
-      checksCompletedDateTime,
-      assumedReportSummary.assumingOperatorName,
-      assumedReportSummary.operatorName,
-      assumedReportSummary.reportingPeriod.toString))
   }
 
-  def sendUpdateAssumedReportingEmails(subscriptionInfo: SubscriptionInfo,
-                                       platformOperator: PlatformOperator,
-                                       updatedInstant: Instant,
-                                       assumedReportSummary: AssumedReportSummary)
-                                      (using HeaderCarrier): Future[Done] = {
-    val checksCompletedDateTime = EmailDateTimeFormatter.format(updatedInstant)
-    if (!matchingEmails(subscriptionInfo.primaryContact.email, platformOperator.primaryContactDetails.emailAddress)) {
-      emailConnector.send(UpdateAssumedReportingPlatformOperator(
-        platformOperator.primaryContactDetails.emailAddress,
-        platformOperator.primaryContactDetails.contactName,
-        checksCompletedDateTime,
-        assumedReportSummary.assumingOperatorName,
-        assumedReportSummary.operatorName,
-        assumedReportSummary.reportingPeriod.toString))
+  def sendUpdateAssumedReportingEmails(operatorId: String,
+                                       assumedReportSummary: AssumedReportSummary,
+                                       updatedInstant: Instant)
+                                      (using HeaderCarrier): Future[EmailsSentResult] = {
+    (for {
+      platformOperator <- platformOperatorConnector.viewPlatformOperator(operatorId)
+      subscriptionInfo <- subscriptionConnector.getSubscription
+      emailSentResult <- {
+        val poEmailSent = if (!matchingEmails(subscriptionInfo.primaryContact.email, platformOperator.primaryContactDetails.emailAddress)) {
+          Some(emailConnector.send(UpdateAssumedReportingPlatformOperator(platformOperator, assumedReportSummary, updatedInstant)))
+        } else None
+        val userEmailSent = emailConnector.send(UpdateAssumedReportingUser(subscriptionInfo, assumedReportSummary, updatedInstant))
+        for {
+          userResult <- userEmailSent
+          poResult <- poEmailSent.map(_.map(Some(_))).getOrElse(Future.successful(None))
+        } yield EmailsSentResult(userResult, poResult)
+      }
+    } yield emailSentResult).recover {
+      case error => logger.warn("Update assumed reporting emails not sent", error)
+        EmailsSentResult(false, None)
     }
-    emailConnector.send(UpdateAssumedReportingUser(
-      subscriptionInfo.primaryContact.email,
-      subscriptionInfo.primaryContactName,
-      checksCompletedDateTime,
-      assumedReportSummary.assumingOperatorName,
-      assumedReportSummary.operatorName,
-      assumedReportSummary.reportingPeriod.toString))
   }
 
-  def sendDeleteAssumedReportingEmails(subscriptionInfo: SubscriptionInfo,
-                                       platformOperator: PlatformOperator,
+  def sendDeleteAssumedReportingEmails(operatorId: String,
                                        assumedReportingSubmission: AssumedReportingSubmission,
                                        deletedInstant: Instant)
-                                      (using HeaderCarrier): Future[Done] = {
-    val checksCompletedDateTime = EmailDateTimeFormatter.format(deletedInstant)
-    if (!matchingEmails(subscriptionInfo.primaryContact.email, platformOperator.primaryContactDetails.emailAddress)) {
-      emailConnector.send(DeleteAssumedReportingPlatformOperator(
-        platformOperator.primaryContactDetails.emailAddress,
-        platformOperator.primaryContactDetails.contactName,
-        checksCompletedDateTime,
-        assumedReportingSubmission.assumingOperator.name,
-        assumedReportingSubmission.operatorName,
-        assumedReportingSubmission.reportingPeriod.toString))
+                                      (using HeaderCarrier): Future[EmailsSentResult] = {
+    (for {
+      platformOperator <- platformOperatorConnector.viewPlatformOperator(operatorId)
+      subscriptionInfo <- subscriptionConnector.getSubscription
+      emailSentResult <- {
+        val poEmailSent = if (!matchingEmails(subscriptionInfo.primaryContact.email, platformOperator.primaryContactDetails.emailAddress)) {
+          Some(emailConnector.send(DeleteAssumedReportingPlatformOperator(platformOperator, assumedReportingSubmission, deletedInstant)))
+        } else None
+        val userEmailSent = emailConnector.send(DeleteAssumedReportingUser(subscriptionInfo, assumedReportingSubmission, deletedInstant))
+        for {
+          userResult <- userEmailSent
+          poResult <- poEmailSent.map(_.map(Some(_))).getOrElse(Future.successful(None))
+        } yield EmailsSentResult(userResult, poResult)
+      }
+    } yield emailSentResult).recover {
+      case error => logger.warn("Update assumed reporting emails not sent", error)
+        EmailsSentResult(false, None)
     }
-    emailConnector.send(DeleteAssumedReportingUser(
-      subscriptionInfo.primaryContact.email,
-      subscriptionInfo.primaryContactName,
-      checksCompletedDateTime,
-      assumedReportingSubmission.assumingOperator.name,
-      assumedReportingSubmission.operatorName,
-      assumedReportingSubmission.reportingPeriod.toString))
   }
 
   private def matchingEmails(primaryContactEmail: String, poEmail: String): Boolean =

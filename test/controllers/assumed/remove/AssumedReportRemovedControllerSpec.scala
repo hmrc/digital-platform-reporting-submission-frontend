@@ -18,26 +18,27 @@ package controllers.assumed.remove
 
 import base.SpecBase
 import connectors.{PlatformOperatorConnector, SubscriptionConnector}
+import models.email.EmailsSentResult
+import models.operator.*
 import models.operator.responses.PlatformOperator
+import models.pageviews.assumed.remove.AssumedReportRemovedViewModel
 import models.submission.{AssumedReportingSubmissionSummary, SubmissionStatus}
 import models.subscription.*
-import models.operator.*
-import models.operator.{AddressDetails, ContactDetails}
+import org.mockito.ArgumentMatchers.any
+import org.mockito.Mockito
+import org.mockito.Mockito.{times, verify, when}
+import org.scalatest.BeforeAndAfterEach
+import org.scalatestplus.mockito.MockitoSugar
 import play.api.i18n.Messages
 import play.api.inject.bind
 import play.api.test.FakeRequest
 import play.api.test.Helpers.*
-import queries.AssumedReportSummariesQuery
+import queries.{AssumedReportSummariesQuery, SentDeleteAssumedReportingEmailsQuery}
 import viewmodels.checkAnswers.assumed.remove.AssumedReportRemovedSummaryList
 import views.html.assumed.remove.AssumedReportRemovedView
-import org.mockito.ArgumentMatchers.any
-import org.mockito.Mockito.{times, verify, when}
-import org.mockito.Mockito
-import org.scalatest.BeforeAndAfterEach
-import org.scalatestplus.mockito.MockitoSugar
 
-import scala.concurrent.Future
 import java.time.{Clock, Instant, Year, ZoneId}
+import scala.concurrent.Future
 
 class AssumedReportRemovedControllerSpec extends SpecBase with MockitoSugar with BeforeAndAfterEach {
 
@@ -47,25 +48,24 @@ class AssumedReportRemovedControllerSpec extends SpecBase with MockitoSugar with
   private val submission2 = AssumedReportingSubmissionSummary("submissionId2", "file2", "operatorId", "operatorName", Year.of(2025), now, SubmissionStatus.Success, Some("assuming"), Some("caseId2"), isDeleted = false)
   private val mockPlatformOperatorConnector = mock[PlatformOperatorConnector]
   private val mockSubscriptionConnector = mock[SubscriptionConnector]
-  private val baseAnswers = emptyUserAnswers.set(AssumedReportSummariesQuery, Seq(submission1, submission2)).success.value
-  
+  private val baseAnswers = emptyUserAnswers
+    .set(AssumedReportSummariesQuery, Seq(submission1, submission2)).success.value
+    .set(SentDeleteAssumedReportingEmailsQuery, EmailsSentResult(true, None)).success.value
+
   override def beforeEach(): Unit = {
     super.beforeEach()
-    Mockito.reset( mockSubscriptionConnector, mockPlatformOperatorConnector)
+    Mockito.reset(mockSubscriptionConnector, mockPlatformOperatorConnector)
   }
-  
+
   "Assumed Report Removed Controller" - {
-
     val contact = IndividualContact(Individual("first", "last"), "tax1@team.com", None)
-
-    val subscription :SubscriptionInfo = SubscriptionInfo(
+    val subscription: SubscriptionInfo = SubscriptionInfo(
       id = "dprsId",
       gbUser = true,
       tradingName = None,
       primaryContact = contact,
       secondaryContact = None
     )
-
     val operator = PlatformOperator(
       operatorId = "operatorId",
       operatorName = "operatorName",
@@ -77,14 +77,13 @@ class AssumedReportRemovedControllerSpec extends SpecBase with MockitoSugar with
       addressDetails = AddressDetails("line 1", None, None, None, None, Some("GB")),
       notifications = Nil
     )
-    "must return OK and the correct view for a GET of a known reportable period" in {
 
-      val application =
-        applicationBuilder(userAnswers = Some(baseAnswers))
-          .overrides(bind[Clock].toInstance(fixedClock),
-            bind[PlatformOperatorConnector].toInstance(mockPlatformOperatorConnector),
-            bind[SubscriptionConnector].toInstance(mockSubscriptionConnector))
-          .build()
+    "must return OK and the correct view for a GET of a known reportable period" in {
+      val application = applicationBuilder(userAnswers = Some(baseAnswers)).overrides(
+        bind[Clock].toInstance(fixedClock),
+        bind[PlatformOperatorConnector].toInstance(mockPlatformOperatorConnector),
+        bind[SubscriptionConnector].toInstance(mockSubscriptionConnector)
+      ).build()
 
       when(mockSubscriptionConnector.getSubscription(any())).thenReturn(Future.successful(subscription))
       when(mockPlatformOperatorConnector.viewPlatformOperator(any())(any())).thenReturn(Future.successful(operator))
@@ -93,17 +92,16 @@ class AssumedReportRemovedControllerSpec extends SpecBase with MockitoSugar with
         given Messages = messages(application)
 
         val request = FakeRequest(routes.AssumedReportRemovedController.onPageLoad(operatorId, Year.of(2024)))
-
         val result = route(application, request).value
-
         val view = application.injector.instanceOf[AssumedReportRemovedView]
         val summaryList = AssumedReportRemovedSummaryList.list(submission1, now)
 
         status(result) mustEqual OK
-        contentAsString(result) mustEqual view(summaryList, operatorId, Year.of(2024), subscription.primaryContact.email, operator.primaryContactDetails.emailAddress)(request, implicitly).toString
+        contentAsString(result) mustEqual
+          view(AssumedReportRemovedViewModel(summaryList, subscription, operator, EmailsSentResult(true, None)))(request, implicitly).toString
       }
     }
-    
+
     "must return NOT_FOUND for an unknown reportable period" in {
 
       val application =
@@ -115,7 +113,7 @@ class AssumedReportRemovedControllerSpec extends SpecBase with MockitoSugar with
 
       when(mockSubscriptionConnector.getSubscription(any())).thenReturn(Future.successful(subscription))
       when(mockPlatformOperatorConnector.viewPlatformOperator(any())(any())).thenReturn(Future.successful(operator))
-      
+
       running(application) {
         given Messages = messages(application)
 
@@ -178,15 +176,11 @@ class AssumedReportRemovedControllerSpec extends SpecBase with MockitoSugar with
 
         verify(mockSubscriptionConnector, times(1)).getSubscription(any())
         verify(mockPlatformOperatorConnector, times(1)).viewPlatformOperator(any())(any())
-        
+
 
       }
     }
-    
-    
-    
-    
-    
-    
+
+
   }
 }

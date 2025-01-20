@@ -16,11 +16,8 @@
 
 package controllers.submission
 
-import cats.data.OptionT
-import config.FrontendAppConfig
 import connectors.{PlatformOperatorConnector, SubmissionConnector, SubscriptionConnector}
 import controllers.actions.*
-import forms.SubmissionConfirmationFormProvider
 import models.submission.Submission
 import models.submission.Submission.State.{Approved, Ready, Rejected, Submitted, UploadFailed, Uploading, Validated}
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}
@@ -29,24 +26,20 @@ import uk.gov.hmrc.govukfrontend.views.Aliases.{Key, SummaryList, Text, Value}
 import uk.gov.hmrc.govukfrontend.views.viewmodels.summarylist.SummaryListRow
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import utils.DateTimeFormats
-import viewmodels.PlatformOperatorSummary
 import views.html.submission.SubmissionConfirmationView
 
 import java.time.Instant
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
-class SubmissionConfirmationController @Inject()(
-                                                  appConfig: FrontendAppConfig,
-                                                  override val messagesApi: MessagesApi,
-                                                  identify: IdentifierAction,
-                                                  val controllerComponents: MessagesControllerComponents,
-                                                  view: SubmissionConfirmationView,
-                                                  submissionConnector: SubmissionConnector,
-                                                  subscriptionConnector: SubscriptionConnector,
-                                                  platformOperatorConnector: PlatformOperatorConnector,
-                                                  formProvider: SubmissionConfirmationFormProvider
-                                                )(using ExecutionContext) extends FrontendBaseController with I18nSupport {
+class SubmissionConfirmationController @Inject()(override val messagesApi: MessagesApi,
+                                                 identify: IdentifierAction,
+                                                 val controllerComponents: MessagesControllerComponents,
+                                                 view: SubmissionConfirmationView,
+                                                 submissionConnector: SubmissionConnector,
+                                                 subscriptionConnector: SubscriptionConnector,
+                                                 platformOperatorConnector: PlatformOperatorConnector)
+                                                (using ExecutionContext) extends FrontendBaseController with I18nSupport {
 
   def onPageLoad(operatorId: String, submissionId: String): Action[AnyContent] = identify.async {
     implicit request =>
@@ -60,7 +53,6 @@ class SubmissionConfirmationController @Inject()(
             handleSubmission(operatorId, submission) {
               case state: Approved =>
                 Future.successful(Ok(view(
-                  formProvider(submission.operatorName),
                   operatorId,
                   submission.operatorName,
                   submissionId,
@@ -75,7 +67,7 @@ class SubmissionConfirmationController @Inject()(
         }
       }).flatten
   }
-  
+
   private def getSummaryList(fileName: String, submission: Submission, state: Approved, checksCompleted: Instant, dprsId: String)(using Messages): SummaryList =
     SummaryList(
       rows = Seq(

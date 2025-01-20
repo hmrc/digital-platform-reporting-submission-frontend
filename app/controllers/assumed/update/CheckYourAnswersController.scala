@@ -17,28 +17,27 @@
 package controllers.assumed.update
 
 import com.google.inject.Inject
-import connectors.{AssumedReportingConnector, PlatformOperatorConnector, SubscriptionConnector}
+import connectors.AssumedReportingConnector
 import controllers.actions.*
 import controllers.{AnswerExtractor, routes as baseRoutes}
 import models.audit.UpdateAssumedReportEvent
+import models.email.EmailsSentResult
 import models.requests.DataRequest
 import models.submission.{AssumedReportSummary, AssumedReportingSubmission, AssumedReportingSubmissionRequest}
 import models.{CountriesList, UserAnswers}
-import org.apache.pekko.Done
 import play.api.Logging
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
-import queries.{AssumedReportSummaryQuery, AssumedReportingSubmissionQuery}
+import queries.{AssumedReportSummaryQuery, AssumedReportingSubmissionQuery, SentUpdateAssumedReportingEmailsQuery}
 import repositories.SessionRepository
 import services.UserAnswersService.BuildAssumedReportingSubmissionFailure
 import services.{AuditService, EmailService, UserAnswersService}
-import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import viewmodels.checkAnswers.assumed.update.*
 import viewmodels.govuk.summarylist.*
 import views.html.assumed.update.CheckYourAnswersView
 
-import java.time.{Instant, Year}
+import java.time.Year
 import scala.concurrent.{ExecutionContext, Future}
 
 class CheckYourAnswersController @Inject()(override val messagesApi: MessagesApi,
@@ -49,8 +48,6 @@ class CheckYourAnswersController @Inject()(override val messagesApi: MessagesApi
                                            view: CheckYourAnswersView,
                                            userAnswersService: UserAnswersService,
                                            assumedReportingConnector: AssumedReportingConnector,
-                                           subscriptionConnector: SubscriptionConnector,
-                                           platformOperatorConnector: PlatformOperatorConnector,
                                            sessionRepository: SessionRepository,
                                            auditService: AuditService,
                                            emailService: EmailService)
@@ -94,9 +91,10 @@ class CheckYourAnswersController @Inject()(override val messagesApi: MessagesApi
               _ = audit(originalSubmission, submissionRequest)
               summary <- AssumedReportSummary(request.userAnswers).map(Future.successful).getOrElse(Future.failed(Exception("unable to build an assumed report summary")))
               emptyAnswers = UserAnswers(request.userId, operatorId, Some(reportingPeriod))
-              answers <- Future.fromTry(emptyAnswers.set(AssumedReportSummaryQuery, summary))
-              _ <- sessionRepository.set(answers)
-              _ <- handleSendEmail(operatorId, summary, submission.updated)
+              answersWithSummary <- Future.fromTry(emptyAnswers.set(AssumedReportSummaryQuery, summary))
+              emailsSentResult <- emailService.sendUpdateAssumedReportingEmails(operatorId, summary, submission.updated)
+              answersWithSentEmails <- Future.fromTry(answersWithSummary.set(SentUpdateAssumedReportingEmailsQuery, emailsSentResult))
+              _ <- sessionRepository.set(answersWithSentEmails)
             } yield Redirect(routes.SubmissionConfirmationController.onPageLoad(operatorId, reportingPeriod))
           }
       }
@@ -117,14 +115,5 @@ class CheckYourAnswersController @Inject()(override val messagesApi: MessagesApi
                    (using request: DataRequest[AnyContent]): Unit = {
     val auditEvent = UpdateAssumedReportEvent(request.dprsId, original, updated, implicitly[CountriesList])
     auditService.audit(auditEvent)
-  }
-
-  private def handleSendEmail(operatorId: String, assumedReportSummary: AssumedReportSummary, updatedInstant: Instant)
-                             (using HeaderCarrier) = (for {
-    platformOperator <- platformOperatorConnector.viewPlatformOperator(operatorId)
-    subscriptionInfo <- subscriptionConnector.getSubscription
-    _ <- emailService.sendUpdateAssumedReportingEmails(subscriptionInfo, platformOperator, updatedInstant, assumedReportSummary)
-  } yield Done).recover {
-    case error => logger.warn("Update assumed reporting emails not sent", error)
   }
 }
