@@ -246,7 +246,7 @@ class UploadFailedControllerSpec extends SpecBase with MockitoSugar with BeforeA
 
       "when the submission is in an uploading state" - {
 
-        "must redirect to the uploading page" in {
+        "must redirect to the upload page" in {
 
           val application = applicationBuilder(userAnswers = None)
             .overrides(
