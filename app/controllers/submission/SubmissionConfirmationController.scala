@@ -102,10 +102,8 @@ class SubmissionConfirmationController @Inject()(override val messagesApi: Messa
     f.lift(submission.state).getOrElse {
 
       val redirectLocation = submission.state match {
-        case Ready =>
+        case Ready | Uploading =>
           routes.UploadController.onPageLoad(operatorId, submission._id)
-        case Uploading =>
-          routes.UploadingController.onPageLoad(operatorId, submission._id)
         case _: UploadFailed =>
           routes.UploadFailedController.onPageLoad(operatorId, submission._id)
         case _: Validated =>
