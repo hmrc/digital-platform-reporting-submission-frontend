@@ -263,6 +263,7 @@ address.heading = What is the main address for {0}?
 address.error.required = Enter the main address for {0}
 address.error.length = Address must be {0} characters or less
 address.error.format = Address must only include letters, numbers, hyphens, spaces, commas, full stops, ampersands, underscores, parentheses and apostrophes
+address.change.hidden = the main address for {0}
 
 ukTaxIdentifier.title = Enter a tax identification number for the platform operator
 ukTaxIdentifier.heading = Enter a tax identification number for {0}
