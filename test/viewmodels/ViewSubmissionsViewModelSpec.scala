@@ -51,9 +51,9 @@ class ViewSubmissionsViewModelSpec extends AnyFreeSpec with Matchers with Option
   private val submission = SubmissionSummary(
     submissionId = "id1",
     fileName = "file",
-    operatorId = "operatorId",
-    operatorName = "operatorName",
-    reportingPeriod = Year.of(2024),
+    operatorId = Some("operatorId"),
+    operatorName = Some("operatorName"),
+    reportingPeriod = Some(Year.of(2024)),
     submissionDateTime = now,
     submissionStatus = SubmissionStatus.Success,
     assumingReporterName = None,

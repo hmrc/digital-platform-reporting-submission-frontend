@@ -16,7 +16,7 @@
 
 package models.submission
 
-import models.submission.SubmissionStatus.Rejected
+import models.submission.SubmissionStatus._
 import org.scalatest.freespec.AnyFreeSpec
 import org.scalatest.matchers.must.Matchers
 import play.api.i18n.Messages
@@ -34,23 +34,60 @@ class SubmissionSummarySpec extends AnyFreeSpec with Matchers {
     val baseSubmission = SubmissionSummary(
       submissionId = "id",
       fileName = "filename",
-      operatorId = "operatorId",
-      operatorName = "operatorName",
-      reportingPeriod = Year.of(2024),
+      operatorId = Some("operatorId"),
+      operatorName = Some("operatorName"),
+      reportingPeriod = Some(Year.of(2024)),
       submissionDateTime = instant,
       submissionStatus = Rejected,
       assumingReporterName = None,
       submissionCaseId = Some("caseId"),
       localDataExists = true
     )
-    
-    "must be present for rejected submissions when local data exists" in {
-      baseSubmission.link mustBe defined
+    "for rejected submissions" - {
+
+      "must be present when local data exists and operatorId is populated" in {
+        baseSubmission.link mustBe defined
+      }
+
+      "must not be present when local data exists and operatorId is None" in {
+        val submission = baseSubmission.copy(operatorId = None)
+        submission.link must not be defined
+      }
+
+      "must not be present when local data does not exist" in {
+        val submission = baseSubmission.copy(localDataExists = false)
+        submission.link must not be defined
+      }
     }
-    
-    "must not be present for rejected submissions when local data does not exist" in {
-      val submission = baseSubmission.copy(localDataExists = false)
-      submission.link must not be defined
+
+    "for successful submissions" - {
+
+      "must be present when operatorId is populated" in {
+
+        val submission = baseSubmission.copy(submissionStatus = Success)
+        submission.link mustBe defined
+      }
+
+      "must not be present when operatorId is None" in {
+
+        val submission = baseSubmission.copy(submissionStatus = Success, operatorId = None)
+        submission.link must not be defined
+      }
+    }
+
+    "for pending submissions" - {
+
+      "must be present when operatorId is populated" in {
+
+        val submission = baseSubmission.copy(submissionStatus = Pending)
+        submission.link mustBe defined
+      }
+
+      "must not be present when operatorId is None" in {
+
+        val submission = baseSubmission.copy(submissionStatus = Pending, operatorId = None)
+        submission.link must not be defined
+      }
     }
   }
 }

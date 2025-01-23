@@ -168,9 +168,9 @@ class ReportingPeriodControllerSpec extends SpecBase with MockitoSugar with Befo
         val deliveredSubmission = SubmissionSummary(
           submissionId = "submissionId",
           fileName = "filename",
-          operatorId = operatorId,
-          operatorName = operatorName,
-          reportingPeriod = validAnswer,
+          operatorId = Some(operatorId),
+          operatorName = Some(operatorName),
+          reportingPeriod = Some(validAnswer),
           submissionDateTime = instant,
           submissionStatus = Success,
           assumingReporterName = None,
@@ -221,9 +221,9 @@ class ReportingPeriodControllerSpec extends SpecBase with MockitoSugar with Befo
         val undeliveredSubmission = SubmissionSummary(
           submissionId = "submissionId",
           fileName = "filename",
-          operatorId = operatorId,
-          operatorName = operatorName,
-          reportingPeriod = validAnswer,
+          operatorId = Some(operatorId),
+          operatorName = Some(operatorName),
+          reportingPeriod = Some(validAnswer),
           submissionDateTime = instant,
           submissionStatus = Pending,
           assumingReporterName = None,
@@ -273,9 +273,9 @@ class ReportingPeriodControllerSpec extends SpecBase with MockitoSugar with Befo
         val deliveredSubmission1 = SubmissionSummary(
           submissionId = "submissionId",
           fileName = "filename",
-          operatorId = "different operator id",
-          operatorName = operatorName,
-          reportingPeriod = validAnswer,
+          operatorId = Some("different operator id"),
+          operatorName = Some(operatorName),
+          reportingPeriod = Some(validAnswer),
           submissionDateTime = instant,
           submissionStatus = Success,
           assumingReporterName = None,
@@ -285,16 +285,28 @@ class ReportingPeriodControllerSpec extends SpecBase with MockitoSugar with Befo
         val deliveredSubmission2 = SubmissionSummary(
           submissionId = "submissionId",
           fileName = "filename",
-          operatorId = operatorId,
-          operatorName = operatorName,
-          reportingPeriod = validAnswer.plusYears(1),
+          operatorId = Some(operatorId),
+          operatorName = Some(operatorName),
+          reportingPeriod = Some(validAnswer.plusYears(1)),
           submissionDateTime = instant,
           submissionStatus = Success,
           assumingReporterName = None,
           submissionCaseId = Some("caseId"),
           localDataExists = true
         )
-        val submissionsSummary = SubmissionsSummary(Seq(deliveredSubmission1, deliveredSubmission2), 0, true, 0)
+        val deliveredSubmission3 = SubmissionSummary(
+          submissionId = "submissionId",
+          fileName = "filename",
+          operatorId = None,
+          operatorName = None,
+          reportingPeriod = None,
+          submissionDateTime = instant,
+          submissionStatus = Success,
+          assumingReporterName = None,
+          submissionCaseId = Some("caseId"),
+          localDataExists = true
+        )
+        val submissionsSummary = SubmissionsSummary(Seq(deliveredSubmission1, deliveredSubmission2, deliveredSubmission3), 0, true, 0)
 
         when(mockSessionRepository.set(any())).thenReturn(Future.successful(true))
         when(mockConnector.listDeliveredSubmissions(any())(using any())).thenReturn(Future.successful(Some(submissionsSummary)))
@@ -333,14 +345,14 @@ class ReportingPeriodControllerSpec extends SpecBase with MockitoSugar with Befo
         }
       }
 
-      "when there are undelivered XML submissions, but they are for a different operator or reportable period" ignore {
+      "when there are undelivered XML submissions, but they are for a different operator or reportable period" in {
 
         val undeliveredSubmission1 = SubmissionSummary(
           submissionId = "submissionId",
           fileName = "filename",
-          operatorId = "different operator id",
-          operatorName = operatorName,
-          reportingPeriod = validAnswer,
+          operatorId = Some("different operator id"),
+          operatorName = Some(operatorName),
+          reportingPeriod = Some(validAnswer),
           submissionDateTime = instant,
           submissionStatus = Pending,
           assumingReporterName = None,
@@ -350,9 +362,21 @@ class ReportingPeriodControllerSpec extends SpecBase with MockitoSugar with Befo
         val undeliveredSubmission2 = SubmissionSummary(
           submissionId = "submissionId",
           fileName = "filename",
-          operatorId = operatorId,
-          operatorName = operatorName,
-          reportingPeriod = validAnswer.plusYears(1),
+          operatorId = Some(operatorId),
+          operatorName = Some(operatorName),
+          reportingPeriod = Some(validAnswer.plusYears(1)),
+          submissionDateTime = instant,
+          submissionStatus = Pending,
+          assumingReporterName = None,
+          submissionCaseId = Some("caseId"),
+          localDataExists = true
+        )
+        val undeliveredSubmission3 = SubmissionSummary(
+          submissionId = "submissionId",
+          fileName = "filename",
+          operatorId = None,
+          operatorName = None,
+          reportingPeriod = None,
           submissionDateTime = instant,
           submissionStatus = Pending,
           assumingReporterName = None,
@@ -362,7 +386,7 @@ class ReportingPeriodControllerSpec extends SpecBase with MockitoSugar with Befo
 
         when(mockSessionRepository.set(any())).thenReturn(Future.successful(true))
         when(mockConnector.listDeliveredSubmissions(any())(using any())).thenReturn(Future.successful(None))
-        when(mockConnector.listUndeliveredSubmissions(using any())).thenReturn(Future.successful(Seq(undeliveredSubmission1, undeliveredSubmission2)))
+        when(mockConnector.listUndeliveredSubmissions(using any())).thenReturn(Future.successful(Seq(undeliveredSubmission1, undeliveredSubmission2, undeliveredSubmission3)))
 
         val application =
           applicationBuilder(userAnswers = Some(emptyUserAnswers))

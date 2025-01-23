@@ -30,9 +30,9 @@ import java.time.{Instant, Year}
 
 final case class SubmissionSummary(submissionId: String,
                                    fileName: String,
-                                   operatorId: String,
-                                   operatorName: String,
-                                   reportingPeriod: Year,
+                                   operatorId: Option[String],
+                                   operatorName: Option[String],
+                                   reportingPeriod: Option[Year],
                                    submissionDateTime: Instant,
                                    submissionStatus: SubmissionStatus,
                                    assumingReporterName: Option[String],
@@ -40,10 +40,10 @@ final case class SubmissionSummary(submissionId: String,
                                    localDataExists: Boolean) {
 
   def link(implicit messages: Messages): Option[Link] = submissionStatus match {
-    case Pending  => Some(Link(messages("viewSubmissions.refreshStatus"), routes.CheckFileController.onPageLoad(operatorId, submissionId).url))
-    case Success  => Some(Link(messages("viewSubmissions.confirmation"), routes.SubmissionConfirmationController.onPageLoad(operatorId, submissionId).url))
+    case Pending  => operatorId.map(id => Link(messages("viewSubmissions.refreshStatus"), routes.CheckFileController.onPageLoad(id, submissionId).url))
+    case Success  => operatorId.map(id => Link(messages("viewSubmissions.confirmation"), routes.SubmissionConfirmationController.onPageLoad(id, submissionId).url))
     case Rejected => if (localDataExists) {
-       Some(Link(messages("viewSubmissions.checkErrors"), routes.FileErrorsController.onPageLoad(operatorId, submissionId).url))
+       operatorId.map(id => Link(messages("viewSubmissions.checkErrors"), routes.FileErrorsController.onPageLoad(id, submissionId).url))
     } else {
       None
     }

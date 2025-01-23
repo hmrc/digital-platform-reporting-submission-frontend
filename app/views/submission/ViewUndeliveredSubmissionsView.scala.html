@@ -56,8 +56,11 @@
                 <tr class="govuk-table__row">
                     <td class="govuk-table__cell">@govukTag(submission.statusTag)</td>
                     <td class="govuk-table__cell">@shortDate(submission.submissionDateTime)</td>
-                    <td class="govuk-table__cell">@submission.operatorName<br/>@submission.operatorId</td>
-                    <td class="govuk-table__cell">@submission.reportingPeriod</td>
+                    <td class="govuk-table__cell">
+                        @submission.operatorName.getOrElse(messages("site.notAvailable"))<br/>
+                        @submission.operatorId.getOrElse(messages("site.notAvailable"))
+                    </td>
+                    <td class="govuk-table__cell">@submission.reportingPeriod.getOrElse(messages("site.notAvailable"))</td>
                     <td class="govuk-table__cell">@submission.fileName</td>
                     <td class="govuk-table__cell">
                         @submission.link.map { link =>
