@@ -22,10 +22,10 @@ import connectors.SubscriptionConnector
 import controllers.routes as baseRoutes
 import forms.CheckContactDetailsFormProvider
 import models.subscription.*
-import models.{NormalMode, UserAnswers}
+import models.NormalMode
 import org.mockito.ArgumentMatchers.{any, eq as eqTo}
 import org.mockito.Mockito.{never, times, verify, when}
-import org.mockito.{ArgumentCaptor, Mockito}
+import org.mockito.Mockito
 import org.scalatest.BeforeAndAfterEach
 import org.scalatestplus.mockito.MockitoSugar
 import pages.assumed.create.CheckContactDetailsPage
@@ -57,18 +57,18 @@ class CheckContactDetailsControllerSpec extends SpecBase with SummaryListFluency
 
   "Check Contact Details Controller" - {
 
+    val contact = IndividualContact(Individual("first", "last"), "email", None)
+    val subscription = SubscriptionInfo(
+      id = "dprsId",
+      gbUser = true,
+      tradingName = None,
+      primaryContact = contact,
+      secondaryContact = None
+    )
+
     "must return OK and the correct view for a GET" - {
 
       "for an individual" in {
-
-        val contact = IndividualContact(Individual("first", "last"), "email", None)
-        val subscription = SubscriptionInfo(
-          id = "dprsId",
-          gbUser = true,
-          tradingName = None,
-          primaryContact = contact,
-          secondaryContact = None
-        )
 
         when(mockSubscriptionConnector.getSubscription(any())).thenReturn(Future.successful(subscription))
 
@@ -181,6 +181,36 @@ class CheckContactDetailsControllerSpec extends SpecBase with SummaryListFluency
       }
     }
 
+    "must populate the view correctly on a GET when the question has previously been answered" in {
+
+      val mockAppConfig = mock[FrontendAppConfig]
+      val baseAnswers = emptyUserAnswers.set(CheckContactDetailsPage(mockAppConfig), true).success.value
+
+      when(mockSubscriptionConnector.getSubscription(any())).thenReturn(Future.successful(subscription))
+
+      val application =
+        applicationBuilder(userAnswers = Some(baseAnswers))
+          .overrides(bind[SubscriptionConnector].toInstance(mockSubscriptionConnector))
+          .build()
+      
+      running(application) {
+        val request = FakeRequest(GET, routes.CheckContactDetailsController.onPageLoad(operatorId).url)
+        val result = route(application, request).value
+        val view = application.injector.instanceOf[CheckContactDetailsView]
+        
+        implicit val msgs: Messages = messages(application)
+
+        val summaryList = SummaryListViewModel(Seq(
+          IndividualEmailSummary.row(contact),
+          CanPhoneIndividualSummary.row(contact)
+        ).flatten)
+
+        status(result) mustEqual OK
+        contentAsString(result) mustEqual view(form.fill(true), summaryList, "operatorId")(request, implicitly).toString
+      }
+
+    }
+
     "must redirect to AssumedReportingDisabled when submissions are disabled" in {
 
       val application =
@@ -200,14 +230,6 @@ class CheckContactDetailsControllerSpec extends SpecBase with SummaryListFluency
 
     "onSubmit(...)" - {
       "must return BadRequest and errors when an invalid answer is submitted" in {
-        val contact = IndividualContact(Individual("first", "last"), "email", None)
-        val subscription = SubscriptionInfo(
-          id = "dprsId",
-          gbUser = true,
-          tradingName = None,
-          primaryContact = contact,
-          secondaryContact = None
-        )
 
         when(mockSubscriptionConnector.getSubscription(any())).thenReturn(Future.successful(subscription))
 

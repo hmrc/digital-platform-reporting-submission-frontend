@@ -24,9 +24,11 @@ import forms.CheckPlatformOperatorFormProvider
 import models.CountriesList
 import models.confirmed.ConfirmedDetails
 import models.operator.responses.PlatformOperator
+import pages.submission.create.CheckPlatformOperatorPage
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import queries.PlatformOperatorSummaryQuery
+import repositories.SessionRepository
 import services.ConfirmedDetailsService
 import uk.gov.hmrc.govukfrontend.views.Aliases.SummaryList
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
@@ -42,6 +44,7 @@ class CheckPlatformOperatorController @Inject()(override val messagesApi: Messag
                                                 identify: IdentifierAction,
                                                 getData: DataRetrievalActionProvider,
                                                 requireData: DataRequiredAction,
+                                                sessionRepository: SessionRepository,
                                                 checkSubmissionsAllowed: CheckSubmissionsAllowedAction,
                                                 val controllerComponents: MessagesControllerComponents,
                                                 platformOperatorConnector: PlatformOperatorConnector,
@@ -57,8 +60,16 @@ class CheckPlatformOperatorController @Inject()(override val messagesApi: Messag
   def onPageLoad(operatorId: String): Action[AnyContent] =
     (identify andThen checkSubmissionsAllowed andThen getData(operatorId) andThen requireData).async { implicit request =>
       platformOperatorConnector.viewPlatformOperator(operatorId).map { operator =>
+
+        val form = formProvider()
+
+        val preparedForm = request.userAnswers.get(CheckPlatformOperatorPage) match {
+          case None => form
+          case Some(value) => form.fill(value)
+        }
+
         Ok(view(
-          formProvider(),
+          preparedForm,
           platformOperatorList(operator),
           primaryContactList(operator),
           secondaryContactList(operator),
@@ -83,20 +94,26 @@ class CheckPlatformOperatorController @Inject()(override val messagesApi: Messag
             ))
           }
         },
-        answer => if (answer) {
-          confirmedDetailsService.confirmBusinessDetailsFor(operatorId).flatMap {
-            case ConfirmedDetails(true, true, true) => getAnswerAsync(PlatformOperatorSummaryQuery) { summary =>
-              submissionConnector.start(operatorId, summary.operatorName, None).map { submission =>
-                Redirect(routes.UploadController.onPageLoad(operatorId, submission._id))
+        answer =>
+          (for {
+            updatedAnswers <- Future.fromTry(request.userAnswers.set(CheckPlatformOperatorPage, answer))
+            _ <- sessionRepository.set(updatedAnswers)
+          } yield {
+          if (answer) {
+            confirmedDetailsService.confirmBusinessDetailsFor(operatorId).flatMap {
+              case ConfirmedDetails(true, true, true) => getAnswerAsync(PlatformOperatorSummaryQuery) { summary =>
+                submissionConnector.start(operatorId, summary.operatorName, None).map { submission =>
+                  Redirect(routes.UploadController.onPageLoad(operatorId, submission._id))
+                }
               }
+              case ConfirmedDetails(true, true, false) => Future.successful(Redirect(routes.CheckContactDetailsController.onPageLoad(operatorId)))
+              case ConfirmedDetails(true, false, _) => Future.successful(Redirect(routes.CheckReportingNotificationsController.onSubmit(operatorId)))
+              case ConfirmedDetails(false, _, _) => Future.successful(Redirect(routes.CheckPlatformOperatorController.onPageLoad(operatorId)))
             }
-            case ConfirmedDetails(true, true, false) => Future.successful(Redirect(routes.CheckContactDetailsController.onPageLoad(operatorId)))
-            case ConfirmedDetails(true, false, _) => Future.successful(Redirect(routes.CheckReportingNotificationsController.onSubmit(operatorId)))
-            case ConfirmedDetails(false, _, _) => Future.successful(Redirect(routes.CheckPlatformOperatorController.onPageLoad(operatorId)))
+          } else {
+            Future.successful(Redirect(appConfig.updateOperatorUrl(operatorId)))
           }
-        } else {
-          Future.successful(Redirect(appConfig.updateOperatorUrl(operatorId)))
-        }
+        }).flatten
       )
     }
 

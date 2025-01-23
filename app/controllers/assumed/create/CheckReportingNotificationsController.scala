@@ -57,7 +57,12 @@ class CheckReportingNotificationsController @Inject()(
         } else {
           val form = formProvider()
 
-          Ok(view(form, operator.notifications, operatorId, operator.operatorName))
+          val preparedForm = request.userAnswers.get(page) match {
+            case None => form
+            case Some(value) => form.fill(value)
+          }
+
+          Ok(view(preparedForm, operator.notifications, operatorId, operator.operatorName))
         }
       }
   }

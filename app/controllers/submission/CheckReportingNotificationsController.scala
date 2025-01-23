@@ -22,9 +22,11 @@ import controllers.AnswerExtractor
 import controllers.actions.*
 import forms.CheckReportingNotificationsFormProvider
 import models.confirmed.ConfirmedDetails
+import pages.submission.create.CheckReportingNotificationsPage
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import queries.PlatformOperatorSummaryQuery
+import repositories.SessionRepository
 import services.ConfirmedDetailsService
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import views.html.submission.CheckReportingNotificationsView
@@ -36,6 +38,7 @@ class CheckReportingNotificationsController @Inject()(override val messagesApi: 
                                                       identify: IdentifierAction,
                                                       getData: DataRetrievalActionProvider,
                                                       requireData: DataRequiredAction,
+                                                      sessionRepository: SessionRepository,
                                                       checkSubmissionsAllowed: CheckSubmissionsAllowedAction,
                                                       val controllerComponents: MessagesControllerComponents,
                                                       platformOperatorConnector: PlatformOperatorConnector,
@@ -53,7 +56,14 @@ class CheckReportingNotificationsController @Inject()(override val messagesApi: 
         if (operator.notifications.isEmpty) {
           Redirect(routes.ReportingNotificationRequiredController.onPageLoad(operatorId))
         } else {
-          Ok(view(formProvider(), operator.notifications, operatorId, operator.operatorName))
+          val form = formProvider()
+
+          val preparedForm = request.userAnswers.get(CheckReportingNotificationsPage) match {
+            case None => form
+            case Some(value) => form.fill(value)
+          }
+
+          Ok(view(preparedForm, operator.notifications, operatorId, operator.operatorName))
         }
       }
     }
@@ -66,20 +76,25 @@ class CheckReportingNotificationsController @Inject()(override val messagesApi: 
             BadRequest(view(formWithErrors, operator.notifications, operatorId, operator.operatorName))
           }
         },
-        answer => if (answer) {
-          confirmedDetailsService.confirmReportingNotificationsFor(operatorId).flatMap {
-            case ConfirmedDetails(true, true, true) => getAnswerAsync(PlatformOperatorSummaryQuery) { summary =>
-              submissionConnector.start(operatorId, summary.operatorName, None).map { submission =>
-                Redirect(routes.UploadController.onPageLoad(operatorId, submission._id))
+        answer => (for {
+          updatedAnswers <- Future.fromTry(request.userAnswers.set(CheckReportingNotificationsPage, answer))
+          _ <- sessionRepository.set(updatedAnswers)
+        } yield {
+          if (answer) {
+            confirmedDetailsService.confirmReportingNotificationsFor(operatorId).flatMap {
+              case ConfirmedDetails(true, true, true) => getAnswerAsync(PlatformOperatorSummaryQuery) { summary =>
+                submissionConnector.start(operatorId, summary.operatorName, None).map { submission =>
+                  Redirect(routes.UploadController.onPageLoad(operatorId, submission._id))
+                }
               }
+              case ConfirmedDetails(true, true, false) => Future.successful(Redirect(routes.CheckContactDetailsController.onPageLoad(operatorId)))
+              case ConfirmedDetails(true, false, _) => Future.successful(Redirect(routes.CheckReportingNotificationsController.onSubmit(operatorId)))
+              case ConfirmedDetails(false, _, _) => Future.successful(Redirect(routes.CheckPlatformOperatorController.onPageLoad(operatorId)))
             }
-            case ConfirmedDetails(true, true, false) => Future.successful(Redirect(routes.CheckContactDetailsController.onPageLoad(operatorId)))
-            case ConfirmedDetails(true, false, _) => Future.successful(Redirect(routes.CheckReportingNotificationsController.onSubmit(operatorId)))
-            case ConfirmedDetails(false, _, _) => Future.successful(Redirect(routes.CheckPlatformOperatorController.onPageLoad(operatorId)))
+          } else {
+            Future.successful(Redirect(appConfig.viewNotificationsUrl(operatorId)))
           }
-        } else {
-          Future.successful(Redirect(appConfig.viewNotificationsUrl(operatorId)))
-        }
+        }).flatten
       )
     }
 }

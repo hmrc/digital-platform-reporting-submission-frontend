@@ -62,20 +62,20 @@ class CheckPlatformOperatorControllerSpec extends SpecBase with SummaryListFluen
 
   "Check Platform Operator Controller" - {
 
+    val operator = PlatformOperator(
+      operatorId = "operatorId",
+      operatorName = "operatorName",
+      tinDetails = Nil,
+      businessName = None,
+      tradingName = None,
+      primaryContactDetails = ContactDetails(None, "name", "email"),
+      secondaryContactDetails = None,
+      addressDetails = AddressDetails("line 1", None, None, None, None, Some("GB")),
+      notifications = Nil
+    )
+
     "must return OK and the correct view for a GET" in {
-
-      val operator = PlatformOperator(
-        operatorId = "operatorId",
-        operatorName = "operatorName",
-        tinDetails = Nil,
-        businessName = None,
-        tradingName = None,
-        primaryContactDetails = ContactDetails(None, "name", "email"),
-        secondaryContactDetails = None,
-        addressDetails = AddressDetails("line 1", None, None, None, None, Some("GB")),
-        notifications = Nil
-      )
-
+      
       when(mockPlatformOperatorConnector.viewPlatformOperator(any())(any())).thenReturn(Future.successful(operator))
 
       val application =
@@ -130,6 +130,48 @@ class CheckPlatformOperatorControllerSpec extends SpecBase with SummaryListFluen
       }
     }
 
+    "must populate the view correctly on a GET when the question has previously been answered" in {
+
+      val mockAppConfig = mock[FrontendAppConfig]
+      val baseAnswers = emptyUserAnswers.set(CheckPlatformOperatorPage(mockAppConfig), true).success.value
+
+      when(mockPlatformOperatorConnector.viewPlatformOperator(any())(any())).thenReturn(Future.successful(operator))
+
+      val application =
+        applicationBuilder(userAnswers = Some(baseAnswers))
+          .overrides(bind[PlatformOperatorConnector].toInstance(mockPlatformOperatorConnector))
+          .build()
+
+      running(application) {
+        val request = FakeRequest(GET, routes.CheckPlatformOperatorController.onPageLoad(operatorId).url)
+
+        val result = route(application, request).value
+
+        val view = application.injector.instanceOf[CheckPlatformOperatorView]
+
+        implicit val msgs: Messages = messages(application)
+
+        val operatorList = SummaryListViewModel(Seq(
+          OperatorIdSummary.row(operator),
+          BusinessNameSummary.row(operator),
+          HasTradingNameSummary.row(operator),
+          HasTaxIdentifierSummary.row(operator),
+          RegisteredInUkSummary.row(operator, countriesList),
+          AddressSummary.row(operator, countriesList),
+        ).flatten)
+
+        val primaryContactList = SummaryListViewModel(Seq(
+          PrimaryContactNameSummary.row(operator),
+          PrimaryContactEmailSummary.row(operator),
+          CanPhonePrimaryContactSummary.row(operator),
+          HasSecondaryContactSummary.row(operator)
+        ).flatten)
+
+        status(result) mustEqual OK
+        contentAsString(result) mustEqual view(form.fill(true), operatorList, primaryContactList, None, "operatorId", "operatorName")(request, implicitly).toString
+      }
+    }    
+    
     "onSubmit(...)" - {
       "must return BadRequest and errors when an invalid answer is submitted" in {
         val operator = PlatformOperator(

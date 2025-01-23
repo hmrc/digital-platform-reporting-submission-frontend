@@ -55,7 +55,11 @@ class CheckContactDetailsController @Inject()(override val messagesApi: Messages
       subscriptionConnector.getSubscription.map { subscriptionInfo =>
         val list = summaryList(subscriptionInfo)
         val form = formProvider()
-        Ok(view(form, list, operatorId))
+        val preparedForm = request.userAnswers.get(page) match {
+          case None => form
+          case Some(value) => form.fill(value)
+        }
+        Ok(view(preparedForm, list, operatorId))
       }
   }
 

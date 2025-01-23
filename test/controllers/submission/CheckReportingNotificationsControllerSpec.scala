@@ -28,10 +28,12 @@ import org.mockito.Mockito
 import org.mockito.Mockito.{never, times, verify, when}
 import org.scalatest.BeforeAndAfterEach
 import org.scalatestplus.mockito.MockitoSugar
+import pages.submission.create.CheckReportingNotificationsPage
 import play.api.inject.bind
 import play.api.test.FakeRequest
 import play.api.test.Helpers.*
 import queries.PlatformOperatorSummaryQuery
+import repositories.SessionRepository
 import services.ConfirmedDetailsService
 import support.builders.ConfirmedDetailsBuilder.aConfirmedDetails
 import support.builders.SubmissionBuilder.aSubmission
@@ -49,11 +51,12 @@ class CheckReportingNotificationsControllerSpec extends SpecBase with SummaryLis
   private val mockPlatformOperatorConnector = mock[PlatformOperatorConnector]
   private val mockSubmissionConnector = mock[SubmissionConnector]
   private val mockConfirmedDetailsService = mock[ConfirmedDetailsService]
+  private val mockSessionRepository = mock[SessionRepository]
   private val operatorSummary = PlatformOperatorSummary("operatorId", "operatorName", "primaryContactName", "test@test.com", hasReportingNotifications = true)
   private val baseAnswers = emptyUserAnswers.set(PlatformOperatorSummaryQuery, operatorSummary).success.value
 
   override def beforeEach(): Unit = {
-    Mockito.reset(mockPlatformOperatorConnector, mockSubmissionConnector, mockConfirmedDetailsService)
+    Mockito.reset(mockPlatformOperatorConnector, mockSubmissionConnector, mockConfirmedDetailsService, mockSessionRepository)
     super.beforeEach()
   }
 
@@ -198,7 +201,12 @@ class CheckReportingNotificationsControllerSpec extends SpecBase with SummaryLis
       }
 
       "must redirect to add a reporting notification when `false` is submitted" in {
-        val application = applicationBuilder(userAnswers = Some(baseAnswers)).build()
+        val application = applicationBuilder(userAnswers = Some(baseAnswers))
+          .overrides(bind[SessionRepository].toInstance(mockSessionRepository))
+          .build()
+
+        val expectedAnswers = baseAnswers.set(CheckReportingNotificationsPage, false).success.value
+        when(mockSessionRepository.set(any())).thenReturn(Future.successful(true))
 
         running(application) {
           val request = FakeRequest(POST, routes.CheckReportingNotificationsController.onPageLoad(operatorId).url)
@@ -208,17 +216,23 @@ class CheckReportingNotificationsControllerSpec extends SpecBase with SummaryLis
 
           status(result) mustEqual SEE_OTHER
           redirectLocation(result).value mustEqual appConfig.viewNotificationsUrl(operatorId)
+          verify(mockSessionRepository, times(1)).set(expectedAnswers)
         }
       }
 
       "must redirect to Check Platform Operator when 'true' is selected and business details have not been confirmed" in {
         val application = applicationBuilder(userAnswers = Some(aUserAnswers)).overrides(
           bind[SubmissionConnector].toInstance(mockSubmissionConnector),
-          bind[ConfirmedDetailsService].toInstance(mockConfirmedDetailsService)
+          bind[ConfirmedDetailsService].toInstance(mockConfirmedDetailsService),
+          bind[SessionRepository].toInstance(mockSessionRepository)
         ).build()
+
+        val expectedAnswers = aUserAnswers.set(CheckReportingNotificationsPage, true).success.value
 
         when(mockConfirmedDetailsService.confirmReportingNotificationsFor(any())(using any()))
           .thenReturn(Future.successful(aConfirmedDetails.copy(businessDetails = false)))
+
+        when(mockSessionRepository.set(any())).thenReturn(Future.successful(true))
 
         running(application) {
           val request = FakeRequest(POST, routes.CheckReportingNotificationsController.onPageLoad(operatorId).url)
@@ -231,16 +245,20 @@ class CheckReportingNotificationsControllerSpec extends SpecBase with SummaryLis
 
         verify(mockConfirmedDetailsService, times(1)).confirmReportingNotificationsFor(eqTo(operatorId))(using any())
         verify(mockSubmissionConnector, never()).start(any(), any(), any())(using any())
+        verify(mockSessionRepository, times(1)).set(expectedAnswers)
       }
 
       "must redirect to Check Reporting Notifications when 'true' is selected and notifications have not been confirmed" in {
         val application = applicationBuilder(userAnswers = Some(aUserAnswers)).overrides(
           bind[SubmissionConnector].toInstance(mockSubmissionConnector),
-          bind[ConfirmedDetailsService].toInstance(mockConfirmedDetailsService)
+          bind[ConfirmedDetailsService].toInstance(mockConfirmedDetailsService),
+          bind[SessionRepository].toInstance(mockSessionRepository)
         ).build()
 
+        val expectedAnswers = aUserAnswers.set(CheckReportingNotificationsPage, true).success.value
         when(mockConfirmedDetailsService.confirmReportingNotificationsFor(any())(using any()))
           .thenReturn(Future.successful(aConfirmedDetails.copy(reportingNotifications = false)))
+        when(mockSessionRepository.set(any())).thenReturn(Future.successful(true))
 
         running(application) {
           val request = FakeRequest(POST, routes.CheckReportingNotificationsController.onPageLoad(operatorId).url)
@@ -253,16 +271,20 @@ class CheckReportingNotificationsControllerSpec extends SpecBase with SummaryLis
 
         verify(mockConfirmedDetailsService, times(1)).confirmReportingNotificationsFor(eqTo(operatorId))(using any())
         verify(mockSubmissionConnector, never()).start(any(), any(), any())(using any())
+        verify(mockSessionRepository, times(1)).set(expectedAnswers)
       }
 
       "must redirect to Check Contact details when 'true' is selected and contact details have not been confirmed" in {
         val application = applicationBuilder(userAnswers = Some(aUserAnswers)).overrides(
           bind[SubmissionConnector].toInstance(mockSubmissionConnector),
-          bind[ConfirmedDetailsService].toInstance(mockConfirmedDetailsService)
+          bind[ConfirmedDetailsService].toInstance(mockConfirmedDetailsService),
+          bind[SessionRepository].toInstance(mockSessionRepository)
         ).build()
 
+        val expectedAnswers = aUserAnswers.set(CheckReportingNotificationsPage, true).success.value
         when(mockConfirmedDetailsService.confirmReportingNotificationsFor(any())(using any()))
           .thenReturn(Future.successful(aConfirmedDetails.copy(yourContactDetails = false)))
+        when(mockSessionRepository.set(any())).thenReturn(Future.successful(true))
 
         running(application) {
           val request = FakeRequest(POST, routes.CheckReportingNotificationsController.onPageLoad(operatorId).url)
@@ -275,18 +297,22 @@ class CheckReportingNotificationsControllerSpec extends SpecBase with SummaryLis
 
         verify(mockConfirmedDetailsService, times(1)).confirmReportingNotificationsFor(eqTo(operatorId))(using any())
         verify(mockSubmissionConnector, never()).start(any(), any(), any())(using any())
+        verify(mockSessionRepository, times(1)).set(expectedAnswers)
       }
 
       "must redirect to Upload page when 'true' is selected and all details have been confirmed" in {
         val userAnswers = aUserAnswers.set(PlatformOperatorSummaryQuery, operatorSummary).success.value
         val application = applicationBuilder(userAnswers = Some(userAnswers)).overrides(
           bind[SubmissionConnector].toInstance(mockSubmissionConnector),
-          bind[ConfirmedDetailsService].toInstance(mockConfirmedDetailsService)
+          bind[ConfirmedDetailsService].toInstance(mockConfirmedDetailsService),
+          bind[SessionRepository].toInstance(mockSessionRepository)
         ).build()
 
+        val expectedAnswers = userAnswers.set(CheckReportingNotificationsPage, true).success.value
         when(mockConfirmedDetailsService.confirmReportingNotificationsFor(any())(using any()))
           .thenReturn(Future.successful(aConfirmedDetails.copy(true, true, true)))
         when(mockSubmissionConnector.start(any(), any(), any())(using any())).thenReturn(Future.successful(aSubmission))
+        when(mockSessionRepository.set(any())).thenReturn(Future.successful(true))
 
         running(application) {
           val request = FakeRequest(POST, routes.CheckReportingNotificationsController.onPageLoad(operatorId).url)
@@ -299,6 +325,7 @@ class CheckReportingNotificationsControllerSpec extends SpecBase with SummaryLis
 
         verify(mockConfirmedDetailsService, times(1)).confirmReportingNotificationsFor(eqTo(operatorId))(using any())
         verify(mockSubmissionConnector, times(1)).start(eqTo(operatorId), eqTo(operatorSummary.operatorName), eqTo(None))(using any())
+        verify(mockSessionRepository, times(1)).set(expectedAnswers)
       }
     }
   }
