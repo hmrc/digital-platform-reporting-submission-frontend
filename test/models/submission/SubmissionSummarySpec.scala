@@ -43,6 +43,7 @@ class SubmissionSummarySpec extends AnyFreeSpec with Matchers {
       submissionCaseId = Some("caseId"),
       localDataExists = true
     )
+
     "for rejected submissions" - {
 
       "must be present when local data exists and operatorId is populated" in {
@@ -62,30 +63,42 @@ class SubmissionSummarySpec extends AnyFreeSpec with Matchers {
 
     "for successful submissions" - {
 
-      "must be present when operatorId is populated" in {
+      "must be present when local data exists and operatorId is populated" in {
 
         val submission = baseSubmission.copy(submissionStatus = Success)
         submission.link mustBe defined
       }
 
-      "must not be present when operatorId is None" in {
+      "must not be present when local data exists and operatorId is None" in {
 
         val submission = baseSubmission.copy(submissionStatus = Success, operatorId = None)
+        submission.link must not be defined
+      }
+
+      "must not be present when local data does not exist" in {
+
+        val submission = baseSubmission.copy(submissionStatus = Success, localDataExists = false)
         submission.link must not be defined
       }
     }
 
     "for pending submissions" - {
 
-      "must be present when operatorId is populated" in {
+      "must be present when local data exists and operatorId is populated" in {
 
         val submission = baseSubmission.copy(submissionStatus = Pending)
         submission.link mustBe defined
       }
 
-      "must not be present when operatorId is None" in {
+      "must not be present when local data exists and operatorId is None" in {
 
         val submission = baseSubmission.copy(submissionStatus = Pending, operatorId = None)
+        submission.link must not be defined
+      }
+
+      "must not be present when local data does not exist" in {
+
+        val submission = baseSubmission.copy(submissionStatus = Pending, localDataExists = false)
         submission.link must not be defined
       }
     }

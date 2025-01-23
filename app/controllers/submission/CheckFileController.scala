@@ -47,7 +47,7 @@ class CheckFileController @Inject()(
             Future.successful(Ok(view(operatorId, submissionId, getSummaryList(state.fileName), submission.operatorName)))
           }
         }.getOrElse {
-          Future.successful(Redirect(controllers.routes.JourneyRecoveryController.onPageLoad()))
+          Future.successful(NotFound)
         }
       }
   }

@@ -63,7 +63,7 @@ class SubmissionConfirmationController @Inject()(override val messagesApi: Messa
             }
 
           case None =>
-            Future.successful(Redirect(controllers.routes.JourneyRecoveryController.onPageLoad()))
+            Future.successful(NotFound)
         }
       }).flatten
   }
