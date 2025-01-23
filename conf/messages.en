@@ -69,10 +69,7 @@ upload.title = Upload an XML file
 upload.heading = Upload an XML file
 upload.body = We will automatically check the formatting of the file and send you to another page once completed.
 upload.button = Upload file
-
-uploading.title = Upload an XML file
-uploading.heading = Upload an XML file
-uploading.body = We will automatically check the formatting of the file and send you to another page once completed.
+upload.fileCheck = We are checking your file
 
 uploadFailed.schemafailure.title = There is a problem with the contents of your file
 uploadFailed.schemafailure.heading = There is a problem with the contents of your file

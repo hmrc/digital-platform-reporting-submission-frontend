@@ -43,7 +43,7 @@ class UpscanService @Inject() (
 
   private val redirectBase: String = configuration.get[String]("microservice.services.upscan-initiate.redirect-base")
   private def successRedirectRoute(operatorId: String, submissionId: String): String =
-    s"$redirectBase${controllers.submission.routes.UploadingController.onRedirect(operatorId, submissionId).path()}"
+    s"$redirectBase${controllers.submission.routes.UploadController.onRedirect(operatorId, submissionId).path()}"
   private def failureRedirectRoute(operatorId: String, submissionId: String): String =
     s"$redirectBase${controllers.submission.routes.UploadFailedController.onRedirect(operatorId, submissionId).path()}"
 
