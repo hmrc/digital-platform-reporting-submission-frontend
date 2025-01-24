@@ -19,53 +19,60 @@ package controllers.submission
 import connectors.SubmissionConnector
 import controllers.actions.*
 import models.submission.Submission
-import models.submission.Submission.State.{Approved, Ready, Rejected, Submitted, UploadFailed, Uploading, Validated}
-import play.api.i18n.{I18nSupport, Messages, MessagesApi}
+import models.submission.Submission.State.*
+import play.api.Configuration
+import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents, Result}
-import uk.gov.hmrc.govukfrontend.views.Aliases.{Key, HtmlContent, SummaryList, Text, Value}
-import uk.gov.hmrc.govukfrontend.views.viewmodels.summarylist.SummaryListRow
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
-import views.html.submission.CheckFileView
-import viewmodels.govuk.tag._
+import views.html.submission.UploadingView
 
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
-class CheckFileController @Inject()(
-                                    override val messagesApi: MessagesApi,
-                                    identify: IdentifierAction,
-                                    val controllerComponents: MessagesControllerComponents,
-                                    view: CheckFileView,
-                                    submissionConnector: SubmissionConnector
-                                  )(using ExecutionContext) extends FrontendBaseController with I18nSupport {
+class UploadingController @Inject()(
+                                     override val messagesApi: MessagesApi,
+                                     identify: IdentifierAction,
+                                     getData: DataRetrievalActionProvider,
+                                     requireData: DataRequiredAction,
+                                     checkSubmissionsAllowed: CheckSubmissionsAllowedAction,
+                                     val controllerComponents: MessagesControllerComponents,
+                                     view: UploadingView,
+                                     submissionConnector: SubmissionConnector,
+                                     configuration: Configuration
+                                   )(using ExecutionContext) extends FrontendBaseController with I18nSupport {
 
-  def onPageLoad(operatorId: String, submissionId: String): Action[AnyContent] = identify.async {
-    implicit request =>
+  private val refreshRate: String = configuration.get[Int]("uploading-refresh").toString
+
+  def onPageLoad(operatorId: String, submissionId: String): Action[AnyContent] =
+    (identify andThen checkSubmissionsAllowed andThen getData(operatorId) andThen requireData).async {
+      implicit request =>
+        submissionConnector.get(submissionId).flatMap {
+          _.map { submission =>
+            handleSubmission(operatorId, submission) {
+              case Uploading =>
+                Future.successful(Ok(view()).withHeaders("Refresh" -> refreshRate))
+            }
+          }.getOrElse {
+            Future.successful(Redirect(controllers.routes.JourneyRecoveryController.onPageLoad()))
+          }
+        }
+    }
+
+  def onRedirect(operatorId: String, submissionId: String): Action[AnyContent] =
+    (identify andThen checkSubmissionsAllowed andThen getData(operatorId) andThen requireData).async { implicit request =>
       submissionConnector.get(submissionId).flatMap {
         _.map { submission =>
-          handleSubmission(operatorId, submission) { case state: Submitted =>
-            Future.successful(Ok(view(operatorId, submissionId, getSummaryList(state.fileName), submission.operatorName)))
+          handleSubmission(operatorId, submission) {
+            case Ready | _: UploadFailed =>
+              submissionConnector.startUpload(submissionId).map { _ =>
+                Redirect(routes.UploadingController.onPageLoad(operatorId, submissionId))
+              }
           }
         }.getOrElse {
           Future.successful(Redirect(controllers.routes.JourneyRecoveryController.onPageLoad()))
         }
       }
-  }
-
-  private def getSummaryList(fileName: String)(using Messages): SummaryList =
-    SummaryList(
-      rows = Seq(
-        SummaryListRow(
-          key = Key(content = Text(Messages("checkFile.fileName"))),
-          value = Value(content = Text(fileName)),
-        ),
-          SummaryListRow(
-          key = Key(content = Text(Messages("checkFile.autoCheck"))),
-          value = Value(content = HtmlContent(s"""<strong class="govuk-tag govuk-tag--yellow"> ${Messages("checkFile.pending")} </strong>""".stripMargin)),
-
-        )
-      )
-    )
+    }
 
   private def handleSubmission(operatorId: String, submission: Submission)(f: PartialFunction[Submission.State, Future[Result]]): Future[Result] =
     f.lift(submission.state).getOrElse {

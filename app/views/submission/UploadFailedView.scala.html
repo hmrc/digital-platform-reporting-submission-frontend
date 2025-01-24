@@ -22,7 +22,6 @@
 @import uk.gov.hmrc.govukfrontend.views.viewmodels.errorsummary.ErrorSummary
 @import uk.gov.hmrc.govukfrontend.views.viewmodels.errormessage.ErrorMessage
 @import viewmodels.PlatformOperatorSummary
-@import views.html.helper.CSPNonce
 
 @this(
         layout: templates.Layout,
@@ -33,28 +32,13 @@
 
 @(uploadRequest: UploadRequest, error: UploadFailureReason, operatorName: String)(implicit request: Request[_], messages: Messages)
 
-@scripts = {
-    <script src='@controllers.routes.Assets.versioned("javascripts/jquery-3.6.3.min.js")' @{CSPNonce.attr}></script>
-    <script src='@controllers.routes.Assets.versioned("javascripts/upload-spinner.js")' @CSPNonce.attr></script>
-}
-
-@css = {
-    <link href="@routes.Assets.versioned("stylesheets/spinner.css")" media="all" rel="stylesheet" type="text/css" />
-}
-
-@layout(
-    pageTitle = titleNoForm(messages("uploadFailed.title")),
-    showBackLink = false,
-    additionalScripts = Some(scripts),
-    additionalCss = Some(css)
-) {
+@layout(pageTitle = titleNoForm(messages("uploadFailed.title")), showBackLink = false) {
 
   <h1 class="govuk-heading-xl">@messages("uploadFailed.heading")</h1>
 
-  <form action="@uploadRequest.href" method="post" id="uploadForm" enctype="multipart/form-data">
-    <input type="hidden" id="processingMessage" value="@messages("upload.fileCheck")" />
+  <form action="@uploadRequest.href" method="post" enctype="multipart/form-data">
 
-    @govukErrorSummary(ErrorSummaryViewModel.withoutForm(Map("file-input" -> messages(error.errorMessageKey))).withAttribute( "id" -> "error-summary"))
+    @govukErrorSummary(ErrorSummaryViewModel.withoutForm(Map("file-input" -> messages(error.errorMessageKey))))
 
     @for(field <- uploadRequest.fields) {
       <input type="hidden" name="@field._1" value="@field._2"/>
@@ -76,14 +60,10 @@
       attributes = Map("accept" -> ".xml")
     ))
 
-      <div id="processing" aria-live="polite" role="status" class= govuk-!-margin-top-5">
-      </div>
-
-      @govukButton(
+    @govukButton(
       ButtonViewModel(
         messages("uploadFailed.button")
       )
-      .withAttribute( "id" -> "submit")
       .preventingDoubleClick()
     )
   </form>
