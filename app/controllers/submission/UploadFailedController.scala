@@ -16,7 +16,6 @@
 
 package controllers.submission
 
-import config.FrontendAppConfig
 import connectors.SubmissionConnector
 import controllers.AnswerExtractor
 import controllers.actions.*
@@ -24,8 +23,6 @@ import models.submission.{CadxValidationError, Submission}
 import models.submission.Submission.State.{Approved, Ready, Rejected, Submitted, UploadFailed, Uploading, Validated}
 import models.submission.Submission.UploadFailureReason
 import models.submission.Submission.UploadFailureReason.SchemaValidationError
-import org.apache.pekko.actor.ActorSystem
-import org.apache.pekko
 import org.apache.pekko.stream.connectors.csv.scaladsl.CsvFormatting
 import org.apache.pekko.stream.scaladsl.Source
 import play.api.Configuration
@@ -35,21 +32,18 @@ import services.UpscanService
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import views.html.submission.{SchemaFailureView, UploadFailedView}
 
-import scala.concurrent.duration.*
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
 class UploadFailedController @Inject()(override val messagesApi: MessagesApi,
-                                       config: FrontendAppConfig,
                                        identify: IdentifierAction,
                                        val controllerComponents: MessagesControllerComponents,
                                        view: UploadFailedView,
                                        schemaFailureView: SchemaFailureView,
                                        submissionConnector: SubmissionConnector,
                                        upscanService: UpscanService,
-                                       configuration: Configuration,
-                                       actorSystem: ActorSystem
-                                      )(using ExecutionContext)
+                                       configuration: Configuration)
+                                      (using ExecutionContext)
   extends FrontendBaseController with I18nSupport with AnswerExtractor {
 
   private val maxErrors: Int = configuration.get[Int]("max-errors")
@@ -129,29 +123,28 @@ class UploadFailedController @Inject()(override val messagesApi: MessagesApi,
     }
   }
 
-  private def handleSubmission(operatorId: String, submission: Submission)(f: PartialFunction[Submission.State, Future[Result]]): Future[Result] = {
-    pekko.pattern.after(config.upscanCallbackDelayInSeconds.seconds, actorSystem.scheduler) {
-      f.lift(submission.state).getOrElse {
+  private def handleSubmission(operatorId: String, submission: Submission)(f: PartialFunction[Submission.State, Future[Result]]): Future[Result] =
+    f.lift(submission.state).getOrElse {
 
-        val redirectLocation = submission.state match {
-          case Ready | Uploading =>
-            routes.UploadController.onPageLoad(operatorId, submission._id)
-          case _: UploadFailed =>
-            routes.UploadFailedController.onPageLoad(operatorId, submission._id)
-          case _: Validated =>
-            routes.SendFileController.onPageLoad(operatorId, submission._id)
-          case _: Submitted =>
-            routes.CheckFileController.onPageLoad(operatorId, submission._id)
-          case _: Approved =>
-            routes.SubmissionConfirmationController.onPageLoad(operatorId, submission._id)
-          case _: Rejected =>
-            routes.FileErrorsController.onPageLoad(operatorId, submission._id)
-          case _ =>
-            controllers.routes.JourneyRecoveryController.onPageLoad()
-        }
-
-        Future.successful(Redirect(redirectLocation))
+      val redirectLocation = submission.state match {
+        case Ready =>
+          routes.UploadController.onPageLoad(operatorId, submission._id)
+        case Uploading =>
+          routes.UploadingController.onPageLoad(operatorId, submission._id)
+        case _: UploadFailed =>
+          routes.UploadFailedController.onPageLoad(operatorId, submission._id)
+        case _: Validated =>
+          routes.SendFileController.onPageLoad(operatorId, submission._id)
+        case _: Submitted =>
+          routes.CheckFileController.onPageLoad(operatorId, submission._id)
+        case _: Approved =>
+          routes.SubmissionConfirmationController.onPageLoad(operatorId, submission._id)
+        case _: Rejected =>
+          routes.FileErrorsController.onPageLoad(operatorId, submission._id)
+        case _ =>
+          controllers.routes.JourneyRecoveryController.onPageLoad()
       }
+
+      Future.successful(Redirect(redirectLocation))
     }
-  }
 }

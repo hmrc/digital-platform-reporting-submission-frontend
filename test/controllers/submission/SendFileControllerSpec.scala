@@ -187,7 +187,7 @@ class SendFileControllerSpec extends SpecBase with MockitoSugar with BeforeAndAf
 
         "when the submission is in an uploading state" - {
 
-          "must redirect to the upload page" in {
+          "must redirect to the uploading page" in {
 
             val application = applicationBuilder(userAnswers = Some(emptyUserAnswers))
               .overrides(
@@ -214,7 +214,7 @@ class SendFileControllerSpec extends SpecBase with MockitoSugar with BeforeAndAf
               val result = route(application, request).value
 
               status(result) mustEqual SEE_OTHER
-              redirectLocation(result).value mustEqual routes.UploadController.onPageLoad(operatorId, "id").url
+              redirectLocation(result).value mustEqual routes.UploadingController.onPageLoad(operatorId, "id").url
             }
 
             verify(mockSubmissionConnector).get(eqTo("id"))(using any())
@@ -516,7 +516,7 @@ class SendFileControllerSpec extends SpecBase with MockitoSugar with BeforeAndAf
 
         "when the submission is in an uploading state" - {
 
-          "must redirect to the upload page" in {
+          "must redirect to the uploading page" in {
 
             val application = applicationBuilder(userAnswers = Some(emptyUserAnswers))
               .overrides(
@@ -544,7 +544,7 @@ class SendFileControllerSpec extends SpecBase with MockitoSugar with BeforeAndAf
               val result = route(application, request).value
 
               status(result) mustEqual SEE_OTHER
-              redirectLocation(result).value mustEqual routes.UploadController.onPageLoad(operatorId, submission._id).url
+              redirectLocation(result).value mustEqual routes.UploadingController.onPageLoad(operatorId, submission._id).url
             }
 
             verify(mockSubmissionConnector).get(eqTo("id"))(using any())
