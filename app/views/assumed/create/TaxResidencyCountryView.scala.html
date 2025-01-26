@@ -47,6 +47,7 @@
             )
             .withCssClass("govuk-input")
             .asAccessibleAutocomplete(Some(AccessibleAutocomplete(showAllValues = true)))
+            .withAttribute("aria-controls", "value_listbox")
         )
 
         @govukButton(
