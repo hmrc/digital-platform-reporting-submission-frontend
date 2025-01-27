@@ -29,11 +29,13 @@ import org.mockito.Mockito
 import org.mockito.Mockito.{never, times, verify, when}
 import org.scalatest.BeforeAndAfterEach
 import org.scalatestplus.mockito.MockitoSugar
+import pages.submission.create.CheckPlatformOperatorPage
 import play.api.i18n.Messages
 import play.api.inject.bind
 import play.api.test.FakeRequest
 import play.api.test.Helpers.*
 import queries.PlatformOperatorSummaryQuery
+import repositories.SessionRepository
 import services.ConfirmedDetailsService
 import support.builders.ConfirmedDetailsBuilder.aConfirmedDetails
 import support.builders.SubmissionBuilder.aSubmission
@@ -52,28 +54,31 @@ class CheckPlatformOperatorControllerSpec extends SpecBase with SummaryListFluen
   private val mockPlatformOperatorConnector = mock[PlatformOperatorConnector]
   private val mockSubmissionConnector = mock[SubmissionConnector]
   private val mockConfirmedDetailsService = mock[ConfirmedDetailsService]
+  private val mockSessionRepository = mock[SessionRepository]
   private val operatorSummary = PlatformOperatorSummary("operatorId", "operatorName", "primaryContactName", "test@test.com", hasReportingNotifications = true)
   private val baseAnswers = emptyUserAnswers.set(PlatformOperatorSummaryQuery, operatorSummary).success.value
 
   override def beforeEach(): Unit = {
-    Mockito.reset(mockPlatformOperatorConnector, mockSubmissionConnector, mockConfirmedDetailsService)
+    Mockito.reset(mockPlatformOperatorConnector, mockSubmissionConnector, mockConfirmedDetailsService, mockSessionRepository)
     super.beforeEach()
   }
 
   "Check Platform Operator Controller" - {
     "onPageLoad(...)" - {
+
+      val operator = PlatformOperator(
+        operatorId = "operatorId",
+        operatorName = "operatorName",
+        tinDetails = Nil,
+        businessName = None,
+        tradingName = None,
+        primaryContactDetails = ContactDetails(None, "name", "email"),
+        secondaryContactDetails = None,
+        addressDetails = AddressDetails("line 1", None, None, None, None, Some("GB")),
+        notifications = Nil
+      )
+
       "must return OK and the correct view for a GET" in {
-        val operator = PlatformOperator(
-          operatorId = "operatorId",
-          operatorName = "operatorName",
-          tinDetails = Nil,
-          businessName = None,
-          tradingName = None,
-          primaryContactDetails = ContactDetails(None, "name", "email"),
-          secondaryContactDetails = None,
-          addressDetails = AddressDetails("line 1", None, None, None, None, Some("GB")),
-          notifications = Nil
-        )
 
         when(mockPlatformOperatorConnector.viewPlatformOperator(any())(any())).thenReturn(Future.successful(operator))
 
@@ -84,9 +89,7 @@ class CheckPlatformOperatorControllerSpec extends SpecBase with SummaryListFluen
 
         running(application) {
           val request = FakeRequest(GET, routes.CheckPlatformOperatorController.onPageLoad(operatorId).url)
-
           val result = route(application, request).value
-
           val view = application.injector.instanceOf[CheckPlatformOperatorView]
 
           implicit val msgs: Messages = messages(application)
@@ -110,6 +113,45 @@ class CheckPlatformOperatorControllerSpec extends SpecBase with SummaryListFluen
           status(result) mustEqual OK
           contentAsString(result) mustEqual view(form, operatorList, primaryContactList, None, "operatorId", "operatorName")(request, implicitly).toString
         }
+      }
+
+      "must populate the view correctly on a GET when the question has previously been answered" in {
+        val userAnswers = baseAnswers.set(CheckPlatformOperatorPage, true).success.value
+
+        when(mockPlatformOperatorConnector.viewPlatformOperator(any())(any())).thenReturn(Future.successful(operator))
+
+        val application =
+          applicationBuilder(userAnswers = Some(userAnswers))
+            .overrides(bind[PlatformOperatorConnector].toInstance(mockPlatformOperatorConnector))
+            .build()
+
+        running(application) {
+          val request = FakeRequest(GET, routes.CheckPlatformOperatorController.onPageLoad(operatorId).url)
+          val result = route(application, request).value
+          val view = application.injector.instanceOf[CheckPlatformOperatorView]
+
+          implicit val msgs: Messages = messages(application)
+
+          val operatorList = SummaryListViewModel(Seq(
+            OperatorIdSummary.row(operator),
+            BusinessNameSummary.row(operator),
+            HasTradingNameSummary.row(operator),
+            HasTaxIdentifierSummary.row(operator),
+            RegisteredInUkSummary.row(operator, countriesList),
+            AddressSummary.row(operator, countriesList),
+          ).flatten)
+
+          val primaryContactList = SummaryListViewModel(Seq(
+            PrimaryContactNameSummary.row(operator),
+            PrimaryContactEmailSummary.row(operator),
+            CanPhonePrimaryContactSummary.row(operator),
+            HasSecondaryContactSummary.row(operator)
+          ).flatten)
+
+          status(result) mustEqual OK
+          contentAsString(result) mustEqual view(form.fill(true), operatorList, primaryContactList, None, "operatorId", "operatorName")(request, implicitly).toString
+        }
+
       }
 
       "must redirect to SubmissionsDisabled for a GET when submissions are disabled" in {
@@ -208,11 +250,14 @@ class CheckPlatformOperatorControllerSpec extends SpecBase with SummaryListFluen
       "must redirect to Check Platform Operator when 'true' is selected and business details have not been confirmed" in {
         val application = applicationBuilder(userAnswers = Some(aUserAnswers)).overrides(
           bind[SubmissionConnector].toInstance(mockSubmissionConnector),
-          bind[ConfirmedDetailsService].toInstance(mockConfirmedDetailsService)
+          bind[ConfirmedDetailsService].toInstance(mockConfirmedDetailsService),
+          bind[SessionRepository].toInstance(mockSessionRepository)
         ).build()
 
+        val expectedAnswers = aUserAnswers.set(CheckPlatformOperatorPage, true).success.value
         when(mockConfirmedDetailsService.confirmBusinessDetailsFor(any())(using any()))
           .thenReturn(Future.successful(aConfirmedDetails.copy(businessDetails = false)))
+        when(mockSessionRepository.set(any())).thenReturn(Future.successful(true))
 
         running(application) {
           val request = FakeRequest(POST, routes.CheckPlatformOperatorController.onPageLoad(operatorId).url)
@@ -225,16 +270,20 @@ class CheckPlatformOperatorControllerSpec extends SpecBase with SummaryListFluen
 
         verify(mockConfirmedDetailsService, times(1)).confirmBusinessDetailsFor(eqTo(operatorId))(using any())
         verify(mockSubmissionConnector, never()).start(any(), any(), any())(using any())
+        verify(mockSessionRepository, times(1)).set(expectedAnswers)
       }
 
       "must redirect to Check Reporting Notifications when 'true' is selected and notifications have not been confirmed" in {
         val application = applicationBuilder(userAnswers = Some(aUserAnswers)).overrides(
           bind[SubmissionConnector].toInstance(mockSubmissionConnector),
-          bind[ConfirmedDetailsService].toInstance(mockConfirmedDetailsService)
+          bind[ConfirmedDetailsService].toInstance(mockConfirmedDetailsService),
+          bind[SessionRepository].toInstance(mockSessionRepository)
         ).build()
 
+        val expectedAnswers = aUserAnswers.set(CheckPlatformOperatorPage, true).success.value
         when(mockConfirmedDetailsService.confirmBusinessDetailsFor(any())(using any()))
           .thenReturn(Future.successful(aConfirmedDetails.copy(reportingNotifications = false)))
+        when(mockSessionRepository.set(any())).thenReturn(Future.successful(true))
 
         running(application) {
           val request = FakeRequest(POST, routes.CheckPlatformOperatorController.onPageLoad(operatorId).url)
@@ -247,16 +296,20 @@ class CheckPlatformOperatorControllerSpec extends SpecBase with SummaryListFluen
 
         verify(mockConfirmedDetailsService, times(1)).confirmBusinessDetailsFor(eqTo(operatorId))(using any())
         verify(mockSubmissionConnector, never()).start(any(), any(), any())(using any())
+        verify(mockSessionRepository, times(1)).set(expectedAnswers)
       }
 
       "must redirect to Check Contact details when 'true' is selected and contact details have not been confirmed" in {
         val application = applicationBuilder(userAnswers = Some(aUserAnswers)).overrides(
           bind[SubmissionConnector].toInstance(mockSubmissionConnector),
-          bind[ConfirmedDetailsService].toInstance(mockConfirmedDetailsService)
+          bind[ConfirmedDetailsService].toInstance(mockConfirmedDetailsService),
+          bind[SessionRepository].toInstance(mockSessionRepository)
         ).build()
 
+        val expectedAnswers = aUserAnswers.set(CheckPlatformOperatorPage, true).success.value
         when(mockConfirmedDetailsService.confirmBusinessDetailsFor(any())(using any()))
           .thenReturn(Future.successful(aConfirmedDetails.copy(yourContactDetails = false)))
+        when(mockSessionRepository.set(any())).thenReturn(Future.successful(true))
 
         running(application) {
           val request = FakeRequest(POST, routes.CheckPlatformOperatorController.onPageLoad(operatorId).url)
@@ -269,18 +322,22 @@ class CheckPlatformOperatorControllerSpec extends SpecBase with SummaryListFluen
 
         verify(mockConfirmedDetailsService, times(1)).confirmBusinessDetailsFor(eqTo(operatorId))(using any())
         verify(mockSubmissionConnector, never()).start(any(), any(), any())(using any())
+        verify(mockSessionRepository, times(1)).set(expectedAnswers)
       }
 
       "must redirect to Upload page when 'true' is selected and all details have been confirmed" in {
         val user = aUserAnswers.set(PlatformOperatorSummaryQuery, operatorSummary).success.value
         val application = applicationBuilder(userAnswers = Some(user)).overrides(
           bind[SubmissionConnector].toInstance(mockSubmissionConnector),
-          bind[ConfirmedDetailsService].toInstance(mockConfirmedDetailsService)
+          bind[ConfirmedDetailsService].toInstance(mockConfirmedDetailsService),
+          bind[SessionRepository].toInstance(mockSessionRepository)
         ).build()
 
+        val expectedAnswers = user.set(CheckPlatformOperatorPage, true).success.value
         when(mockConfirmedDetailsService.confirmBusinessDetailsFor(any())(using any()))
           .thenReturn(Future.successful(aConfirmedDetails.copy(true, true, true)))
         when(mockSubmissionConnector.start(any(), any(), any())(using any())).thenReturn(Future.successful(aSubmission))
+        when(mockSessionRepository.set(any())).thenReturn(Future.successful(true))
 
         running(application) {
           val request = FakeRequest(POST, routes.CheckPlatformOperatorController.onPageLoad(operatorId).url)
@@ -293,10 +350,16 @@ class CheckPlatformOperatorControllerSpec extends SpecBase with SummaryListFluen
 
         verify(mockSubmissionConnector, times(1)).start(eqTo(operatorId), eqTo(operatorSummary.operatorName), eqTo(None))(using any())
         verify(mockConfirmedDetailsService, times(1)).confirmBusinessDetailsFor(eqTo(operatorId))(using any())
+        verify(mockSessionRepository, times(1)).set(expectedAnswers)
       }
 
       "must redirect to update the platform operator when `false` is submitted" in {
-        val application = applicationBuilder(userAnswers = Some(baseAnswers)).build()
+        val application = applicationBuilder(userAnswers = Some(baseAnswers))
+          .overrides(bind[SessionRepository].toInstance(mockSessionRepository))
+          .build()
+
+        val expectedAnswers = baseAnswers.set(CheckPlatformOperatorPage, false).success.value
+        when(mockSessionRepository.set(any())).thenReturn(Future.successful(true))
 
         running(application) {
           val request = FakeRequest(POST, routes.CheckPlatformOperatorController.onPageLoad(operatorId).url)
@@ -306,6 +369,7 @@ class CheckPlatformOperatorControllerSpec extends SpecBase with SummaryListFluen
 
           status(result) mustEqual SEE_OTHER
           redirectLocation(result).value mustEqual appConfig.updateOperatorUrl(operatorId)
+          verify(mockSessionRepository, times(1)).set(expectedAnswers)
         }
       }
     }

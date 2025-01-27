@@ -55,8 +55,16 @@ class CheckPlatformOperatorController @Inject()(
 
   def onPageLoad(operatorId: String): Action[AnyContent] = (identify andThen checkAssumedReportingAllowed andThen getData(operatorId) andThen requireData).async { implicit request =>
     connector.viewPlatformOperator(operatorId).map { operator =>
+
+      val form = formProvider()
+
+      val preparedForm = request.userAnswers.get(checkPlatformOperatorPage) match {
+        case None => form
+        case Some(value) => form.fill(value)
+      }
+      
       Ok(view(
-        formProvider(),
+        preparedForm,
         platformOperatorList(operator),
         primaryContactList(operator),
         secondaryContactList(operator),

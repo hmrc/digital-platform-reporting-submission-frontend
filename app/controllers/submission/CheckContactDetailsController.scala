@@ -23,10 +23,12 @@ import controllers.actions.*
 import forms.CheckContactDetailsFormProvider
 import models.confirmed.ConfirmedDetails
 import models.subscription.{IndividualContact, OrganisationContact, SubscriptionInfo}
+import pages.submission.create.CheckContactDetailsPage
 import play.api.Logging
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import queries.PlatformOperatorSummaryQuery
+import repositories.SessionRepository
 import services.ConfirmedDetailsService
 import uk.gov.hmrc.govukfrontend.views.viewmodels.summarylist.SummaryList
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
@@ -40,6 +42,7 @@ class CheckContactDetailsController @Inject()(override val messagesApi: Messages
                                               identify: IdentifierAction,
                                               getData: DataRetrievalActionProvider,
                                               requireData: DataRequiredAction,
+                                              sessionRepository: SessionRepository,
                                               checkSubmissionsAllowed: CheckSubmissionsAllowedAction,
                                               val controllerComponents: MessagesControllerComponents,
                                               formProvider: CheckContactDetailsFormProvider,
@@ -56,7 +59,11 @@ class CheckContactDetailsController @Inject()(override val messagesApi: Messages
       connector.getSubscription.map { subscriptionInfo =>
         val list = summaryList(subscriptionInfo)
         val form = formProvider()
-        Ok(view(form, list, operatorId))
+        val preparedForm = request.userAnswers.get(CheckContactDetailsPage) match {
+          case None => form
+          case Some(value) => form.fill(value)
+        }
+        Ok(view(preparedForm, list, operatorId))
       }
     }
 
@@ -70,20 +77,25 @@ class CheckContactDetailsController @Inject()(override val messagesApi: Messages
               BadRequest(view(formWithErrors, list, operatorId))
             }
           },
-          answer => if (answer) {
-            confirmedDetailsService.confirmContactDetailsFor(operatorId).flatMap {
-              case ConfirmedDetails(true, true, true) =>
-                submissionConnector.start(operatorId, summary.operatorName, None).map { submission =>
-                  Redirect(routes.UploadController.onPageLoad(operatorId, submission._id))
-                }
-              case ConfirmedDetails(true, true, false) => Future.successful(Redirect(routes.CheckContactDetailsController.onPageLoad(operatorId)))
-              case ConfirmedDetails(true, false, _) => Future.successful(Redirect(routes.CheckReportingNotificationsController.onSubmit(operatorId)))
-              case ConfirmedDetails(false, _, _) => Future.successful(Redirect(routes.CheckPlatformOperatorController.onPageLoad(operatorId)))
+          answer => (for {
+            updatedAnswers <- Future.fromTry(request.userAnswers.set(CheckContactDetailsPage, answer))
+            _ <- sessionRepository.set(updatedAnswers)
+          } yield {
+            if (answer) {
+              confirmedDetailsService.confirmContactDetailsFor(operatorId).flatMap {
+                case ConfirmedDetails(true, true, true) =>
+                  submissionConnector.start(operatorId, summary.operatorName, None).map { submission =>
+                    Redirect(routes.UploadController.onPageLoad(operatorId, submission._id))
+                  }
+                case ConfirmedDetails(true, true, false) => Future.successful(Redirect(routes.CheckContactDetailsController.onPageLoad(operatorId)))
+                case ConfirmedDetails(true, false, _) => Future.successful(Redirect(routes.CheckReportingNotificationsController.onSubmit(operatorId)))
+                case ConfirmedDetails(false, _, _) => Future.successful(Redirect(routes.CheckPlatformOperatorController.onPageLoad(operatorId)))
+              }
             }
-          }
-          else {
-            Future.successful(Redirect(appConfig.updateContactDetailsUrl))
-          }
+            else {
+              Future.successful(Redirect(appConfig.updateContactDetailsUrl))
+            }
+          }).flatten
         )
       }
     }

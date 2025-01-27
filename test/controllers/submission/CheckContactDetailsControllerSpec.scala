@@ -27,6 +27,7 @@ import org.mockito.Mockito
 import org.mockito.Mockito.{never, times, verify, when}
 import org.scalatest.BeforeAndAfterEach
 import org.scalatestplus.mockito.MockitoSugar
+import pages.submission.create.CheckContactDetailsPage
 import play.api.i18n.Messages
 import play.api.inject.bind
 import play.api.test.FakeRequest
@@ -49,29 +50,30 @@ class CheckContactDetailsControllerSpec extends SpecBase with SummaryListFluency
   private val form = CheckContactDetailsFormProvider()()
   private val mockSubmissionConnector: SubmissionConnector = mock[SubmissionConnector]
   private val mockSubscriptionConnector = mock[SubscriptionConnector]
-  private val mockRepository = mock[SessionRepository]
+  private val mockSessionRepository = mock[SessionRepository]
   private val mockConfirmedDetailsService = mock[ConfirmedDetailsService]
   private val platformOperatorSummary = PlatformOperatorSummary("operatorId", "operatorName", "primaryContactName", "test@test.com", hasReportingNotifications = true)
   private val baseAnswers = aUserAnswers.set(PlatformOperatorSummaryQuery, platformOperatorSummary).success.value
 
   override def beforeEach(): Unit = {
-    Mockito.reset(mockSubscriptionConnector, mockRepository, mockSubmissionConnector, mockConfirmedDetailsService)
+    Mockito.reset(mockSubscriptionConnector, mockSessionRepository, mockSubmissionConnector, mockConfirmedDetailsService)
     super.beforeEach()
   }
 
   "Check Contact Details Controller" - {
+
+    val contact = IndividualContact(Individual("first", "last"), "email", None)
+    val subscription = SubscriptionInfo(
+      id = "dprsId",
+      gbUser = true,
+      tradingName = None,
+      primaryContact = contact,
+      secondaryContact = None
+    )
+
     "must return OK and the correct view for a GET" - {
 
       "for an individual" in {
-
-        val contact = IndividualContact(Individual("first", "last"), "email", None)
-        val subscription = SubscriptionInfo(
-          id = "dprsId",
-          gbUser = true,
-          tradingName = None,
-          primaryContact = contact,
-          secondaryContact = None
-        )
 
         when(mockSubscriptionConnector.getSubscription(any())).thenReturn(Future.successful(subscription))
 
@@ -179,6 +181,31 @@ class CheckContactDetailsControllerSpec extends SpecBase with SummaryListFluency
       }
     }
 
+    "must populate the view correctly on a GET when the question has previously been answered" in {
+      val baseAnswers = aUserAnswers.set(CheckContactDetailsPage, true).success.value
+      when(mockSubscriptionConnector.getSubscription(any())).thenReturn(Future.successful(subscription))
+
+      val application = applicationBuilder(userAnswers = Some(baseAnswers))
+        .overrides(bind[SubscriptionConnector].toInstance(mockSubscriptionConnector))
+        .build()
+
+      running(application) {
+        val request = FakeRequest(GET, routes.CheckContactDetailsController.onPageLoad(operatorId).url)
+        val result = route(application, request).value
+        val view = application.injector.instanceOf[CheckContactDetailsView]
+
+        implicit val msgs: Messages = messages(application)
+
+        val summaryList = SummaryListViewModel(Seq(
+          IndividualEmailSummary.row(contact),
+          CanPhoneIndividualSummary.row(contact)
+        ).flatten)
+
+        status(result) mustEqual OK
+        contentAsString(result) mustEqual view(form.fill(true), summaryList, "operatorId")(request, implicitly).toString
+      }
+    }
+
     "must redirect to SubmissionsDisabled for a GET when submissions are disabled" - {
 
       val application = applicationBuilder(userAnswers = Some(aUserAnswers))
@@ -252,8 +279,12 @@ class CheckContactDetailsControllerSpec extends SpecBase with SummaryListFluency
       "must redirect to manage home page when `false` is submitted" in {
         val application = applicationBuilder(userAnswers = Some(baseAnswers)).overrides(
           bind[SubmissionConnector].toInstance(mockSubmissionConnector),
-          bind[ConfirmedDetailsService].toInstance(mockConfirmedDetailsService)
+          bind[ConfirmedDetailsService].toInstance(mockConfirmedDetailsService),
+          bind[SessionRepository].toInstance(mockSessionRepository)
         ).build()
+
+        val expectedAnswers = baseAnswers.set(CheckContactDetailsPage, false).success.value
+        when(mockSessionRepository.set(any())).thenReturn(Future.successful(true))
 
         running(application) {
           val request = FakeRequest(POST, routes.CheckContactDetailsController.onPageLoad("any-operator-id").url)
@@ -267,15 +298,19 @@ class CheckContactDetailsControllerSpec extends SpecBase with SummaryListFluency
 
         verify(mockSubmissionConnector, never()).start(any(), any(), any())(using any())
         verify(mockConfirmedDetailsService, never()).confirmContactDetailsFor(any())(any())
+        verify(mockSessionRepository, times(1)).set(expectedAnswers)
       }
 
       "when `true` is submitted" - {
         "must redirect to Check Platform Operator when business details have not been confirmed" in {
           val application = applicationBuilder(userAnswers = Some(baseAnswers)).overrides(
             bind[SubmissionConnector].toInstance(mockSubmissionConnector),
+            bind[SessionRepository].toInstance(mockSessionRepository),
             bind[ConfirmedDetailsService].toInstance(mockConfirmedDetailsService)
           ).build()
 
+          val expectedAnswers = baseAnswers.set(CheckContactDetailsPage, true).success.value
+          when(mockSessionRepository.set(any())).thenReturn(Future.successful(true))
           when(mockConfirmedDetailsService.confirmContactDetailsFor(any())(any()))
             .thenReturn(Future.successful(aConfirmedDetails.copy(businessDetails = false)))
 
@@ -290,14 +325,18 @@ class CheckContactDetailsControllerSpec extends SpecBase with SummaryListFluency
 
           verify(mockConfirmedDetailsService, times(1)).confirmContactDetailsFor(eqTo("some-operator-id"))(any())
           verify(mockSubmissionConnector, never()).start(any(), any(), any())(using any())
+          verify(mockSessionRepository, times(1)).set(expectedAnswers)
         }
 
         "must redirect to Check Reporting Notifications when notifications have not been confirmed" in {
           val application = applicationBuilder(userAnswers = Some(baseAnswers)).overrides(
             bind[SubmissionConnector].toInstance(mockSubmissionConnector),
+            bind[SessionRepository].toInstance(mockSessionRepository),
             bind[ConfirmedDetailsService].toInstance(mockConfirmedDetailsService)
           ).build()
 
+          val expectedAnswers = baseAnswers.set(CheckContactDetailsPage, true).success.value
+          when(mockSessionRepository.set(any())).thenReturn(Future.successful(true))
           when(mockConfirmedDetailsService.confirmContactDetailsFor(any())(any()))
             .thenReturn(Future.successful(aConfirmedDetails.copy(reportingNotifications = false)))
 
@@ -312,14 +351,18 @@ class CheckContactDetailsControllerSpec extends SpecBase with SummaryListFluency
 
           verify(mockConfirmedDetailsService, times(1)).confirmContactDetailsFor(eqTo("some-operator-id"))(any())
           verify(mockSubmissionConnector, never()).start(any(), any(), any())(using any())
+          verify(mockSessionRepository, times(1)).set(expectedAnswers)
         }
 
         "must redirect to Check Contact details when contact details have not been confirmed" in {
           val application = applicationBuilder(userAnswers = Some(baseAnswers)).overrides(
             bind[SubmissionConnector].toInstance(mockSubmissionConnector),
+            bind[SessionRepository].toInstance(mockSessionRepository),
             bind[ConfirmedDetailsService].toInstance(mockConfirmedDetailsService)
           ).build()
 
+          val expectedAnswers = baseAnswers.set(CheckContactDetailsPage, true).success.value
+          when(mockSessionRepository.set(any())).thenReturn(Future.successful(true))
           when(mockConfirmedDetailsService.confirmContactDetailsFor(any())(any()))
             .thenReturn(Future.successful(aConfirmedDetails.copy(yourContactDetails = false)))
 
@@ -334,14 +377,18 @@ class CheckContactDetailsControllerSpec extends SpecBase with SummaryListFluency
 
           verify(mockConfirmedDetailsService, times(1)).confirmContactDetailsFor(eqTo("some-operator-id"))(any())
           verify(mockSubmissionConnector, never()).start(any(), any(), any())(using any())
+          verify(mockSessionRepository, times(1)).set(expectedAnswers)
         }
 
         "must redirect to Upload page when all details have been confirmed" in {
           val application = applicationBuilder(userAnswers = Some(baseAnswers)).overrides(
             bind[SubmissionConnector].toInstance(mockSubmissionConnector),
+            bind[SessionRepository].toInstance(mockSessionRepository),
             bind[ConfirmedDetailsService].toInstance(mockConfirmedDetailsService)
           ).build()
 
+          val expectedAnswers = baseAnswers.set(CheckContactDetailsPage, true).success.value
+          when(mockSessionRepository.set(any())).thenReturn(Future.successful(true))
           when(mockConfirmedDetailsService.confirmContactDetailsFor(any())(any()))
             .thenReturn(Future.successful(aConfirmedDetails.copy(true, true, true)))
           when(mockSubmissionConnector.start(any(), any(), any())(using any())).thenReturn(Future.successful(aSubmission))
@@ -357,14 +404,18 @@ class CheckContactDetailsControllerSpec extends SpecBase with SummaryListFluency
 
           verify(mockConfirmedDetailsService, times(1)).confirmContactDetailsFor(eqTo("some-operator-id"))(any())
           verify(mockSubmissionConnector, times(1)).start(eqTo("some-operator-id"), eqTo(platformOperatorSummary.operatorName), eqTo(None))(using any())
+          verify(mockSessionRepository, times(1)).set(expectedAnswers)
         }
 
         "must fail when the call to create a new submission fails" in {
           val application = applicationBuilder(userAnswers = Some(baseAnswers)).overrides(
             bind[SubmissionConnector].toInstance(mockSubmissionConnector),
+            bind[SessionRepository].toInstance(mockSessionRepository),
             bind[ConfirmedDetailsService].toInstance(mockConfirmedDetailsService)
           ).build()
 
+          val expectedAnswers = baseAnswers.set(CheckContactDetailsPage, true).success.value
+          when(mockSessionRepository.set(any())).thenReturn(Future.successful(true))
           when(mockSubmissionConnector.start(any(), any(), any())(using any())).thenReturn(Future.failed(new RuntimeException()))
 
           running(application) {
@@ -374,6 +425,7 @@ class CheckContactDetailsControllerSpec extends SpecBase with SummaryListFluency
             route(application, request).value.failed.futureValue
           }
 
+          verify(mockSessionRepository, times(1)).set(expectedAnswers)
           verify(mockConfirmedDetailsService, never()).confirmedDetailsFor(any())(using any())
         }
       }

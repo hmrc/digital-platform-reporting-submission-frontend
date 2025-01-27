@@ -60,20 +60,20 @@ class CheckReportingNotificationsControllerSpec extends SpecBase with SummaryLis
 
   "Check Reporting Notifications Controller" - {
 
-    "must return OK and the correct view for a GET when there is at least one notification for this PO" in {
+    val notification = NotificationDetails(NotificationType.Epo, None, None, 2024, Instant.now)
+    val operator = PlatformOperator(
+      operatorId = "operatorId",
+      operatorName = "operatorName",
+      tinDetails = Nil,
+      businessName = None,
+      tradingName = None,
+      primaryContactDetails = ContactDetails(None, "name", "email"),
+      secondaryContactDetails = None,
+      addressDetails = AddressDetails("line 1", None, None, None, None, Some("GB")),
+      notifications = Seq(notification)
+    )
 
-      val notification = NotificationDetails(NotificationType.Epo, None, None, 2024, Instant.now)
-      val operator = PlatformOperator(
-        operatorId = "operatorId",
-        operatorName = "operatorName",
-        tinDetails = Nil,
-        businessName = None,
-        tradingName = None,
-        primaryContactDetails = ContactDetails(None, "name", "email"),
-        secondaryContactDetails = None,
-        addressDetails = AddressDetails("line 1", None, None, None, None, Some("GB")),
-        notifications = Seq(notification)
-      )
+    "must return OK and the correct view for a GET when there is at least one notification for this PO" in {
 
       when(mockPlatformOperatorConnector.viewPlatformOperator(any())(any())).thenReturn(Future.successful(operator))
 
@@ -142,7 +142,31 @@ class CheckReportingNotificationsControllerSpec extends SpecBase with SummaryLis
       }
     }
 
-    "onSubmit(...)" - {
+    "must populate the view correctly on a GET when the question has previously been answered" in {
+
+      val mockAppConfig = mock[FrontendAppConfig]
+      val baseAnswers = emptyUserAnswers.set(CheckReportingNotificationsPage(mockAppConfig), true).success.value
+
+      when(mockPlatformOperatorConnector.viewPlatformOperator(any())(any())).thenReturn(Future.successful(operator))
+
+      val application =
+        applicationBuilder(userAnswers = Some(baseAnswers))
+          .overrides(bind[PlatformOperatorConnector].toInstance(mockPlatformOperatorConnector))
+          .build()
+
+      running(application) {
+        val request = FakeRequest(GET, routes.CheckReportingNotificationsController.onPageLoad(operatorId).url)
+
+        val result = route(application, request).value
+
+        val view = application.injector.instanceOf[CheckReportingNotificationsView]
+
+        status(result) mustEqual OK
+        contentAsString(result) mustEqual view(form.fill(true), Seq(notification), "operatorId", "operatorName")(request, messages(application)).toString
+      }
+    }
+
+      "onSubmit(...)" - {
       "must return BadRequest and errors when an invalid answer is submitted" in {
         val notification = NotificationDetails(NotificationType.Epo, None, None, 2024, Instant.now)
         val operator = PlatformOperator(

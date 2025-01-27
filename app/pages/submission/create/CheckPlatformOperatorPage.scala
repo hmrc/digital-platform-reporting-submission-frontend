@@ -14,24 +14,21 @@
  * limitations under the License.
  */
 
-package pages.assumed.create
+package pages.submission.create
 
 import config.FrontendAppConfig
 import controllers.assumed.create.routes
 import controllers.routes as baseRoutes
 import models.UserAnswers
+import pages.QuestionPage
 import play.api.libs.json.JsPath
 import play.api.mvc.Call
 
-import javax.inject.Inject
+import javax.inject.{Inject, Singleton}
 
-class CheckReportingNotificationsPage @Inject()(appConfig: FrontendAppConfig) extends AssumedReportingQuestionPage[Boolean] {
+@Singleton
+case object CheckPlatformOperatorPage extends QuestionPage[Boolean] {
 
-  override def path: JsPath = JsPath \ "checkReportingNotifications"
-
-  override protected def nextPageNormalMode(answers: UserAnswers): Call =
-    answers.get(this).map {
-      case true => routes.CheckContactDetailsController.onPageLoad(answers.operatorId)
-      case false => Call("GET", appConfig.viewNotificationsUrl(answers.operatorId))
-    }.getOrElse(baseRoutes.JourneyRecoveryController.onPageLoad())
+  override def path: JsPath = JsPath \ "submissions" \ "checkPlatformOperator"
+  
 }
