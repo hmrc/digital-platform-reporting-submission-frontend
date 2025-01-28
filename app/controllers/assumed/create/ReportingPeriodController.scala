@@ -82,7 +82,7 @@ class ReportingPeriodController @Inject()(
           for {
             deliveredSubmissions                <- connector.listDeliveredSubmissions(viewSubmissionsRequest)
             undeliveredSubmissions              <- connector.listUndeliveredSubmissions
-            matchingUndeliveredSubmissionExists = undeliveredSubmissions.exists(s => s.operatorId == operatorId && s.reportingPeriod == reportingPeriod)
+            matchingUndeliveredSubmissionExists = undeliveredSubmissions.exists(s => s.operatorId.contains(operatorId) && s.reportingPeriod.contains(reportingPeriod))
             submissionsExist                    = deliveredSubmissions.exists(_.deliveredSubmissionRecordCount > 0) || matchingUndeliveredSubmissionExists
             updatedAnswers                      <- Future.fromTry(request.userAnswers
                                                       .set(ReportingPeriodPage, reportingPeriod)

@@ -78,6 +78,7 @@ class SubmissionConfirmationControllerSpec extends SpecBase with MockitoSugar wi
         addressDetails = AddressDetails("line 1", None, None, None, None, Some("GB")),
         notifications = Nil
       )
+
       "when there is a submission in an approved state for the given id" - {
 
         "must return OK and the correct view for a GET" in {
@@ -152,9 +153,9 @@ class SubmissionConfirmationControllerSpec extends SpecBase with MockitoSugar wi
         }
       }
 
-      "when there is no submission for the given id" - {
+      "when the submission is in a ready state" - {
 
-        "must redirect to the journey recovery page" in {
+        "must redirect to the upload page" in {
 
           val application = applicationBuilder(userAnswers = None)
             .overrides(
@@ -164,296 +165,200 @@ class SubmissionConfirmationControllerSpec extends SpecBase with MockitoSugar wi
             )
             .build()
 
+          val submission = Submission(
+            _id = "id",
+            submissionType = SubmissionType.Xml,
+            dprsId = "dprsId",
+            operatorId = "operatorId",
+            operatorName = operatorName,
+            assumingOperatorName = None,
+            state = Ready,
+            created = now,
+            updated = now
+          )
+
           when(mockSubscriptionConnector.getSubscription(any())).thenReturn(Future.successful(subscription))
           when(mockConnector.viewPlatformOperator(any())(any())).thenReturn(Future.successful(operator))
-          when(mockSubmissionConnector.get(any())(using any())).thenReturn(Future.successful(None))
+          when(mockSubmissionConnector.get(any())(using any())).thenReturn(Future.successful(Some(submission)))
 
           running(application) {
             val request = FakeRequest(routes.SubmissionConfirmationController.onPageLoad(operatorId, "id"))
             val result = route(application, request).value
 
             status(result) mustEqual SEE_OTHER
-            redirectLocation(result).value mustEqual controllers.routes.JourneyRecoveryController.onPageLoad().url
+            redirectLocation(result).value mustEqual routes.UploadController.onPageLoad(operatorId, "id").url
           }
+
+          verify(mockSubmissionConnector).get(eqTo("id"))(using any())
         }
+      }
 
-        "when the submission is in a ready state" - {
+      "when the submission is in an uploading state" - {
 
-          "must redirect to the upload page" in {
+        "must redirect to the uploading page" in {
 
-            val application = applicationBuilder(userAnswers = None)
-              .overrides(
-                bind[SubmissionConnector].toInstance(mockSubmissionConnector),
-                bind[PlatformOperatorConnector].toInstance(mockConnector),
-                bind[SubscriptionConnector].toInstance(mockSubscriptionConnector)
-              )
-              .build()
-
-            val submission = Submission(
-              _id = "id",
-              submissionType = SubmissionType.Xml,
-              dprsId = "dprsId",
-              operatorId = "operatorId",
-              operatorName = operatorName,
-              assumingOperatorName = None,
-              state = Ready,
-              created = now,
-              updated = now
+          val application = applicationBuilder(userAnswers = None)
+            .overrides(
+              bind[SubmissionConnector].toInstance(mockSubmissionConnector),
+              bind[PlatformOperatorConnector].toInstance(mockConnector),
+              bind[SubscriptionConnector].toInstance(mockSubscriptionConnector)
             )
+            .build()
 
-            when(mockSubscriptionConnector.getSubscription(any())).thenReturn(Future.successful(subscription))
-            when(mockConnector.viewPlatformOperator(any())(any())).thenReturn(Future.successful(operator))
-            when(mockSubmissionConnector.get(any())(using any())).thenReturn(Future.successful(Some(submission)))
+          val submission = Submission(
+            _id = "id",
+            submissionType = SubmissionType.Xml,
+            dprsId = "dprsId",
+            operatorId = "operatorId",
+            operatorName = operatorName,
+            assumingOperatorName = None,
+            state = Uploading,
+            created = now,
+            updated = now
+          )
+          when(mockSubscriptionConnector.getSubscription(any())).thenReturn(Future.successful(subscription))
+          when(mockConnector.viewPlatformOperator(any())(any())).thenReturn(Future.successful(operator))
+          when(mockSubmissionConnector.get(any())(using any())).thenReturn(Future.successful(Some(submission)))
 
-            running(application) {
-              val request = FakeRequest(routes.SubmissionConfirmationController.onPageLoad(operatorId, "id"))
-              val result = route(application, request).value
-
-              status(result) mustEqual SEE_OTHER
-              redirectLocation(result).value mustEqual routes.UploadController.onPageLoad(operatorId, "id").url
-            }
-
-            verify(mockSubmissionConnector).get(eqTo("id"))(using any())
-          }
-        }
-
-        "when the submission is in an uploading state" - {
-
-          "must redirect to the uploading page" in {
-
-            val application = applicationBuilder(userAnswers = None)
-              .overrides(
-                bind[SubmissionConnector].toInstance(mockSubmissionConnector),
-                bind[PlatformOperatorConnector].toInstance(mockConnector),
-                bind[SubscriptionConnector].toInstance(mockSubscriptionConnector)
-              )
-              .build()
-
-            val submission = Submission(
-              _id = "id",
-              submissionType = SubmissionType.Xml,
-              dprsId = "dprsId",
-              operatorId = "operatorId",
-              operatorName = operatorName,
-              assumingOperatorName = None,
-              state = Uploading,
-              created = now,
-              updated = now
-            )
-            when(mockSubscriptionConnector.getSubscription(any())).thenReturn(Future.successful(subscription))
-            when(mockConnector.viewPlatformOperator(any())(any())).thenReturn(Future.successful(operator))
-            when(mockSubmissionConnector.get(any())(using any())).thenReturn(Future.successful(Some(submission)))
-
-            running(application) {
-              val request = FakeRequest(routes.SubmissionConfirmationController.onPageLoad(operatorId, "id"))
-              val result = route(application, request).value
+          running(application) {
+            val request = FakeRequest(routes.SubmissionConfirmationController.onPageLoad(operatorId, "id"))
+            val result = route(application, request).value
 
               status(result) mustEqual SEE_OTHER
               redirectLocation(result).value mustEqual routes.UploadingController.onPageLoad(operatorId, "id").url
             }
 
-            verify(mockSubmissionConnector).get(eqTo("id"))(using any())
-          }
+          verify(mockSubmissionConnector).get(eqTo("id"))(using any())
         }
+      }
 
-        "when the submission is in an upload failed state" - {
+      "when the submission is in an upload failed state" - {
 
-          "must redirect to the upload failed page" in {
+        "must redirect to the upload failed page" in {
 
-            val application = applicationBuilder(userAnswers = None)
-              .overrides(
-                bind[SubmissionConnector].toInstance(mockSubmissionConnector),
-                bind[PlatformOperatorConnector].toInstance(mockConnector),
-                bind[SubscriptionConnector].toInstance(mockSubscriptionConnector)
-              )
-              .build()
-
-            val submission = Submission(
-              _id = "id",
-              submissionType = SubmissionType.Xml,
-              dprsId = "dprsId",
-              operatorId = "operatorId",
-              operatorName = operatorName,
-              assumingOperatorName = None,
-              state = UploadFailed(SchemaValidationError(Seq.empty, false), None),
-              created = now,
-              updated = now
+          val application = applicationBuilder(userAnswers = None)
+            .overrides(
+              bind[SubmissionConnector].toInstance(mockSubmissionConnector),
+              bind[PlatformOperatorConnector].toInstance(mockConnector),
+              bind[SubscriptionConnector].toInstance(mockSubscriptionConnector)
             )
+            .build()
 
-            when(mockSubscriptionConnector.getSubscription(any())).thenReturn(Future.successful(subscription))
-            when(mockConnector.viewPlatformOperator(any())(any())).thenReturn(Future.successful(operator))
-            when(mockSubmissionConnector.get(any())(using any())).thenReturn(Future.successful(Some(submission)))
+          val submission = Submission(
+            _id = "id",
+            submissionType = SubmissionType.Xml,
+            dprsId = "dprsId",
+            operatorId = "operatorId",
+            operatorName = operatorName,
+            assumingOperatorName = None,
+            state = UploadFailed(SchemaValidationError(Seq.empty, false), None),
+            created = now,
+            updated = now
+          )
 
-            running(application) {
-              val request = FakeRequest(routes.SubmissionConfirmationController.onPageLoad(operatorId, "id"))
-              val result = route(application, request).value
+          when(mockSubscriptionConnector.getSubscription(any())).thenReturn(Future.successful(subscription))
+          when(mockConnector.viewPlatformOperator(any())(any())).thenReturn(Future.successful(operator))
+          when(mockSubmissionConnector.get(any())(using any())).thenReturn(Future.successful(Some(submission)))
 
-              status(result) mustEqual SEE_OTHER
-              redirectLocation(result).value mustEqual routes.UploadFailedController.onPageLoad(operatorId, "id").url
-            }
+          running(application) {
+            val request = FakeRequest(routes.SubmissionConfirmationController.onPageLoad(operatorId, "id"))
+            val result = route(application, request).value
 
-            verify(mockSubmissionConnector).get(eqTo("id"))(using any())
+            status(result) mustEqual SEE_OTHER
+            redirectLocation(result).value mustEqual routes.UploadFailedController.onPageLoad(operatorId, "id").url
           }
+
+          verify(mockSubmissionConnector).get(eqTo("id"))(using any())
         }
+      }
 
-        "when the submission is in a validated state" - {
+      "when the submission is in a validated state" - {
 
-          "must redirect to the send file page" in {
+        "must redirect to the send file page" in {
 
-            val application = applicationBuilder(userAnswers = None)
-              .overrides(
-                bind[SubmissionConnector].toInstance(mockSubmissionConnector),
-                bind[PlatformOperatorConnector].toInstance(mockConnector),
-                bind[SubscriptionConnector].toInstance(mockSubscriptionConnector)
-              )
-              .build()
-
-            val submission = Submission(
-              _id = "id",
-              submissionType = SubmissionType.Xml,
-              dprsId = "dprsId",
-              operatorId = "operatorId",
-              operatorName = operatorName,
-              assumingOperatorName = None,
-              state = Validated(
-                downloadUrl = url"http://example.com/test.xml",
-                reportingPeriod = Year.of(2024),
-                fileName = "test.xml",
-                checksum = "checksum",
-                size = 1337
-              ),
-              created = now,
-              updated = now
+          val application = applicationBuilder(userAnswers = None)
+            .overrides(
+              bind[SubmissionConnector].toInstance(mockSubmissionConnector),
+              bind[PlatformOperatorConnector].toInstance(mockConnector),
+              bind[SubscriptionConnector].toInstance(mockSubscriptionConnector)
             )
-            when(mockSubscriptionConnector.getSubscription(any())).thenReturn(Future.successful(subscription))
-            when(mockConnector.viewPlatformOperator(any())(any())).thenReturn(Future.successful(operator))
-            when(mockSubmissionConnector.get(any())(using any())).thenReturn(Future.successful(Some(submission)))
+            .build()
 
-            running(application) {
-              val request = FakeRequest(routes.SubmissionConfirmationController.onPageLoad(operatorId, "id"))
-              val result = route(application, request).value
+          val submission = Submission(
+            _id = "id",
+            submissionType = SubmissionType.Xml,
+            dprsId = "dprsId",
+            operatorId = "operatorId",
+            operatorName = operatorName,
+            assumingOperatorName = None,
+            state = Validated(
+              downloadUrl = url"http://example.com/test.xml",
+              reportingPeriod = Year.of(2024),
+              fileName = "test.xml",
+              checksum = "checksum",
+              size = 1337
+            ),
+            created = now,
+            updated = now
+          )
+          when(mockSubscriptionConnector.getSubscription(any())).thenReturn(Future.successful(subscription))
+          when(mockConnector.viewPlatformOperator(any())(any())).thenReturn(Future.successful(operator))
+          when(mockSubmissionConnector.get(any())(using any())).thenReturn(Future.successful(Some(submission)))
 
-              status(result) mustEqual SEE_OTHER
-              redirectLocation(result).value mustEqual routes.SendFileController.onPageLoad(operatorId, "id").url
-            }
+          running(application) {
+            val request = FakeRequest(routes.SubmissionConfirmationController.onPageLoad(operatorId, "id"))
+            val result = route(application, request).value
 
-            verify(mockSubmissionConnector).get(eqTo("id"))(using any())
+            status(result) mustEqual SEE_OTHER
+            redirectLocation(result).value mustEqual routes.SendFileController.onPageLoad(operatorId, "id").url
           }
+
+          verify(mockSubmissionConnector).get(eqTo("id"))(using any())
         }
+      }
 
-        "when the submission is in a submitted state" - {
+      "when the submission is in a submitted state" - {
 
-          "must redirect to the check file page" in {
+        "must redirect to the check file page" in {
 
-            val application = applicationBuilder(userAnswers = None)
-              .overrides(
-                bind[SubmissionConnector].toInstance(mockSubmissionConnector),
-                bind[PlatformOperatorConnector].toInstance(mockConnector),
-                bind[SubscriptionConnector].toInstance(mockSubscriptionConnector)
-              )
-              .build()
-
-            val submission = Submission(
-              _id = "id",
-              submissionType = SubmissionType.Xml,
-              dprsId = "dprsId",
-              operatorId = "operatorId",
-              operatorName = operatorName,
-              assumingOperatorName = None,
-              state = Submitted("test.xml", Year.of(2024)),
-              created = now,
-              updated = now
+          val application = applicationBuilder(userAnswers = None)
+            .overrides(
+              bind[SubmissionConnector].toInstance(mockSubmissionConnector),
+              bind[PlatformOperatorConnector].toInstance(mockConnector),
+              bind[SubscriptionConnector].toInstance(mockSubscriptionConnector)
             )
-            when(mockSubscriptionConnector.getSubscription(any())).thenReturn(Future.successful(subscription))
-            when(mockConnector.viewPlatformOperator(any())(any())).thenReturn(Future.successful(operator))
-            when(mockSubmissionConnector.get(any())(using any())).thenReturn(Future.successful(Some(submission)))
+            .build()
 
-            running(application) {
-              val request = FakeRequest(routes.SubmissionConfirmationController.onPageLoad(operatorId, "id"))
-              val result = route(application, request).value
+          val submission = Submission(
+            _id = "id",
+            submissionType = SubmissionType.Xml,
+            dprsId = "dprsId",
+            operatorId = "operatorId",
+            operatorName = operatorName,
+            assumingOperatorName = None,
+            state = Submitted("test.xml", Year.of(2024)),
+            created = now,
+            updated = now
+          )
+          when(mockSubscriptionConnector.getSubscription(any())).thenReturn(Future.successful(subscription))
+          when(mockConnector.viewPlatformOperator(any())(any())).thenReturn(Future.successful(operator))
+          when(mockSubmissionConnector.get(any())(using any())).thenReturn(Future.successful(Some(submission)))
 
-              status(result) mustEqual SEE_OTHER
-              redirectLocation(result).value mustEqual routes.CheckFileController.onPageLoad(operatorId, "id").url
-            }
+          running(application) {
+            val request = FakeRequest(routes.SubmissionConfirmationController.onPageLoad(operatorId, "id"))
+            val result = route(application, request).value
 
-            verify(mockSubmissionConnector).get(eqTo("id"))(using any())
+            status(result) mustEqual SEE_OTHER
+            redirectLocation(result).value mustEqual routes.CheckFileController.onPageLoad(operatorId, "id").url
           }
+
+          verify(mockSubmissionConnector).get(eqTo("id"))(using any())
         }
+      }
 
-        "when the submission is in a rejected state" - {
+      "when the submission is in a rejected state" - {
 
-          "must redirect to the file failed page" in {
-
-            val application = applicationBuilder(userAnswers = None)
-              .overrides(
-                bind[SubmissionConnector].toInstance(mockSubmissionConnector),
-                bind[PlatformOperatorConnector].toInstance(mockConnector),
-                bind[SubscriptionConnector].toInstance(mockSubscriptionConnector)
-              )
-              .build()
-
-            val submission = Submission(
-              _id = "id",
-              submissionType = SubmissionType.Xml,
-              dprsId = "dprsId",
-              operatorId = "operatorId",
-              operatorName = operatorName,
-              assumingOperatorName = None,
-              state = Rejected("test.xml", Year.of(2024)),
-              created = now,
-              updated = now
-            )
-            when(mockSubscriptionConnector.getSubscription(any())).thenReturn(Future.successful(subscription))
-            when(mockConnector.viewPlatformOperator(any())(any())).thenReturn(Future.successful(operator))
-            when(mockSubmissionConnector.get(any())(using any())).thenReturn(Future.successful(Some(submission)))
-
-            running(application) {
-              val request = FakeRequest(routes.SubmissionConfirmationController.onPageLoad(operatorId, "id"))
-              val result = route(application, request).value
-
-              status(result) mustEqual SEE_OTHER
-              redirectLocation(result).value mustEqual routes.FileErrorsController.onPageLoad(operatorId, "id").url
-            }
-
-            verify(mockSubmissionConnector).get(eqTo("id"))(using any())
-          }
-
-
-          "must retrun future failed when called get subscription" in {
-
-            val application = applicationBuilder(userAnswers = None)
-              .overrides(
-                bind[SubmissionConnector].toInstance(mockSubmissionConnector),
-                bind[PlatformOperatorConnector].toInstance(mockConnector),
-                bind[SubscriptionConnector].toInstance(mockSubscriptionConnector)
-              )
-              .build()
-
-            val submission = Submission(
-              _id = "id",
-              submissionType = SubmissionType.Xml,
-              dprsId = "dprsId",
-              operatorId = "operatorId",
-              operatorName = operatorName,
-              assumingOperatorName = None,
-              state = Rejected("test.xml", Year.of(2024)),
-              created = now,
-              updated = now
-            )
-            when(mockSubscriptionConnector.getSubscription(any())).thenReturn(Future.failed(new RuntimeException()))
-            when(mockConnector.viewPlatformOperator(any())(any())).thenReturn(Future.successful(operator))
-            when(mockSubmissionConnector.get(any())(using any())).thenReturn(Future.successful(Some(submission)))
-
-            running(application) {
-              val request = FakeRequest(routes.SubmissionConfirmationController.onPageLoad(operatorId, "id"))
-              val result = route(application, request).value.failed.futureValue
-            }
-            verify(mockSubscriptionConnector, times(1)).getSubscription(any())
-            verify(mockConnector, times(0)).viewPlatformOperator(any())(any())
-          }
-        }
-
-        "must retrun future failed when called view Platform operator" in {
+        "must redirect to the file failed page" in {
 
           val application = applicationBuilder(userAnswers = None)
             .overrides(
@@ -475,7 +380,44 @@ class SubmissionConfirmationControllerSpec extends SpecBase with MockitoSugar wi
             updated = now
           )
           when(mockSubscriptionConnector.getSubscription(any())).thenReturn(Future.successful(subscription))
-          when(mockConnector.viewPlatformOperator(any())(any())).thenReturn(Future.failed(new RuntimeException()))
+          when(mockConnector.viewPlatformOperator(any())(any())).thenReturn(Future.successful(operator))
+          when(mockSubmissionConnector.get(any())(using any())).thenReturn(Future.successful(Some(submission)))
+
+          running(application) {
+            val request = FakeRequest(routes.SubmissionConfirmationController.onPageLoad(operatorId, "id"))
+            val result = route(application, request).value
+
+            status(result) mustEqual SEE_OTHER
+            redirectLocation(result).value mustEqual routes.FileErrorsController.onPageLoad(operatorId, "id").url
+          }
+
+          verify(mockSubmissionConnector).get(eqTo("id"))(using any())
+        }
+
+
+        "must retrun future failed when called get subscription" in {
+
+          val application = applicationBuilder(userAnswers = None)
+            .overrides(
+              bind[SubmissionConnector].toInstance(mockSubmissionConnector),
+              bind[PlatformOperatorConnector].toInstance(mockConnector),
+              bind[SubscriptionConnector].toInstance(mockSubscriptionConnector)
+            )
+            .build()
+
+          val submission = Submission(
+            _id = "id",
+            submissionType = SubmissionType.Xml,
+            dprsId = "dprsId",
+            operatorId = "operatorId",
+            operatorName = operatorName,
+            assumingOperatorName = None,
+            state = Rejected("test.xml", Year.of(2024)),
+            created = now,
+            updated = now
+          )
+          when(mockSubscriptionConnector.getSubscription(any())).thenReturn(Future.failed(new RuntimeException()))
+          when(mockConnector.viewPlatformOperator(any())(any())).thenReturn(Future.successful(operator))
           when(mockSubmissionConnector.get(any())(using any())).thenReturn(Future.successful(Some(submission)))
 
           running(application) {
@@ -483,10 +425,67 @@ class SubmissionConfirmationControllerSpec extends SpecBase with MockitoSugar wi
             val result = route(application, request).value.failed.futureValue
           }
           verify(mockSubscriptionConnector, times(1)).getSubscription(any())
-          verify(mockConnector, times(1)).viewPlatformOperator(any())(any())
-
+          verify(mockConnector, times(0)).viewPlatformOperator(any())(any())
         }
+      }
 
+      "must return future failed when view Platform operator fails" in {
+
+        val application = applicationBuilder(userAnswers = None)
+          .overrides(
+            bind[SubmissionConnector].toInstance(mockSubmissionConnector),
+            bind[PlatformOperatorConnector].toInstance(mockConnector),
+            bind[SubscriptionConnector].toInstance(mockSubscriptionConnector)
+          )
+          .build()
+
+        val submission = Submission(
+          _id = "id",
+          submissionType = SubmissionType.Xml,
+          dprsId = "dprsId",
+          operatorId = "operatorId",
+          operatorName = operatorName,
+          assumingOperatorName = None,
+          state = Rejected("test.xml", Year.of(2024)),
+          created = now,
+          updated = now
+        )
+        when(mockSubscriptionConnector.getSubscription(any())).thenReturn(Future.successful(subscription))
+        when(mockConnector.viewPlatformOperator(any())(any())).thenReturn(Future.failed(new RuntimeException()))
+        when(mockSubmissionConnector.get(any())(using any())).thenReturn(Future.successful(Some(submission)))
+
+        running(application) {
+          val request = FakeRequest(routes.SubmissionConfirmationController.onPageLoad(operatorId, "id"))
+          val result = route(application, request).value.failed.futureValue
+        }
+        verify(mockSubscriptionConnector, times(1)).getSubscription(any())
+        verify(mockConnector, times(1)).viewPlatformOperator(any())(any())
+
+      }
+
+      "when there is no submission for the given id" - {
+
+        "must return NotFound" in {
+
+          val application = applicationBuilder(userAnswers = None)
+            .overrides(
+              bind[SubmissionConnector].toInstance(mockSubmissionConnector),
+              bind[PlatformOperatorConnector].toInstance(mockConnector),
+              bind[SubscriptionConnector].toInstance(mockSubscriptionConnector)
+            )
+            .build()
+
+          when(mockSubscriptionConnector.getSubscription(any())).thenReturn(Future.successful(subscription))
+          when(mockConnector.viewPlatformOperator(any())(any())).thenReturn(Future.successful(operator))
+          when(mockSubmissionConnector.get(any())(using any())).thenReturn(Future.successful(None))
+
+          running(application) {
+            val request = FakeRequest(routes.SubmissionConfirmationController.onPageLoad(operatorId, "id"))
+            val result = route(application, request).value
+
+            status(result) mustEqual NOT_FOUND
+          }
+        }
       }
     }
   }

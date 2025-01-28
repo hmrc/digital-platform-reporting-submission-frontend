@@ -52,9 +52,9 @@ class ViewUndeliveredSubmissionsControllerSpec extends SpecBase with MockitoSuga
       val submissionSummary = SubmissionSummary(
         submissionId = "submissionId",
         fileName = "filename",
-        operatorId = "operatorId",
-        operatorName = "operatorName",
-        reportingPeriod = thisYear,
+        operatorId = Some("operatorId"),
+        operatorName = Some("operatorName"),
+        reportingPeriod = Some(thisYear),
         submissionDateTime = instant,
         submissionStatus = SubmissionStatus.Pending,
         assumingReporterName = None,

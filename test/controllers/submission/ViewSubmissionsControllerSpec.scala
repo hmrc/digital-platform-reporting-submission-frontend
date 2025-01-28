@@ -64,9 +64,9 @@ class ViewSubmissionsControllerSpec extends SpecBase with MockitoSugar with Befo
       val submissionSummary = SubmissionSummary(
         submissionId = "submissionId",
         fileName = "filename",
-        operatorId = "operatorId",
-        operatorName = "operatorName",
-        reportingPeriod = thisYear,
+        operatorId = Some("operatorId"),
+        operatorName = Some("operatorName"),
+        reportingPeriod = Some(thisYear),
         submissionDateTime = instant,
         submissionStatus = SubmissionStatus.Success,
         assumingReporterName = None,
