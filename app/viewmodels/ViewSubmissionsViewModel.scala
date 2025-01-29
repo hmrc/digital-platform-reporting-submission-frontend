@@ -27,6 +27,7 @@ import play.api.i18n.Messages
 import uk.gov.hmrc.govukfrontend.views.viewmodels.pagination.{Pagination, PaginationItem, PaginationLink}
 import uk.gov.hmrc.govukfrontend.views.viewmodels.select.SelectItem
 import uk.gov.hmrc.http.StringContextOps
+import viewmodels.govuk.all.{FluentSelectItem, SelectItemViewModel}
 
 import java.time.Year
 
@@ -90,10 +91,10 @@ object ViewSubmissionsViewModel {
                                         (implicit messages: Messages): Seq[SelectItem] = {
     SelectItem(value = Some("0"), text = messages("viewSubmissions.reportingPeriod.allValues")) ::
       (firstLegislativeYear to currentYear.getValue).map { year =>
-        SelectItem(
-          value = Some(year.toString),
+        SelectItemViewModel(
+          value = year.toString,
           text  = year.toString
-        )
+        ).withAttribute("aria-describedby", year.toString)
       }.toList
   }
 
@@ -102,10 +103,10 @@ object ViewSubmissionsViewModel {
     if (operators.size > 1) {
       SelectItem(value = Some("all"), text = messages("viewSubmissions.platformOperator.allValues")) ::
         operators.map { operator =>
-          SelectItem(
-            value = Some(operator.operatorId),
+          SelectItemViewModel(
+            value = operator.operatorId,
             text  = operator.operatorName
-          )
+          ).withAttribute("aria-describedby", operator.operatorName)
         }.toList
     } else {
       Nil
