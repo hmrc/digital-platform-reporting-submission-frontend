@@ -16,17 +16,23 @@
 
 @import config.FrontendAppConfig
 @import views.html.helper.CSPNonce
+@import controllers.assumed.routes.ViewAssumedReportsController
 @import controllers.assumed.create.routes
-@import models.submission.AssumedReportingSubmissionSummary
+@import models.pageviews.assumed.ViewAssumedReportsViewModel
 @import uk.gov.hmrc.govukfrontend.views.html.components.GovukTag
+@import uk.gov.hmrc.govukfrontend.views.Implicits.RichSelect
+@import uk.gov.hmrc.hmrcfrontend.views.viewmodels.accessibleautocomplete.AccessibleAutocomplete
+@import viewmodels.LabelSize
 
 @this(
         layout: templates.Layout,
         govukTag: GovukTag,
+        govukSelect: GovukSelect,
+        govukButton: GovukButton,
         appConfig: FrontendAppConfig
 )
 
-@(summaries: Seq[AssumedReportingSubmissionSummary])(implicit request: Request[_], messages: Messages)
+@(viewModel: ViewAssumedReportsViewModel)(implicit request: Request[_], messages: Messages)
 
 @scripts = {
     <script src='@controllers.routes.Assets.versioned("javascripts/jquery-3.6.3.min.js")' @{CSPNonce.attr}></script>
@@ -46,9 +52,35 @@
 
     <h1 class="govuk-heading-xl">@messages("viewAssumedReports.heading")</h1>
 
-    @if(summaries.isEmpty) {
+    @if(viewModel.summaries.isEmpty) {
         <p class="govuk-body">@messages("viewAssumedReports.noReports")</p>
     } else {
+
+    <form method="GET" novalidate action="@ViewAssumedReportsController.onPageLoad().url">
+        @if(viewModel.platformOperatorSelectItems.nonEmpty) {
+            @govukSelect(
+                SelectViewModel(
+                    field = viewModel.form("operatorId"),
+                    items = viewModel.platformOperatorSelectItems,
+                    label = LabelViewModel(messages("viewAssumedReports.filter.operatorId")).withSize(LabelSize.Small)
+                )
+                .withCssClass("govuk-input")
+                .asAccessibleAutocomplete(Some(AccessibleAutocomplete(showAllValues = true)))
+            )
+        }
+
+        @govukSelect(
+            SelectViewModel(
+                field = viewModel.form("reportingPeriod"),
+                items = viewModel.reportingPeriodSelectItems,
+                label = LabelViewModel(messages("viewAssumedReports.filter.reportingPeriod")).withSize(LabelSize.Small)
+            )
+            .withCssClass("govuk-input")
+            .withCssClass("narrow-autocomplete")
+            .asAccessibleAutocomplete(Some(AccessibleAutocomplete(showAllValues = true, defaultValue = None)))
+        )
+
+        @govukButton(ButtonViewModel(messages("viewAssumedReports.applyFilter")))
 
         <table id="mar-submissions" class="govuk-table" data-module="moj-sortable-table">
             <caption class="govuk-table__caption govuk-table__caption--m govuk-visually-hidden">@messages("viewAssumedReports.heading")</caption>
@@ -62,7 +94,7 @@
                 </tr>
             </thead>
 
-            @summaries.map { summary =>
+            @viewModel.summaries.map { summary =>
                 <tr class="govuk-table__row">
                     <td class="govuk-table__cell">@shortDate(summary.submissionDateTime)</td>
                     <td class="govuk-table__cell">@summary.operatorName<br/>@summary.operatorId</td>
@@ -88,6 +120,7 @@
                 </tr>
             }
         </table>
+    </form>
     }
 
     <p class="govuk-body govuk-!-margin-top-9">
