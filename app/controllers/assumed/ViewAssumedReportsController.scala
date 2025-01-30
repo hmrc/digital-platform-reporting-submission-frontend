@@ -17,10 +17,13 @@
 package controllers.assumed
 
 import cats.implicits.*
-import connectors.AssumedReportingConnector
+import connectors.{AssumedReportingConnector, PlatformOperatorConnector}
 import controllers.actions.IdentifierAction
+import controllers.routes as baseRoutes
+import forms.assumed.{ViewAssumedReportsFormData, ViewAssumedReportsFormProvider}
 import models.UserAnswers
-import org.apache.pekko.Done
+import models.pageviews.assumed.ViewAssumedReportsViewModel
+import models.submission.AssumedReportingSubmissionSummary
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import queries.AssumedReportSummariesQuery
@@ -28,29 +31,61 @@ import repositories.SessionRepository
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import views.html.assumed.ViewAssumedReportsView
 
+import java.time.{Clock, Year}
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
 class ViewAssumedReportsController @Inject()(override val messagesApi: MessagesApi,
                                              identify: IdentifierAction,
                                              val controllerComponents: MessagesControllerComponents,
-                                             connector: AssumedReportingConnector,
+                                             assumedReportingConnector: AssumedReportingConnector,
+                                             platformOperatorConnector: PlatformOperatorConnector,
                                              sessionRepository: SessionRepository,
-                                             view: ViewAssumedReportsView)
+                                             view: ViewAssumedReportsView,
+                                             formProvider: ViewAssumedReportsFormProvider,
+                                             clock: Clock)
                                             (implicit ec: ExecutionContext) extends FrontendBaseController with I18nSupport {
 
-  def onPageLoad(): Action[AnyContent] = identify.async {
-    implicit request =>
-      connector.list.flatMap { submissions =>
-
-        submissions.groupBy(_.operatorId).toList
-          .traverse { (operatorId, submissions) =>
-            for {
-              answers <- Future.fromTry(UserAnswers(request.userId, operatorId).set(AssumedReportSummariesQuery, submissions))
-              _       <- sessionRepository.set(answers)
-            } yield Done
-          }
-          .map(_ => Ok(view(submissions)))
+  def onPageLoad(): Action[AnyContent] = identify.async { implicit request =>
+    formProvider().bindFromRequest().fold(
+      _ => Future.successful(Redirect(baseRoutes.JourneyRecoveryController.onPageLoad())),
+      formData => {
+        (for {
+          assumedReports <- assumedReportingConnector.list
+          filteredAssumedReports = filterBy(assumedReports, formData)
+          operatorsResponse <- platformOperatorConnector.viewPlatformOperators
+        } yield {
+          assumedReports.groupBy(_.operatorId).toList.traverse { (operatorId, submissions) =>
+              for {
+                answers <- Future.fromTry(UserAnswers(request.userId, operatorId).set(AssumedReportSummariesQuery, submissions))
+                _ <- sessionRepository.set(answers)
+              } yield answers
+            }
+            .map(_ => {
+              val viewModel = ViewAssumedReportsViewModel(
+                platformOperators = operatorsResponse.platformOperators,
+                assumedReportingSubmissionSummaries = filteredAssumedReports,
+                currentYear = Year.now(clock),
+                form = formProvider().fill(formData)
+              )
+              Ok(view(viewModel))
+            })
+        }).flatten
       }
+    )
+  }
+
+  private def filterBy(assumedReports: Seq[AssumedReportingSubmissionSummary],
+                       formData: ViewAssumedReportsFormData): Seq[AssumedReportingSubmissionSummary] = assumedReports.filter { assumedReport =>
+    val matchesOperatorId = formData.operatorId match {
+      case Some(id) => assumedReport.operatorId == id
+      case None => true
+    }
+    val matchReportingPeriod = formData.reportingPeriod match {
+      case Some(year) => assumedReport.reportingPeriod == year
+      case None => true
+    }
+
+    matchesOperatorId && matchReportingPeriod
   }
 }
