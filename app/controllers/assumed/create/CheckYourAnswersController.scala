@@ -96,6 +96,7 @@ class CheckYourAnswersController @Inject()(override val messagesApi: MessagesApi
               answersWithSummary <- Future.fromTry(emptyAnswers.set(AssumedReportSummaryQuery, summary))
               answersWithEmailSentResult <- Future.fromTry(answersWithSummary.set(SentAddAssumedReportingEmailsQuery, emailsSentResult))
               _ <- sessionRepository.set(answersWithEmailSentResult)
+              _ <- sessionRepository.clear(request.userId, operatorId, None)
             } yield Redirect(routes.SubmissionConfirmationController.onPageLoad(operatorId, summary.reportingPeriod))).recover {
               case error: SubmitAssumedReportingFailure => logger.warn("Failed to submit assumed reporting", error)
                 throw error
