@@ -156,6 +156,7 @@ class CheckYourAnswersControllerSpec extends SpecBase with SummaryListFluency wi
         when(mockUserAnswersService.toAssumedReportingSubmission(any())).thenReturn(Right(assumedReportingSubmissionRequest))
         when(mockAssumedReportingConnector.submit(any())(using any())).thenReturn(Future.successful(submission))
         when(mockSessionRepository.set(any())).thenReturn(Future.successful(true))
+        when(mockSessionRepository.clear(any(), any(), any())).thenReturn(Future.successful(true))
         when(mockEmailService.sendAddAssumedReportingEmails(any(), any(), any())(using any())).thenReturn(Future.successful(anEmailsSentResult))
 
         running(application) {
@@ -174,6 +175,7 @@ class CheckYourAnswersControllerSpec extends SpecBase with SummaryListFluency wi
 
         val answersCaptor: ArgumentCaptor[UserAnswers] = ArgumentCaptor.forClass(classOf[UserAnswers])
         verify(mockSessionRepository, times(1)).set(answersCaptor.capture())
+        verify(mockSessionRepository, times(1)).clear(userId, operatorId, None)
         verify(mockEmailService, times(1)).sendAddAssumedReportingEmails(any(), any(), any())(using any())
 
         val finalAnswers = answersCaptor.getValue
