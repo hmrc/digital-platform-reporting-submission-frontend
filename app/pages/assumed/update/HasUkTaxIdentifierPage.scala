@@ -44,4 +44,7 @@ case object HasUkTaxIdentifierPage extends AssumedReportingUpdateQuestionPage[Bo
 
   override def cleanup(value: Option[Boolean], userAnswers: UserAnswers): Try[UserAnswers] =
     if (value.contains(false)) userAnswers.remove(UkTaxIdentifierPage) else super.cleanup(value, userAnswers)
+
+  override def route(operatorId: String, reportingPeriod: Year): Call =
+    routes.HasUkTaxIdentifierController.onPageLoad(operatorId, reportingPeriod)
 }

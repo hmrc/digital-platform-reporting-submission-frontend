@@ -41,3 +41,6 @@ GET        /:operatorId/:reportingPeriod/check-contact-details                  
 POST       /:operatorId/:reportingPeriod/check-contact-details                   controllers.assumed.update.CheckContactDetailsController.onSubmit(operatorId: String, reportingPeriod: Year)
 
 GET        /:operatorId/:reportingPeriod/no-reporting-notification               controllers.assumed.update.ReportingNotificationRequiredController.onPageLoad(operatorId: String, reportingPeriod: Year)
+
+GET        /:operatorId/:reportingPeriod/missing-information                     controllers.assumed.update.MissingInformationController.onPageLoad(operatorId: String, reportingPeriod: Year)
+POST       /:operatorId/:reportingPeriod/missing-information                     controllers.assumed.update.MissingInformationController.onSubmit(operatorId: String, reportingPeriod: Year)

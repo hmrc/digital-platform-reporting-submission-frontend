@@ -57,4 +57,7 @@ case object TaxResidentInUkPage extends AssumedReportingUpdateQuestionPage[Boole
           .remove(HasUkTaxIdentifierPage)
           .flatMap(_.remove(UkTaxIdentifierPage))
     }.getOrElse(super.cleanup(value, userAnswers))
+
+  override def route(operatorId: String, reportingPeriod: Year): Call =
+    routes.TaxResidentInUkController.onPageLoad(operatorId, reportingPeriod)
 }

@@ -17,5 +17,10 @@
 package pages.assumed.update
 
 import pages.QuestionPage
+import play.api.mvc.Call
 
-trait AssumedReportingUpdateQuestionPage[A] extends QuestionPage[A] with AssumedReportingUpdatePage
+import java.time.Year
+
+trait AssumedReportingUpdateQuestionPage[A] extends QuestionPage[A] with AssumedReportingUpdatePage {
+  def route(operatorId: String, reportingPeriod: Year): Call
+}

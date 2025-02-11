@@ -50,7 +50,7 @@ class AssumedReportingConnectorSpec
 
   override lazy val app: Application = GuiceApplicationBuilder()
     .configure(
-      "appName"                                               -> "app",
+      "appName" -> "app",
       "microservice.services.digital-platform-reporting.port" -> wireMockPort
     )
     .build()
@@ -77,7 +77,7 @@ class AssumedReportingConnectorSpec
           issuedBy = "GB"
         )
       ),
-      registeredCountry = Country.GB,
+      registeredCountry = Country.UnitedKingdom,
       address = "address"
     )
 
@@ -138,7 +138,7 @@ class AssumedReportingConnectorSpec
           issuedBy = "GB"
         )
       ),
-      registeredCountry = Country.GB,
+      registeredCountry = Country.UnitedKingdom,
       address = "address"
     )
 

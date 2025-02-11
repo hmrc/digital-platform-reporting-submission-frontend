@@ -16,11 +16,18 @@
 
 package pages.assumed.update
 
+import controllers.assumed.update.routes
 import play.api.libs.json.JsPath
+import play.api.mvc.Call
+
+import java.time.Year
 
 case object UkTaxIdentifierPage extends AssumedReportingUpdateQuestionPage[String] {
 
   override def path: JsPath = JsPath \ toString
 
   override def toString: String = "ukTaxIdentifier"
+
+  override def route(operatorId: String, reportingPeriod: Year): Call =
+    routes.UkTaxIdentifierController.onPageLoad(operatorId, reportingPeriod)
 }

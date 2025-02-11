@@ -22,11 +22,9 @@ import play.api.libs.json.*
 
 import java.time.Year
 
-final case class AssumedReportingSubmissionRequest(
-                                                    operatorId: String,
-                                                    assumingOperator: AssumingPlatformOperator,
-                                                    reportingPeriod: Year
-                                                  )
+final case class AssumedReportingSubmissionRequest(operatorId: String,
+                                                   assumingOperator: AssumingPlatformOperator,
+                                                   reportingPeriod: Year)
 
 object AssumedReportingSubmissionRequest {
   given format(using countriesList: CountriesList): OFormat[AssumedReportingSubmissionRequest] = {

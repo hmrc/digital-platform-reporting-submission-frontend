@@ -17,9 +17,10 @@
 package pages.assumed.update
 
 import controllers.assumed.update.routes
-import models.{UkAddress, UserAnswers}
 import play.api.libs.json.JsPath
 import play.api.mvc.Call
+
+import java.time.Year
 
 case object AddressPage extends AssumedReportingUpdateQuestionPage[String] {
 
@@ -27,4 +28,6 @@ case object AddressPage extends AssumedReportingUpdateQuestionPage[String] {
 
   override def toString: String = "address"
 
+  override def route(operatorId: String, reportingPeriod: Year): Call =
+    routes.AddressController.onPageLoad(operatorId, reportingPeriod)
 }

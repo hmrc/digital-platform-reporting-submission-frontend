@@ -24,5 +24,5 @@ final case class Country(code: String, name: String)
 object Country {
   implicit val format: OFormat[Country] = Json.format[Country]
 
-  val GB: Country = Country("GB", "United Kingdom")
+  val UnitedKingdom: Country = Country("GB", "United Kingdom")
 }

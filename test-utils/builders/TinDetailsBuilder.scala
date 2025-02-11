@@ -16,6 +16,7 @@
 
 package builders
 
+import models.Country.UnitedKingdom
 import models.operator.TinDetails
 import models.operator.TinType.Other
 
@@ -24,6 +25,6 @@ object TinDetailsBuilder {
   val aTinDetails: TinDetails = TinDetails(
     tin = "default-tin",
     tinType = Other,
-    issuedBy = "GB"
+    issuedBy = UnitedKingdom.code
   )
 }

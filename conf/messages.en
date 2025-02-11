@@ -519,3 +519,7 @@ assumedReportingDisabled.p1 = The service is currently unavailable. Try again la
 assumedReportingDisabled.p2 = You can still
 assumedReportingDisabled.p2.link.text = view previous assumed reporting details you have added
 assumedReportingDisabled.p3.link.text = Return to manage your digital platform reporting
+
+missingInformation.title = Some information is missing
+missingInformation.heading = Some information is missing
+missingInformation.guidance = You must provide this information to proceed.

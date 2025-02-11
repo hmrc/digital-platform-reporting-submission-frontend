@@ -24,9 +24,9 @@ object AssumingPlatformOperatorBuilder {
 
   val anAssumingPlatformOperator: AssumingPlatformOperator = AssumingPlatformOperator(
     name = "default-assuming-platform-operator-name",
-    residentCountry = Country.GB,
+    residentCountry = Country.UnitedKingdom,
     tinDetails = Seq(aTinDetails),
-    registeredCountry = Country.GB,
+    registeredCountry = Country.UnitedKingdom,
     address = "default-address",
   )
 }
