@@ -23,14 +23,13 @@ import controllers.{AnswerExtractor, routes as baseRoutes}
 import models.audit.UpdateAssumedReportEvent
 import models.email.EmailsSentResult
 import models.requests.DataRequest
-import models.submission.{AssumedReportSummary, AssumedReportingSubmission, AssumedReportingSubmissionRequest}
+import models.submission.{AssumedReportSummary, AssumedReportingSubmission, AssumedReportingSubmissionRequest, UpdateAssumedReportingSubmissionRequest}
 import models.{CountriesList, UserAnswers}
 import play.api.Logging
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import queries.{AssumedReportSummaryQuery, AssumedReportingSubmissionQuery, SentUpdateAssumedReportingEmailsQuery}
 import repositories.SessionRepository
-import services.UserAnswersService.BuildAssumedReportingSubmissionFailure
 import services.{AuditService, EmailService, UserAnswersService}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import viewmodels.checkAnswers.assumed.update.*
@@ -80,23 +79,19 @@ class CheckYourAnswersController @Inject()(override val messagesApi: MessagesApi
   def onSubmit(operatorId: String, reportingPeriod: Year): Action[AnyContent] =
     (identify andThen getData(operatorId, Some(reportingPeriod)) andThen requireData).async { implicit request =>
       getAnswerAsync(AssumedReportingSubmissionQuery) { originalSubmission =>
-
-        userAnswersService.toAssumedReportingSubmission(request.userAnswers)
-          .map(Future.successful)
-          .left.map(errors => Future.failed(BuildAssumedReportingSubmissionFailure(errors)))
-          .merge
-          .flatMap { submissionRequest =>
-            for {
-              submission <- assumedReportingConnector.submit(submissionRequest)
-              _ = audit(originalSubmission, submissionRequest)
-              summary <- AssumedReportSummary(request.userAnswers).map(Future.successful).getOrElse(Future.failed(Exception("unable to build an assumed report summary")))
-              emptyAnswers = UserAnswers(request.userId, operatorId, Some(reportingPeriod))
-              answersWithSummary <- Future.fromTry(emptyAnswers.set(AssumedReportSummaryQuery, summary))
-              emailsSentResult <- emailService.sendUpdateAssumedReportingEmails(operatorId, summary, submission.updated)
-              answersWithSentEmails <- Future.fromTry(answersWithSummary.set(SentUpdateAssumedReportingEmailsQuery, emailsSentResult))
-              _ <- sessionRepository.set(answersWithSentEmails)
-            } yield Redirect(routes.SubmissionConfirmationController.onPageLoad(operatorId, reportingPeriod))
-          }
+        UpdateAssumedReportingSubmissionRequest.build(request.userAnswers).fold(
+          _ => Future.successful(Redirect(routes.MissingInformationController.onPageLoad(operatorId, reportingPeriod))),
+          submissionRequest => for {
+            submission <- assumedReportingConnector.submit(submissionRequest.asAssumedReportingSubmissionRequest)
+            _ = audit(originalSubmission, submissionRequest.asAssumedReportingSubmissionRequest)
+            summary <- AssumedReportSummary(request.userAnswers).map(Future.successful).getOrElse(Future.failed(Exception("unable to build an assumed report summary")))
+            emptyAnswers = UserAnswers(request.userId, operatorId, Some(reportingPeriod))
+            answersWithSummary <- Future.fromTry(emptyAnswers.set(AssumedReportSummaryQuery, summary))
+            emailsSentResult <- emailService.sendUpdateAssumedReportingEmails(operatorId, summary, submission.updated)
+            answersWithSentEmails <- Future.fromTry(answersWithSummary.set(SentUpdateAssumedReportingEmailsQuery, emailsSentResult))
+            _ <- sessionRepository.set(answersWithSentEmails)
+          } yield Redirect(routes.SubmissionConfirmationController.onPageLoad(operatorId, reportingPeriod))
+        )
       }
     }
 

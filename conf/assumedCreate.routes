@@ -71,3 +71,6 @@ POST       /:operatorId/check-contact-details                   controllers.assu
 GET        /:operatorId/no-reporting-notification               controllers.assumed.create.ReportingNotificationRequiredController.onPageLoad(operatorId: String)
 
 GET        /:operatorId/submissions-exist                       controllers.assumed.create.SubmissionsExistController.onPageLoad(operatorId: String)
+
+GET        /:operatorId/missing-information                     controllers.assumed.create.MissingInformationController.onPageLoad(operatorId: String)
+POST       /:operatorId/missing-information                     controllers.assumed.create.MissingInformationController.onSubmit(operatorId: String)

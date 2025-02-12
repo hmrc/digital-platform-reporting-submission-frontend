@@ -44,4 +44,7 @@ case object HasInternationalTaxIdentifierPage extends AssumedReportingUpdateQues
 
   override def cleanup(value: Option[Boolean], userAnswers: UserAnswers): Try[UserAnswers] =
     if (value.contains(false)) userAnswers.remove(InternationalTaxIdentifierPage) else super.cleanup(value, userAnswers)
+
+  override def route(operatorId: String, reportingPeriod: Year): Call =
+    routes.HasInternationalTaxIdentifierController.onPageLoad(operatorId, reportingPeriod)
 }

@@ -32,7 +32,10 @@ class CheckContactDetailsPage @Inject()(appConfig: FrontendAppConfig) extends As
 
   override def nextPage(reportingPeriod: Year, answers: UserAnswers): Call =
     answers.get(this).map {
-      case true  => routes.SubmissionConfirmationController.onPageLoad(answers.operatorId, reportingPeriod)
+      case true => routes.SubmissionConfirmationController.onPageLoad(answers.operatorId, reportingPeriod)
       case false => Call("GET", appConfig.updateContactDetailsUrl)
     }.getOrElse(baseRoutes.JourneyRecoveryController.onPageLoad())
+
+  override def route(operatorId: String, reportingPeriod: Year): Call =
+    routes.CheckContactDetailsController.onPageLoad(operatorId, reportingPeriod)
 }

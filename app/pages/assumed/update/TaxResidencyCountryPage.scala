@@ -33,4 +33,7 @@ case object TaxResidencyCountryPage extends AssumedReportingUpdateQuestionPage[C
     answers.get(HasInternationalTaxIdentifierPage)
       .map(_ => routes.CheckYourAnswersController.onPageLoad(answers.operatorId, reportingPeriod))
       .getOrElse(routes.HasInternationalTaxIdentifierController.onPageLoad(answers.operatorId, reportingPeriod))
+
+  override def route(operatorId: String, reportingPeriod: Year): Call =
+    routes.TaxResidencyCountryController.onPageLoad(operatorId, reportingPeriod)
 }

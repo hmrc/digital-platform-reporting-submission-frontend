@@ -45,12 +45,12 @@ class AddAssumedReportEventSpec extends AnyFreeSpec with Matchers {
       operatorId = operatorId,
       assumingOperator = AssumingPlatformOperator(
         name = assumingOperatorName,
-        residentCountry = Country.GB,
+        residentCountry = Country.UnitedKingdom,
         tinDetails = Nil,
-        registeredCountry = Country.GB,
+        registeredCountry = Country.UnitedKingdom,
         address = address
       ),
-      reportingPeriod = Year.of(2024)
+      reportingPeriod = Year.parse("2024")
     )
 
     "for a UK tax resident assuming operator with a tax identifier" in {

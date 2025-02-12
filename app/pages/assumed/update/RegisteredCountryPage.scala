@@ -16,14 +16,20 @@
 
 package pages.assumed.update
 
-import models.{Country, UserAnswers}
+import controllers.assumed.update.routes
+import models.Country
 import play.api.libs.json.JsPath
+import play.api.mvc.Call
 
-import scala.util.Try
+import java.time.Year
+
 
 case object RegisteredCountryPage extends AssumedReportingUpdateQuestionPage[Country] {
 
   override def path: JsPath = JsPath \ toString
 
   override def toString: String = "registeredCountry"
+
+  override def route(operatorId: String, reportingPeriod: Year): Call =
+    routes.RegisteredCountryController.onPageLoad(operatorId, reportingPeriod)
 }

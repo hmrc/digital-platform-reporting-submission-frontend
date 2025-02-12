@@ -32,7 +32,10 @@ class CheckPlatformOperatorPage @Inject()(appConfig: FrontendAppConfig) extends 
 
   override def nextPage(reportingPeriod: Year, answers: UserAnswers): Call =
     answers.get(this).map {
-      case true  => routes.CheckReportingNotificationsController.onPageLoad(answers.operatorId, reportingPeriod)
+      case true => routes.CheckReportingNotificationsController.onPageLoad(answers.operatorId, reportingPeriod)
       case false => Call("GET", appConfig.manageHomepageUrl)
     }.getOrElse(baseRoutes.JourneyRecoveryController.onPageLoad())
+
+  override def route(operatorId: String, reportingPeriod: Year): Call =
+    routes.CheckPlatformOperatorController.onPageLoad(operatorId, reportingPeriod)
 }

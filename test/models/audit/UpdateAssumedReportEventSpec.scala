@@ -35,9 +35,9 @@ class UpdateAssumedReportEventSpec extends AnyFreeSpec with Matchers {
   private val reportingPeriod = Year.of(2024)
   private val baseAssumingOperator = AssumingPlatformOperator(
     name = "name",
-    residentCountry = Country.GB,
+    residentCountry = Country.UnitedKingdom,
     tinDetails = Nil,
-    registeredCountry = Country.GB,
+    registeredCountry = Country.UnitedKingdom,
     address = "address"
   )
 

@@ -47,7 +47,7 @@ class AssumingPlatformOperatorSpec extends AnyFreeSpec with Matchers {
 
       val expectedOperator = AssumingPlatformOperator(
         "name",
-        Country.GB,
+        Country.UnitedKingdom,
         Seq(TinDetails("tin", Other, "GB")),
         Country("US", "United States"),
         "address"
@@ -68,7 +68,7 @@ class AssumingPlatformOperatorSpec extends AnyFreeSpec with Matchers {
 
       val expectedOperator = AssumingPlatformOperator(
         "name",
-        Country.GB,
+        Country.UnitedKingdom,
         Nil,
         Country("US", "United States"),
         "address"
@@ -110,7 +110,7 @@ class AssumingPlatformOperatorSpec extends AnyFreeSpec with Matchers {
 
       val operator = AssumingPlatformOperator(
         "name",
-        Country.GB,
+        Country.UnitedKingdom,
         Seq(TinDetails("tin", Other, "GB")),
         Country("US", "United States"),
         "address"
@@ -137,7 +137,7 @@ class AssumingPlatformOperatorSpec extends AnyFreeSpec with Matchers {
 
       val operator = AssumingPlatformOperator(
         "name",
-        Country.GB,
+        Country.UnitedKingdom,
         Nil,
         Country("US", "United States"),
         "address"

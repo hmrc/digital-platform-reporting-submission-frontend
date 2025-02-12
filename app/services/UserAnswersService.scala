@@ -16,21 +16,19 @@
 
 package services
 
-import cats.data.{EitherNec, NonEmptyChain, StateT}
+import cats.data.StateT
 import cats.implicits.given
 import com.google.inject.{Inject, Singleton}
+import models.submission.{AssumedReportingSubmission, AssumingPlatformOperator}
 import models.{CountriesList, Country, UserAnswers, yearFormat}
-import models.operator.{TinDetails, TinType}
-import models.submission.{AssumedReportingSubmission, AssumedReportingSubmissionRequest, AssumingPlatformOperator}
-import pages.assumed.create.*
 import pages.assumed.update as updatePages
 import play.api.libs.json.Writes
-import queries.{AssumedReportingSubmissionQuery, PlatformOperatorNameQuery, Query, ReportingPeriodQuery, Settable}
+import queries.*
 
 import scala.util.Try
 
 @Singleton
-class UserAnswersService @Inject() (implicit countriesList: CountriesList) {
+class UserAnswersService @Inject()(implicit countriesList: CountriesList) {
 
   def fromAssumedReportingSubmission(userId: String, submission: AssumedReportingSubmission): Try[UserAnswers] = {
 
@@ -93,79 +91,4 @@ class UserAnswersService @Inject() (implicit countriesList: CountriesList) {
       }
 
   private lazy val ukCountryCodes = countriesList.ukCountries.map(_.code)
-
-  def toAssumedReportingSubmission(answers: UserAnswers): EitherNec[Query, AssumedReportingSubmissionRequest] =
-    (
-      getAssumingOperator(answers),
-      answers.getEither(ReportingPeriodPage)
-    ).parMapN { (assumingOperator, reportingPeriod) =>
-      AssumedReportingSubmissionRequest(
-        operatorId = answers.operatorId,
-        assumingOperator = assumingOperator,
-        reportingPeriod = reportingPeriod
-      )
-    }
-
-  private def getAssumingOperator(answers: UserAnswers): EitherNec[Query, AssumingPlatformOperator] =
-    (
-      answers.getEither(AssumingOperatorNamePage),
-      getResidentialCountry(answers),
-      getTinDetails(answers),
-      answers.getEither(RegisteredCountryPage),
-      answers.getEither(AddressPage)
-    ).parMapN(AssumingPlatformOperator.apply)
-
-  private def getResidentialCountry(answers: UserAnswers): EitherNec[Query, Country] =
-    answers.getEither(TaxResidentInUkPage).flatMap {
-      case true =>
-        Country.GB.rightNec
-      case false =>
-        answers.getEither(TaxResidencyCountryPage)
-    }
-
-  private def getTinDetails(answers: UserAnswers): EitherNec[Query, Seq[TinDetails]] =
-    answers.getEither(TaxResidentInUkPage).flatMap {
-      case true =>
-        answers.getEither(HasUkTaxIdentifierPage).flatMap {
-          case true  => getUkTinDetails(answers)
-          case false => Nil.rightNec
-        }
-      case false =>
-        answers.getEither(HasInternationalTaxIdentifierPage).flatMap {
-          case true  => getInternationalTinDetails(answers)
-          case false => Nil.rightNec
-        }
-    }
-
-  private def getUkTinDetails(answers: UserAnswers): EitherNec[Query, Seq[TinDetails]] =
-    answers.getEither(UkTaxIdentifierPage).map { value =>
-      Seq(TinDetails(
-        tin = value,
-        tinType = TinType.Other,
-        issuedBy = Country.GB.code
-      ))
-    }
-
-  private def getInternationalTinDetails(answers: UserAnswers): EitherNec[Query, Seq[TinDetails]] =
-    (
-      answers.getEither(TaxResidencyCountryPage),
-      answers.getEither(InternationalTaxIdentifierPage)
-    ).parMapN { (country, tin) =>
-      Seq(TinDetails(
-        tin = tin,
-        tinType = TinType.Other,
-        issuedBy = country.code
-      ))
-    }
-}
-
-object UserAnswersService {
-
-  final case class BuildAssumedReportingSubmissionFailure(errors: NonEmptyChain[Query]) extends Throwable {
-    override def getMessage: String = s"unable to build assumed reporting submission request, path(s) missing: ${errors.toChain.toList.map(_.path).mkString(", ")}"
-  }
-
-  final case class InvalidCountryCodeFailure(countryCode: String) extends Throwable {
-    override def getMessage: String = s"Unable to find country code $countryCode"
-  }
 }
