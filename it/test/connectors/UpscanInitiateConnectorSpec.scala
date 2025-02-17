@@ -16,7 +16,7 @@
 
 package connectors
 
-import com.github.tomakehurst.wiremock.client.WireMock.*
+import com.github.tomakehurst.wiremock.client.WireMock._
 import models.upscan.{UpscanInitiateRequest, UpscanInitiateResponse}
 import org.scalatest.concurrent.{IntegrationPatience, ScalaFutures}
 import org.scalatest.freespec.AnyFreeSpec
@@ -37,11 +37,12 @@ class UpscanInitiateConnectorSpec
     with ScalaFutures
     with IntegrationPatience {
 
-  override lazy val app: Application = GuiceApplicationBuilder().configure(
-    "appName" -> "app",
-    "microservice.services.upscan-initiate.port" -> wireMockPort,
-    "microservice.services.upscan-initiate.basePath" -> ""
-  ).build()
+  override lazy val app: Application = GuiceApplicationBuilder()
+    .configure(
+      "appName"                                    -> "app",
+      "microservice.services.upscan-initiate.port" -> wireMockPort
+    )
+    .build()
 
   private lazy val connector = app.injector.instanceOf[UpscanInitiateConnector]
 
@@ -49,8 +50,8 @@ class UpscanInitiateConnectorSpec
     callbackUrl = "someCallback",
     successRedirect = "successRedirect",
     errorRedirect = "errorRedirect",
-    minimumFileSize = "123".toInt,
-    maximumFileSize = "321".toInt
+    minimumFileSize = 123,
+    maximumFileSize = 321
   )
 
   private val response = UpscanInitiateResponse(
