@@ -29,11 +29,9 @@ import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
-class UpscanCallbackController @Inject() (
-                                           mcc: MessagesControllerComponents,
-                                           upscanJourneyRepository: UpscanJourneyRepository,
-                                           submissionConnector: SubmissionConnector
-                                         )(using ExecutionContext) extends FrontendController(mcc) with Logging {
+class UpscanCallbackController @Inject()(upscanJourneyRepository: UpscanJourneyRepository,
+                                         submissionConnector: SubmissionConnector)
+                                        (using mcc: MessagesControllerComponents, ec: ExecutionContext) extends FrontendController(mcc) with Logging {
 
   def callback(): Action[UpscanCallbackRequest] = Action.async(parse.json[UpscanCallbackRequest]) { implicit request =>
     upscanJourneyRepository.getByUploadId(request.body.reference).flatMap {
