@@ -54,7 +54,7 @@ object UpdateAssumedReportEvent {
   private def toJson(assumingOperator: AssumingPlatformOperator, countriesList: CountriesList): JsObject = {
 
     val taxIdentifierJson = assumingOperator.residentCountry match {
-      case country if countriesList.ukCountries.contains(country) =>
+      case country if countriesList.ukAndCrownDependantCountries.contains(country) =>
         Json.obj(
           "isUkTaxResident" -> true,
           "countryOfTaxResidence" -> country.name,

@@ -16,11 +16,12 @@
 
 package viewmodels.checkAnswers.operator
 
+import models.Country.UnitedKingdom
 import models.operator.responses.PlatformOperator
 import play.api.i18n.Messages
 import uk.gov.hmrc.govukfrontend.views.viewmodels.summarylist.SummaryListRow
-import viewmodels.govuk.summarylist._
-import viewmodels.implicits._
+import viewmodels.govuk.summarylist.*
+import viewmodels.implicits.*
 
 object TaxResidentInUkSummary {
 
@@ -29,7 +30,7 @@ object TaxResidentInUkSummary {
     val value = if (operator.tinDetails.isEmpty) {
       None
     } else {
-      if (operator.tinDetails.map(_.issuedBy).contains("GB")) Some("site.yes") else Some("site.no")
+      if (operator.tinDetails.map(_.issuedBy).contains(UnitedKingdom.code)) Some("site.yes") else Some("site.no")
     }
 
     value.map { answer =>

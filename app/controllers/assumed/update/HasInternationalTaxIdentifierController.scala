@@ -58,18 +58,12 @@ class HasInternationalTaxIdentifierController @Inject()(override val messagesApi
   def onSubmit(operatorId: String, reportingPeriod: Year): Action[AnyContent] =
     (identify andThen checkAssumedReportingAllowed andThen getData(operatorId, Some(reportingPeriod)) andThen requireData).async { implicit request =>
       getAnswersAsync(AssumingOperatorNamePage, TaxResidencyCountryPage) { case (assumingOperatorName, country) =>
-
-        val form = formProvider(assumingOperatorName, country)
-
-        form.bindFromRequest().fold(
-          formWithErrors =>
-            Future.successful(BadRequest(view(formWithErrors, operatorId, reportingPeriod, assumingOperatorName, country))),
-
-          value =>
-            for {
-              updatedAnswers <- Future.fromTry(request.userAnswers.set(HasInternationalTaxIdentifierPage, value))
-              _ <- sessionRepository.set(updatedAnswers)
-            } yield Redirect(HasInternationalTaxIdentifierPage.nextPage(reportingPeriod, updatedAnswers))
+        formProvider(assumingOperatorName, country).bindFromRequest().fold(
+          formWithErrors => Future.successful(BadRequest(view(formWithErrors, operatorId, reportingPeriod, assumingOperatorName, country))),
+          value => for {
+            updatedAnswers <- Future.fromTry(request.userAnswers.set(HasInternationalTaxIdentifierPage, value))
+            _ <- sessionRepository.set(updatedAnswers)
+          } yield Redirect(HasInternationalTaxIdentifierPage.nextPage(reportingPeriod, updatedAnswers))
         )
       }
     }

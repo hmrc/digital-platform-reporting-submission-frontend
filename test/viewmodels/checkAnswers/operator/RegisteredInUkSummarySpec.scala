@@ -51,7 +51,7 @@ class RegisteredInUkSummarySpec extends AnyFreeSpec with Matchers with ScalaChec
 
     "must have a value of `yes` when the operator's country is in the UK" in {
 
-      forAll(Gen.oneOf(countriesList.ukCountries)) { country =>
+      forAll(Gen.oneOf(countriesList.ukAndCrownDependantCountries)) { country =>
         val operator = baseOperator.copy(addressDetails = baseAddress.copy(countryCode = Some(country.code)))
         val row = RegisteredInUkSummary.row(operator, countriesList).value
         row.value mustEqual ValueViewModel(messages("site.yes"))

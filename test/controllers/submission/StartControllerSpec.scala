@@ -149,7 +149,7 @@ class StartControllerSpec extends SpecBase with MockitoSugar with BeforeAndAfter
           val result = route(application, request).value
 
           status(result) mustEqual SEE_OTHER
-          redirectLocation(result).value mustEqual controllers.routes.JourneyRecoveryController.onPageLoad().url // TODO change this when the select PO pages exist
+          redirectLocation(result).value mustEqual controllers.routes.JourneyRecoveryController.onPageLoad().url
 
           verify(mockSessionRepository, never()).set(any())
         }
@@ -241,7 +241,7 @@ class StartControllerSpec extends SpecBase with MockitoSugar with BeforeAndAfter
       }
 
       "must redirect to SubmissionsDisabled when submissions are disabled" in {
-        
+
         val application = applicationBuilder(userAnswers = None)
           .configure("features.submissions-enabled" -> false)
           .build()

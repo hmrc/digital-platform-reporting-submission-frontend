@@ -49,7 +49,7 @@ class UserAnswersService @Inject()(implicit countriesList: CountriesList) {
     StateT.modifyF[Try, UserAnswers](_.set(settable, value))
 
   private def setTaxDetails(assumingOperator: AssumingPlatformOperator): StateT[Try, UserAnswers, Unit] =
-    if (countriesList.ukCountries.contains(assumingOperator.residentCountry)) {
+    if (countriesList.ukAndCrownDependantCountries.contains(assumingOperator.residentCountry)) {
       setUkTaxDetails(assumingOperator)
     } else {
       for {
@@ -90,5 +90,5 @@ class UserAnswersService @Inject()(implicit countriesList: CountriesList) {
         } yield ()
       }
 
-  private lazy val ukCountryCodes = countriesList.ukCountries.map(_.code)
+  private lazy val ukCountryCodes = countriesList.ukAndCrownDependantCountries.map(_.code)
 }
