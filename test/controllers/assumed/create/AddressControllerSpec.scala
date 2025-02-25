@@ -19,11 +19,11 @@ package controllers.assumed.create
 import base.SpecBase
 import controllers.routes as baseRoutes
 import forms.AddressFormProvider
-import models.{Country, NormalMode}
+import models.NormalMode
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.when
 import org.scalatestplus.mockito.MockitoSugar
-import pages.assumed.create.{AssumingOperatorNamePage, AddressPage}
+import pages.assumed.create.{AddressPage, AssumingOperatorNamePage}
 import play.api.inject.bind
 import play.api.test.FakeRequest
 import play.api.test.Helpers.*
@@ -34,7 +34,7 @@ import scala.concurrent.Future
 
 class AddressControllerSpec extends SpecBase with MockitoSugar {
 
-  val formProvider = new AddressFormProvider()
+  private val formProvider = new AddressFormProvider()
   private val assumingOperatorName = "name"
   private val form = formProvider(assumingOperatorName)
   private val baseAnswers = emptyUserAnswers.set(AssumingOperatorNamePage, assumingOperatorName).success.value

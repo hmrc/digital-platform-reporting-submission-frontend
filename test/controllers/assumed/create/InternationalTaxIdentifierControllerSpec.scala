@@ -19,11 +19,11 @@ package controllers.assumed.create
 import base.SpecBase
 import controllers.routes as baseRoutes
 import forms.InternationalTaxIdentifierFormProvider
-import models.{Country, DefaultCountriesList, NormalMode, UserAnswers}
+import models.{Country, DefaultCountriesList, NormalMode}
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.when
 import org.scalatestplus.mockito.MockitoSugar
-import pages.assumed.create.{AssumingOperatorNamePage, InternationalTaxIdentifierPage, TaxResidencyCountryPage}
+import pages.assumed.create.{InternationalTaxIdentifierPage, TaxResidencyCountryPage}
 import play.api.inject.bind
 import play.api.test.FakeRequest
 import play.api.test.Helpers.*
@@ -35,12 +35,13 @@ import scala.concurrent.Future
 class InternationalTaxIdentifierControllerSpec extends SpecBase with MockitoSugar {
 
   private val countriesList = new DefaultCountriesList
-  val formProvider = new InternationalTaxIdentifierFormProvider()
+  private val formProvider = new InternationalTaxIdentifierFormProvider()
   private val country = countriesList.internationalCountries.head
   private val form = formProvider(country)
   private val baseAnswers = emptyUserAnswers.set(TaxResidencyCountryPage, country).success.value
 
-  lazy val internationalTaxIdentifierRoute = routes.InternationalTaxIdentifierController.onPageLoad(NormalMode, operatorId).url
+  private lazy val internationalTaxIdentifierRoute = routes.InternationalTaxIdentifierController.onPageLoad(NormalMode,
+    operatorId).url
 
   "InternationalTaxIdentifier Controller" - {
 
@@ -99,7 +100,7 @@ class InternationalTaxIdentifierControllerSpec extends SpecBase with MockitoSuga
 
       val mockSessionRepository = mock[SessionRepository]
 
-      when(mockSessionRepository.set(any())) thenReturn Future.successful(true)
+      when(mockSessionRepository.set(any())).thenReturn(Future.successful(true))
 
       val application =
         applicationBuilder(userAnswers = Some(baseAnswers))

@@ -17,7 +17,7 @@
 package pages.assumed.create
 
 import controllers.assumed.create.routes
-import models.{UkAddress, UserAnswers}
+import models.UserAnswers
 import play.api.libs.json.JsPath
 import play.api.mvc.Call
 

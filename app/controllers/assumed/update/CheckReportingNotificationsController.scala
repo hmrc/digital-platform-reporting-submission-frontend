@@ -20,7 +20,6 @@ import com.google.inject.Inject
 import connectors.PlatformOperatorConnector
 import controllers.actions.*
 import forms.CheckReportingNotificationsFormProvider
-import models.NormalMode
 import pages.assumed.update.CheckReportingNotificationsPage
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
@@ -49,12 +48,12 @@ class CheckReportingNotificationsController @Inject()(
     (identify andThen checkAssumedReportingAllowed andThen getData(operatorId, Some(reportingPeriod)) andThen requireData).async {
       implicit request =>
         connector.viewPlatformOperator(operatorId).map { operator =>
-  
+
           if (operator.notifications.isEmpty) {
             Redirect(routes.ReportingNotificationRequiredController.onPageLoad(operatorId, reportingPeriod))
           } else {
             val form = formProvider()
-  
+
             Ok(view(form, operator.notifications, operatorId, reportingPeriod, operator.operatorName))
           }
         }
@@ -63,10 +62,7 @@ class CheckReportingNotificationsController @Inject()(
   def onSubmit(operatorId: String, reportingPeriod: Year): Action[AnyContent] =
     (identify andThen checkAssumedReportingAllowed andThen getData(operatorId, Some(reportingPeriod)) andThen requireData).async {
       implicit request =>
-  
-        val form = formProvider()
-  
-        form.bindFromRequest().fold(
+        formProvider().bindFromRequest().fold(
           formWithErrors => {
             connector.viewPlatformOperator(operatorId).map { operator =>
               BadRequest(view(formWithErrors, operator.notifications, operatorId, reportingPeriod, operator.operatorName))
@@ -75,7 +71,7 @@ class CheckReportingNotificationsController @Inject()(
           answer =>
             for {
               updatedAnswers <- Future.fromTry(request.userAnswers.set(page, answer))
-              _              <- sessionRepository.set(updatedAnswers)
+              _ <- sessionRepository.set(updatedAnswers)
             } yield Redirect(page.nextPage(reportingPeriod, updatedAnswers))
         )
     }

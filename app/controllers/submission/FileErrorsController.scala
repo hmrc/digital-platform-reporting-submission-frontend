@@ -18,13 +18,13 @@ package controllers.submission
 
 import connectors.SubmissionConnector
 import controllers.actions.*
+import models.submission.*
 import models.submission.CadxValidationError.{FileError, RowError}
 import models.submission.Submission.State.*
-import models.submission.*
 import org.apache.pekko.stream.connectors.csv.scaladsl.CsvFormatting
 import org.apache.pekko.stream.scaladsl.Source
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}
-import play.api.mvc.{Action, AnyContent, MessagesControllerComponents, Request, Result}
+import play.api.mvc.*
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import utils.FileUtils.stripExtension
 import views.html.submission.{FileErrorsNoDownloadView, FileErrorsView}
@@ -46,7 +46,7 @@ class FileErrorsController @Inject()(
       submissionConnector.get(submissionId).flatMap {
         _.map { submission =>
           handleSubmission(operatorId, submission) {
-            case state: Rejected  => Future.successful(Ok(view(submission.operatorId, submission._id, state.fileName)))
+            case state: Rejected => Future.successful(Ok(view(submission.operatorId, submission._id, state.fileName)))
             case state: Submitted => handleSubmittedState(operatorId, submission, state.fileName)
           }
         }.getOrElse {
@@ -107,8 +107,6 @@ class FileErrorsController @Inject()(
           routes.SubmissionConfirmationController.onPageLoad(operatorId, submission._id)
         case _: Rejected =>
           routes.FileErrorsController.onPageLoad(operatorId, submission._id)
-        case _ =>
-          controllers.routes.JourneyRecoveryController.onPageLoad()
       }
 
       Future.successful(Redirect(redirectLocation))

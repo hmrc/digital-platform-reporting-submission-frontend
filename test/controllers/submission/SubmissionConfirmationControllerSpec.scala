@@ -224,9 +224,9 @@ class SubmissionConfirmationControllerSpec extends SpecBase with MockitoSugar wi
             val request = FakeRequest(routes.SubmissionConfirmationController.onPageLoad(operatorId, "id"))
             val result = route(application, request).value
 
-              status(result) mustEqual SEE_OTHER
-              redirectLocation(result).value mustEqual routes.UploadingController.onPageLoad(operatorId, "id").url
-            }
+            status(result) mustEqual SEE_OTHER
+            redirectLocation(result).value mustEqual routes.UploadingController.onPageLoad(operatorId, "id").url
+          }
 
           verify(mockSubmissionConnector).get(eqTo("id"))(using any())
         }
@@ -422,7 +422,7 @@ class SubmissionConfirmationControllerSpec extends SpecBase with MockitoSugar wi
 
           running(application) {
             val request = FakeRequest(routes.SubmissionConfirmationController.onPageLoad(operatorId, "id"))
-            val result = route(application, request).value.failed.futureValue
+            route(application, request).value.failed.futureValue
           }
           verify(mockSubscriptionConnector, times(1)).getSubscription(any())
           verify(mockConnector, times(0)).viewPlatformOperator(any())(any())
@@ -456,7 +456,7 @@ class SubmissionConfirmationControllerSpec extends SpecBase with MockitoSugar wi
 
         running(application) {
           val request = FakeRequest(routes.SubmissionConfirmationController.onPageLoad(operatorId, "id"))
-          val result = route(application, request).value.failed.futureValue
+          route(application, request).value.failed.futureValue
         }
         verify(mockSubscriptionConnector, times(1)).getSubscription(any())
         verify(mockConnector, times(1)).viewPlatformOperator(any())(any())

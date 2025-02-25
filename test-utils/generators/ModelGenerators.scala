@@ -16,8 +16,7 @@
 
 package generators
 
-import models._
-import org.scalacheck.Arbitrary.arbitrary
+import models.*
 import org.scalacheck.{Arbitrary, Gen}
 
 trait ModelGenerators {
@@ -31,7 +30,7 @@ trait ModelGenerators {
       fourth <- Gen.numChar.map(_.toString)
       fifth <- Gen.listOfN(2, Gen.alphaUpperChar).map(_.mkString)
     } yield s"$first$second$third$fourth$fifth"
-    
+
   implicit lazy val arbitraryUkTaxIdentifiers: Arbitrary[UkTaxIdentifiers] =
     Arbitrary {
       Gen.oneOf(UkTaxIdentifiers.values)

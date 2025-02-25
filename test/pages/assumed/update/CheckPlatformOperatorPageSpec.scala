@@ -20,11 +20,9 @@ import config.FrontendAppConfig
 import controllers.assumed.update.routes
 import models.UserAnswers
 import org.mockito.Mockito
-import org.mockito.ArgumentMatchers.eq as eqTo
-import org.mockito.Mockito.when
-import org.scalatest.{BeforeAndAfterEach, OptionValues, TryValues}
 import org.scalatest.freespec.AnyFreeSpec
 import org.scalatest.matchers.must.Matchers
+import org.scalatest.{BeforeAndAfterEach, OptionValues, TryValues}
 import org.scalatestplus.mockito.MockitoSugar
 import play.api.mvc.Call
 
@@ -59,7 +57,7 @@ class CheckPlatformOperatorPageSpec
     }
 
     "must go to update the operator when the answer is no" in {
-      
+
       val answers = emptyAnswers.set(page, false).success.value
       page.nextPage(reportingPeriod, answers).mustEqual(Call("GET", mockAppConfig.manageHomepageUrl))
     }

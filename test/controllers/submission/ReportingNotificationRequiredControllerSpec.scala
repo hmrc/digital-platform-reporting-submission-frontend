@@ -18,7 +18,6 @@ package controllers.submission
 
 import base.SpecBase
 import connectors.PlatformOperatorConnector
-import models.NormalMode
 import models.operator.responses.PlatformOperator
 import models.operator.{AddressDetails, ContactDetails}
 import org.mockito.ArgumentMatchers.any

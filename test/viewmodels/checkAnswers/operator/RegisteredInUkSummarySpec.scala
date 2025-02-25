@@ -16,9 +16,9 @@
 
 package viewmodels.checkAnswers.operator
 
-import models.{Country, DefaultCountriesList}
-import models.operator.{AddressDetails, ContactDetails}
+import models.DefaultCountriesList
 import models.operator.responses.PlatformOperator
+import models.operator.{AddressDetails, ContactDetails}
 import org.scalacheck.Gen
 import org.scalatest.OptionValues
 import org.scalatest.freespec.AnyFreeSpec

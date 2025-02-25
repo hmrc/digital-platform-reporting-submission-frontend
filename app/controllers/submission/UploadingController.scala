@@ -92,8 +92,6 @@ class UploadingController @Inject()(
           routes.SubmissionConfirmationController.onPageLoad(operatorId, submission._id)
         case _: Rejected =>
           routes.FileErrorsController.onPageLoad(operatorId, submission._id)
-        case _ =>
-          controllers.routes.JourneyRecoveryController.onPageLoad()
       }
 
       Future.successful(Redirect(redirectLocation))

@@ -19,12 +19,12 @@ package models.submission
 import models.submission.Submission.SubmissionType
 import models.submission.Submission.UploadFailureReason.SchemaValidationError
 import models.upscan.UpscanCallbackRequest.UpscanFailureReason
+import models.{urlFormat, yearFormat}
+import play.api.libs.functional.syntax.toFunctionalBuilderOps
 import play.api.libs.json.*
 
 import java.net.URL
 import java.time.{Instant, Year}
-import models.{urlFormat, yearFormat}
-import play.api.libs.functional.syntax.toFunctionalBuilderOps
 
 final case class Submission(
                              _id: String,
@@ -71,18 +71,53 @@ object Submission {
 
   object UploadFailureReason {
 
-    case object NotXml extends UploadFailureReason { val errorMessageKey = "uploadFailed.error.NotXml" }
-    final case class SchemaValidationError(errors: Seq[SchemaValidationError.Error], moreErrors: Boolean) extends UploadFailureReason { val errorMessageKey = "uploadFailed.error.SchemaValidationError" }
-    case object ManualAssumedReportExists extends UploadFailureReason { val errorMessageKey = "uploadFailed.error.ManualAssumedReportExists" }
-    case object PlatformOperatorIdMissing extends UploadFailureReason { val errorMessageKey = "uploadFailed.error.PlatformOperatorIdMissing" }
-    final case class PlatformOperatorIdMismatch(expectedId: String, actualId: String) extends UploadFailureReason { val errorMessageKey = "uploadFailed.error.PlatformOperatorIdMismatch" }
-    case object ReportingPeriodInvalid extends UploadFailureReason { val errorMessageKey = "uploadFailed.error.ReportingPeriodInvalid" }
-    final case class UpscanError(failureReason: UpscanFailureReason) extends UploadFailureReason { val errorMessageKey = s"uploadFailed.error.${failureReason.entryName}" }
-    case object EntityTooLarge extends UploadFailureReason { val errorMessageKey = "uploadFailed.error.EntityTooLarge" }
-    case object EntityTooSmall extends UploadFailureReason { val errorMessageKey = "uploadFailed.error.EntityTooSmall" }
-    case object InvalidArgument extends UploadFailureReason { val errorMessageKey = "uploadFailed.error.InvalidArgument" }
-    case object UnknownFailure extends UploadFailureReason { val errorMessageKey = "uploadFailed.error.UnknownFailure" }
-    case object InvalidFileNameExtension extends UploadFailureReason { val errorMessageKey = "uploadFailed.error.NotXml" }
+    case object NotXml extends UploadFailureReason {
+      val errorMessageKey = "uploadFailed.error.NotXml"
+    }
+
+    final case class SchemaValidationError(errors: Seq[SchemaValidationError.Error], moreErrors: Boolean) extends UploadFailureReason {
+      val errorMessageKey = "uploadFailed.error.SchemaValidationError"
+    }
+
+    case object ManualAssumedReportExists extends UploadFailureReason {
+      val errorMessageKey = "uploadFailed.error.ManualAssumedReportExists"
+    }
+
+    case object PlatformOperatorIdMissing extends UploadFailureReason {
+      val errorMessageKey = "uploadFailed.error.PlatformOperatorIdMissing"
+    }
+
+    final case class PlatformOperatorIdMismatch(expectedId: String, actualId: String) extends UploadFailureReason {
+      val errorMessageKey = "uploadFailed.error.PlatformOperatorIdMismatch"
+    }
+
+    case object ReportingPeriodInvalid extends UploadFailureReason {
+      val errorMessageKey = "uploadFailed.error.ReportingPeriodInvalid"
+    }
+
+    final case class UpscanError(failureReason: UpscanFailureReason) extends UploadFailureReason {
+      val errorMessageKey = s"uploadFailed.error.${failureReason.entryName}"
+    }
+
+    case object EntityTooLarge extends UploadFailureReason {
+      val errorMessageKey = "uploadFailed.error.EntityTooLarge"
+    }
+
+    case object EntityTooSmall extends UploadFailureReason {
+      val errorMessageKey = "uploadFailed.error.EntityTooSmall"
+    }
+
+    case object InvalidArgument extends UploadFailureReason {
+      val errorMessageKey = "uploadFailed.error.InvalidArgument"
+    }
+
+    case object UnknownFailure extends UploadFailureReason {
+      val errorMessageKey = "uploadFailed.error.UnknownFailure"
+    }
+
+    case object InvalidFileNameExtension extends UploadFailureReason {
+      val errorMessageKey = "uploadFailed.error.NotXml"
+    }
 
     object SchemaValidationError {
 
@@ -94,8 +129,8 @@ object Submission {
 
         val reads = (
           (__ \ "errors").readWithDefault(Seq.empty[Error]) ~
-          (__ \ "moreErrors").readWithDefault(false)
-        )(SchemaValidationError.apply)
+            (__ \ "moreErrors").readWithDefault(false)
+          )(SchemaValidationError.apply)
 
         val writes = Json.writes[SchemaValidationError]
 
@@ -123,7 +158,7 @@ object Submission {
 
     given OFormat[UploadFailureReason] = Json.format
   }
-  
+
   sealed trait State extends Product with Serializable
 
   object State {

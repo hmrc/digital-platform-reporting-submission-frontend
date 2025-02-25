@@ -17,12 +17,9 @@
 package pages.assumed.create
 
 import controllers.assumed.create.routes
-import controllers.routes as baseRoutes
-import models.{CheckMode, Country, NormalMode, UserAnswers}
+import models.{Country, NormalMode, UserAnswers}
 import play.api.libs.json.JsPath
 import play.api.mvc.Call
-
-import scala.util.Try
 
 case object RegisteredCountryPage extends AssumedReportingQuestionPage[Country] {
 

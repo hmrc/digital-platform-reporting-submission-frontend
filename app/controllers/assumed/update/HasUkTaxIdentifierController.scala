@@ -19,7 +19,6 @@ package controllers.assumed.update
 import controllers.AnswerExtractor
 import controllers.actions.*
 import forms.HasUkTaxIdentifierFormProvider
-import models.Mode
 import pages.assumed.update.{AssumingOperatorNamePage, HasUkTaxIdentifierPage}
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
@@ -31,31 +30,26 @@ import java.time.Year
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
-class HasUkTaxIdentifierController @Inject()(
-                                              override val messagesApi: MessagesApi,
-                                              sessionRepository: SessionRepository,
-                                              identify: IdentifierAction,
-                                              getData: DataRetrievalActionProvider,
-                                              requireData: DataRequiredAction,
-                                              checkAssumedReportingAllowed: CheckAssumedReportingAllowedAction,
-                                              formProvider: HasUkTaxIdentifierFormProvider,
-                                              val controllerComponents: MessagesControllerComponents,
-                                              view: HasUkTaxIdentifierView
-                                            )(implicit ec: ExecutionContext)
+class HasUkTaxIdentifierController @Inject()(override val messagesApi: MessagesApi,
+                                             sessionRepository: SessionRepository,
+                                             identify: IdentifierAction,
+                                             getData: DataRetrievalActionProvider,
+                                             requireData: DataRequiredAction,
+                                             checkAssumedReportingAllowed: CheckAssumedReportingAllowedAction,
+                                             formProvider: HasUkTaxIdentifierFormProvider,
+                                             val controllerComponents: MessagesControllerComponents,
+                                             view: HasUkTaxIdentifierView)
+                                            (using ExecutionContext)
   extends FrontendBaseController with I18nSupport with AnswerExtractor {
-
 
   def onPageLoad(operatorId: String, reportingPeriod: Year): Action[AnyContent] =
     (identify andThen checkAssumedReportingAllowed andThen getData(operatorId, Some(reportingPeriod)) andThen requireData) { implicit request =>
       getAnswer(AssumingOperatorNamePage) { assumingOperatorName =>
-  
-        val form = formProvider(assumingOperatorName)
-  
         val preparedForm = request.userAnswers.get(HasUkTaxIdentifierPage) match {
-          case None => form
-          case Some(value) => form.fill(value)
+          case None => formProvider(assumingOperatorName)
+          case Some(value) => formProvider(assumingOperatorName).fill(value)
         }
-  
+
         Ok(view(preparedForm, operatorId, reportingPeriod, assumingOperatorName))
       }
     }
@@ -63,18 +57,12 @@ class HasUkTaxIdentifierController @Inject()(
   def onSubmit(operatorId: String, reportingPeriod: Year): Action[AnyContent] =
     (identify andThen checkAssumedReportingAllowed andThen getData(operatorId, Some(reportingPeriod)) andThen requireData).async { implicit request =>
       getAnswerAsync(AssumingOperatorNamePage) { assumingOperatorName =>
-  
-        val form = formProvider(assumingOperatorName)
-        
-        form.bindFromRequest().fold(
-          formWithErrors =>
-            Future.successful(BadRequest(view(formWithErrors, operatorId, reportingPeriod, assumingOperatorName))),
-  
-          value =>
-            for {
-              updatedAnswers <- Future.fromTry(request.userAnswers.set(HasUkTaxIdentifierPage, value))
-              _ <- sessionRepository.set(updatedAnswers)
-            } yield Redirect(HasUkTaxIdentifierPage.nextPage(reportingPeriod, updatedAnswers))
+        formProvider(assumingOperatorName).bindFromRequest().fold(
+          formWithErrors => Future.successful(BadRequest(view(formWithErrors, operatorId, reportingPeriod, assumingOperatorName))),
+          value => for {
+            updatedAnswers <- Future.fromTry(request.userAnswers.set(HasUkTaxIdentifierPage, value))
+            _ <- sessionRepository.set(updatedAnswers)
+          } yield Redirect(HasUkTaxIdentifierPage.nextPage(reportingPeriod, updatedAnswers))
         )
       }
     }

@@ -19,7 +19,7 @@ package controllers.assumed.update
 import base.SpecBase
 import controllers.routes as baseRoutes
 import forms.HasUkTaxIdentifierFormProvider
-import models.{NormalMode, UserAnswers}
+import models.UserAnswers
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.when
 import org.scalatestplus.mockito.MockitoSugar
@@ -41,7 +41,7 @@ class HasUkTaxIdentifierControllerSpec extends SpecBase with MockitoSugar {
   private val form = formProvider(assumingOperatorName)
   private val baseAnswers = emptyUserAnswers.copy(reportingPeriod = Some(reportingPeriod)).set(AssumingOperatorNamePage, assumingOperatorName).success.value
 
-  lazy val hasUkTaxIdentifierRoute = routes.HasUkTaxIdentifierController.onPageLoad(operatorId, reportingPeriod).url
+  private lazy val hasUkTaxIdentifierRoute = routes.HasUkTaxIdentifierController.onPageLoad(operatorId, reportingPeriod).url
 
   "HasUkTaxIdentifier Controller" - {
 

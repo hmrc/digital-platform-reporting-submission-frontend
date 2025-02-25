@@ -186,17 +186,13 @@ class SubmissionConfirmationControllerSpec extends SpecBase with MockitoSugar wi
         when(mockPlatformOperatorConnector.viewPlatformOperator(any())(any())).thenReturn(Future.failed(new RuntimeException()))
 
         running(application) {
-          given Messages = messages(application)
-
           val request = FakeRequest(routes.SubmissionConfirmationController.onPageLoad(operatorId, reportingPeriod))
-          val result = route(application, request).value.failed.futureValue
+          route(application, request).value.failed.futureValue
 
           verify(mockSubscriptionConnector, times(1)).getSubscription(any())
           verify(mockPlatformOperatorConnector, times(1)).viewPlatformOperator(any())(any())
-
         }
       }
-
     }
   }
 }

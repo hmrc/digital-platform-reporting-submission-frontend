@@ -19,7 +19,6 @@ package pages.assumed.create
 import config.FrontendAppConfig
 import controllers.assumed.create.routes
 import models.{NormalMode, UserAnswers}
-import org.mockito.ArgumentMatchers.eq as eqTo
 import org.mockito.Mockito
 import org.mockito.Mockito.when
 import org.scalatest.freespec.AnyFreeSpec

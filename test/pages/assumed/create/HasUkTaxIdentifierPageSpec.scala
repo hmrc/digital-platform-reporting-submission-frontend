@@ -17,16 +17,16 @@
 package pages.assumed.create
 
 import controllers.assumed.create.routes
-import models.{CheckMode, Country, DefaultCountriesList, NormalMode, UkTaxIdentifiers, UserAnswers}
-import org.scalatest.{OptionValues, TryValues}
+import models.{CheckMode, Country, DefaultCountriesList, NormalMode, UserAnswers}
 import org.scalatest.freespec.AnyFreeSpec
 import org.scalatest.matchers.must.Matchers
+import org.scalatest.{OptionValues, TryValues}
 
 class HasUkTaxIdentifierPageSpec extends AnyFreeSpec with Matchers with TryValues with OptionValues {
 
   private val countriesList = new DefaultCountriesList
   private val emptyAnswers = UserAnswers("userId", "operatorId")
-  
+
   ".nextPage" - {
 
     "in Normal mode" - {
@@ -75,7 +75,7 @@ class HasUkTaxIdentifierPageSpec extends AnyFreeSpec with Matchers with TryValue
       }
     }
   }
-  
+
   ".cleanup" - {
 
     "must remove UK tax identifier when the answer is no" in {
@@ -89,10 +89,10 @@ class HasUkTaxIdentifierPageSpec extends AnyFreeSpec with Matchers with TryValue
 
       val result = answers.set(HasUkTaxIdentifierPage, false).success.value
 
-      result.get(UkTaxIdentifierPage)               must not be defined
-      result.get(TaxResidencyCountryPage)           mustBe defined
+      result.get(UkTaxIdentifierPage) must not be defined
+      result.get(TaxResidencyCountryPage) mustBe defined
       result.get(HasInternationalTaxIdentifierPage) mustBe defined
-      result.get(InternationalTaxIdentifierPage)    mustBe defined
+      result.get(InternationalTaxIdentifierPage) mustBe defined
     }
 
     "must not remove UK tax identifier when the answer is yes" in {
@@ -106,10 +106,10 @@ class HasUkTaxIdentifierPageSpec extends AnyFreeSpec with Matchers with TryValue
 
       val result = answers.set(HasUkTaxIdentifierPage, true).success.value
 
-      result.get(UkTaxIdentifierPage)               mustBe defined
-      result.get(TaxResidencyCountryPage)           mustBe defined
+      result.get(UkTaxIdentifierPage) mustBe defined
+      result.get(TaxResidencyCountryPage) mustBe defined
       result.get(HasInternationalTaxIdentifierPage) mustBe defined
-      result.get(InternationalTaxIdentifierPage)    mustBe defined
+      result.get(InternationalTaxIdentifierPage) mustBe defined
     }
   }
 }

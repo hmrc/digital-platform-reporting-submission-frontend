@@ -19,7 +19,6 @@ package controllers.assumed.update
 import controllers.AnswerExtractor
 import controllers.actions.*
 import forms.InternationalTaxIdentifierFormProvider
-import models.Mode
 import pages.assumed.update.{InternationalTaxIdentifierPage, TaxResidencyCountryPage}
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
@@ -31,30 +30,26 @@ import java.time.Year
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
-class InternationalTaxIdentifierController @Inject()(
-                                        override val messagesApi: MessagesApi,
-                                        sessionRepository: SessionRepository,
-                                        identify: IdentifierAction,
-                                        getData: DataRetrievalActionProvider,
-                                        requireData: DataRequiredAction,
-                                        checkAssumedReportingAllowed: CheckAssumedReportingAllowedAction,
-                                        formProvider: InternationalTaxIdentifierFormProvider,
-                                        val controllerComponents: MessagesControllerComponents,
-                                        view: InternationalTaxIdentifierView
-                                    )(implicit ec: ExecutionContext)
+class InternationalTaxIdentifierController @Inject()(override val messagesApi: MessagesApi,
+                                                     sessionRepository: SessionRepository,
+                                                     identify: IdentifierAction,
+                                                     getData: DataRetrievalActionProvider,
+                                                     requireData: DataRequiredAction,
+                                                     checkAssumedReportingAllowed: CheckAssumedReportingAllowedAction,
+                                                     formProvider: InternationalTaxIdentifierFormProvider,
+                                                     val controllerComponents: MessagesControllerComponents,
+                                                     view: InternationalTaxIdentifierView)
+                                                    (using ExecutionContext)
   extends FrontendBaseController with I18nSupport with AnswerExtractor {
 
   def onPageLoad(operatorId: String, reportingPeriod: Year): Action[AnyContent] =
     (identify andThen checkAssumedReportingAllowed andThen getData(operatorId, Some(reportingPeriod)) andThen requireData) { implicit request =>
       getAnswer(TaxResidencyCountryPage) { country =>
-  
-        val form = formProvider(country)
-  
         val preparedForm = request.userAnswers.get(InternationalTaxIdentifierPage) match {
-          case None => form
-          case Some(value) => form.fill(value)
+          case None => formProvider(country)
+          case Some(value) => formProvider(country).fill(value)
         }
-  
+
         Ok(view(preparedForm, operatorId, reportingPeriod, country))
       }
     }
@@ -62,13 +57,10 @@ class InternationalTaxIdentifierController @Inject()(
   def onSubmit(operatorId: String, reportingPeriod: Year): Action[AnyContent] =
     (identify andThen checkAssumedReportingAllowed andThen getData(operatorId, Some(reportingPeriod)) andThen requireData).async { implicit request =>
       getAnswerAsync(TaxResidencyCountryPage) { country =>
-  
-        val form = formProvider(country)
-        
-        form.bindFromRequest().fold(
+        formProvider(country).bindFromRequest().fold(
           formWithErrors =>
             Future.successful(BadRequest(view(formWithErrors, operatorId, reportingPeriod, country))),
-  
+
           value =>
             for {
               updatedAnswers <- Future.fromTry(request.userAnswers.set(InternationalTaxIdentifierPage, value))

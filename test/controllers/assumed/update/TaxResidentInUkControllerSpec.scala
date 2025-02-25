@@ -19,7 +19,6 @@ package controllers.assumed.update
 import base.SpecBase
 import controllers.routes as baseRoutes
 import forms.TaxResidentInUkFormProvider
-import models.NormalMode
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.when
 import org.scalatestplus.mockito.MockitoSugar
@@ -41,7 +40,7 @@ class TaxResidentInUkControllerSpec extends SpecBase with MockitoSugar {
   private val form = formProvider(assumingOperatorName)
   private val baseAnswers = emptyUserAnswers.copy(reportingPeriod = Some(reportingPeriod)).set(AssumingOperatorNamePage, assumingOperatorName).success.value
 
-  lazy val taxResidentInUkRoute = routes.TaxResidentInUkController.onPageLoad(operatorId, reportingPeriod).url
+  private lazy val taxResidentInUkRoute = routes.TaxResidentInUkController.onPageLoad(operatorId, reportingPeriod).url
 
   "TaxResidentInUk Controller" - {
 

@@ -16,52 +16,48 @@
 
 package forms.mappings
 
-import java.time.LocalDate
-
 import play.api.data.validation.{Constraint, Invalid, Valid}
+
+import java.time.LocalDate
 
 trait Constraints {
 
   protected def firstError[A](constraints: Constraint[A]*): Constraint[A] =
-    Constraint {
-      input =>
-        constraints
-          .map(_.apply(input))
-          .find(_ != Valid)
-          .getOrElse(Valid)
+    Constraint { input =>
+      constraints
+        .map(_.apply(input))
+        .find(_ != Valid)
+        .getOrElse(Valid)
     }
 
   protected def minimumValue[A](minimum: A, errorKey: String, args: Any*)(implicit ev: Ordering[A]): Constraint[A] =
     Constraint {
       input =>
-
-        import ev._
+        import ev.*
 
         if (input >= minimum) {
           Valid
         } else {
-          Invalid(errorKey, minimum +: args: _*)
+          Invalid(errorKey, minimum +: args *)
         }
     }
 
   protected def maximumValue[A](maximum: A, errorKey: String, args: Any*)(implicit ev: Ordering[A]): Constraint[A] =
     Constraint {
       input =>
-
-        import ev._
+        import ev.*
 
         if (input <= maximum) {
           Valid
         } else {
-          Invalid(errorKey, maximum +: args: _*)
+          Invalid(errorKey, maximum +: args *)
         }
     }
-    
+
   protected def inRange[A](minimum: A, maximum: A, errorKey: String)(implicit ev: Ordering[A]): Constraint[A] =
     Constraint {
       input =>
-
-        import ev._
+        import ev.*
 
         if (input >= minimum && input <= maximum) {
           Valid
@@ -72,41 +68,31 @@ trait Constraints {
 
   protected def regexp(regex: String, errorKey: String, args: Any*): Constraint[String] =
     Constraint {
-      case str if str.matches(regex) =>
-        Valid
-      case _ =>
-        Invalid(errorKey, regex +: args: _*)
+      case str if str.matches(regex) => Valid
+      case _ => Invalid(errorKey, regex +: args *)
     }
 
   protected def maxLength(maximum: Int, errorKey: String, args: Any*): Constraint[String] =
     Constraint {
-      case str if str.length <= maximum =>
-        Valid
-      case _ =>
-        Invalid(errorKey, maximum +: args: _*)
+      case str if str.length <= maximum => Valid
+      case _ => Invalid(errorKey, maximum +: args *)
     }
 
   protected def maxDate(maximum: LocalDate, errorKey: String, args: Any*): Constraint[LocalDate] =
     Constraint {
-      case date if date.isAfter(maximum) =>
-        Invalid(errorKey, args*)
-      case _ =>
-        Valid
+      case date if date.isAfter(maximum) => Invalid(errorKey, args *)
+      case _ => Valid
     }
 
   protected def minDate(minimum: LocalDate, errorKey: String, args: Any*): Constraint[LocalDate] =
     Constraint {
-      case date if date.isBefore(minimum) =>
-        Invalid(errorKey, args*)
-      case _ =>
-        Valid
+      case date if date.isBefore(minimum) => Invalid(errorKey, args *)
+      case _ => Valid
     }
 
-  protected def nonEmptySet(errorKey: String, args: Any*): Constraint[Set[_]] =
+  protected def nonEmptySet(errorKey: String, args: Any*): Constraint[Set[?]] =
     Constraint {
-      case set if set.nonEmpty =>
-        Valid
-      case _ =>
-        Invalid(errorKey, args: _*)
+      case set if set.nonEmpty => Valid
+      case _ => Invalid(errorKey, args *)
     }
 }

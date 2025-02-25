@@ -17,7 +17,7 @@
 package forms
 
 import forms.behaviours.StringFieldBehaviours
-import models.{Country, DefaultCountriesList}
+import models.DefaultCountriesList
 import org.scalacheck.Gen
 import play.api.data.FormError
 import play.api.i18n.Messages

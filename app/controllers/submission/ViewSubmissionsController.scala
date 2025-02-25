@@ -41,24 +41,20 @@ class ViewSubmissionsController @Inject()(override val messagesApi: MessagesApi,
                                           formProvider: ViewSubmissionsFormProvider,
                                           clock: Clock,
                                           appConfig: FrontendAppConfig)
-                                         (implicit ec: ExecutionContext) extends FrontendBaseController with I18nSupport {
-  
-  def onPageLoad(): Action[AnyContent] = identify.async {
-    implicit request =>
-      
-      val form = formProvider()
-      
-      form.bindFromRequest().fold(
-        errors => Future.successful(Redirect(baseRoutes.JourneyRecoveryController.onPageLoad())), // TODO: Decide what to do here
-        filter =>
-          for {
-            submissions <- submissionConnector.listDeliveredSubmissions(ViewSubmissionsRequest(filter))
-            operators   <- platformOperatorConnector.viewPlatformOperators
-          } yield {
-            val viewModel = ViewSubmissionsViewModel(submissions, operators.platformOperators, filter, Year.now(clock), appConfig.baseUrl)
-            
-            Ok(view(form.fill(filter), viewModel))
-          }
-      )
+                                         (using ExecutionContext) extends FrontendBaseController with I18nSupport {
+
+  def onPageLoad(): Action[AnyContent] = identify.async { implicit request =>
+    formProvider().bindFromRequest().fold(
+      _ => Future.successful(Redirect(baseRoutes.JourneyRecoveryController.onPageLoad())),
+      filter =>
+        for {
+          submissions <- submissionConnector.listDeliveredSubmissions(ViewSubmissionsRequest(filter))
+          operators <- platformOperatorConnector.viewPlatformOperators
+        } yield {
+          val viewModel = ViewSubmissionsViewModel(submissions, operators.platformOperators, filter, Year.now(clock), appConfig.baseUrl)
+
+          Ok(view(formProvider().fill(filter), viewModel))
+        }
+    )
   }
 }

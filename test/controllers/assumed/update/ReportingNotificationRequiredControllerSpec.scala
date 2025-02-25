@@ -18,7 +18,6 @@ package controllers.assumed.update
 
 import base.SpecBase
 import connectors.PlatformOperatorConnector
-import models.NormalMode
 import models.operator.responses.PlatformOperator
 import models.operator.{AddressDetails, ContactDetails}
 import org.mockito.ArgumentMatchers.any
@@ -36,7 +35,7 @@ import scala.concurrent.Future
 
 class ReportingNotificationRequiredControllerSpec extends SpecBase with MockitoSugar with BeforeAndAfterEach {
 
-  private val reportingPeriod = Year.of(2024)
+  private val reportingPeriod = Year.parse("2024")
   private val mockConnector = mock[PlatformOperatorConnector]
 
   override def beforeEach(): Unit = {

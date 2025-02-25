@@ -22,7 +22,7 @@ import controllers.routes as baseRoutes
 import forms.CheckPlatformOperatorFormProvider
 import models.operator.responses.PlatformOperator
 import models.operator.{AddressDetails, ContactDetails}
-import models.{DefaultCountriesList, NormalMode, UserAnswers}
+import models.{DefaultCountriesList, UserAnswers}
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.{times, verify, when}
 import org.mockito.{ArgumentCaptor, Mockito}
@@ -213,7 +213,7 @@ class CheckPlatformOperatorControllerSpec extends SpecBase with SummaryListFluen
     }
 
     "must redirect to AssumedReportingDisabled when submissions are disabled" in {
-      
+
       val application =
         applicationBuilder(userAnswers = Some(baseAnswers))
           .configure("features.submissions-enabled" -> false)

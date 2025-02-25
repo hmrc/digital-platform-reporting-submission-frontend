@@ -17,7 +17,6 @@
 package forms
 
 import forms.behaviours.StringFieldBehaviours
-import models.Country
 import play.api.data.FormError
 
 class UkTaxIdentifierFormProviderSpec extends StringFieldBehaviours {

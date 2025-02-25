@@ -16,7 +16,7 @@
 
 package support.builders
 
-import models.confirmed.{ConfirmedBusinessDetails, ConfirmedReportingNotifications}
+import models.confirmed.ConfirmedReportingNotifications
 
 object ConfirmedReportingNotificationsBuilder {
 

@@ -42,7 +42,7 @@ class InternationalTaxIdentifierControllerSpec extends SpecBase with MockitoSuga
   private val form = formProvider(country)
   private val baseAnswers = emptyUserAnswers.set(TaxResidencyCountryPage, country).success.value
 
-  lazy val internationalTaxIdentifierRoute = routes.InternationalTaxIdentifierController.onPageLoad(operatorId, reportingPeriod).url
+  private lazy val internationalTaxIdentifierRoute = routes.InternationalTaxIdentifierController.onPageLoad(operatorId, reportingPeriod).url
 
   "InternationalTaxIdentifier Controller" - {
 
@@ -101,7 +101,7 @@ class InternationalTaxIdentifierControllerSpec extends SpecBase with MockitoSuga
 
       val mockSessionRepository = mock[SessionRepository]
 
-      when(mockSessionRepository.set(any())) thenReturn Future.successful(true)
+      when(mockSessionRepository.set(any())).thenReturn(Future.successful(true))
 
       val application =
         applicationBuilder(userAnswers = Some(baseAnswers))

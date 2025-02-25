@@ -17,7 +17,6 @@
 package pages.assumed.create
 
 import controllers.assumed.create.routes
-import controllers.routes as baseRoutes
 import models.{CheckMode, NormalMode, UserAnswers}
 import org.scalatest.freespec.AnyFreeSpec
 import org.scalatest.matchers.must.Matchers
