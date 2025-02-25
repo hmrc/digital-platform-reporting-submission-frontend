@@ -39,6 +39,7 @@ class ReportingPeriodController @Inject()(
                                            identify: IdentifierAction,
                                            getData: DataRetrievalActionProvider,
                                            requireData: DataRequiredAction,
+                                           assumedSubmissionSentCheck: AssumedSubmissionSentCheckAction,
                                            checkAssumedReportingAllowed: CheckAssumedReportingAllowedAction,
                                            formProvider: ReportingPeriodFormProvider,
                                            val controllerComponents: MessagesControllerComponents,
@@ -48,7 +49,7 @@ class ReportingPeriodController @Inject()(
   extends FrontendBaseController with I18nSupport with AnswerExtractor {
 
   def onPageLoad(mode: Mode, operatorId: String): Action[AnyContent] =
-    (identify andThen checkAssumedReportingAllowed andThen getData(operatorId) andThen requireData) { implicit request =>
+    (identify andThen checkAssumedReportingAllowed andThen getData(operatorId) andThen requireData andThen assumedSubmissionSentCheck) { implicit request =>
 
       val form = formProvider()
   

@@ -34,7 +34,7 @@ import org.mockito.Mockito.{never, times, verify, when}
 import org.mockito.{ArgumentCaptor, Mockito}
 import org.scalatest.BeforeAndAfterEach
 import org.scalatestplus.mockito.MockitoSugar.mock
-import pages.assumed.create
+import pages.assumed.{AssumedSubmissionSentPage, create}
 import pages.assumed.update.*
 import play.api.inject.bind
 import play.api.test.FakeRequest
@@ -96,6 +96,20 @@ class CheckYourAnswersControllerSpec extends SpecBase with SummaryListFluency wi
       }
     }
 
+    "must redirect to AssumedSubmissionAlreadySent for a GET when AssumedSubmissionSentPage is true" in {
+
+      val userAnswers = baseAnswers.set(AssumedSubmissionSentPage, true).success.value
+      val application = applicationBuilder(userAnswers = Some(userAnswers)).build()
+
+      running(application) {
+        val request = FakeRequest(GET, routes.CheckYourAnswersController.onPageLoad(operatorId, reportingPeriod).url)
+        val result = route(application, request).value
+
+        status(result) mustEqual SEE_OTHER
+        redirectLocation(result).value mustEqual controllers.assumed.routes.AssumedSubmissionAlreadySentController.onPageLoad().url
+      }
+    }
+
     "for a POST" - {
       val assumedReportingSubmissionRequest = AssumedReportingSubmissionRequest(
         operatorId = operatorId,
@@ -154,6 +168,7 @@ class CheckYourAnswersControllerSpec extends SpecBase with SummaryListFluency wi
         finalAnswers.get(ReportingPeriodQuery) must not be defined
         finalAnswers.get(PlatformOperatorNameQuery) must not be defined
         finalAnswers.get(AssumingOperatorNamePage) must not be defined
+        finalAnswers.get(AssumedSubmissionSentPage).value mustEqual true
       }
 
       "must fail if a request cannot be created from the user answers" in {

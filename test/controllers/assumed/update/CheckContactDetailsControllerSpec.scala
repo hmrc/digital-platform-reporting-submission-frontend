@@ -21,12 +21,13 @@ import connectors.SubscriptionConnector
 import controllers.routes as baseRoutes
 import forms.CheckContactDetailsFormProvider
 import models.subscription.*
-import models.{NormalMode, UserAnswers}
+import models.UserAnswers
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.{times, verify, when}
 import org.mockito.{ArgumentCaptor, Mockito}
 import org.scalatest.BeforeAndAfterEach
 import org.scalatestplus.mockito.MockitoSugar
+import pages.assumed.AssumedSubmissionSentPage
 import pages.assumed.update.CheckContactDetailsPage
 import play.api.i18n.Messages
 import play.api.inject.bind
@@ -192,6 +193,20 @@ class CheckContactDetailsControllerSpec extends SpecBase with SummaryListFluency
 
         status(result) mustEqual SEE_OTHER
         redirectLocation(result).value mustEqual baseRoutes.AssumedReportingDisabledController.onPageLoad().url
+      }
+    }
+
+    "must redirect to AssumedSubmissionAlreadySent for a GET when AssumedSubmissionSentPage is true" in {
+
+      val userAnswers = emptyUserAnswers.set(AssumedSubmissionSentPage, true).success.value
+      val application = applicationBuilder(userAnswers = Some(userAnswers)).build()
+
+      running(application) {
+        val request = FakeRequest(GET, routes.CheckContactDetailsController.onPageLoad(operatorId, reportingPeriod).url)
+        val result = route(application, request).value
+
+        status(result) mustEqual SEE_OTHER
+        redirectLocation(result).value mustEqual controllers.assumed.routes.AssumedSubmissionAlreadySentController.onPageLoad().url
       }
     }
 

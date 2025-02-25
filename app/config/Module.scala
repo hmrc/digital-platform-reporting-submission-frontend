@@ -31,6 +31,9 @@ class Module extends play.api.inject.Module {
       bind[DataRequiredAction].to[DataRequiredActionImpl].eagerly(),
       // For session based storage instead of cred based, change to SessionIdentifierAction
       bind[IdentifierAction].to[AuthenticatedIdentifierAction].eagerly(),
+      bind[XmlSubmissionSentCheckAction].to[XmlSubmissionSentCheckActionImpl],
+      bind[AssumedSubmissionSentCheckAction].to[AssumedSubmissionSentCheckActionImpl],
+      bind[AssumedSubmissionDeletedCheckAction].to[AssumedSubmissionDeletedCheckActionImpl],
       bind[Clock].toInstance(Clock.systemUTC()),
       bind[Encrypter & Decrypter].toProvider[CryptoProvider],
       bind[CountriesList].toProvider[CountriesListProvider]

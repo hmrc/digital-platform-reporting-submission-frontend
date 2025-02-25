@@ -22,13 +22,13 @@ import forms.AssumingOperatorNameFormProvider
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.when
 import org.scalatestplus.mockito.MockitoSugar
+import pages.assumed.AssumedSubmissionSentPage
 import pages.assumed.update.AssumingOperatorNamePage
 import play.api.inject.bind
 import play.api.test.FakeRequest
 import play.api.test.Helpers.*
 import queries.PlatformOperatorNameQuery
 import repositories.SessionRepository
-import viewmodels.PlatformOperatorSummary
 import views.html.assumed.update.AssumingOperatorNameView
 
 import java.time.Year
@@ -94,6 +94,20 @@ class AssumingOperatorNameControllerSpec extends SpecBase with MockitoSugar {
 
         status(result) mustEqual SEE_OTHER
         redirectLocation(result).value mustEqual baseRoutes.AssumedReportingDisabledController.onPageLoad().url
+      }
+    }
+
+    "must redirect to AssumedSubmissionAlreadySent for a GET when AssumedSubmissionSentPage is true" in {
+
+      val userAnswers = baseAnswers.set(AssumedSubmissionSentPage, true).success.value
+      val application = applicationBuilder(userAnswers = Some(userAnswers)).build()
+
+      running(application) {
+        val request = FakeRequest(GET, assumingOperatorNameRoute)
+        val result = route(application, request).value
+
+        status(result) mustEqual SEE_OTHER
+        redirectLocation(result).value mustEqual controllers.assumed.routes.AssumedSubmissionAlreadySentController.onPageLoad().url
       }
     }
 

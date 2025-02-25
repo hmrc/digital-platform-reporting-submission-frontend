@@ -19,10 +19,10 @@ package controllers.assumed.update
 import base.SpecBase
 import controllers.routes as baseRoutes
 import forms.TaxResidentInUkFormProvider
-import models.NormalMode
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.when
 import org.scalatestplus.mockito.MockitoSugar
+import pages.assumed.AssumedSubmissionSentPage
 import pages.assumed.update.{AssumingOperatorNamePage, TaxResidentInUkPage}
 import play.api.inject.bind
 import play.api.test.FakeRequest
@@ -41,7 +41,7 @@ class TaxResidentInUkControllerSpec extends SpecBase with MockitoSugar {
   private val form = formProvider(assumingOperatorName)
   private val baseAnswers = emptyUserAnswers.copy(reportingPeriod = Some(reportingPeriod)).set(AssumingOperatorNamePage, assumingOperatorName).success.value
 
-  lazy val taxResidentInUkRoute = routes.TaxResidentInUkController.onPageLoad(operatorId, reportingPeriod).url
+  lazy val taxResidentInUkRoute: String = routes.TaxResidentInUkController.onPageLoad(operatorId, reportingPeriod).url
 
   "TaxResidentInUk Controller" - {
 
@@ -93,6 +93,20 @@ class TaxResidentInUkControllerSpec extends SpecBase with MockitoSugar {
 
         status(result) mustEqual SEE_OTHER
         redirectLocation(result).value mustEqual baseRoutes.AssumedReportingDisabledController.onPageLoad().url
+      }
+    }
+
+    "must redirect to AssumedSubmissionAlreadySent for a GET when AssumedSubmissionSentPage is true" in {
+
+      val userAnswers = baseAnswers.set(AssumedSubmissionSentPage, true).success.value
+      val application = applicationBuilder(userAnswers = Some(userAnswers)).build()
+
+      running(application) {
+        val request = FakeRequest(GET, taxResidentInUkRoute)
+        val result = route(application, request).value
+
+        status(result) mustEqual SEE_OTHER
+        redirectLocation(result).value mustEqual controllers.assumed.routes.AssumedSubmissionAlreadySentController.onPageLoad().url
       }
     }
 

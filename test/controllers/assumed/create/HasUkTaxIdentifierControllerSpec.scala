@@ -19,11 +19,12 @@ package controllers.assumed.create
 import base.SpecBase
 import controllers.routes as baseRoutes
 import forms.HasUkTaxIdentifierFormProvider
-import models.{NormalMode, UserAnswers}
+import models.NormalMode
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.when
 import org.scalatestplus.mockito.MockitoSugar
-import pages.assumed.create.{HasUkTaxIdentifierPage, AssumingOperatorNamePage}
+import pages.assumed.AssumedSubmissionSentPage
+import pages.assumed.create.{AssumingOperatorNamePage, HasUkTaxIdentifierPage}
 import play.api.inject.bind
 import play.api.test.FakeRequest
 import play.api.test.Helpers.*
@@ -39,7 +40,7 @@ class HasUkTaxIdentifierControllerSpec extends SpecBase with MockitoSugar {
   private val form = formProvider(assumingOperatorName)
   private val baseAnswers = emptyUserAnswers.set(AssumingOperatorNamePage, assumingOperatorName).success.value
 
-  lazy val hasUkTaxIdentifierRoute = routes.HasUkTaxIdentifierController.onPageLoad(NormalMode, operatorId).url
+  lazy val hasUkTaxIdentifierRoute: String = routes.HasUkTaxIdentifierController.onPageLoad(NormalMode, operatorId).url
 
   "HasUkTaxIdentifier Controller" - {
 
@@ -91,6 +92,20 @@ class HasUkTaxIdentifierControllerSpec extends SpecBase with MockitoSugar {
 
         status(result) mustEqual SEE_OTHER
         redirectLocation(result).value mustEqual baseRoutes.AssumedReportingDisabledController.onPageLoad().url
+      }
+    }
+
+    "must redirect to AssumedSubmissionAlreadySent for a GET when AssumedSubmissionSentPage is true" in {
+
+      val userAnswers = baseAnswers.set(AssumedSubmissionSentPage, true).success.value
+      val application = applicationBuilder(userAnswers = Some(userAnswers)).build()
+
+      running(application) {
+        val request = FakeRequest(GET, hasUkTaxIdentifierRoute)
+        val result = route(application, request).value
+
+        status(result) mustEqual SEE_OTHER
+        redirectLocation(result).value mustEqual controllers.assumed.routes.AssumedSubmissionAlreadySentController.onPageLoad().url
       }
     }
 

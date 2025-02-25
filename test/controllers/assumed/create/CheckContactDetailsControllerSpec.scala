@@ -28,6 +28,7 @@ import org.mockito.Mockito.{never, times, verify, when}
 import org.mockito.Mockito
 import org.scalatest.BeforeAndAfterEach
 import org.scalatestplus.mockito.MockitoSugar
+import pages.assumed.AssumedSubmissionSentPage
 import pages.assumed.create.CheckContactDetailsPage
 import play.api.i18n.Messages
 import play.api.inject.bind
@@ -225,6 +226,20 @@ class CheckContactDetailsControllerSpec extends SpecBase with SummaryListFluency
 
         status(result) mustEqual SEE_OTHER
         redirectLocation(result).value mustEqual baseRoutes.AssumedReportingDisabledController.onPageLoad().url
+      }
+    }
+
+    "must redirect to AssumedSubmissionAlreadySent for a GET when AssumedSubmissionSentPage is true" in {
+
+      val userAnswers = emptyUserAnswers.set(AssumedSubmissionSentPage, true).success.value
+      val application = applicationBuilder(userAnswers = Some(userAnswers)).build()
+
+      running(application) {
+        val request = FakeRequest(GET, routes.CheckContactDetailsController.onPageLoad(operatorId).url)
+        val result = route(application, request).value
+
+        status(result) mustEqual SEE_OTHER
+        redirectLocation(result).value mustEqual controllers.assumed.routes.AssumedSubmissionAlreadySentController.onPageLoad().url
       }
     }
 

@@ -1,1 +1,3 @@
-GET     /view               controllers.assumed.ViewAssumedReportsController.onPageLoad()
+GET     /view                                   controllers.assumed.ViewAssumedReportsController.onPageLoad()
+GET     /assumed-submission-already-sent        controllers.assumed.AssumedSubmissionAlreadySentController.onPageLoad()
+GET     /assumed-submission-already-deleted     controllers.assumed.AssumedSubmissionAlreadyDeletedController.onPageLoad()

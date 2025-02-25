@@ -29,7 +29,7 @@ import org.mockito.Mockito
 import org.mockito.Mockito.{never, times, verify, when}
 import org.scalatest.BeforeAndAfterEach
 import org.scalatestplus.mockito.MockitoSugar
-import pages.submission.create.CheckPlatformOperatorPage
+import pages.submission.create.{CheckPlatformOperatorPage, XmlSubmissionSentPage}
 import play.api.i18n.Messages
 import play.api.inject.bind
 import play.api.test.FakeRequest
@@ -170,6 +170,21 @@ class CheckPlatformOperatorControllerSpec extends SpecBase with SummaryListFluen
           redirectLocation(result).value mustEqual baseRoutes.SubmissionsDisabledController.onPageLoad().url
         }
       }
+
+      "must redirect to XmlSubmissionAlreadySent for a GET when XmlSubmissionSentPage is true" - {
+
+        val userAnswers = baseAnswers.set(XmlSubmissionSentPage, true).success.value
+        val application = applicationBuilder(userAnswers = Some(userAnswers)).build()
+
+        running(application) {
+          val request = FakeRequest(GET, routes.CheckPlatformOperatorController.onPageLoad(operatorId).url)
+          val result = route(application, request).value
+
+          status(result) mustEqual SEE_OTHER
+          redirectLocation(result).value mustEqual controllers.submission.routes.XmlSubmissionAlreadySentController.onPageLoad().url
+        }
+      }
+
     }
 
     "onSubmit(...)" - {

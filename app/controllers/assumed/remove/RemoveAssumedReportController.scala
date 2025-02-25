@@ -26,6 +26,7 @@ import controllers.{AnswerExtractor, routes as baseRoutes}
 import forms.RemoveAssumedReportFormProvider
 import models.audit.DeleteAssumedReportEvent
 import models.submission.{AssumedReportingSubmission, AssumedReportingSubmissionSummary}
+import pages.assumed.AssumedSubmissionDeletedPage
 import play.api.Logging
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
@@ -45,6 +46,7 @@ class RemoveAssumedReportController @Inject()(override val messagesApi: Messages
                                               identify: IdentifierAction,
                                               getData: DataRetrievalActionProvider,
                                               requireData: DataRequiredAction,
+                                              assumedSubmissionDeletedCheck: AssumedSubmissionDeletedCheckAction,
                                               checkAssumedReportingAllowed: CheckAssumedReportingAllowedAction,
                                               formProvider: RemoveAssumedReportFormProvider,
                                               view: RemoveAssumedReportView,
@@ -56,7 +58,7 @@ class RemoveAssumedReportController @Inject()(override val messagesApi: Messages
                                              (using ExecutionContext)
   extends FrontendBaseController with I18nSupport with AnswerExtractor with Logging {
 
-  def onPageLoad(operatorId: String, reportingPeriod: Year): Action[AnyContent] = (identify andThen checkAssumedReportingAllowed andThen getData(operatorId) andThen requireData) { implicit request =>
+  def onPageLoad(operatorId: String, reportingPeriod: Year): Action[AnyContent] = (identify andThen checkAssumedReportingAllowed andThen getData(operatorId) andThen requireData andThen assumedSubmissionDeletedCheck) { implicit request =>
     getAnswer(AssumedReportSummariesQuery) { summaries =>
       summaries.find(_.reportingPeriod == reportingPeriod).map { summary =>
         val summaryList = AssumedReportSummaryList.list(summary)
@@ -92,7 +94,8 @@ class RemoveAssumedReportController @Inject()(override val messagesApi: Messages
                   for {
                     emailsSentResult <- emailService.sendDeleteAssumedReportingEmails(operatorId, assumedReportingSubmission, deletionInstant)
                     answersWithSentEmails <- Future.fromTry(request.userAnswers.set(SentDeleteAssumedReportingEmailsQuery, emailsSentResult))
-                    _ <- sessionRepository.set(answersWithSentEmails)
+                    answersWithAssumedSubmissionDeleted <- Future.fromTry(answersWithSentEmails.set(AssumedSubmissionDeletedPage, true))
+                    _ <- sessionRepository.set(answersWithAssumedSubmissionDeleted)
                   } yield {
                     Redirect(AssumedReportRemovedController.onPageLoad(operatorId, reportingPeriod))
                   }

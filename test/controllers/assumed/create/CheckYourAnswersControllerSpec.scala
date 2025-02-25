@@ -32,6 +32,7 @@ import org.mockito.Mockito.{never, times, verify, when}
 import org.mockito.{ArgumentCaptor, Mockito}
 import org.scalatest.BeforeAndAfterEach
 import org.scalatestplus.mockito.MockitoSugar.mock
+import pages.assumed.AssumedSubmissionSentPage
 import pages.assumed.create.*
 import play.api.inject.bind
 import play.api.test.FakeRequest
@@ -91,6 +92,19 @@ class CheckYourAnswersControllerSpec extends SpecBase with SummaryListFluency wi
       }
     }
 
+    "must redirect to AssumedSubmissionAlreadySent for a GET when AssumedSubmissionSentPage is true" in {
+      val userAnswers = emptyUserAnswers.set(AssumedSubmissionSentPage, true).success.value
+      val application = applicationBuilder(userAnswers = Some(userAnswers)).build()
+
+      running(application) {
+        val request = FakeRequest(GET, routes.CheckYourAnswersController.onPageLoad(operatorId).url)
+        val result = route(application, request).value
+
+        status(result) mustEqual SEE_OTHER
+        redirectLocation(result).value mustEqual controllers.assumed.routes.AssumedSubmissionAlreadySentController.onPageLoad().url
+      }
+    }
+
     "must redirect to Journey Recovery for a GET if no existing data is found" in {
       val application = applicationBuilder(userAnswers = None).build()
 
@@ -133,7 +147,7 @@ class CheckYourAnswersControllerSpec extends SpecBase with SummaryListFluency wi
 
         when(mockAssumedReportingConnector.submit(any())(using any())).thenReturn(Future.successful(aSubmission))
         when(mockSessionRepository.set(any())).thenReturn(Future.successful(true))
-        when(mockSessionRepository.clear(any(), any(), any())).thenReturn(Future.successful(true))
+//        when(mockSessionRepository.clear(any(), any(), any())).thenReturn(Future.successful(true))
         when(mockEmailService.sendAddAssumedReportingEmails(any(), any(), any())(using any())).thenReturn(Future.successful(anEmailsSentResult))
 
         running(application) {
@@ -151,17 +165,18 @@ class CheckYourAnswersControllerSpec extends SpecBase with SummaryListFluency wi
         verify(mockAuditService).audit(eqTo(expectedAuditEvent))(using any(), any())
 
         val answersCaptor: ArgumentCaptor[UserAnswers] = ArgumentCaptor.forClass(classOf[UserAnswers])
-        verify(mockSessionRepository, times(1)).set(answersCaptor.capture())
-        verify(mockSessionRepository, times(1)).clear(userId, operatorId, None)
+        verify(mockSessionRepository, times(2)).set(answersCaptor.capture())
+//        verify(mockSessionRepository, times(1)).clear(userId, operatorId, None)
         verify(mockEmailService, times(1)).sendAddAssumedReportingEmails(any(), any(), any())(using any())
 
-        val finalAnswers = answersCaptor.getValue
-        finalAnswers.reportingPeriod.value mustEqual Year.of(2024)
-        finalAnswers.get(AssumedReportSummaryQuery).value mustEqual AssumedReportSummary(operatorId, aPlatformOperatorSummary.operatorName, anAssumingPlatformOperator.name, Year.of(2024))
-        finalAnswers.get(SentAddAssumedReportingEmailsQuery).value mustEqual anEmailsSentResult
-        finalAnswers.get(ReportingPeriodQuery) must not be defined
-        finalAnswers.get(PlatformOperatorSummaryQuery) must not be defined
-        finalAnswers.get(AssumingOperatorNamePage) must not be defined
+        val finalAnswers = answersCaptor.getAllValues
+        finalAnswers.get(0).reportingPeriod.value mustEqual Year.of(2024)
+        finalAnswers.get(0).get(AssumedReportSummaryQuery).value mustEqual AssumedReportSummary(operatorId, aPlatformOperatorSummary.operatorName, anAssumingPlatformOperator.name, Year.of(2024))
+        finalAnswers.get(0).get(SentAddAssumedReportingEmailsQuery).value mustEqual anEmailsSentResult
+        finalAnswers.get(0).get(ReportingPeriodQuery) must not be defined
+        finalAnswers.get(0).get(PlatformOperatorSummaryQuery) must not be defined
+        finalAnswers.get(0).get(AssumingOperatorNamePage) must not be defined
+        finalAnswers.get(1).get(AssumedSubmissionSentPage).value mustEqual true
       }
 
       "must fail if a request cannot be created from the user answers" in {

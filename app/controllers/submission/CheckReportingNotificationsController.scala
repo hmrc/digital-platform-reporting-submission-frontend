@@ -38,6 +38,7 @@ class CheckReportingNotificationsController @Inject()(override val messagesApi: 
                                                       identify: IdentifierAction,
                                                       getData: DataRetrievalActionProvider,
                                                       requireData: DataRequiredAction,
+                                                      xmlSubmissionSentCheck: XmlSubmissionSentCheckAction,
                                                       sessionRepository: SessionRepository,
                                                       checkSubmissionsAllowed: CheckSubmissionsAllowedAction,
                                                       val controllerComponents: MessagesControllerComponents,
@@ -51,7 +52,7 @@ class CheckReportingNotificationsController @Inject()(override val messagesApi: 
   extends FrontendBaseController with I18nSupport with AnswerExtractor {
 
   def onPageLoad(operatorId: String): Action[AnyContent] =
-    (identify andThen checkSubmissionsAllowed andThen getData(operatorId) andThen requireData).async { implicit request =>
+    (identify andThen checkSubmissionsAllowed andThen getData(operatorId) andThen requireData andThen xmlSubmissionSentCheck).async { implicit request =>
       platformOperatorConnector.viewPlatformOperator(operatorId).map { operator =>
         if (operator.notifications.isEmpty) {
           Redirect(routes.ReportingNotificationRequiredController.onPageLoad(operatorId))

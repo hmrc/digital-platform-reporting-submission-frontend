@@ -20,8 +20,10 @@ import connectors.SubmissionConnector
 import controllers.actions.*
 import models.submission.Submission
 import models.submission.Submission.State.{Approved, Ready, Rejected, Submitted, UploadFailed, Uploading, Validated}
+import pages.submission.create.XmlSubmissionSentPage
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents, Result}
+import repositories.SessionRepository
 import uk.gov.hmrc.govukfrontend.views.Aliases.{ActionItem, Actions, SummaryListRow, Value}
 import uk.gov.hmrc.govukfrontend.views.viewmodels.content.Text
 import uk.gov.hmrc.govukfrontend.views.viewmodels.summarylist.{Key, SummaryList}
@@ -37,6 +39,7 @@ class SendFileController @Inject()(
                                     identify: IdentifierAction,
                                     getData: DataRetrievalActionProvider,
                                     requireData: DataRequiredAction,
+                                    sessionRepository: SessionRepository,
                                     checkSubmissionsAllowed: CheckSubmissionsAllowedAction,
                                     val controllerComponents: MessagesControllerComponents,
                                     view: SendFileView,
@@ -89,8 +92,11 @@ class SendFileController @Inject()(
         submissionConnector.get(submissionId).flatMap {
           _.map { submission =>
             handleSubmission(operatorId, submission) { case _: Validated =>
-              submissionConnector.submit(submissionId).map { _ =>
-                Redirect(routes.CheckFileController.onPageLoad(operatorId, submissionId))
+              submissionConnector.submit(submissionId).flatMap { _ =>
+                for {
+                  updatedAnswers <- Future.fromTry(request.userAnswers.set(XmlSubmissionSentPage, true))
+                  _ <- sessionRepository.set(updatedAnswers)
+                } yield Redirect(routes.CheckFileController.onPageLoad(operatorId, submissionId))
               }
             }
           }.getOrElse {

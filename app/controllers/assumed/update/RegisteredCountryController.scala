@@ -19,7 +19,6 @@ package controllers.assumed.update
 import controllers.AnswerExtractor
 import controllers.actions.*
 import forms.RegisteredCountryFormProvider
-import models.Mode
 import pages.assumed.update.{AssumingOperatorNamePage, RegisteredCountryPage}
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
@@ -37,6 +36,7 @@ class RegisteredCountryController @Inject()(
                                              identify: IdentifierAction,
                                              getData: DataRetrievalActionProvider,
                                              requireData: DataRequiredAction,
+                                             assumedSubmissionSentCheck: AssumedSubmissionSentCheckAction,
                                              checkAssumedReportingAllowed: CheckAssumedReportingAllowedAction,
                                              formProvider: RegisteredCountryFormProvider,
                                              val controllerComponents: MessagesControllerComponents,
@@ -46,7 +46,10 @@ class RegisteredCountryController @Inject()(
 
 
   def onPageLoad(operatorId: String, reportingPeriod: Year): Action[AnyContent] =
-    (identify andThen checkAssumedReportingAllowed andThen getData(operatorId, Some(reportingPeriod)) andThen requireData) { implicit request =>
+    (identify andThen
+      checkAssumedReportingAllowed andThen
+      getData(operatorId, Some(reportingPeriod)) andThen
+      requireData andThen assumedSubmissionSentCheck) { implicit request =>
       getAnswer(AssumingOperatorNamePage) { assumingOperatorName =>
   
         val form = formProvider(assumingOperatorName)

@@ -37,6 +37,7 @@ class AssumingOperatorNameController @Inject()(
                                                 sessionRepository: SessionRepository,
                                                 identify: IdentifierAction,
                                                 getData: DataRetrievalActionProvider,
+                                                assumedSubmissionSentCheck: AssumedSubmissionSentCheckAction,
                                                 requireData: DataRequiredAction,
                                                 checkAssumedReportingAllowed: CheckAssumedReportingAllowedAction,
                                                 formProvider: AssumingOperatorNameFormProvider,
@@ -47,7 +48,7 @@ class AssumingOperatorNameController @Inject()(
 
 
   def onPageLoad(mode: Mode, operatorId: String): Action[AnyContent] =
-    (identify andThen checkAssumedReportingAllowed andThen getData(operatorId) andThen requireData) { implicit request =>
+    (identify andThen checkAssumedReportingAllowed andThen getData(operatorId) andThen requireData andThen assumedSubmissionSentCheck) { implicit request =>
       getAnswer(PlatformOperatorSummaryQuery) { operator =>
   
         val form = formProvider(operator.operatorName)

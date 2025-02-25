@@ -23,6 +23,7 @@ import models.{Country, DefaultCountriesList}
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.when
 import org.scalatestplus.mockito.MockitoSugar
+import pages.assumed.AssumedSubmissionSentPage
 import pages.assumed.update.{InternationalTaxIdentifierPage, TaxResidencyCountryPage}
 import play.api.inject.bind
 import play.api.test.FakeRequest
@@ -42,7 +43,7 @@ class InternationalTaxIdentifierControllerSpec extends SpecBase with MockitoSuga
   private val form = formProvider(country)
   private val baseAnswers = emptyUserAnswers.set(TaxResidencyCountryPage, country).success.value
 
-  lazy val internationalTaxIdentifierRoute = routes.InternationalTaxIdentifierController.onPageLoad(operatorId, reportingPeriod).url
+  lazy val internationalTaxIdentifierRoute: String = routes.InternationalTaxIdentifierController.onPageLoad(operatorId, reportingPeriod).url
 
   "InternationalTaxIdentifier Controller" - {
 
@@ -97,11 +98,25 @@ class InternationalTaxIdentifierControllerSpec extends SpecBase with MockitoSuga
       }
     }
 
+    "must redirect to AssumedSubmissionAlreadySent for a GET when AssumedSubmissionSentPage is true" in {
+
+      val userAnswers = baseAnswers.set(AssumedSubmissionSentPage, true).success.value
+      val application = applicationBuilder(userAnswers = Some(userAnswers)).build()
+
+      running(application) {
+        val request = FakeRequest(GET, internationalTaxIdentifierRoute)
+        val result = route(application, request).value
+
+        status(result) mustEqual SEE_OTHER
+        redirectLocation(result).value mustEqual controllers.assumed.routes.AssumedSubmissionAlreadySentController.onPageLoad().url
+      }
+    }
+
     "must redirect to the next page when valid data is submitted" in {
 
       val mockSessionRepository = mock[SessionRepository]
 
-      when(mockSessionRepository.set(any())) thenReturn Future.successful(true)
+      when(mockSessionRepository.set(any())).thenReturn(Future.successful(true))
 
       val application =
         applicationBuilder(userAnswers = Some(baseAnswers))

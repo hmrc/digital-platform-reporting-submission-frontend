@@ -22,7 +22,6 @@ import forms.TaxResidentInUkFormProvider
 
 import java.time.Year
 import javax.inject.Inject
-import models.Mode
 import pages.assumed.update.{AssumingOperatorNamePage, TaxResidentInUkPage}
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
@@ -38,6 +37,7 @@ class TaxResidentInUkController @Inject()(
                                          identify: IdentifierAction,
                                          getData: DataRetrievalActionProvider,
                                          requireData: DataRequiredAction,
+                                         assumedSubmissionSentCheck: AssumedSubmissionSentCheckAction,
                                          checkAssumedReportingAllowed: CheckAssumedReportingAllowedAction,
                                          formProvider: TaxResidentInUkFormProvider,
                                          val controllerComponents: MessagesControllerComponents,
@@ -46,7 +46,10 @@ class TaxResidentInUkController @Inject()(
   extends FrontendBaseController with I18nSupport with AnswerExtractor {
 
   def onPageLoad(operatorId: String, reportingPeriod: Year): Action[AnyContent] =
-    (identify andThen checkAssumedReportingAllowed andThen getData(operatorId, Some(reportingPeriod)) andThen requireData) { implicit request =>
+    (identify andThen
+      checkAssumedReportingAllowed andThen
+      getData(operatorId, Some(reportingPeriod)) andThen
+      requireData andThen assumedSubmissionSentCheck) { implicit request =>
       getAnswer(AssumingOperatorNamePage) { assumingOperatorName =>
   
         val form = formProvider(assumingOperatorName)

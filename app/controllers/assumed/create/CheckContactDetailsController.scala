@@ -40,6 +40,7 @@ class CheckContactDetailsController @Inject()(override val messagesApi: Messages
                                               identify: IdentifierAction,
                                               getData: DataRetrievalActionProvider,
                                               requireData: DataRequiredAction,
+                                              assumedSubmissionSentCheck: AssumedSubmissionSentCheckAction,
                                               checkAssumedReportingAllowed: CheckAssumedReportingAllowedAction,
                                               val controllerComponents: MessagesControllerComponents,
                                               formProvider: CheckContactDetailsFormProvider,
@@ -50,7 +51,7 @@ class CheckContactDetailsController @Inject()(override val messagesApi: Messages
                                               confirmedDetailsService: ConfirmedDetailsService)
                                              (implicit ec: ExecutionContext) extends FrontendBaseController with I18nSupport {
 
-  def onPageLoad(operatorId: String): Action[AnyContent] = (identify andThen checkAssumedReportingAllowed andThen getData(operatorId) andThen requireData).async {
+  def onPageLoad(operatorId: String): Action[AnyContent] = (identify andThen checkAssumedReportingAllowed andThen getData(operatorId) andThen requireData andThen assumedSubmissionSentCheck).async {
     implicit request =>
       subscriptionConnector.getSubscription.map { subscriptionInfo =>
         val list = summaryList(subscriptionInfo)

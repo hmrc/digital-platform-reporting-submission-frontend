@@ -19,20 +19,23 @@ package controllers.submission
 import base.SpecBase
 import connectors.SubmissionConnector
 import controllers.routes as baseRoutes
+import models.UserAnswers
 import models.submission.Submission
 import models.submission.Submission.State.{Approved, Ready, Rejected, Submitted, UploadFailed, Uploading, Validated}
 import models.submission.Submission.SubmissionType
 import models.submission.Submission.UploadFailureReason.SchemaValidationError
 import org.apache.pekko.Done
 import org.mockito.ArgumentMatchers.{any, eq as eqTo}
-import org.mockito.Mockito
-import org.mockito.Mockito.{never, verify, when}
+import org.mockito.{ArgumentCaptor, Mockito}
+import org.mockito.Mockito.{never, times, verify, when}
 import org.scalatest.BeforeAndAfterEach
 import org.scalatestplus.mockito.MockitoSugar
+import pages.submission.create.XmlSubmissionSentPage
 import play.api.i18n.Messages
 import play.api.inject.bind
 import play.api.test.FakeRequest
 import play.api.test.Helpers.*
+import repositories.SessionRepository
 import uk.gov.hmrc.govukfrontend.views.Aliases.{Key, SummaryList, Text, Value}
 import uk.gov.hmrc.govukfrontend.views.viewmodels.summarylist.{ActionItem, Actions, SummaryListRow}
 import uk.gov.hmrc.http.StringContextOps
@@ -44,12 +47,16 @@ import scala.concurrent.Future
 class SendFileControllerSpec extends SpecBase with MockitoSugar with BeforeAndAfterEach {
 
   private val mockSubmissionConnector: SubmissionConnector = mock[SubmissionConnector]
+  private val mockSessionRepository = mock[SessionRepository]
 
   private val now: Instant = Instant.now()
 
   override def beforeEach(): Unit = {
     super.beforeEach()
-    Mockito.reset(mockSubmissionConnector)
+    Mockito.reset(
+      mockSubmissionConnector,
+      mockSessionRepository
+    )
   }
 
   "SendFile Controller" - {
@@ -415,7 +422,8 @@ class SendFileControllerSpec extends SpecBase with MockitoSugar with BeforeAndAf
 
           val application = applicationBuilder(userAnswers = Some(emptyUserAnswers))
             .overrides(
-              bind[SubmissionConnector].toInstance(mockSubmissionConnector)
+              bind[SubmissionConnector].toInstance(mockSubmissionConnector),
+              bind[SessionRepository].toInstance(mockSessionRepository)
             )
             .build()
 
@@ -439,6 +447,9 @@ class SendFileControllerSpec extends SpecBase with MockitoSugar with BeforeAndAf
 
           when(mockSubmissionConnector.submit(any())(using any())).thenReturn(Future.successful(Done))
           when(mockSubmissionConnector.get(any())(using any())).thenReturn(Future.successful(Some(submission)))
+          when(mockSessionRepository.set(any())).thenReturn(Future.successful(true))
+
+          val answersCaptor: ArgumentCaptor[UserAnswers] = ArgumentCaptor.forClass(classOf[UserAnswers])
 
           running(application) {
             val request = FakeRequest(routes.SendFileController.onSubmit(operatorId, submission._id))
@@ -447,6 +458,10 @@ class SendFileControllerSpec extends SpecBase with MockitoSugar with BeforeAndAf
             status(result) mustEqual SEE_OTHER
             redirectLocation(result).value mustEqual routes.CheckFileController.onPageLoad(operatorId, submission._id).url
           }
+
+          verify(mockSessionRepository, times(1)).set(answersCaptor.capture())
+          val answers = answersCaptor.getValue
+          answers.get(XmlSubmissionSentPage).value mustEqual true
 
           verify(mockSubmissionConnector).get(eqTo("id"))(using any())
           verify(mockSubmissionConnector).submit(eqTo("id"))(using any())
@@ -459,7 +474,8 @@ class SendFileControllerSpec extends SpecBase with MockitoSugar with BeforeAndAf
 
           val application = applicationBuilder(userAnswers = Some(emptyUserAnswers))
             .overrides(
-              bind[SubmissionConnector].toInstance(mockSubmissionConnector)
+              bind[SubmissionConnector].toInstance(mockSubmissionConnector),
+              bind[SessionRepository].toInstance(mockSessionRepository)
             )
             .build()
 
@@ -474,6 +490,7 @@ class SendFileControllerSpec extends SpecBase with MockitoSugar with BeforeAndAf
           }
 
           verify(mockSubmissionConnector, never()).submit(eqTo("id"))(using any())
+          verify(mockSessionRepository, never()).set(any())
         }
 
         "when the submission is in a ready state" - {
@@ -482,7 +499,8 @@ class SendFileControllerSpec extends SpecBase with MockitoSugar with BeforeAndAf
 
             val application = applicationBuilder(userAnswers = Some(emptyUserAnswers))
               .overrides(
-                bind[SubmissionConnector].toInstance(mockSubmissionConnector)
+                bind[SubmissionConnector].toInstance(mockSubmissionConnector),
+                bind[SessionRepository].toInstance(mockSessionRepository)
               )
               .build()
 
@@ -511,6 +529,7 @@ class SendFileControllerSpec extends SpecBase with MockitoSugar with BeforeAndAf
 
             verify(mockSubmissionConnector).get(eqTo("id"))(using any())
             verify(mockSubmissionConnector, never()).submit(any())(using any())
+            verify(mockSessionRepository, never()).set(any())
           }
         }
 
@@ -520,7 +539,8 @@ class SendFileControllerSpec extends SpecBase with MockitoSugar with BeforeAndAf
 
             val application = applicationBuilder(userAnswers = Some(emptyUserAnswers))
               .overrides(
-                bind[SubmissionConnector].toInstance(mockSubmissionConnector)
+                bind[SubmissionConnector].toInstance(mockSubmissionConnector),
+                bind[SessionRepository].toInstance(mockSessionRepository)
               )
               .build()
 
@@ -549,6 +569,7 @@ class SendFileControllerSpec extends SpecBase with MockitoSugar with BeforeAndAf
 
             verify(mockSubmissionConnector).get(eqTo("id"))(using any())
             verify(mockSubmissionConnector, never()).submit(any())(using any())
+            verify(mockSessionRepository, never()).set(any())
           }
         }
 
@@ -558,7 +579,8 @@ class SendFileControllerSpec extends SpecBase with MockitoSugar with BeforeAndAf
 
             val application = applicationBuilder(userAnswers = Some(emptyUserAnswers))
               .overrides(
-                bind[SubmissionConnector].toInstance(mockSubmissionConnector)
+                bind[SubmissionConnector].toInstance(mockSubmissionConnector),
+                bind[SessionRepository].toInstance(mockSessionRepository)
               )
               .build()
 
@@ -587,6 +609,7 @@ class SendFileControllerSpec extends SpecBase with MockitoSugar with BeforeAndAf
 
             verify(mockSubmissionConnector).get(eqTo("id"))(using any())
             verify(mockSubmissionConnector, never()).submit(any())(using any())
+            verify(mockSessionRepository, never()).set(any())
           }
         }
 
@@ -596,7 +619,8 @@ class SendFileControllerSpec extends SpecBase with MockitoSugar with BeforeAndAf
 
             val application = applicationBuilder(userAnswers = Some(emptyUserAnswers))
               .overrides(
-                bind[SubmissionConnector].toInstance(mockSubmissionConnector)
+                bind[SubmissionConnector].toInstance(mockSubmissionConnector),
+                bind[SessionRepository].toInstance(mockSessionRepository)
               )
               .build()
 
@@ -625,6 +649,7 @@ class SendFileControllerSpec extends SpecBase with MockitoSugar with BeforeAndAf
 
             verify(mockSubmissionConnector).get(eqTo("id"))(using any())
             verify(mockSubmissionConnector, never()).submit(any())(using any())
+            verify(mockSessionRepository, never()).set(any())
           }
         }
 
@@ -634,7 +659,8 @@ class SendFileControllerSpec extends SpecBase with MockitoSugar with BeforeAndAf
 
             val application = applicationBuilder(userAnswers = Some(emptyUserAnswers))
               .overrides(
-                bind[SubmissionConnector].toInstance(mockSubmissionConnector)
+                bind[SubmissionConnector].toInstance(mockSubmissionConnector),
+                bind[SessionRepository].toInstance(mockSessionRepository)
               )
               .build()
 
@@ -663,6 +689,7 @@ class SendFileControllerSpec extends SpecBase with MockitoSugar with BeforeAndAf
 
             verify(mockSubmissionConnector).get(eqTo("id"))(using any())
             verify(mockSubmissionConnector, never()).submit(any())(using any())
+            verify(mockSessionRepository, never()).set(any())
           }
         }
 
@@ -672,7 +699,8 @@ class SendFileControllerSpec extends SpecBase with MockitoSugar with BeforeAndAf
 
             val application = applicationBuilder(userAnswers = Some(emptyUserAnswers))
               .overrides(
-                bind[SubmissionConnector].toInstance(mockSubmissionConnector)
+                bind[SubmissionConnector].toInstance(mockSubmissionConnector),
+                bind[SessionRepository].toInstance(mockSessionRepository)
               )
               .build()
 
@@ -701,6 +729,7 @@ class SendFileControllerSpec extends SpecBase with MockitoSugar with BeforeAndAf
 
             verify(mockSubmissionConnector).get(eqTo("id"))(using any())
             verify(mockSubmissionConnector, never()).submit(any())(using any())
+            verify(mockSessionRepository, never()).set(any())
           }
         }
       }
@@ -711,7 +740,8 @@ class SendFileControllerSpec extends SpecBase with MockitoSugar with BeforeAndAf
 
           val application = applicationBuilder(userAnswers = None)
             .overrides(
-              bind[SubmissionConnector].toInstance(mockSubmissionConnector)
+              bind[SubmissionConnector].toInstance(mockSubmissionConnector),
+              bind[SessionRepository].toInstance(mockSessionRepository)
             )
             .build()
 
@@ -724,6 +754,7 @@ class SendFileControllerSpec extends SpecBase with MockitoSugar with BeforeAndAf
           }
 
           verify(mockSubmissionConnector, never()).get(any())(using any())
+          verify(mockSessionRepository, never()).set(any())
         }
       }
 
