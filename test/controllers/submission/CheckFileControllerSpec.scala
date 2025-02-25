@@ -24,14 +24,14 @@ import models.submission.Submission.SubmissionType
 import models.submission.Submission.UploadFailureReason.SchemaValidationError
 import org.mockito.ArgumentMatchers.{any, eq as eqTo}
 import org.mockito.Mockito
-import org.mockito.Mockito.{never, verify, when}
+import org.mockito.Mockito.{verify, when}
 import org.scalatest.BeforeAndAfterEach
 import org.scalatestplus.mockito.MockitoSugar
 import play.api.i18n.Messages
 import play.api.inject.bind
 import play.api.test.FakeRequest
 import play.api.test.Helpers.*
-import uk.gov.hmrc.govukfrontend.views.Aliases.{HtmlContent, Key, SummaryList, SummaryListRow, Value}
+import uk.gov.hmrc.govukfrontend.views.Aliases.*
 import uk.gov.hmrc.govukfrontend.views.viewmodels.content.Text
 import uk.gov.hmrc.http.StringContextOps
 import views.html.submission.CheckFileView
@@ -91,7 +91,7 @@ class CheckFileControllerSpec extends SpecBase with MockitoSugar with BeforeAndA
                 SummaryListRow(
                   key = Key(content = Text(Messages("checkFile.autoCheck"))),
                   value = Value(content = HtmlContent(s"""<strong class="govuk-tag govuk-tag--yellow"> ${Messages("checkFile.pending")} </strong>""".stripMargin)),
-                  )
+                )
               )
             )
 
@@ -171,9 +171,9 @@ class CheckFileControllerSpec extends SpecBase with MockitoSugar with BeforeAndA
             val request = FakeRequest(routes.CheckFileController.onPageLoad(operatorId, "id"))
             val result = route(application, request).value
 
-              status(result) mustEqual SEE_OTHER
-              redirectLocation(result).value mustEqual routes.UploadingController.onPageLoad(operatorId, "id").url
-            }
+            status(result) mustEqual SEE_OTHER
+            redirectLocation(result).value mustEqual routes.UploadingController.onPageLoad(operatorId, "id").url
+          }
 
           verify(mockSubmissionConnector).get(eqTo("id"))(using any())
         }
@@ -328,7 +328,7 @@ class CheckFileControllerSpec extends SpecBase with MockitoSugar with BeforeAndA
           verify(mockSubmissionConnector).get(eqTo("id"))(using any())
         }
       }
-      
+
       "when there is no submission for the given id" - {
 
         "must return NotFound" in {

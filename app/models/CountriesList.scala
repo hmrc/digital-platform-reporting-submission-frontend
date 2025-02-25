@@ -16,6 +16,8 @@
 
 package models
 
+import models.Country.{Guernsey, IsleOfMan, Jersey, UnitedKingdom}
+
 import javax.inject.{Inject, Singleton}
 
 trait CountriesList {
@@ -88,7 +90,7 @@ trait CountriesList {
     Country("GR", "Greece"),
     Country("GD", "Grenada"),
     Country("GT", "Guatemala"),
-    Country("GG", "Guernsey"),
+    Guernsey,
     Country("GN", "Guinea"),
     Country("GW", "Guinea-Bissau"),
     Country("GY", "Guyana"),
@@ -101,13 +103,13 @@ trait CountriesList {
     Country("IR", "Iran"),
     Country("IQ", "Iraq"),
     Country("IE", "Ireland"),
-    Country("IM", "Isle of Man"),
+    IsleOfMan,
     Country("IL", "Israel"),
     Country("IT", "Italy"),
     Country("CI", "Ivory Coast"),
     Country("JM", "Jamaica"),
     Country("JP", "Japan"),
-    Country("JE", "Jersey"),
+    Jersey,
     Country("JO", "Jordan"),
     Country("KZ", "Kazakhstan"),
     Country("KE", "Kenya"),
@@ -208,7 +210,7 @@ trait CountriesList {
     Country("UG", "Uganda"),
     Country("UA", "Ukraine"),
     Country("AE", "United Arab Emirates"),
-    Country("GB", "United Kingdom"),
+    UnitedKingdom,
     Country("US", "United States"),
     Country("UY", "Uruguay"),
     Country("UZ", "Uzbekistan"),
@@ -223,9 +225,9 @@ trait CountriesList {
 
   def allCountries: Seq[Country] = countriesList
 
-  lazy val ukCountries: Seq[Country] = allCountries.filter(x => x.code == "GB" || x.code == "GG" || x.code == "IM" || x.code == "JE")
-  lazy val internationalCountries: Seq[Country] = allCountries.filterNot(x => ukCountries.exists(_.code == x.code))
-  lazy val nonUkInternationalCountries: Seq[Country] = allCountries.filterNot(_.code == "GB")
+  lazy val ukAndCrownDependantCountries: Seq[Country] = Seq(UnitedKingdom, Guernsey, IsleOfMan, Jersey)
+  lazy val internationalCountries: Seq[Country] = allCountries.diff(ukAndCrownDependantCountries)
+  lazy val nonUkCountries: Seq[Country] = allCountries.filterNot(_.code == UnitedKingdom.code)
 }
 
 @Singleton

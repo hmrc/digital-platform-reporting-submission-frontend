@@ -19,11 +19,11 @@ package controllers.assumed.create
 import base.SpecBase
 import controllers.routes as baseRoutes
 import forms.HasUkTaxIdentifierFormProvider
-import models.{NormalMode, UserAnswers}
+import models.NormalMode
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.when
 import org.scalatestplus.mockito.MockitoSugar
-import pages.assumed.create.{HasUkTaxIdentifierPage, AssumingOperatorNamePage}
+import pages.assumed.create.{AssumingOperatorNamePage, HasUkTaxIdentifierPage}
 import play.api.inject.bind
 import play.api.test.FakeRequest
 import play.api.test.Helpers.*
@@ -34,12 +34,12 @@ import scala.concurrent.Future
 
 class HasUkTaxIdentifierControllerSpec extends SpecBase with MockitoSugar {
 
-  val formProvider = new HasUkTaxIdentifierFormProvider()
+  private val formProvider = new HasUkTaxIdentifierFormProvider()
   private val assumingOperatorName = "name"
   private val form = formProvider(assumingOperatorName)
   private val baseAnswers = emptyUserAnswers.set(AssumingOperatorNamePage, assumingOperatorName).success.value
 
-  lazy val hasUkTaxIdentifierRoute = routes.HasUkTaxIdentifierController.onPageLoad(NormalMode, operatorId).url
+  private lazy val hasUkTaxIdentifierRoute = routes.HasUkTaxIdentifierController.onPageLoad(NormalMode, operatorId).url
 
   "HasUkTaxIdentifier Controller" - {
 
@@ -76,7 +76,7 @@ class HasUkTaxIdentifierControllerSpec extends SpecBase with MockitoSugar {
         contentAsString(result) mustEqual view(form.fill(true), NormalMode, operatorId, assumingOperatorName)(request, messages(application)).toString
       }
     }
-    
+
     "must redirect to AssumedReportingDisabled for a GET when submissions are disabled" in {
 
       val application =
@@ -172,7 +172,7 @@ class HasUkTaxIdentifierControllerSpec extends SpecBase with MockitoSugar {
 
     "must redirect to AssumedReportingDisabled for a POST when submissions are disabled" in {
 
-      val application = 
+      val application =
         applicationBuilder(userAnswers = None)
           .configure("features.submissions-enabled" -> false)
           .build()

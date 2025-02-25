@@ -19,11 +19,10 @@ package controllers.assumed.update
 import base.SpecBase
 import controllers.routes as baseRoutes
 import forms.AddressFormProvider
-import models.{Country, NormalMode}
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.when
 import org.scalatestplus.mockito.MockitoSugar
-import pages.assumed.update.{AssumingOperatorNamePage, AddressPage}
+import pages.assumed.update.{AddressPage, AssumingOperatorNamePage}
 import play.api.inject.bind
 import play.api.test.FakeRequest
 import play.api.test.Helpers.*

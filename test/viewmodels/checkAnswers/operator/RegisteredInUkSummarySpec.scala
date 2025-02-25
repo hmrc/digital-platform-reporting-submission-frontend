@@ -16,9 +16,9 @@
 
 package viewmodels.checkAnswers.operator
 
-import models.{Country, DefaultCountriesList}
-import models.operator.{AddressDetails, ContactDetails}
+import models.DefaultCountriesList
 import models.operator.responses.PlatformOperator
+import models.operator.{AddressDetails, ContactDetails}
 import org.scalacheck.Gen
 import org.scalatest.OptionValues
 import org.scalatest.freespec.AnyFreeSpec
@@ -51,7 +51,7 @@ class RegisteredInUkSummarySpec extends AnyFreeSpec with Matchers with ScalaChec
 
     "must have a value of `yes` when the operator's country is in the UK" in {
 
-      forAll(Gen.oneOf(countriesList.ukCountries)) { country =>
+      forAll(Gen.oneOf(countriesList.ukAndCrownDependantCountries)) { country =>
         val operator = baseOperator.copy(addressDetails = baseAddress.copy(countryCode = Some(country.code)))
         val row = RegisteredInUkSummary.row(operator, countriesList).value
         row.value mustEqual ValueViewModel(messages("site.yes"))

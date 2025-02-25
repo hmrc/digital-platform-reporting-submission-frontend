@@ -20,28 +20,25 @@ import base.SpecBase
 import connectors.PlatformOperatorConnector
 import controllers.routes as baseRoutes
 import forms.CheckReportingNotificationsFormProvider
+import models.UserAnswers
 import models.operator.responses.{NotificationDetails, PlatformOperator}
 import models.operator.{AddressDetails, ContactDetails, NotificationType}
-import models.{NormalMode, UserAnswers}
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.{times, verify, when}
 import org.mockito.{ArgumentCaptor, Mockito}
 import org.scalatest.BeforeAndAfterEach
 import org.scalatestplus.mockito.MockitoSugar
 import pages.assumed.update.CheckReportingNotificationsPage
-import play.api.i18n.Messages
 import play.api.inject.bind
 import play.api.test.FakeRequest
 import play.api.test.Helpers.*
 import queries.PlatformOperatorSummaryQuery
 import repositories.SessionRepository
 import viewmodels.PlatformOperatorSummary
-import viewmodels.checkAnswers.operator.*
 import viewmodels.govuk.SummaryListFluency
 import views.html.assumed.update.CheckReportingNotificationsView
 
-import java.time.Instant
-import java.time.Year
+import java.time.{Instant, Year}
 import scala.concurrent.Future
 
 class CheckReportingNotificationsControllerSpec extends SpecBase with SummaryListFluency with MockitoSugar with BeforeAndAfterEach {

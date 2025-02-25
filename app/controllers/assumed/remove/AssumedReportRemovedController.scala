@@ -23,7 +23,7 @@ import models.email.EmailsSentResult
 import models.pageviews.assumed.remove.AssumedReportRemovedViewModel
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
-import queries.{AssumedReportSummariesQuery, SentAddAssumedReportingEmailsQuery, SentDeleteAssumedReportingEmailsQuery}
+import queries.{AssumedReportSummariesQuery, SentDeleteAssumedReportingEmailsQuery}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import viewmodels.checkAnswers.assumed.remove.AssumedReportRemovedSummaryList
 import views.html.assumed.remove.AssumedReportRemovedView

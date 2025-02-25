@@ -28,7 +28,6 @@ import play.api.test.FakeRequest
 import play.api.test.Helpers.*
 import queries.PlatformOperatorNameQuery
 import repositories.SessionRepository
-import viewmodels.PlatformOperatorSummary
 import views.html.assumed.update.AssumingOperatorNameView
 
 import java.time.Year

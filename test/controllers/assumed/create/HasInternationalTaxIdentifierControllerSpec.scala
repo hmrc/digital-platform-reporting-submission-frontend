@@ -19,7 +19,7 @@ package controllers.assumed.create
 import base.SpecBase
 import controllers.routes as baseRoutes
 import forms.HasInternationalTaxIdentifierFormProvider
-import models.{Country, DefaultCountriesList, NormalMode, UserAnswers}
+import models.{Country, DefaultCountriesList, NormalMode}
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.when
 import org.scalatestplus.mockito.MockitoSugar
@@ -35,14 +35,13 @@ import scala.concurrent.Future
 class HasInternationalTaxIdentifierControllerSpec extends SpecBase with MockitoSugar {
 
   private val countriesList = new DefaultCountriesList
-  val formProvider = new HasInternationalTaxIdentifierFormProvider()
+  private val formProvider = new HasInternationalTaxIdentifierFormProvider()
   private val assumingOperatorName = "name"
   private val country = countriesList.internationalCountries.head
   private val form = formProvider(assumingOperatorName, country)
-  private val baseAnswers =
-    emptyUserAnswers
-      .set(AssumingOperatorNamePage, assumingOperatorName).success.value
-      .set(TaxResidencyCountryPage, country).success.value
+  private val baseAnswers = emptyUserAnswers
+    .set(AssumingOperatorNamePage, assumingOperatorName).success.value
+    .set(TaxResidencyCountryPage, country).success.value
 
   private lazy val hasInternationalTaxIdentifierRoute = routes.HasInternationalTaxIdentifierController.onPageLoad(NormalMode, operatorId).url
 

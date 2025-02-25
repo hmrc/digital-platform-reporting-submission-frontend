@@ -19,37 +19,35 @@ package controllers.submission
 import connectors.SubmissionConnector
 import controllers.actions.*
 import models.submission.Submission
+import models.submission.Submission.State
 import models.submission.Submission.State.{Approved, Ready, Rejected, Submitted, UploadFailed, Uploading, Validated}
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents, Result}
-import uk.gov.hmrc.govukfrontend.views.Aliases.{Key, HtmlContent, SummaryList, Text, Value}
+import uk.gov.hmrc.govukfrontend.views.Aliases.*
 import uk.gov.hmrc.govukfrontend.views.viewmodels.summarylist.SummaryListRow
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import views.html.submission.CheckFileView
-import viewmodels.govuk.tag._
 
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
-class CheckFileController @Inject()(
-                                    override val messagesApi: MessagesApi,
+class CheckFileController @Inject()(override val messagesApi: MessagesApi,
                                     identify: IdentifierAction,
                                     val controllerComponents: MessagesControllerComponents,
                                     view: CheckFileView,
-                                    submissionConnector: SubmissionConnector
-                                  )(using ExecutionContext) extends FrontendBaseController with I18nSupport {
+                                    submissionConnector: SubmissionConnector)
+                                   (using ExecutionContext) extends FrontendBaseController with I18nSupport {
 
-  def onPageLoad(operatorId: String, submissionId: String): Action[AnyContent] = identify.async {
-    implicit request =>
-      submissionConnector.get(submissionId).flatMap {
-        _.map { submission =>
-          handleSubmission(operatorId, submission) { case state: Submitted =>
-            Future.successful(Ok(view(operatorId, submissionId, getSummaryList(state.fileName), submission.operatorName)))
-          }
-        }.getOrElse {
-          Future.successful(NotFound)
+  def onPageLoad(operatorId: String, submissionId: String): Action[AnyContent] = identify.async { implicit request =>
+    submissionConnector.get(submissionId).flatMap {
+      _.map { submission =>
+        handleSubmission(operatorId, submission) { case state: Submitted =>
+          Future.successful(Ok(view(operatorId, submissionId, getSummaryList(state.fileName), submission.operatorName)))
         }
+      }.getOrElse {
+        Future.successful(NotFound)
       }
+    }
   }
 
   private def getSummaryList(fileName: String)(using Messages): SummaryList =
@@ -59,7 +57,7 @@ class CheckFileController @Inject()(
           key = Key(content = Text(Messages("checkFile.fileName"))),
           value = Value(content = Text(fileName)),
         ),
-          SummaryListRow(
+        SummaryListRow(
           key = Key(content = Text(Messages("checkFile.autoCheck"))),
           value = Value(content = HtmlContent(s"""<strong class="govuk-tag govuk-tag--yellow"> ${Messages("checkFile.pending")} </strong>""".stripMargin)),
 
@@ -85,8 +83,6 @@ class CheckFileController @Inject()(
           routes.SubmissionConfirmationController.onPageLoad(operatorId, submission._id)
         case _: Rejected =>
           routes.FileErrorsController.onPageLoad(operatorId, submission._id)
-        case _ =>
-          controllers.routes.JourneyRecoveryController.onPageLoad()
       }
 
       Future.successful(Redirect(redirectLocation))

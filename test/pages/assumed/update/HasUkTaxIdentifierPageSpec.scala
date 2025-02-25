@@ -17,7 +17,7 @@
 package pages.assumed.update
 
 import controllers.assumed.update.routes
-import models.{Country, DefaultCountriesList, UkTaxIdentifiers, UserAnswers}
+import models.{Country, DefaultCountriesList, UserAnswers}
 import org.scalatest.freespec.AnyFreeSpec
 import org.scalatest.matchers.must.Matchers
 import org.scalatest.{OptionValues, TryValues}
@@ -31,7 +31,7 @@ class HasUkTaxIdentifierPageSpec
     with OptionValues {
 
   private val countriesList = new DefaultCountriesList
-  private val reportingPeriod = Year.of(2024)
+  private val reportingPeriod = Year.parse("2024")
   private val operatorId = "operatorId"
   private val emptyAnswers = UserAnswers("id", operatorId, Some(reportingPeriod))
 
@@ -48,14 +48,14 @@ class HasUkTaxIdentifierPageSpec
 
         HasUkTaxIdentifierPage.nextPage(reportingPeriod, answers).mustEqual(routes.CheckYourAnswersController.onPageLoad(operatorId, reportingPeriod))
       }
-      
+
       "when the answer is no" in {
 
         val answers = emptyAnswers.set(HasUkTaxIdentifierPage, false).success.value
         HasUkTaxIdentifierPage.nextPage(reportingPeriod, answers).mustEqual(routes.CheckYourAnswersController.onPageLoad(operatorId, reportingPeriod))
       }
     }
-    
+
     "must go to UK Tax Identifier when the answer is yes and UK Tax Identifier has not been answered" in {
 
       val answers = emptyAnswers.set(HasUkTaxIdentifierPage, true).success.value
@@ -76,10 +76,10 @@ class HasUkTaxIdentifierPageSpec
 
       val result = answers.set(HasUkTaxIdentifierPage, false).success.value
 
-      result.get(UkTaxIdentifierPage)               must not be defined
-      result.get(TaxResidencyCountryPage)           mustBe defined
+      result.get(UkTaxIdentifierPage) must not be defined
+      result.get(TaxResidencyCountryPage) mustBe defined
       result.get(HasInternationalTaxIdentifierPage) mustBe defined
-      result.get(InternationalTaxIdentifierPage)    mustBe defined
+      result.get(InternationalTaxIdentifierPage) mustBe defined
     }
 
     "must not remove UK tax identifier when the answer is yes" in {
@@ -93,10 +93,10 @@ class HasUkTaxIdentifierPageSpec
 
       val result = answers.set(HasUkTaxIdentifierPage, true).success.value
 
-      result.get(UkTaxIdentifierPage)               mustBe defined
-      result.get(TaxResidencyCountryPage)           mustBe defined
+      result.get(UkTaxIdentifierPage) mustBe defined
+      result.get(TaxResidencyCountryPage) mustBe defined
       result.get(HasInternationalTaxIdentifierPage) mustBe defined
-      result.get(InternationalTaxIdentifierPage)    mustBe defined
+      result.get(InternationalTaxIdentifierPage) mustBe defined
     }
   }
 }

@@ -19,7 +19,7 @@ package controllers.assumed.update
 import base.SpecBase
 import controllers.routes as baseRoutes
 import forms.HasInternationalTaxIdentifierFormProvider
-import models.{Country, DefaultCountriesList, NormalMode, UserAnswers}
+import models.{Country, DefaultCountriesList, UserAnswers}
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.when
 import org.scalatestplus.mockito.MockitoSugar

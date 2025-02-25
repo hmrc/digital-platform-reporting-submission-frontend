@@ -19,7 +19,7 @@ package controllers.assumed.update
 import base.SpecBase
 import controllers.routes as baseRoutes
 import forms.TaxResidencyCountryFormProvider
-import models.{Country, DefaultCountriesList, NormalMode}
+import models.{Country, DefaultCountriesList}
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.when
 import org.scalatestplus.mockito.MockitoSugar
@@ -41,7 +41,7 @@ class TaxResidencyCountryControllerSpec extends SpecBase with MockitoSugar {
   private val assumingOperatorName = "name"
   private val baseAnswers = emptyUserAnswers.copy(reportingPeriod = Some(reportingPeriod)).set(AssumingOperatorNamePage, assumingOperatorName).success.value
 
-  lazy val taxResidencyCountryRoute = routes.TaxResidencyCountryController.onPageLoad(operatorId, reportingPeriod).url
+  private lazy val taxResidencyCountryRoute = routes.TaxResidencyCountryController.onPageLoad(operatorId, reportingPeriod).url
 
   "TaxResidencyCountry Controller" - {
 
@@ -102,7 +102,7 @@ class TaxResidencyCountryControllerSpec extends SpecBase with MockitoSugar {
 
       val mockSessionRepository = mock[SessionRepository]
 
-      when(mockSessionRepository.set(any())) thenReturn Future.successful(true)
+      when(mockSessionRepository.set(any())).thenReturn(Future.successful(true))
 
       val application =
         applicationBuilder(userAnswers = Some(baseAnswers))

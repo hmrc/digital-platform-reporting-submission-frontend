@@ -16,8 +16,8 @@
 
 package viewmodels.checkAnswers.operator
 
+import models.CountriesList
 import models.operator.responses.PlatformOperator
-import models.{CountriesList, Country}
 import play.api.i18n.Messages
 import uk.gov.hmrc.govukfrontend.views.viewmodels.summarylist.SummaryListRow
 import viewmodels.govuk.summarylist.*
@@ -27,9 +27,8 @@ object RegisteredInUkSummary {
 
   def row(operator: PlatformOperator, countriesList: CountriesList)
          (implicit messages: Messages): Option[SummaryListRow] = {
-
     operator.addressDetails.countryCode.map { countryCode =>
-      val value = if (countriesList.ukCountries.map(_.code).contains(countryCode)) "site.yes" else "site.no"
+      val value = if (countriesList.ukAndCrownDependantCountries.map(_.code).contains(countryCode)) "site.yes" else "site.no"
 
       SummaryListRowViewModel(
         key = messages("registeredInUk.checkYourAnswersLabel", operator.operatorName),

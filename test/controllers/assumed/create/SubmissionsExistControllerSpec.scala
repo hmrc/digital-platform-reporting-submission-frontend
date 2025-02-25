@@ -19,10 +19,9 @@ package controllers.assumed.create
 import base.SpecBase
 import models.yearFormat
 import pages.assumed.create.ReportingPeriodPage
-import play.api.inject.bind
 import play.api.test.FakeRequest
 import play.api.test.Helpers.*
-import queries.{AssumedReportSummaryQuery, PlatformOperatorSummaryQuery}
+import queries.PlatformOperatorSummaryQuery
 import viewmodels.PlatformOperatorSummary
 import views.html.assumed.create.SubmissionsExistView
 
@@ -31,12 +30,10 @@ import java.time.Year
 class SubmissionsExistControllerSpec extends SpecBase {
 
   "SubmissionsExist Controller" - {
-
     "onPageLoad" - {
-
       "must return OK and the correct view" in {
-
-        val reportingPeriod = Year.of(2024)
+        val year2024 = 2024
+        val reportingPeriod = Year.of(year2024)
         val platformOperator = PlatformOperatorSummary(operatorId, operatorName, "primaryContactName", "test@test.com", hasReportingNotifications = true)
         val answers =
           emptyUserAnswers

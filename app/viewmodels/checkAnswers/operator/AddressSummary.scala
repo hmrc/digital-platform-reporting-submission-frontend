@@ -16,8 +16,8 @@
 
 package viewmodels.checkAnswers.operator
 
+import models.CountriesList
 import models.operator.responses.PlatformOperator
-import models.{CountriesList, Country}
 import play.api.i18n.Messages
 import play.twirl.api.HtmlFormat
 import uk.gov.hmrc.govukfrontend.views.Aliases.HtmlContent

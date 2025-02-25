@@ -18,24 +18,23 @@ package viewmodels.checkAnswers.assumed.create
 
 import controllers.assumed.create.routes
 import models.{CheckMode, UserAnswers}
-import pages.assumed.create.{AssumingOperatorNamePage, InternationalTaxIdentifierPage, TaxResidencyCountryPage}
+import pages.assumed.create.{InternationalTaxIdentifierPage, TaxResidencyCountryPage}
 import play.api.i18n.Messages
 import play.twirl.api.HtmlFormat
 import uk.gov.hmrc.govukfrontend.views.viewmodels.summarylist.SummaryListRow
 import viewmodels.govuk.summarylist.*
 import viewmodels.implicits.*
 
-object InternationalTaxIdentifierSummary  {
+object InternationalTaxIdentifierSummary {
 
   def row(answers: UserAnswers)(implicit messages: Messages): Option[SummaryListRow] =
     for {
-      answer  <- answers.get(InternationalTaxIdentifierPage)
+      answer <- answers.get(InternationalTaxIdentifierPage)
       country <- answers.get(TaxResidencyCountryPage)
     } yield {
-
       SummaryListRowViewModel(
-        key     = messages("internationalTaxIdentifier.checkYourAnswersLabel", country.name),
-        value   = ValueViewModel(HtmlFormat.escape(answer).toString),
+        key = messages("internationalTaxIdentifier.checkYourAnswersLabel", country.name),
+        value = ValueViewModel(HtmlFormat.escape(answer).toString),
         actions = Seq(
           ActionItemViewModel("site.change", routes.InternationalTaxIdentifierController.onPageLoad(CheckMode, answers.operatorId).url)
             .withVisuallyHiddenText(messages("internationalTaxIdentifier.change.hidden", country.name))

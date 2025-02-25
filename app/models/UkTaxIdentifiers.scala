@@ -19,7 +19,7 @@ package models
 import play.api.i18n.Messages
 import uk.gov.hmrc.govukfrontend.views.viewmodels.checkboxes.CheckboxItem
 import uk.gov.hmrc.govukfrontend.views.viewmodels.content.Text
-import viewmodels.govuk.checkbox._
+import viewmodels.govuk.checkbox.*
 
 sealed trait UkTaxIdentifiers
 
@@ -41,11 +41,11 @@ object UkTaxIdentifiers extends Enumerable.Implicits {
         CheckboxItemViewModel(
           content = Text(messages(s"ukTaxIdentifiers.${value.toString}")),
           fieldId = "value",
-          index   = index,
-          value   = value.toString
+          index = index,
+          value = value.toString
         )
     }
 
   implicit val enumerable: Enumerable[UkTaxIdentifiers] =
-    Enumerable(values.map(v => v.toString -> v): _*)
+    Enumerable(values.map(v => v.toString -> v) *)
 }

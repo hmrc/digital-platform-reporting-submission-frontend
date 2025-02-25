@@ -111,8 +111,6 @@ class RemoveAssumedReportControllerSpec extends SpecBase with MockitoSugar with 
             .build()
 
         running(application) {
-          given Messages = messages(application)
-
           val request = FakeRequest(routes.RemoveAssumedReportController.onPageLoad("operatorId", Year.of(2024)))
 
           val result = route(application, request).value

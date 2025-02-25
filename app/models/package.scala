@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import play.api.libs.json._
+import play.api.libs.json.*
 
 package object models {
 
@@ -47,24 +47,24 @@ package object models {
         case (first :: second :: rest, oldValue) =>
           Reads.optionNoError(Reads.at[JsValue](JsPath(first :: Nil)))
             .reads(oldValue).flatMap {
-            opt =>
+              opt =>
 
-              opt.map(JsSuccess(_)).getOrElse {
-                second match {
-                  case _: KeyPathNode =>
-                    JsSuccess(Json.obj())
-                  case _: IdxPathNode =>
-                    JsSuccess(Json.arr())
-                  case _: RecursiveSearch =>
-                    JsError("recursive search is not supported")
+                opt.map(JsSuccess(_)).getOrElse {
+                  second match {
+                    case _: KeyPathNode =>
+                      JsSuccess(Json.obj())
+                    case _: IdxPathNode =>
+                      JsSuccess(Json.arr())
+                    case _: RecursiveSearch =>
+                      JsError("recursive search is not supported")
+                  }
+                }.flatMap {
+                  _.set(JsPath(second :: rest), value).flatMap {
+                    newValue =>
+                      oldValue.set(JsPath(first :: Nil), newValue)
+                  }
                 }
-              }.flatMap {
-                _.set(JsPath(second :: rest), value).flatMap {
-                  newValue =>
-                    oldValue.set(JsPath(first :: Nil), newValue)
-                }
-              }
-          }
+            }
       }
 
     private def setIndexNode(node: IdxPathNode, oldValue: JsValue, newValue: JsValue): JsResult[JsValue] = {
@@ -109,19 +109,15 @@ package object models {
     }
 
     def remove(path: JsPath): JsResult[JsValue] = {
-
       (path.path, jsValue) match {
         case (Nil, _) => JsError("path cannot be empty")
         case ((n: KeyPathNode) :: Nil, value: JsObject) if value.keys.contains(n.key) => JsSuccess(value - n.key)
         case ((n: KeyPathNode) :: Nil, value: JsObject) if !value.keys.contains(n.key) => JsError("cannot find value at path")
         case ((n: IdxPathNode) :: Nil, value: JsArray) => removeIndexNode(n, value)
         case ((_: KeyPathNode) :: Nil, _) => JsError(s"cannot remove a key on $jsValue")
-        case (first :: second :: rest, oldValue) =>
-
-          Reads.optionNoError(Reads.at[JsValue](JsPath(first :: Nil)))
-            .reads(oldValue).flatMap {
+        case (first :: second :: rest, oldValue) => Reads.optionNoError(Reads.at[JsValue](JsPath(first :: Nil)))
+          .reads(oldValue).flatMap {
             (opt: Option[JsValue]) =>
-
               opt.map(JsSuccess(_)).getOrElse {
                 second match {
                   case _: KeyPathNode =>
@@ -138,6 +134,7 @@ package object models {
                 }
               }
           }
+        case (pathNodes, value) => JsError(s"Unsupported path $pathNodes for value $value")
       }
     }
   }

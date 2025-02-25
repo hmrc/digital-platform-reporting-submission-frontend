@@ -19,7 +19,7 @@ package controllers.submission
 import connectors.SubmissionConnector
 import controllers.AnswerExtractor
 import controllers.actions.*
-import models.submission.{CadxValidationError, Submission}
+import models.submission.Submission
 import models.submission.Submission.State.{Approved, Ready, Rejected, Submitted, UploadFailed, Uploading, Validated}
 import models.submission.Submission.UploadFailureReason
 import models.submission.Submission.UploadFailureReason.SchemaValidationError
@@ -75,7 +75,7 @@ class UploadFailedController @Inject()(override val messagesApi: MessagesApi,
     submissionConnector.get(submissionId).map {
       _.map { submission =>
         submission.state match {
-          case state @ UploadFailed(SchemaValidationError(errors, _), _) =>
+          case state@UploadFailed(SchemaValidationError(errors, _), _) =>
             val tsvSource = (Source.single(tsvHeaders) ++ Source(errors.map(toRow)))
               .via(CsvFormatting.format(delimiter = CsvFormatting.Tab))
             val fileName = state.fileName.get.replaceAll("\\.", "_")
@@ -141,8 +141,6 @@ class UploadFailedController @Inject()(override val messagesApi: MessagesApi,
           routes.SubmissionConfirmationController.onPageLoad(operatorId, submission._id)
         case _: Rejected =>
           routes.FileErrorsController.onPageLoad(operatorId, submission._id)
-        case _ =>
-          controllers.routes.JourneyRecoveryController.onPageLoad()
       }
 
       Future.successful(Redirect(redirectLocation))
