@@ -18,7 +18,6 @@
 
 @this(
     layout: templates.Layout,
-    govukButton: GovukButton,
     appConfig: FrontendAppConfig
 )
 
@@ -28,10 +27,8 @@
 
     <h1 class="govuk-heading-xl">@messages("journeyRecovery.startAgain.heading")</h1>
 
-    <p class="govuk-body">
-        @govukButton(
-            ButtonViewModel(messages("site.startAgain"))
-                .asLink(appConfig.manageHomepageUrl)
-        )
-    </p>
+    <p class="govuk-body">@messages("journeyRecovery.startAgain.guidance")</p>
+
+    <p class="govuk-body"><a class="govuk-link" href="@appConfig.manageHomepageUrl">@messages("journeyRecovery.startAgain.link")</a></p>
+
 }

@@ -47,7 +47,8 @@ journeyRecovery.continue.heading = Sorry, there is a problem with the service
 journeyRecovery.continue.guidance = [Add content to explain how to proceed.]
 journeyRecovery.startAgain.title = Sorry, there is a problem with the service
 journeyRecovery.startAgain.heading = Sorry, there is a problem with the service
-journeyRecovery.startAgain.guidance = [Add content to explain why the user needs to start again.]
+journeyRecovery.startAgain.guidance = Your answers have not been saved, please try again.
+journeyRecovery.startAgain.link = Return to manage your digital platform reporting
 
 signedOut.title = For your security, we signed you out
 signedOut.heading = For your security, we signed you out
