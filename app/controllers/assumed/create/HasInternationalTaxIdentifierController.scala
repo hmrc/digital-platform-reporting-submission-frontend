@@ -36,6 +36,7 @@ class HasInternationalTaxIdentifierController @Inject()(
                                                          identify: IdentifierAction,
                                                          getData: DataRetrievalActionProvider,
                                                          requireData: DataRequiredAction,
+                                                         assumedSubmissionSentCheck: AssumedSubmissionSentCheckAction,
                                                          checkAssumedReportingAllowed: CheckAssumedReportingAllowedAction,
                                                          formProvider: HasInternationalTaxIdentifierFormProvider,
                                                          val controllerComponents: MessagesControllerComponents,
@@ -45,7 +46,7 @@ class HasInternationalTaxIdentifierController @Inject()(
 
 
   def onPageLoad(mode: Mode, operatorId: String): Action[AnyContent] =
-    (identify andThen checkAssumedReportingAllowed andThen getData(operatorId) andThen requireData) { implicit request =>
+    (identify andThen checkAssumedReportingAllowed andThen getData(operatorId) andThen requireData andThen assumedSubmissionSentCheck) { implicit request =>
       getAnswers(AssumingOperatorNamePage, TaxResidencyCountryPage) { case (assumingOperatorName, country) =>
         val preparedForm = request.userAnswers.get(HasInternationalTaxIdentifierPage) match {
           case None => formProvider(assumingOperatorName, country)

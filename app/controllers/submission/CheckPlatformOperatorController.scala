@@ -44,6 +44,7 @@ class CheckPlatformOperatorController @Inject()(override val messagesApi: Messag
                                                 identify: IdentifierAction,
                                                 getData: DataRetrievalActionProvider,
                                                 requireData: DataRequiredAction,
+                                                xmlSubmissionSentCheck: XmlSubmissionSentCheckAction,
                                                 sessionRepository: SessionRepository,
                                                 checkSubmissionsAllowed: CheckSubmissionsAllowedAction,
                                                 val controllerComponents: MessagesControllerComponents,
@@ -58,7 +59,7 @@ class CheckPlatformOperatorController @Inject()(override val messagesApi: Messag
   extends FrontendBaseController with I18nSupport with AnswerExtractor {
 
   def onPageLoad(operatorId: String): Action[AnyContent] =
-    (identify andThen checkSubmissionsAllowed andThen getData(operatorId) andThen requireData).async { implicit request =>
+    (identify andThen checkSubmissionsAllowed andThen getData(operatorId) andThen requireData andThen xmlSubmissionSentCheck).async { implicit request =>
       platformOperatorConnector.viewPlatformOperator(operatorId).map { operator =>
 
         val form = formProvider()

@@ -25,6 +25,7 @@ import models.email.EmailsSentResult
 import models.requests.DataRequest
 import models.submission.{AssumedReportSummary, AssumedReportingSubmission, AssumedReportingSubmissionRequest, UpdateAssumedReportingSubmissionRequest}
 import models.{CountriesList, UserAnswers}
+import pages.assumed.AssumedSubmissionSentPage
 import play.api.Logging
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
@@ -43,6 +44,7 @@ class CheckYourAnswersController @Inject()(override val messagesApi: MessagesApi
                                            identify: IdentifierAction,
                                            getData: DataRetrievalActionProvider,
                                            requireData: DataRequiredAction,
+                                           assumedSubmissionSentCheck: AssumedSubmissionSentCheckAction,
                                            val controllerComponents: MessagesControllerComponents,
                                            view: CheckYourAnswersView,
                                            userAnswersService: UserAnswersService,
@@ -54,7 +56,7 @@ class CheckYourAnswersController @Inject()(override val messagesApi: MessagesApi
   extends FrontendBaseController with I18nSupport with AnswerExtractor with Logging {
 
   def onPageLoad(operatorId: String, reportingPeriod: Year): Action[AnyContent] =
-    (identify andThen getData(operatorId, Some(reportingPeriod)) andThen requireData) {
+    (identify andThen getData(operatorId, Some(reportingPeriod)) andThen requireData andThen assumedSubmissionSentCheck) {
       implicit request =>
 
         val list = SummaryListViewModel(
@@ -89,7 +91,8 @@ class CheckYourAnswersController @Inject()(override val messagesApi: MessagesApi
             answersWithSummary <- Future.fromTry(emptyAnswers.set(AssumedReportSummaryQuery, summary))
             emailsSentResult <- emailService.sendUpdateAssumedReportingEmails(operatorId, summary, submission.updated)
             answersWithSentEmails <- Future.fromTry(answersWithSummary.set(SentUpdateAssumedReportingEmailsQuery, emailsSentResult))
-            _ <- sessionRepository.set(answersWithSentEmails)
+            answersWithAssumedSubmissionSent <- Future.fromTry(answersWithSentEmails.set(AssumedSubmissionSentPage, true))
+            _ <- sessionRepository.set(answersWithAssumedSubmissionSent)
           } yield Redirect(routes.SubmissionConfirmationController.onPageLoad(operatorId, reportingPeriod))
         )
       }

@@ -31,3 +31,5 @@ GET        /:operatorId/check-contact-details                        controllers
 POST       /:operatorId/check-contact-details                        controllers.submission.CheckContactDetailsController.onSubmit(operatorId: String)
 
 GET        /:operatorId/no-reporting-notification                    controllers.submission.ReportingNotificationRequiredController.onPageLoad(operatorId: String)
+
+GET        /xml-submission-already-sent                              controllers.submission.XmlSubmissionAlreadySentController.onPageLoad()

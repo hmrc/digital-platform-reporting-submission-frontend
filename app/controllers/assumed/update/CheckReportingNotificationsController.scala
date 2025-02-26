@@ -35,6 +35,7 @@ class CheckReportingNotificationsController @Inject()(
                                                        identify: IdentifierAction,
                                                        getData: DataRetrievalActionProvider,
                                                        requireData: DataRequiredAction,
+                                                       assumedSubmissionSentCheck: AssumedSubmissionSentCheckAction,
                                                        checkAssumedReportingAllowed: CheckAssumedReportingAllowedAction,
                                                        val controllerComponents: MessagesControllerComponents,
                                                        connector: PlatformOperatorConnector,
@@ -45,7 +46,10 @@ class CheckReportingNotificationsController @Inject()(
                                                      )(implicit ec: ExecutionContext) extends FrontendBaseController with I18nSupport {
 
   def onPageLoad(operatorId: String, reportingPeriod: Year): Action[AnyContent] =
-    (identify andThen checkAssumedReportingAllowed andThen getData(operatorId, Some(reportingPeriod)) andThen requireData).async {
+    (identify andThen
+      checkAssumedReportingAllowed andThen
+      getData(operatorId, Some(reportingPeriod)) andThen
+      requireData andThen assumedSubmissionSentCheck).async {
       implicit request =>
         connector.viewPlatformOperator(operatorId).map { operator =>
 

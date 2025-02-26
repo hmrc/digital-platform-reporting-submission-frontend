@@ -47,7 +47,8 @@ journeyRecovery.continue.heading = Sorry, there is a problem with the service
 journeyRecovery.continue.guidance = [Add content to explain how to proceed.]
 journeyRecovery.startAgain.title = Sorry, there is a problem with the service
 journeyRecovery.startAgain.heading = Sorry, there is a problem with the service
-journeyRecovery.startAgain.guidance = [Add content to explain why the user needs to start again.]
+journeyRecovery.startAgain.guidance = Your answers have not been saved, please try again.
+journeyRecovery.startAgain.link = Return to manage your digital platform reporting
 
 signedOut.title = For your security, we signed you out
 signedOut.heading = For your security, we signed you out
@@ -523,3 +524,17 @@ assumedReportingDisabled.p3.link.text = Return to manage your digital platform r
 missingInformation.title = Some information is missing
 missingInformation.heading = Some information is missing
 missingInformation.guidance = You must provide this information to proceed.
+
+xmlSubmissionAlreadySent.title = You have already sent this information
+xmlSubmissionAlreadySent.heading = You have already sent this information
+xmlSubmissionAlreadySent.p1 = We may contact you if we have any questions about your XML report.
+xmlSubmissionAlreadySent.return = Return to manage your digital platform reporting
+
+assumedSubmissionAlreadySent.title = You have already sent this information
+assumedSubmissionAlreadySent.heading = You have already sent this information
+assumedSubmissionAlreadySent.p1 = We may contact you if we have any questions about the details you provided.
+assumedSubmissionAlreadySent.return = Return to manage your digital platform reporting
+
+assumedSubmissionAlreadyDeleted.title = You have already deleted these assumed reporting details
+assumedSubmissionAlreadyDeleted.heading = You have already deleted these assumed reporting details
+assumedSubmissionAlreadyDeleted.return = Return to manage your digital platform reporting

@@ -28,7 +28,9 @@ import org.mockito.Mockito.{never, times, verify, when}
 import org.mockito.{ArgumentCaptor, Mockito}
 import org.scalatest.BeforeAndAfterEach
 import org.scalatestplus.mockito.MockitoSugar
+import pages.submission.create.XmlSubmissionSentPage
 import play.api.inject.bind
+import play.api.libs.json.Json
 import play.api.test.FakeRequest
 import play.api.test.Helpers.*
 import queries.PlatformOperatorSummaryQuery
@@ -157,40 +159,56 @@ class StartControllerSpec extends SpecBase with MockitoSugar with BeforeAndAfter
     }
 
     "onSubmit" - {
+
+      val userAnswers = aUserAnswers.set(XmlSubmissionSentPage, true).success.value
+      val expectedUserAnswers = userAnswers.copy(data = Json.obj("submissions" -> Json.obj()))
+
       "must redirect to Check Platform Operator when business details have not been confirmed" in {
-        val application = applicationBuilder(userAnswers = Some(aUserAnswers)).overrides(
+        val application = applicationBuilder(userAnswers = Some(userAnswers)).overrides(
           bind[SubmissionConnector].toInstance(mockSubmissionConnector),
-          bind[ConfirmedDetailsService].toInstance(mockConfirmedDetailsService)
+          bind[ConfirmedDetailsService].toInstance(mockConfirmedDetailsService),
+          bind[SessionRepository].toInstance(mockSessionRepository)
         ).build()
 
         when(mockConfirmedDetailsService.confirmedDetailsFor(any())(using any()))
           .thenReturn(Future.successful(aConfirmedDetails.copy(businessDetails = false)))
+        when(mockSessionRepository.set(any())).thenReturn(Future.successful(true))
 
         running(application) {
           val request = FakeRequest(routes.StartController.onSubmit(operatorId))
           val result = route(application, request).value
-
+          val answersCaptor: ArgumentCaptor[UserAnswers] = ArgumentCaptor.forClass(classOf[UserAnswers])
           status(result) mustEqual SEE_OTHER
           redirectLocation(result).value mustEqual routes.CheckPlatformOperatorController.onPageLoad(operatorId).url
+          verify(mockSessionRepository, times(1)).set(answersCaptor.capture())
+          val answers = answersCaptor.getValue
+          answers.remove(XmlSubmissionSentPage).success.value mustEqual expectedUserAnswers
         }
 
         verify(mockSubmissionConnector, never()).start(any(), any(), any())(using any())
       }
 
       "must redirect to Check Reporting Notifications when reporting notifications not confirmed" in {
-        val application = applicationBuilder(userAnswers = Some(aUserAnswers)).overrides(
+        val application = applicationBuilder(userAnswers = Some(userAnswers)).overrides(
           bind[SubmissionConnector].toInstance(mockSubmissionConnector),
-          bind[ConfirmedDetailsService].toInstance(mockConfirmedDetailsService)
+          bind[ConfirmedDetailsService].toInstance(mockConfirmedDetailsService),
+          bind[SessionRepository].toInstance(mockSessionRepository)
         ).build()
 
         when(mockConfirmedDetailsService.confirmedDetailsFor(any())(using any()))
           .thenReturn(Future.successful(aConfirmedDetails.copy(reportingNotifications = false)))
+        when(mockSessionRepository.set(any())).thenReturn(Future.successful(true))
 
         running(application) {
           val request = FakeRequest(routes.StartController.onSubmit(operatorId))
           val result = route(application, request).value
+          val answersCaptor: ArgumentCaptor[UserAnswers] = ArgumentCaptor.forClass(classOf[UserAnswers])
 
           status(result) mustEqual SEE_OTHER
+          verify(mockSessionRepository, times(1)).set(answersCaptor.capture())
+          val answers = answersCaptor.getValue
+          answers.remove(XmlSubmissionSentPage).success.value mustEqual expectedUserAnswers
+
           redirectLocation(result).value mustEqual routes.CheckReportingNotificationsController.onPageLoad(operatorId).url
         }
 
@@ -198,19 +216,25 @@ class StartControllerSpec extends SpecBase with MockitoSugar with BeforeAndAfter
       }
 
       "must redirect to Check Contact details when contact details not confirmed" in {
-        val application = applicationBuilder(userAnswers = Some(aUserAnswers)).overrides(
+        val application = applicationBuilder(userAnswers = Some(userAnswers)).overrides(
           bind[SubmissionConnector].toInstance(mockSubmissionConnector),
-          bind[ConfirmedDetailsService].toInstance(mockConfirmedDetailsService)
+          bind[ConfirmedDetailsService].toInstance(mockConfirmedDetailsService),
+          bind[SessionRepository].toInstance(mockSessionRepository)
         ).build()
 
         when(mockConfirmedDetailsService.confirmedDetailsFor(any())(using any()))
           .thenReturn(Future.successful(aConfirmedDetails.copy(yourContactDetails = false)))
+        when(mockSessionRepository.set(any())).thenReturn(Future.successful(true))
 
         running(application) {
           val request = FakeRequest(routes.StartController.onSubmit(operatorId))
           val result = route(application, request).value
+          val answersCaptor: ArgumentCaptor[UserAnswers] = ArgumentCaptor.forClass(classOf[UserAnswers])
 
           status(result) mustEqual SEE_OTHER
+          verify(mockSessionRepository, times(1)).set(answersCaptor.capture())
+          val answers = answersCaptor.getValue
+          answers.remove(XmlSubmissionSentPage).success.value mustEqual expectedUserAnswers
           redirectLocation(result).value mustEqual routes.CheckContactDetailsController.onPageLoad(operatorId).url
         }
 
@@ -218,21 +242,28 @@ class StartControllerSpec extends SpecBase with MockitoSugar with BeforeAndAfter
       }
 
       "must redirect to Upload page when all details confirmed" in {
-        val userAnswers = aUserAnswers.set(PlatformOperatorSummaryQuery, platformOperatorSummary).success.value
-        val application = applicationBuilder(userAnswers = Some(userAnswers)).overrides(
+        val userAnswersWithPO = userAnswers.set(PlatformOperatorSummaryQuery, platformOperatorSummary).success.value
+        val application = applicationBuilder(userAnswers = Some(userAnswersWithPO)).overrides(
           bind[SubmissionConnector].toInstance(mockSubmissionConnector),
-          bind[ConfirmedDetailsService].toInstance(mockConfirmedDetailsService)
+          bind[ConfirmedDetailsService].toInstance(mockConfirmedDetailsService),
+          bind[SessionRepository].toInstance(mockSessionRepository)
         ).build()
 
         when(mockConfirmedDetailsService.confirmedDetailsFor(any())(using any()))
           .thenReturn(Future.successful(aConfirmedDetails.copy(true, true, true)))
         when(mockSubmissionConnector.start(any(), any(), any())(using any())).thenReturn(Future.successful(aSubmission))
+        when(mockSessionRepository.set(any())).thenReturn(Future.successful(true))
 
         running(application) {
           val request = FakeRequest(routes.StartController.onSubmit(operatorId))
           val result = route(application, request).value
+          val answersCaptor: ArgumentCaptor[UserAnswers] = ArgumentCaptor.forClass(classOf[UserAnswers])
 
           status(result) mustEqual SEE_OTHER
+          verify(mockSessionRepository, times(1)).set(answersCaptor.capture())
+          val answers = answersCaptor.getValue
+          val expectedUserAnswersWithPO = expectedUserAnswers.set(PlatformOperatorSummaryQuery, platformOperatorSummary).success.value
+          answers.remove(XmlSubmissionSentPage).success.value mustEqual expectedUserAnswersWithPO
           redirectLocation(result).value mustEqual routes.UploadController.onPageLoad(operatorId, aSubmission._id).url
         }
 

@@ -32,6 +32,7 @@ import org.mockito.Mockito
 import org.mockito.Mockito.{never, verify, when}
 import org.scalatest.BeforeAndAfterEach
 import org.scalatestplus.mockito.MockitoSugar
+import pages.assumed.AssumedSubmissionDeletedPage
 import play.api.i18n.Messages
 import play.api.inject.bind
 import play.api.test.FakeRequest
@@ -111,12 +112,27 @@ class RemoveAssumedReportControllerSpec extends SpecBase with MockitoSugar with 
             .build()
 
         running(application) {
+
           val request = FakeRequest(routes.RemoveAssumedReportController.onPageLoad("operatorId", Year.of(2024)))
 
           val result = route(application, request).value
 
           status(result) mustEqual SEE_OTHER
           redirectLocation(result).value mustEqual baseRoutes.AssumedReportingDisabledController.onPageLoad().url
+        }
+      }
+
+      "must redirect to AssumedSubmissionAlreadyDeleted for a GET when AssumedSubmissionDeletedPage is true" in {
+
+        val userAnswers = baseAnswers.set(AssumedSubmissionDeletedPage, true).success.value
+        val application = applicationBuilder(userAnswers = Some(userAnswers)).build()
+
+        running(application) {
+          val request = FakeRequest(routes.RemoveAssumedReportController.onPageLoad("operatorId", Year.of(2024)))
+          val result = route(application, request).value
+
+          status(result) mustEqual SEE_OTHER
+          redirectLocation(result).value mustEqual controllers.assumed.routes.AssumedSubmissionAlreadyDeletedController.onPageLoad().url
         }
       }
 
@@ -131,6 +147,7 @@ class RemoveAssumedReportControllerSpec extends SpecBase with MockitoSugar with 
 
         val expectedAuditEvent = DeleteAssumedReportEvent("dprsId", operatorId, operatorName, "submissionId1", OK, now)
         val expectedUserAnswer = baseAnswers.set(SentDeleteAssumedReportingEmailsQuery, EmailsSentResult(true, None)).success.value
+          .set(AssumedSubmissionDeletedPage, true).success.value
 
         val application = applicationBuilder(userAnswers = Some(baseAnswers)).overrides(
           bind[AssumedReportingConnector].toInstance(mockAssumedReportingConnector),

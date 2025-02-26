@@ -37,6 +37,7 @@ class TaxResidencyCountryController @Inject()(
                                         identify: IdentifierAction,
                                         getData: DataRetrievalActionProvider,
                                         requireData: DataRequiredAction,
+                                        assumedSubmissionSentCheck: AssumedSubmissionSentCheckAction,
                                         checkAssumedReportingAllowed: CheckAssumedReportingAllowedAction,
                                         formProvider: TaxResidencyCountryFormProvider,
                                         val controllerComponents: MessagesControllerComponents,
@@ -45,7 +46,7 @@ class TaxResidencyCountryController @Inject()(
   extends FrontendBaseController with I18nSupport with AnswerExtractor {
 
   def onPageLoad(mode: Mode, operatorId: String): Action[AnyContent] =
-    (identify andThen checkAssumedReportingAllowed andThen getData(operatorId) andThen requireData) { implicit request =>
+    (identify andThen checkAssumedReportingAllowed andThen getData(operatorId) andThen requireData andThen assumedSubmissionSentCheck) { implicit request =>
       getAnswer(AssumingOperatorNamePage) { assumingOperatorName =>
   
         val form = formProvider(assumingOperatorName)

@@ -22,6 +22,7 @@ import controllers.AnswerExtractor
 import controllers.actions.*
 import models.UserAnswers
 import models.confirmed.ConfirmedDetails
+import pages.submission.create.XmlSubmissionSentPage
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import queries.PlatformOperatorSummaryQuery
@@ -67,15 +68,21 @@ class StartController @Inject()(override val messagesApi: MessagesApi,
 
   def onSubmit(operatorId: String): Action[AnyContent] =
     (identify andThen checkSubmissionsAllowed andThen getData(operatorId) andThen requireData).async { implicit request =>
-      confirmedDetailsService.confirmedDetailsFor(operatorId).flatMap {
-        case ConfirmedDetails(true, true, true) => getAnswerAsync(PlatformOperatorSummaryQuery) { summary =>
-          submissionConnector.start(operatorId, summary.operatorName, None).map { submission =>
-            Redirect(routes.UploadController.onPageLoad(operatorId, submission._id))
+      (for {
+        updatedAnswers <- Future.fromTry(request.userAnswers.remove(XmlSubmissionSentPage))
+        _ <- sessionRepository.set(updatedAnswers)
+      } yield {
+        confirmedDetailsService.confirmedDetailsFor(operatorId).flatMap {
+          case ConfirmedDetails(true, true, true) => getAnswerAsync(PlatformOperatorSummaryQuery) { summary =>
+            submissionConnector.start(operatorId, summary.operatorName, None).map { submission =>
+              Redirect(routes.UploadController.onPageLoad(operatorId, submission._id))
+            }
           }
+          case ConfirmedDetails(true, true, false) => Future.successful(Redirect(routes.CheckContactDetailsController.onPageLoad(operatorId)))
+          case ConfirmedDetails(true, false, _) => Future.successful(Redirect(routes.CheckReportingNotificationsController.onSubmit(operatorId)))
+          case ConfirmedDetails(false, _, _) => Future.successful(Redirect(routes.CheckPlatformOperatorController.onPageLoad(operatorId)))
         }
-        case ConfirmedDetails(true, true, false) => Future.successful(Redirect(routes.CheckContactDetailsController.onPageLoad(operatorId)))
-        case ConfirmedDetails(true, false, _) => Future.successful(Redirect(routes.CheckReportingNotificationsController.onSubmit(operatorId)))
-        case ConfirmedDetails(false, _, _) => Future.successful(Redirect(routes.CheckPlatformOperatorController.onPageLoad(operatorId)))
-      }
+      }).flatten
     }
+
 }

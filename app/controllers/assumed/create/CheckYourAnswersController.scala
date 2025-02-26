@@ -25,6 +25,7 @@ import models.audit.AddAssumedReportEvent
 import models.requests.DataRequest
 import models.submission.{AssumedReportSummary, AssumedReportingSubmissionRequest, CreateAssumedReportingSubmissionRequest, Submission}
 import models.{CountriesList, UserAnswers}
+import pages.assumed.AssumedSubmissionSentPage
 import play.api.Logging
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
@@ -44,6 +45,7 @@ class CheckYourAnswersController @Inject()(override val messagesApi: MessagesApi
                                            identify: IdentifierAction,
                                            getData: DataRetrievalActionProvider,
                                            requireData: DataRequiredAction,
+                                           assumedSubmissionSentCheck: AssumedSubmissionSentCheckAction,
                                            checkAssumedReportingAllowed: CheckAssumedReportingAllowedAction,
                                            val controllerComponents: MessagesControllerComponents,
                                            view: CheckYourAnswersView,
@@ -56,7 +58,7 @@ class CheckYourAnswersController @Inject()(override val messagesApi: MessagesApi
                                           (using ExecutionContext)
   extends FrontendBaseController with I18nSupport with AnswerExtractor with Logging {
 
-  def onPageLoad(operatorId: String): Action[AnyContent] = (identify andThen checkAssumedReportingAllowed andThen getData(operatorId) andThen requireData) {
+  def onPageLoad(operatorId: String): Action[AnyContent] = (identify andThen checkAssumedReportingAllowed andThen getData(operatorId) andThen requireData andThen assumedSubmissionSentCheck) {
     implicit request =>
 
       val list = SummaryListViewModel(
@@ -90,7 +92,8 @@ class CheckYourAnswersController @Inject()(override val messagesApi: MessagesApi
             answersWithSummary <- Future.fromTry(emptyAnswers.set(AssumedReportSummaryQuery, summary))
             answersWithEmailSentResult <- Future.fromTry(answersWithSummary.set(SentAddAssumedReportingEmailsQuery, emailsSentResult))
             _ <- sessionRepository.set(answersWithEmailSentResult)
-            _ <- sessionRepository.clear(request.userId, operatorId, None)
+            answersWithAssumedSubmissionSent <- Future.fromTry(request.userAnswers.set(AssumedSubmissionSentPage, true))
+            _ <- sessionRepository.set(answersWithAssumedSubmissionSent)
           } yield Redirect(routes.SubmissionConfirmationController.onPageLoad(operatorId, summary.reportingPeriod))).recover {
             case error: SubmitAssumedReportingFailure => logger.warn("Failed to submit assumed reporting", error)
               throw error
