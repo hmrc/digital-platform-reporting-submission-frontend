@@ -534,6 +534,6 @@ assumedSubmissionAlreadySent.heading = You have already sent this information
 assumedSubmissionAlreadySent.p1 = We may contact you if we have any questions about the details you provided.
 assumedSubmissionAlreadySent.return = Return to manage your digital platform reporting
 
-assumedSubmissionAlreadyDeleted.title = You have already deleted this information
-assumedSubmissionAlreadyDeleted.heading = You have already deleted this information
+assumedSubmissionAlreadyDeleted.title = You have already deleted these assumed reporting details
+assumedSubmissionAlreadyDeleted.heading = You have already deleted these assumed reporting details
 assumedSubmissionAlreadyDeleted.return = Return to manage your digital platform reporting
