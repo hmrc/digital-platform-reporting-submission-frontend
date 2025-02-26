@@ -41,7 +41,7 @@ object AddAssumedReportEvent {
     override def writes(o: AddAssumedReportEvent): JsObject = {
 
       val taxIdentifierJson = o.submission.assumingOperator.residentCountry match {
-        case country if o.countriesList.ukCountries.contains(country) =>
+        case country if o.countriesList.ukAndCrownDependantCountries.contains(country) =>
           Json.obj(
             "isUkTaxResident" -> true,
             "countryOfTaxResidence" -> country.name,

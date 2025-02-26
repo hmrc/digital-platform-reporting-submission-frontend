@@ -20,23 +20,20 @@ import base.SpecBase
 import connectors.PlatformOperatorConnector
 import controllers.routes as baseRoutes
 import forms.submission.SelectPlatformOperatorFormProvider
-import models.operator.responses.{NotificationDetails, PlatformOperator, ViewPlatformOperatorsResponse}
-import models.operator.{AddressDetails, ContactDetails, NotificationType}
-import models.{NormalMode, UserAnswers}
+import models.operator.responses.{PlatformOperator, ViewPlatformOperatorsResponse}
+import models.operator.{AddressDetails, ContactDetails}
 import org.mockito.ArgumentMatchers.any
+import org.mockito.Mockito
 import org.mockito.Mockito.{times, verify, when}
-import org.mockito.{ArgumentCaptor, Mockito}
 import org.scalatest.BeforeAndAfterEach
 import org.scalatestplus.mockito.MockitoSugar
 import play.api.inject.bind
 import play.api.test.FakeRequest
 import play.api.test.Helpers.*
-import queries.PlatformOperatorSummaryQuery
 import repositories.SessionRepository
 import viewmodels.PlatformOperatorSummary
 import views.html.submission.{SelectPlatformOperatorSingleChoiceView, SelectPlatformOperatorView}
 
-import java.time.Instant
 import scala.concurrent.Future
 
 class SelectPlatformOperatorControllerSpec extends SpecBase with MockitoSugar with BeforeAndAfterEach {
@@ -138,20 +135,20 @@ class SelectPlatformOperatorControllerSpec extends SpecBase with MockitoSugar wi
 
     "must redirect to SubmissionsDisabled for a GET when submissions are disabled" - {
 
-        val application =
-          applicationBuilder(userAnswers = None)
-            .configure("features.submissions-enabled" -> false)
-            .build()
+      val application =
+        applicationBuilder(userAnswers = None)
+          .configure("features.submissions-enabled" -> false)
+          .build()
 
-        running(application) {
-          val request = FakeRequest(GET, selectPlatformOperatorRoute)
+      running(application) {
+        val request = FakeRequest(GET, selectPlatformOperatorRoute)
 
-          val result = route(application, request).value
+        val result = route(application, request).value
 
-          status(result) mustEqual SEE_OTHER
-          redirectLocation(result).value mustEqual baseRoutes.SubmissionsDisabledController.onPageLoad().url
-        }
-      
+        status(result) mustEqual SEE_OTHER
+        redirectLocation(result).value mustEqual baseRoutes.SubmissionsDisabledController.onPageLoad().url
+      }
+
     }
 
     "must save the platform operator summary and redirect to the next page when valid data is submitted" in {
@@ -176,7 +173,7 @@ class SelectPlatformOperatorControllerSpec extends SpecBase with MockitoSugar wi
             .withFormUrlEncodedBody(("value", "operatorId"))
 
         val result = route(application, request).value
-        
+
         status(result) mustEqual SEE_OTHER
         redirectLocation(result).value mustEqual routes.StartController.onPageLoad(operatorId).url
       }

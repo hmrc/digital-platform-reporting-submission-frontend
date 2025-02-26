@@ -17,7 +17,7 @@
 package pages.assumed.create
 
 import controllers.assumed.create.routes
-import models.{CheckMode, Country, NormalMode, UkTaxIdentifiers, UserAnswers}
+import models.{CheckMode, NormalMode, UserAnswers}
 import org.scalatest.freespec.AnyFreeSpec
 import org.scalatest.matchers.must.Matchers
 import org.scalatest.{OptionValues, TryValues}
@@ -25,7 +25,7 @@ import org.scalatest.{OptionValues, TryValues}
 class HasInternationalTaxIdentifierPageSpec extends AnyFreeSpec with Matchers with TryValues with OptionValues {
 
   private val emptyAnswers = UserAnswers("userId", "operatorId")
-  
+
   ".nextPage" - {
 
     "in Normal mode" - {
@@ -74,7 +74,7 @@ class HasInternationalTaxIdentifierPageSpec extends AnyFreeSpec with Matchers wi
       }
     }
   }
-  
+
   ".cleanup" - {
 
     "must remove international tax identifier when the answer is no" in {

@@ -17,9 +17,6 @@
 package models.confirmed
 
 import play.api.libs.json.{Json, OFormat}
-import uk.gov.hmrc.mongo.play.json.formats.MongoJavatimeFormats
-
-import java.time.Instant
 
 case class ConfirmedContactDetails()
 

@@ -36,11 +36,11 @@ import scala.concurrent.Future
 class TaxResidencyCountryControllerSpec extends SpecBase with MockitoSugar {
 
   private val countriesList = new DefaultCountriesList
-  val formProvider = new TaxResidencyCountryFormProvider(countriesList)
+  private val formProvider = new TaxResidencyCountryFormProvider(countriesList)
   private val assumingOperatorName = "name"
   private val baseAnswers = emptyUserAnswers.set(AssumingOperatorNamePage, assumingOperatorName).success.value
 
-  lazy val taxResidencyCountryRoute = routes.TaxResidencyCountryController.onPageLoad(NormalMode, operatorId).url
+  private lazy val taxResidencyCountryRoute = routes.TaxResidencyCountryController.onPageLoad(NormalMode, operatorId).url
 
   "TaxResidencyCountry Controller" - {
 

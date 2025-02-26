@@ -20,7 +20,6 @@ import config.FrontendAppConfig
 import controllers.assumed.update.routes
 import models.UserAnswers
 import org.mockito.Mockito
-import org.mockito.Mockito.when
 import org.scalatest.freespec.AnyFreeSpec
 import org.scalatest.matchers.must.Matchers
 import org.scalatest.{BeforeAndAfterEach, OptionValues, TryValues}
@@ -46,19 +45,19 @@ class CheckReportingNotificationsPageSpec
   }
 
   ".nextPage" - {
-    
+
     val reportingPeriod = Year.of(2024)
     val operatorId = "operatorId"
     val emptyAnswers = UserAnswers("id", operatorId, Some(reportingPeriod))
-    
+
     "must go to Check Contact Details when the answer is yes" in {
-      
+
       val answers = emptyAnswers.set(page, true).success.value
       page.nextPage(reportingPeriod, answers).mustEqual(routes.CheckContactDetailsController.onPageLoad(operatorId, reportingPeriod))
     }
-    
+
     "must go to add a reporting notification when the answer is no" in {
-      
+
       val answers = emptyAnswers.set(page, false).success.value
       page.nextPage(reportingPeriod, answers).mustEqual(Call("GET", mockAppConfig.manageHomepageUrl))
     }

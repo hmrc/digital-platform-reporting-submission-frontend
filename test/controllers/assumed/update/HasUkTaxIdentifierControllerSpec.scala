@@ -42,7 +42,7 @@ class HasUkTaxIdentifierControllerSpec extends SpecBase with MockitoSugar {
   private val form = formProvider(assumingOperatorName)
   private val baseAnswers = emptyUserAnswers.copy(reportingPeriod = Some(reportingPeriod)).set(AssumingOperatorNamePage, assumingOperatorName).success.value
 
-  lazy val hasUkTaxIdentifierRoute: String = routes.HasUkTaxIdentifierController.onPageLoad(operatorId, reportingPeriod).url
+  private lazy val hasUkTaxIdentifierRoute = routes.HasUkTaxIdentifierController.onPageLoad(operatorId, reportingPeriod).url
 
   "HasUkTaxIdentifier Controller" - {
 

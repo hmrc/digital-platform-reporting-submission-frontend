@@ -16,28 +16,28 @@
 
 package repositories
 
-import config.FrontendAppConfig
 import com.fasterxml.jackson.core.JsonParseException
-import org.mongodb.scala.bson.BsonDocument
-import models.{UserAnswers, yearFormat}
+import config.FrontendAppConfig
+import models.UserAnswers
 import org.mockito.Mockito.when
+import org.mongodb.scala.bson.BsonDocument
 import org.mongodb.scala.model.Filters
 import org.scalactic.source.Position
 import org.scalatest.OptionValues
 import org.scalatest.concurrent.{IntegrationPatience, ScalaFutures}
 import org.scalatest.freespec.AnyFreeSpec
-import play.api.Configuration
 import org.scalatest.matchers.must.Matchers
 import org.scalatestplus.mockito.MockitoSugar
 import org.slf4j.MDC
-import uk.gov.hmrc.crypto.{Decrypter, Encrypter, SymmetricCryptoFactory}
+import play.api.Configuration
 import play.api.libs.json.Json
+import uk.gov.hmrc.crypto.{Decrypter, Encrypter, SymmetricCryptoFactory}
 import uk.gov.hmrc.mongo.test.DefaultPlayMongoRepositorySupport
 import uk.gov.hmrc.play.bootstrap.dispatchers.MDCPropagatingExecutorService
 
 import java.security.SecureRandom
-import java.time.{Clock, Instant, Year, ZoneId}
 import java.time.temporal.ChronoUnit
+import java.time.{Clock, Instant, Year, ZoneId}
 import java.util.Base64
 import java.util.concurrent.Executors
 import scala.concurrent.{ExecutionContext, Future}
@@ -79,8 +79,8 @@ class SessionRepositorySpec
 
   protected override val repository: SessionRepository = new SessionRepository(
     mongoComponent = mongoComponent,
-    appConfig      = mockAppConfig,
-    clock          = stubClock
+    appConfig = mockAppConfig,
+    clock = stubClock
   )(scala.concurrent.ExecutionContext.Implicits.global, implicitly)
 
   ".set" - {
@@ -131,8 +131,8 @@ class SessionRepositorySpec
         insert(userAnswers1).futureValue
         insert(userAnswers2).futureValue
 
-        val result1         = repository.get(userAnswers1.userId, userAnswers1.operatorId, userAnswers1.reportingPeriod).futureValue
-        val result2         = repository.get(userAnswers2.userId, userAnswers2.operatorId, userAnswers2.reportingPeriod).futureValue
+        val result1 = repository.get(userAnswers1.userId, userAnswers1.operatorId, userAnswers1.reportingPeriod).futureValue
+        val result2 = repository.get(userAnswers2.userId, userAnswers2.operatorId, userAnswers2.reportingPeriod).futureValue
         val expectedResult1 = userAnswers1.copy(lastUpdated = instant)
         val expectedResult2 = userAnswers2.copy(lastUpdated = instant)
 

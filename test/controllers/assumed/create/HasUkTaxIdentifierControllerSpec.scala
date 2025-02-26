@@ -35,12 +35,12 @@ import scala.concurrent.Future
 
 class HasUkTaxIdentifierControllerSpec extends SpecBase with MockitoSugar {
 
-  val formProvider = new HasUkTaxIdentifierFormProvider()
+  private val formProvider = new HasUkTaxIdentifierFormProvider()
   private val assumingOperatorName = "name"
   private val form = formProvider(assumingOperatorName)
   private val baseAnswers = emptyUserAnswers.set(AssumingOperatorNamePage, assumingOperatorName).success.value
 
-  lazy val hasUkTaxIdentifierRoute: String = routes.HasUkTaxIdentifierController.onPageLoad(NormalMode, operatorId).url
+  private lazy val hasUkTaxIdentifierRoute = routes.HasUkTaxIdentifierController.onPageLoad(NormalMode, operatorId).url
 
   "HasUkTaxIdentifier Controller" - {
 
@@ -77,7 +77,7 @@ class HasUkTaxIdentifierControllerSpec extends SpecBase with MockitoSugar {
         contentAsString(result) mustEqual view(form.fill(true), NormalMode, operatorId, assumingOperatorName)(request, messages(application)).toString
       }
     }
-    
+
     "must redirect to AssumedReportingDisabled for a GET when submissions are disabled" in {
 
       val application =
@@ -187,7 +187,7 @@ class HasUkTaxIdentifierControllerSpec extends SpecBase with MockitoSugar {
 
     "must redirect to AssumedReportingDisabled for a POST when submissions are disabled" in {
 
-      val application = 
+      val application =
         applicationBuilder(userAnswers = None)
           .configure("features.submissions-enabled" -> false)
           .build()

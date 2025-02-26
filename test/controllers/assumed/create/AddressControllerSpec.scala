@@ -35,7 +35,7 @@ import scala.concurrent.Future
 
 class AddressControllerSpec extends SpecBase with MockitoSugar {
 
-  val formProvider = new AddressFormProvider()
+  private val formProvider = new AddressFormProvider()
   private val assumingOperatorName = "name"
   private val form = formProvider(assumingOperatorName)
   private val baseAnswers = emptyUserAnswers.set(AssumingOperatorNamePage, assumingOperatorName).success.value

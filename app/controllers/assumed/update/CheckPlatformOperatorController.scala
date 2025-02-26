@@ -20,8 +20,8 @@ import com.google.inject.Inject
 import connectors.PlatformOperatorConnector
 import controllers.actions.*
 import forms.CheckPlatformOperatorFormProvider
-import models.operator.responses.PlatformOperator
 import models.CountriesList
+import models.operator.responses.PlatformOperator
 import pages.assumed.update.CheckPlatformOperatorPage
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
@@ -58,11 +58,8 @@ class CheckPlatformOperatorController @Inject()(
       requireData andThen assumedSubmissionSentCheck).async {
       implicit request =>
         connector.viewPlatformOperator(operatorId).map { operator =>
-
-          val form = formProvider()
-
           Ok(view(
-            form,
+            formProvider(),
             platformOperatorList(operator),
             primaryContactList(operator),
             secondaryContactList(operator),
@@ -76,10 +73,7 @@ class CheckPlatformOperatorController @Inject()(
   def onSubmit(operatorId: String, reportingPeriod: Year): Action[AnyContent] =
     (identify andThen checkAssumedReportingAllowed andThen getData(operatorId, Some(reportingPeriod)) andThen requireData).async {
       implicit request =>
-
-        val form = formProvider()
-
-        form.bindFromRequest().fold(
+        formProvider().bindFromRequest().fold(
           formWithErrors => {
             connector.viewPlatformOperator(operatorId).map { operator =>
               BadRequest(view(

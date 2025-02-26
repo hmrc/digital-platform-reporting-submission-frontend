@@ -36,14 +36,13 @@ import scala.concurrent.Future
 class HasInternationalTaxIdentifierControllerSpec extends SpecBase with MockitoSugar {
 
   private val countriesList = new DefaultCountriesList
-  val formProvider = new HasInternationalTaxIdentifierFormProvider()
+  private val formProvider = new HasInternationalTaxIdentifierFormProvider()
   private val assumingOperatorName = "name"
   private val country = countriesList.internationalCountries.head
   private val form = formProvider(assumingOperatorName, country)
-  private val baseAnswers =
-    emptyUserAnswers
-      .set(AssumingOperatorNamePage, assumingOperatorName).success.value
-      .set(TaxResidencyCountryPage, country).success.value
+  private val baseAnswers = emptyUserAnswers
+    .set(AssumingOperatorNamePage, assumingOperatorName).success.value
+    .set(TaxResidencyCountryPage, country).success.value
 
   private lazy val hasInternationalTaxIdentifierRoute = routes.HasInternationalTaxIdentifierController.onPageLoad(NormalMode, operatorId).url
 

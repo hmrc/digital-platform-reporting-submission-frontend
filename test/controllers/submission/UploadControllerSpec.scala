@@ -31,10 +31,8 @@ import org.scalatestplus.mockito.MockitoSugar
 import play.api.inject.bind
 import play.api.test.FakeRequest
 import play.api.test.Helpers.*
-import queries.PlatformOperatorSummaryQuery
 import services.UpscanService
 import uk.gov.hmrc.http.StringContextOps
-import viewmodels.PlatformOperatorSummary
 import views.html.submission.UploadView
 
 import java.time.{Instant, Year}
@@ -380,7 +378,7 @@ class UploadControllerSpec extends SpecBase with MockitoSugar with BeforeAndAfte
           verify(mockSubmissionConnector, never()).get(any())(using any())
         }
       }
-      
+
       "when submissions are disabled" - {
 
         "must redirect to SubmissionsDisabled" in {

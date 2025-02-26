@@ -30,18 +30,17 @@ import java.time.Year
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
-class HasInternationalTaxIdentifierController @Inject()(
-                                              override val messagesApi: MessagesApi,
-                                              sessionRepository: SessionRepository,
-                                              identify: IdentifierAction,
-                                              getData: DataRetrievalActionProvider,
-                                              requireData: DataRequiredAction,
-                                              assumedSubmissionSentCheck: AssumedSubmissionSentCheckAction,
-                                              checkAssumedReportingAllowed: CheckAssumedReportingAllowedAction,
-                                              formProvider: HasInternationalTaxIdentifierFormProvider,
-                                              val controllerComponents: MessagesControllerComponents,
-                                              view: HasInternationalTaxIdentifierView
-                                            )(implicit ec: ExecutionContext)
+class HasInternationalTaxIdentifierController @Inject()(override val messagesApi: MessagesApi,
+                                                        sessionRepository: SessionRepository,
+                                                        identify: IdentifierAction,
+                                                        getData: DataRetrievalActionProvider,
+                                                        requireData: DataRequiredAction,
+                                                        assumedSubmissionSentCheck: AssumedSubmissionSentCheckAction,
+                                                        checkAssumedReportingAllowed: CheckAssumedReportingAllowedAction,
+                                                        formProvider: HasInternationalTaxIdentifierFormProvider,
+                                                        val controllerComponents: MessagesControllerComponents,
+                                                        view: HasInternationalTaxIdentifierView)
+                                                       (using ExecutionContext)
   extends FrontendBaseController with I18nSupport with AnswerExtractor {
 
 
@@ -51,14 +50,11 @@ class HasInternationalTaxIdentifierController @Inject()(
       getData(operatorId, Some(reportingPeriod)) andThen
       requireData andThen assumedSubmissionSentCheck) { implicit request =>
       getAnswers(AssumingOperatorNamePage, TaxResidencyCountryPage) { case (assumingOperatorName, country) =>
-  
-        val form = formProvider(assumingOperatorName, country)
-  
         val preparedForm = request.userAnswers.get(HasInternationalTaxIdentifierPage) match {
-          case None => form
-          case Some(value) => form.fill(value)
+          case None => formProvider(assumingOperatorName, country)
+          case Some(value) => formProvider(assumingOperatorName, country).fill(value)
         }
-  
+
         Ok(view(preparedForm, operatorId, reportingPeriod, assumingOperatorName, country))
       }
     }
@@ -66,18 +62,12 @@ class HasInternationalTaxIdentifierController @Inject()(
   def onSubmit(operatorId: String, reportingPeriod: Year): Action[AnyContent] =
     (identify andThen checkAssumedReportingAllowed andThen getData(operatorId, Some(reportingPeriod)) andThen requireData).async { implicit request =>
       getAnswersAsync(AssumingOperatorNamePage, TaxResidencyCountryPage) { case (assumingOperatorName, country) =>
-  
-        val form = formProvider(assumingOperatorName, country)
-  
-        form.bindFromRequest().fold(
-          formWithErrors =>
-            Future.successful(BadRequest(view(formWithErrors, operatorId, reportingPeriod, assumingOperatorName, country))),
-  
-          value =>
-            for {
-              updatedAnswers <- Future.fromTry(request.userAnswers.set(HasInternationalTaxIdentifierPage, value))
-              _              <- sessionRepository.set(updatedAnswers)
-            } yield Redirect(HasInternationalTaxIdentifierPage.nextPage(reportingPeriod, updatedAnswers))
+        formProvider(assumingOperatorName, country).bindFromRequest().fold(
+          formWithErrors => Future.successful(BadRequest(view(formWithErrors, operatorId, reportingPeriod, assumingOperatorName, country))),
+          value => for {
+            updatedAnswers <- Future.fromTry(request.userAnswers.set(HasInternationalTaxIdentifierPage, value))
+            _ <- sessionRepository.set(updatedAnswers)
+          } yield Redirect(HasInternationalTaxIdentifierPage.nextPage(reportingPeriod, updatedAnswers))
         )
       }
     }

@@ -20,9 +20,9 @@ import base.SpecBase
 import connectors.PlatformOperatorConnector
 import controllers.routes as baseRoutes
 import forms.CheckReportingNotificationsFormProvider
+import models.UserAnswers
 import models.operator.responses.{NotificationDetails, PlatformOperator}
 import models.operator.{AddressDetails, ContactDetails, NotificationType}
-import models.UserAnswers
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.{times, verify, when}
 import org.mockito.{ArgumentCaptor, Mockito}
@@ -39,8 +39,7 @@ import viewmodels.PlatformOperatorSummary
 import viewmodels.govuk.SummaryListFluency
 import views.html.assumed.update.CheckReportingNotificationsView
 
-import java.time.Instant
-import java.time.Year
+import java.time.{Instant, Year}
 import scala.concurrent.Future
 
 class CheckReportingNotificationsControllerSpec extends SpecBase with SummaryListFluency with MockitoSugar with BeforeAndAfterEach {

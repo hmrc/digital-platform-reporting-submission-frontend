@@ -41,7 +41,7 @@ class TaxResidentInUkControllerSpec extends SpecBase with MockitoSugar {
   private val form = formProvider(assumingOperatorName)
   private val baseAnswers = emptyUserAnswers.copy(reportingPeriod = Some(reportingPeriod)).set(AssumingOperatorNamePage, assumingOperatorName).success.value
 
-  lazy val taxResidentInUkRoute: String = routes.TaxResidentInUkController.onPageLoad(operatorId, reportingPeriod).url
+  private lazy val taxResidentInUkRoute = routes.TaxResidentInUkController.onPageLoad(operatorId, reportingPeriod).url
 
   "TaxResidentInUk Controller" - {
 

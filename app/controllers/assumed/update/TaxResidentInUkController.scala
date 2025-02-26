@@ -19,9 +19,6 @@ package controllers.assumed.update
 import controllers.AnswerExtractor
 import controllers.actions.*
 import forms.TaxResidentInUkFormProvider
-
-import java.time.Year
-import javax.inject.Inject
 import pages.assumed.update.{AssumingOperatorNamePage, TaxResidentInUkPage}
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
@@ -29,20 +26,21 @@ import repositories.SessionRepository
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import views.html.assumed.update.TaxResidentInUkView
 
+import java.time.Year
+import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
-class TaxResidentInUkController @Inject()(
-                                         override val messagesApi: MessagesApi,
-                                         sessionRepository: SessionRepository,
-                                         identify: IdentifierAction,
-                                         getData: DataRetrievalActionProvider,
-                                         requireData: DataRequiredAction,
-                                         assumedSubmissionSentCheck: AssumedSubmissionSentCheckAction,
-                                         checkAssumedReportingAllowed: CheckAssumedReportingAllowedAction,
-                                         formProvider: TaxResidentInUkFormProvider,
-                                         val controllerComponents: MessagesControllerComponents,
-                                         view: TaxResidentInUkView
-                                 )(implicit ec: ExecutionContext)
+class TaxResidentInUkController @Inject()(override val messagesApi: MessagesApi,
+                                          sessionRepository: SessionRepository,
+                                          identify: IdentifierAction,
+                                          getData: DataRetrievalActionProvider,
+                                          requireData: DataRequiredAction,
+                                          assumedSubmissionSentCheck: AssumedSubmissionSentCheckAction,
+                                          checkAssumedReportingAllowed: CheckAssumedReportingAllowedAction,
+                                          formProvider: TaxResidentInUkFormProvider,
+                                          val controllerComponents: MessagesControllerComponents,
+                                          view: TaxResidentInUkView)
+                                         (using ExecutionContext)
   extends FrontendBaseController with I18nSupport with AnswerExtractor {
 
   def onPageLoad(operatorId: String, reportingPeriod: Year): Action[AnyContent] =
@@ -51,14 +49,11 @@ class TaxResidentInUkController @Inject()(
       getData(operatorId, Some(reportingPeriod)) andThen
       requireData andThen assumedSubmissionSentCheck) { implicit request =>
       getAnswer(AssumingOperatorNamePage) { assumingOperatorName =>
-  
-        val form = formProvider(assumingOperatorName)
-  
         val preparedForm = request.userAnswers.get(TaxResidentInUkPage) match {
-          case None => form
-          case Some(value) => form.fill(value)
+          case None => formProvider(assumingOperatorName)
+          case Some(value) => formProvider(assumingOperatorName).fill(value)
         }
-  
+
         Ok(view(preparedForm, operatorId, reportingPeriod, assumingOperatorName))
       }
     }
@@ -66,17 +61,13 @@ class TaxResidentInUkController @Inject()(
   def onSubmit(operatorId: String, reportingPeriod: Year): Action[AnyContent] =
     (identify andThen checkAssumedReportingAllowed andThen getData(operatorId, Some(reportingPeriod)) andThen requireData).async { implicit request =>
       getAnswerAsync(AssumingOperatorNamePage) { assumingOperatorName =>
-  
-        val form = formProvider(assumingOperatorName)
-  
-        form.bindFromRequest().fold(
+        formProvider(assumingOperatorName).bindFromRequest().fold(
           formWithErrors =>
             Future.successful(BadRequest(view(formWithErrors, operatorId, reportingPeriod, assumingOperatorName))),
-  
           value =>
             for {
               updatedAnswers <- Future.fromTry(request.userAnswers.set(TaxResidentInUkPage, value))
-              _              <- sessionRepository.set(updatedAnswers)
+              _ <- sessionRepository.set(updatedAnswers)
             } yield Redirect(TaxResidentInUkPage.nextPage(reportingPeriod, updatedAnswers))
         )
       }

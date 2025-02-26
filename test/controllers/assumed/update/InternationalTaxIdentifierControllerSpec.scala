@@ -43,7 +43,7 @@ class InternationalTaxIdentifierControllerSpec extends SpecBase with MockitoSuga
   private val form = formProvider(country)
   private val baseAnswers = emptyUserAnswers.set(TaxResidencyCountryPage, country).success.value
 
-  lazy val internationalTaxIdentifierRoute: String = routes.InternationalTaxIdentifierController.onPageLoad(operatorId, reportingPeriod).url
+  private lazy val internationalTaxIdentifierRoute = routes.InternationalTaxIdentifierController.onPageLoad(operatorId, reportingPeriod).url
 
   "InternationalTaxIdentifier Controller" - {
 

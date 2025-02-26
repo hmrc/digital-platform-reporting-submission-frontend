@@ -20,8 +20,8 @@ import base.SpecBase
 import connectors.SubscriptionConnector
 import controllers.routes as baseRoutes
 import forms.CheckContactDetailsFormProvider
-import models.subscription.*
 import models.UserAnswers
+import models.subscription.*
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.{times, verify, when}
 import org.mockito.{ArgumentCaptor, Mockito}

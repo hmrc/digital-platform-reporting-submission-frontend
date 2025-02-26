@@ -16,19 +16,12 @@
 
 package pages.submission.create
 
-import config.FrontendAppConfig
-import controllers.assumed.create.routes
-import controllers.routes as baseRoutes
-import models.UserAnswers
 import pages.QuestionPage
 import play.api.libs.json.JsPath
-import play.api.mvc.Call
 
-import javax.inject.{Inject, Singleton}
+import javax.inject.Singleton
 
 @Singleton
 case object CheckReportingNotificationsPage extends QuestionPage[Boolean] {
-
   override def path: JsPath = JsPath \ "submissions" \ "checkReportingNotifications"
-  
 }

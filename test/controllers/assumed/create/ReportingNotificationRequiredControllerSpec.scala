@@ -18,9 +18,8 @@ package controllers.assumed.create
 
 import base.SpecBase
 import connectors.PlatformOperatorConnector
-import models.NormalMode
-import models.operator.{AddressDetails, ContactDetails}
 import models.operator.responses.PlatformOperator
+import models.operator.{AddressDetails, ContactDetails}
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito
 import org.mockito.Mockito.when

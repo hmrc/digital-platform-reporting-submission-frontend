@@ -61,7 +61,7 @@ class StartController @Inject()(override val messagesApi: MessagesApi,
               _ <- sessionRepository.set(answers)
             } yield Ok(view(operatorId))
           }.recover {
-            case PlatformOperatorNotFoundFailure => Redirect(controllers.routes.JourneyRecoveryController.onPageLoad()) // TODO change this when the choose PO pages exist
+            case PlatformOperatorNotFoundFailure => Redirect(controllers.routes.JourneyRecoveryController.onPageLoad())
           }
         }
     }

@@ -17,7 +17,6 @@
 package queries
 
 import models.email.EmailsSentResult
-import models.submission.AssumedReportSummary
 import play.api.libs.json.JsPath
 
 case object SentAddAssumedReportingEmailsQuery extends Gettable[EmailsSentResult] with Settable[EmailsSentResult] {

@@ -228,7 +228,7 @@ class CheckPlatformOperatorControllerSpec extends SpecBase with SummaryListFluen
     }
 
     "must redirect to AssumedReportingDisabled when submissions are disabled" in {
-      
+
       val application =
         applicationBuilder(userAnswers = Some(baseAnswers))
           .configure("features.submissions-enabled" -> false)
