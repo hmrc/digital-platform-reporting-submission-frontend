@@ -29,7 +29,6 @@ class Module extends play.api.inject.Module {
   override def bindings(environment: Environment, configuration: Configuration): collection.Seq[Binding[?]] = {
     Seq(
       bind[DataRequiredAction].to[DataRequiredActionImpl].eagerly(),
-      // For session based storage instead of cred based, change to SessionIdentifierAction
       bind[IdentifierAction].to[AuthenticatedIdentifierAction].eagerly(),
       bind[XmlSubmissionSentCheckAction].to[XmlSubmissionSentCheckActionImpl],
       bind[AssumedSubmissionSentCheckAction].to[AssumedSubmissionSentCheckActionImpl],
