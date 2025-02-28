@@ -38,7 +38,7 @@ lazy val microservice = (project in file("."))
     scalacOptions ++= Seq(
       "-no-indent",
       "-feature",
-      "-Wconf:cat=deprecation:w,cat=feature:w,src=target/.*:s"
+      "-Wconf:cat=deprecation:w,cat=feature:w,src=target/.*:s,msg=Flag.*repeatedly:s"
     ),
     libraryDependencies ++= AppDependencies(),
     retrieveManaged := true,

@@ -17,9 +17,8 @@
 package connectors
 
 import base.SpecBase
-import connectors.AssumedReportingConnector.DeleteAssumedReportFailure
 
-class DeleteAssumedReportFailure extends SpecBase {
+class AssumedReportingConnectorSpec extends SpecBase {
   private val status = 503
   "DeleteAssumedReportFailure" - {
     "must contain correct message" in {
