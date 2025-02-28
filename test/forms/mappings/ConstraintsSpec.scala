@@ -87,6 +87,20 @@ class ConstraintsSpec extends AnyFreeSpec with Matchers with ScalaCheckPropertyC
     }
   }
 
+  "inRange" - {
+
+    "must return Valid for a number in the range of 1 to 10" in {
+      val result = inRange(1, 10, "invalid").apply(3)
+      result mustEqual Valid
+    }
+
+
+    "must return Invalid for a number outside the range" in {
+      val result = inRange(1, 10, "invalid").apply(11)
+      result mustEqual Invalid("invalid", 1, 10)
+    }
+  }
+
   "regexp" - {
 
     "must return Valid for an input that matches the expression" in {
@@ -186,6 +200,19 @@ class ConstraintsSpec extends AnyFreeSpec with Matchers with ScalaCheckPropertyC
           val result = minDate(min, "error.past", "foo")(date)
           result mustEqual Invalid("error.past", "foo")
       }
+    }
+  }
+  "nonEmptySet" - {
+
+    "must return Valid  from non empty set" in {
+      val result = nonEmptySet("invalid", "foo")(Set(1, 2, 3, 4, 5))
+      result mustEqual Valid
+    }
+
+
+    "must return Invalid from non empty set" in {
+      val result = nonEmptySet("invalid", "foo")(Set.empty)
+      result mustEqual Invalid("invalid", "foo")
     }
   }
 }
