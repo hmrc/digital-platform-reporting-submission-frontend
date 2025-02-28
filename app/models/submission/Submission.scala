@@ -139,7 +139,7 @@ object Submission {
     }
 
     private given OFormat[NotXml.type] = singletonOFormat(NotXml)
-    private given OFormat[SchemaValidationError.type] = singletonOFormat(SchemaValidationError)
+//    private given OFormat[SchemaValidationError.type] = singletonOFormat(SchemaValidationError)
     private given OFormat[ManualAssumedReportExists.type] = singletonOFormat(ManualAssumedReportExists)
     private given OFormat[PlatformOperatorIdMissing.type] = singletonOFormat(PlatformOperatorIdMissing)
     private given OFormat[PlatformOperatorIdMismatch] = Json.format
