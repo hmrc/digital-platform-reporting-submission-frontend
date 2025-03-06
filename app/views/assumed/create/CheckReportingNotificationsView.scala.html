@@ -85,7 +85,10 @@
         @govukRadios(
             RadiosViewModel.yesNo(
                 field = form("value"),
-                legend = LegendViewModel(messages("checkReportingNotifications.legend")).withSize(LegendSize.Medium)
+                legend = notifications.size match {
+                    case 1 => LegendViewModel(messages("checkReportingNotifications.legend.single")).withSize(LegendSize.Medium)
+                    case _ => LegendViewModel(messages("checkReportingNotifications.legend.multiple")).withSize(LegendSize.Medium)
+                }
             )
         )
 
