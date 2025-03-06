@@ -28,7 +28,7 @@
 
 @(form: Form[?], summaryList: SummaryList, operatorId: String)(implicit request: Request[_], messages: Messages)
 
-@layout(pageTitle = titleNoForm(messages("checkContactDetails.title"))) {
+@layout(pageTitle = title(form, messages("checkContactDetails.title"))) {
 
     @formHelper(action = routes.CheckContactDetailsController.onSubmit(operatorId), Symbol("autoComplete") -> "off") {
 
