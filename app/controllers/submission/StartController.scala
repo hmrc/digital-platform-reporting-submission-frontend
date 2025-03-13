@@ -51,19 +51,15 @@ class StartController @Inject()(override val messagesApi: MessagesApi,
 
   def onPageLoad(operatorId: String): Action[AnyContent] =
     (identify andThen checkSubmissionsAllowed andThen getData(operatorId)).async { implicit request =>
-      request.userAnswers
-        .map(_ => Future.successful(Ok(view(operatorId))))
-        .getOrElse {
-          platformOperatorConnector.viewPlatformOperator(operatorId).flatMap { operator =>
-            val summary = PlatformOperatorSummary(operator)
-            for {
-              answers <- Future.fromTry(UserAnswers(request.userId, operatorId).set(PlatformOperatorSummaryQuery, summary))
-              _ <- sessionRepository.set(answers)
-            } yield Ok(view(operatorId))
-          }.recover {
-            case PlatformOperatorNotFoundFailure => Redirect(controllers.routes.JourneyRecoveryController.onPageLoad())
-          }
-        }
+      platformOperatorConnector.viewPlatformOperator(operatorId).flatMap { operator =>
+        val summary = PlatformOperatorSummary(operator)
+        for {
+          answers <- Future.fromTry(UserAnswers(request.userId, operatorId).set(PlatformOperatorSummaryQuery, summary))
+          _ <- sessionRepository.set(answers)
+        } yield Ok(view(operatorId, operator.operatorName))
+      }.recover {
+        case PlatformOperatorNotFoundFailure => Redirect(controllers.routes.JourneyRecoveryController.onPageLoad())
+      }
     }
 
   def onSubmit(operatorId: String): Action[AnyContent] =

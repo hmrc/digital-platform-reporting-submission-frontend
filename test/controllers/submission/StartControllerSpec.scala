@@ -65,24 +65,6 @@ class StartControllerSpec extends SpecBase with MockitoSugar with BeforeAndAfter
 
   "StartPage Controller" - {
     "onPageLoad" - {
-      "must return OK and the correct view for a GET when user answers exist" in {
-        val application = applicationBuilder(userAnswers = Some(baseAnswers)).overrides(
-          bind[PlatformOperatorConnector].toInstance(mockPlatformOperatorConnector),
-          bind[SessionRepository].toInstance(mockSessionRepository)
-        ).build()
-
-        running(application) {
-          val request = FakeRequest(routes.StartController.onPageLoad(operatorId))
-          val result = route(application, request).value
-          val view = application.injector.instanceOf[StartPageView]
-
-          status(result) mustEqual OK
-          contentAsString(result) mustEqual view(operatorId)(request, messages(application)).toString
-        }
-
-        verify(mockPlatformOperatorConnector, never()).viewPlatformOperator(any())(any())
-        verify(mockSessionRepository, never()).set(any())
-      }
 
       "must redirect to SubmissionsDisabled for a GET when submissions are disabled" in {
         val application = applicationBuilder(userAnswers = Some(baseAnswers))
@@ -98,7 +80,7 @@ class StartControllerSpec extends SpecBase with MockitoSugar with BeforeAndAfter
         }
       }
 
-      "must save a platform operator summary and return OK and the correct view for a GET when user answers do not exist" in {
+      "must save a platform operator summary and return OK and the correct view for a GET" in {
         val operator = PlatformOperator(
           operatorId = operatorId,
           operatorName = "operatorName",
@@ -127,7 +109,7 @@ class StartControllerSpec extends SpecBase with MockitoSugar with BeforeAndAfter
           val expectedSummary = PlatformOperatorSummary(operator.operatorId, operator.operatorName, "name", "email", hasReportingNotifications = false)
 
           status(result) mustEqual OK
-          contentAsString(result) mustEqual view(operatorId)(request, messages(application)).toString
+          contentAsString(result) mustEqual view(operatorId, operatorName)(request, messages(application)).toString
 
           verify(mockPlatformOperatorConnector, times(1)).viewPlatformOperator(eqTo(operator.operatorId))(any())
           verify(mockSessionRepository, times(1)).set(answersCaptor.capture())
@@ -137,7 +119,7 @@ class StartControllerSpec extends SpecBase with MockitoSugar with BeforeAndAfter
         }
       }
 
-      "must redirect to Select Platform Operator when user answers do not exist and the platform operator cannot be found" in {
+      "must redirect to journey recovery page when platform operator cannot be found" in {
         when(mockPlatformOperatorConnector.viewPlatformOperator(any())(any())).thenReturn(Future.failed(PlatformOperatorNotFoundFailure))
         when(mockSessionRepository.set(any())).thenReturn(Future.successful(true))
 

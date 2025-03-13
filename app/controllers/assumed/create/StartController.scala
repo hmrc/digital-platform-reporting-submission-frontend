@@ -48,24 +48,21 @@ class StartController @Inject()(override val messagesApi: MessagesApi,
                                (implicit ec: ExecutionContext)
   extends FrontendBaseController with I18nSupport with AnswerExtractor {
 
-  def onPageLoad(operatorId: String): Action[AnyContent] = (identify andThen checkAssumedReportingAllowed andThen getData(operatorId)).async { implicit request =>
-    request.userAnswers
-      .map(_ => Future.successful(Ok(view(operatorId))))
-      .getOrElse {
-        platformOperatorConnector.viewPlatformOperator(operatorId).flatMap { operator =>
-          val summary = PlatformOperatorSummary(operator)
-
-          for {
-            answers <- Future.fromTry(UserAnswers(request.userId, operatorId).set(PlatformOperatorSummaryQuery, summary))
-            _ <- sessionRepository.set(answers)
-          } yield Ok(view(operatorId))
-        }.recover {
-          case PlatformOperatorNotFoundFailure => Redirect(routes.SelectPlatformOperatorController.onPageLoad)
-        }
-      }
+  def onPageLoad(operatorId: String): Action[AnyContent] = (identify andThen
+    checkAssumedReportingAllowed andThen getData(operatorId)).async { implicit request =>
+    platformOperatorConnector.viewPlatformOperator(operatorId).flatMap { operator =>
+      val summary = PlatformOperatorSummary(operator)
+      for {
+        answers <- Future.fromTry(UserAnswers(request.userId, operatorId).set(PlatformOperatorSummaryQuery, summary))
+        _ <- sessionRepository.set(answers)
+      } yield Ok(view(operatorId, operator.operatorName))
+    }.recover {
+      case PlatformOperatorNotFoundFailure => Redirect(routes.SelectPlatformOperatorController.onPageLoad)
+    }
   }
 
-  def onSubmit(operatorId: String): Action[AnyContent] = (identify andThen checkAssumedReportingAllowed andThen getData(operatorId) andThen requireData).async { implicit request =>
+  def onSubmit(operatorId: String): Action[AnyContent] = (identify andThen
+    checkAssumedReportingAllowed andThen getData(operatorId) andThen requireData).async { implicit request =>
     confirmedDetailsService.confirmedDetailsFor(operatorId).map {
       case ConfirmedDetails(true, true, true) => Redirect(routes.ReportingPeriodController.onPageLoad(NormalMode, operatorId))
       case ConfirmedDetails(true, true, false) => Redirect(routes.CheckContactDetailsController.onPageLoad(operatorId))

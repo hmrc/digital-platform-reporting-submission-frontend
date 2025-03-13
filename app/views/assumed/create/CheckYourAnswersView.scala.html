@@ -33,7 +33,7 @@
 
   @formHelper(action = controllers.assumed.create.routes.CheckYourAnswersController.onSubmit(operatorId)) {
     @govukButton(
-      ButtonViewModel(messages("site.continue")).preventingDoubleClick()
+      ButtonViewModel(messages("site.confirm")).preventingDoubleClick()
     )
   }
 }

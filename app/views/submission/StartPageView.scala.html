@@ -20,11 +20,11 @@
         formHelper: FormWithCSRF
 )
 
-@(operatorId: String)(implicit request: Request[_], messages: Messages)
+@(operatorId: String, operatorName: String)(implicit request: Request[_], messages: Messages)
 
 @layout(pageTitle = titleNoForm(messages("startPage.title"))) {
 
-  <h1 class="govuk-heading-xl">@messages("startPage.heading")</h1>
+  <h1 class="govuk-heading-xl">@messages("startPage.heading", operatorName)</h1>
 
   <p class="govuk-body">@messages("startPage.p1")</p>
 
