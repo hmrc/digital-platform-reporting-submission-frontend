@@ -17,7 +17,7 @@
 package config
 
 import controllers.actions.*
-import models.CountriesList
+import models.{CountriesList, DefaultCountriesList}
 import play.api.inject.Binding
 import play.api.{Configuration, Environment}
 import uk.gov.hmrc.crypto.{Decrypter, Encrypter}
@@ -35,7 +35,7 @@ class Module extends play.api.inject.Module {
       bind[AssumedSubmissionDeletedCheckAction].to[AssumedSubmissionDeletedCheckActionImpl],
       bind[Clock].toInstance(Clock.systemUTC()),
       bind[Encrypter & Decrypter].toProvider[CryptoProvider],
-      bind[CountriesList].toProvider[CountriesListProvider]
+      bind[CountriesList].to[DefaultCountriesList]
     )
   }
 }
