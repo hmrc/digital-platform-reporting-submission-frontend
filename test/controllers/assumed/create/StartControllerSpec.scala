@@ -24,7 +24,7 @@ import models.operator.responses.PlatformOperator
 import models.operator.{AddressDetails, ContactDetails}
 import models.{NormalMode, UserAnswers}
 import org.mockito.ArgumentMatchers.{any, eq as eqTo}
-import org.mockito.Mockito.{never, times, verify, when}
+import org.mockito.Mockito.{times, verify, when}
 import org.mockito.{ArgumentCaptor, Mockito}
 import org.scalatest.BeforeAndAfterEach
 import org.scalatestplus.mockito.MockitoSugar
@@ -54,31 +54,7 @@ class StartControllerSpec extends SpecBase with MockitoSugar with BeforeAndAfter
   }
 
   "Start Controller" - {
-
-    "must return OK and the correct view for a GET when user answers exist" in {
-
-      val application =
-        applicationBuilder(userAnswers = Some(baseAnswers))
-          .overrides(
-            bind[PlatformOperatorConnector].toInstance(mockPlatformOperatorConnector),
-            bind[SessionRepository].toInstance(mockSessionRepository)
-          )
-          .build()
-
-      running(application) {
-        val request = FakeRequest(GET, routes.StartController.onPageLoad(operatorId).url)
-
-        val result = route(application, request).value
-
-        val view = application.injector.instanceOf[StartView]
-
-        status(result) mustEqual OK
-        contentAsString(result) mustEqual view(operatorId)(request, messages(application)).toString
-        verify(mockPlatformOperatorConnector, never()).viewPlatformOperator(any())(any())
-        verify(mockSessionRepository, never()).set(any())
-      }
-    }
-
+    
     "must redirect to AssumedReportingDisabled for a GET when submissions are disabled" in {
 
       val application =
@@ -96,7 +72,7 @@ class StartControllerSpec extends SpecBase with MockitoSugar with BeforeAndAfter
       }
     }
 
-    "must save a platform operator summary and return OK and the correct view for a GET when user answers do not exist" in {
+    "must save a platform operator summary and return OK and the correct view for a GET" in {
 
       val operator = PlatformOperator(
         operatorId = "operatorId",
@@ -131,7 +107,7 @@ class StartControllerSpec extends SpecBase with MockitoSugar with BeforeAndAfter
         val expectedSummary = PlatformOperatorSummary(operator.operatorId, operator.operatorName, "name", "email", hasReportingNotifications = false)
 
         status(result) mustEqual OK
-        contentAsString(result) mustEqual view(operatorId)(request, messages(application)).toString
+        contentAsString(result) mustEqual view(operatorId, operatorName)(request, messages(application)).toString
         verify(mockPlatformOperatorConnector, times(1)).viewPlatformOperator(eqTo(operator.operatorId))(any())
         verify(mockSessionRepository, times(1)).set(answersCaptor.capture())
 

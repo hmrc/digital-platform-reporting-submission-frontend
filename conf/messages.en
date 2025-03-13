@@ -58,7 +58,7 @@ unauthorised.title = You can’t access this service with this account
 unauthorised.heading = You can’t access this service with this account
 
 startPage.title = Make a new submission
-startPage.heading = Make a new submission
+startPage.heading = Make a new submission for {0}
 startPage.p1 = In the next few screens you can submit an XML file containing the information of sellers using a platform.
 startPage.p2.1 = When you submit your data it will be processed to make sure it complies with the XML schema and passes the business rules. You can
 startPage.p2.link = refer to the schema and supporting documents (opens in new tab)
@@ -343,7 +343,7 @@ ukTaxIdentifiers.empref = EMPREF
 ukTaxIdentifiers.chrn = CHRN
 
 assumed.start.title = Tell HMRC that another platform operator will report for you
-assumed.start.heading = Tell HMRC that another platform operator will report for you
+assumed.start.heading = Tell HMRC that another platform operator will report for {0}
 assumed.start.p1 = Provide the details of the platform operator that will report for you. This is called assumed reporting.
 assumed.start.p2 = You have to tell HMRC every year another platform operator will report for you, it will not carry forward.
 assumed.start.details.heading = When can I use assumed reporting? (expand for more details)
