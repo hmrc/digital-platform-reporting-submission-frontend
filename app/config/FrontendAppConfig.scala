@@ -45,7 +45,6 @@ class FrontendAppConfig @Inject()(configuration: Configuration) {
 
   val languageTranslationEnabled: Boolean = configuration.get[Boolean]("features.welsh-translation")
   val dataEncryptionEnabled: Boolean = configuration.get[Boolean]("features.use-encryption")
-  val extendedCountriesListEnabled: Boolean = configuration.get[Boolean]("features.extended-countries-list")
   val submissionsEnabled: Boolean = configuration.get[Boolean]("features.submissions-enabled")
 
   def languageMap: Map[String, Lang] = Map(
