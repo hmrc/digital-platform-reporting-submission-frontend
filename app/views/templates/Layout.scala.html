@@ -29,7 +29,6 @@
     appConfig: FrontendAppConfig,
     hmrcTimeoutDialog: HmrcTimeoutDialog,
     hmrcReportTechnicalIssueHelper: HmrcReportTechnicalIssueHelper,
-    betaBanner: StandardBetaBanner,
     hmrcStandardPage: HmrcStandardPage,
     autocompleteCss: HmrcAccessibleAutocompleteCss,
     autocompleteJavascript: HmrcAccessibleAutocompleteJavascript,
@@ -82,8 +81,7 @@
         signOutUrl = if(showSignOut) Some(controllers.auth.routes.AuthController.signOut().url) else None
     ),
     banners = Banners(
-        displayHmrcBanner = showHmrcBanner,
-        phaseBanner = Some(betaBanner(appConfig.feedbackUrl))
+        displayHmrcBanner = showHmrcBanner
     ),
     isWelshTranslationAvailable = appConfig.languageTranslationEnabled,
     backLink = if (showBackLink) Some(BackLink.mimicsBrowserBackButtonViaJavaScript) else None
