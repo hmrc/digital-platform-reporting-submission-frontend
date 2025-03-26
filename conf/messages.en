@@ -15,6 +15,7 @@ site.startAgain = Start again
 site.signIn = Sign in
 site.govuk = GOV.UK
 site.notAvailable = Not available
+site.confirmAndDelete = Confirm and delete
 
 date.day = Day
 date.month = Month
