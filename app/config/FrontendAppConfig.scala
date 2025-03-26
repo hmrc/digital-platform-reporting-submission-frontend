@@ -19,7 +19,6 @@ package config
 import com.google.inject.{Inject, Singleton}
 import play.api.Configuration
 import play.api.i18n.Lang
-import play.api.mvc.RequestHeader
 
 @Singleton
 class FrontendAppConfig @Inject()(configuration: Configuration) {
@@ -28,13 +27,7 @@ class FrontendAppConfig @Inject()(configuration: Configuration) {
   val appName: String = configuration.get[String]("appName")
   val baseUrl: String = configuration.get[String]("platform.frontend.host")
 
-  private val contactHost = configuration.get[String]("contact-frontend.host")
-  private val contactFormServiceIdentifier = "digital-platform-reporting-submission-frontend"
-
   val digitalPlatformReportingUrl: Service = configuration.get[Service]("microservice.services.digital-platform-reporting")
-
-  def feedbackUrl(implicit request: RequestHeader): String =
-    s"$contactHost/contact/beta-feedback?service=$contactFormServiceIdentifier&backUrl=${host + request.uri}"
 
   val loginUrl: String = configuration.get[String]("urls.login")
   val loginContinueUrl: String = configuration.get[String]("urls.loginContinue")

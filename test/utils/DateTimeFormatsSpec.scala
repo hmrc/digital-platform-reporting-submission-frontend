@@ -46,7 +46,7 @@ class DateTimeFormatsSpec extends AnyFreeSpec with Matchers {
     }
   }
 
-  "fullDateTimeFormatter" ignore {
+  "fullDateTimeFormatter" - {
 
     "must format a BST date correctly" in {
       val dateTime = ZonedDateTime.of(2024, 6, 1, 13, 1, 0, 0, ZoneId.of("Europe/London"))
@@ -59,7 +59,7 @@ class DateTimeFormatsSpec extends AnyFreeSpec with Matchers {
     }
   }
 
-  "formatInstant" ignore {
+  "formatInstant" - {
 
     "must correctly format an instant outside of BST" in {
       val dateTime = LocalDateTime.of(2024, 1, 1, 13, 1, 0, 0)
