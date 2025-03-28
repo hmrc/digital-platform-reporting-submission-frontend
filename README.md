@@ -41,6 +41,7 @@ Or you could stop this microservice locally using
 
 To run locally:
 
+
 Navigate to http://localhost:9949/auth-login-stub/gg-sign-in which redirects to auth-login-stub page.
 
 Redirect URL: http://localhost:20007/digital-platform-reporting/submission/which-platform-operator
@@ -50,6 +51,13 @@ Redirect URL: http://localhost:20007/digital-platform-reporting/submission/which
     Enrolment Key: HMRC-DPRS
     Identifier Name: DPRSID
     Identifier Value: 1 (This could be any number)
+
+
+Note: Please make sure platform operator and reporting notifications are added for the given registration (identifier value) otherwise use below 
+
+Redirect URL : http://localhost:20006/digital-platform-reporting/manage-reporting
+
+
 
 **Integration and unit tests**
 
