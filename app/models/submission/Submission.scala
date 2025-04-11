@@ -119,6 +119,10 @@ object Submission {
       val errorMessageKey = "uploadFailed.error.NotXml"
     }
 
+    case object FileNameTooLong extends UploadFailureReason {
+      val errorMessageKey = "uploadFailed.error.long.filename"
+    }  
+
     object SchemaValidationError {
 
       final case class Error(line: Int, col: Int, message: String)
@@ -149,6 +153,7 @@ object Submission {
     private given OFormat[InvalidArgument.type] = singletonOFormat(InvalidArgument)
     private given OFormat[UnknownFailure.type] = singletonOFormat(UnknownFailure)
     private given OFormat[InvalidFileNameExtension.type] = singletonOFormat(InvalidFileNameExtension)
+    private given OFormat[FileNameTooLong.type] = singletonOFormat(FileNameTooLong)
 
     private given JsonConfiguration = JsonConfiguration(
       discriminator = "type",
