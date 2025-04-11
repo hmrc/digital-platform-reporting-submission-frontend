@@ -77,6 +77,7 @@ uploading.title = Upload an XML file
 uploading.heading = Upload an XML file
 uploading.body = We will automatically check the formatting of the file and send you to another page once completed.
 
+
 uploadFailed.schemafailure.title = There is a problem with the contents of your file
 uploadFailed.schemafailure.heading = There is a problem with the contents of your file
 uploadFailed.schemafailure.p1.1 = We cannot accept the file {0} because it does not pass the digital platform reporting schema validation.
@@ -102,6 +103,7 @@ uploadFailed.error.PlatformOperatorIdMissing = The platform operator ID is missi
 uploadFailed.error.PlatformOperatorIdMismatch = The platform operator ID in the file does not match the ID of the selected platform operator
 uploadFailed.error.SchemaValidationError = The selected file does not match the schema
 uploadFailed.error.NotXml = The selected file must be XML
+uploadFailed.error.long.filename = File name too long. Maximum is 170 characters, excluding the extension.
 uploadFailed.error.UnknownFailure = Something has gone wrong with your file upload
 uploadFailed.error.EntityTooLarge = The selected file must be smaller than 100MB
 uploadFailed.error.InvalidArgument = The selected file must not be empty
