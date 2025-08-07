@@ -19,7 +19,7 @@ package repositories
 import com.mongodb.client.model.IndexModel
 import models.upscan.UpscanJourney
 import org.apache.pekko.Done
-import org.mongodb.scala.{MongoWriteException, SingleObservableFuture}
+import org.mongodb.scala.MongoWriteException
 import org.mongodb.scala.model.*
 import play.api.Configuration
 import repositories.UpscanJourneyRepository.UpscanJourneyAlreadyExistsException

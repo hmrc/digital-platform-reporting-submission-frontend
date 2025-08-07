@@ -20,12 +20,11 @@ import config.FrontendAppConfig
 import models.{UserAnswers, yearFormat}
 import org.mongodb.scala.bson.conversions.Bson
 import org.mongodb.scala.model.*
-import org.mongodb.scala.SingleObservableFuture
 import play.api.libs.json.Format
 import uk.gov.hmrc.mongo.MongoComponent
 import uk.gov.hmrc.mongo.play.json.{Codecs, PlayMongoRepository}
 import uk.gov.hmrc.mongo.play.json.formats.MongoJavatimeFormats
-import uk.gov.hmrc.play.http.logging.Mdc
+import uk.gov.hmrc.mdc.Mdc
 import uk.gov.hmrc.crypto.{Decrypter, Encrypter}
 
 import java.time.{Clock, Instant, Year}
