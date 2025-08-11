@@ -569,6 +569,21 @@ class SubmissionSpec extends AnyFreeSpec with Matchers {
       }
     }
 
+    "when the reason is FileNameTooLong" - {
+
+      val json = Json.obj(
+        "type" -> "FileNameTooLong"
+      )
+
+      "must read from json" in {
+        Json.fromJson[UploadFailureReason](json).get mustEqual FileNameTooLong
+      }
+
+      "must write to json" in {
+        Json.toJsObject[UploadFailureReason](FileNameTooLong) mustEqual json
+      }
+    }
+
     "when the reason is UnknownFailure" - {
 
       val json = Json.obj(

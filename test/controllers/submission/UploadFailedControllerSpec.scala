@@ -103,6 +103,48 @@ class UploadFailedControllerSpec extends SpecBase with MockitoSugar with BeforeA
           verify(mockUpscanService).initiate(eqTo(operatorId), eqTo("dprsId"), eqTo("id"))(using any())
         }
 
+        "must return OK and the correct view for a GET filename too long error" in {
+          val application = applicationBuilder(userAnswers = None).overrides(
+            bind[SubmissionConnector].toInstance(mockSubmissionConnector),
+            bind[UpscanService].toInstance(mockUpscanService)
+          ).build()
+
+          val submission = Submission(
+            _id = "id",
+            submissionType = SubmissionType.Xml,
+            dprsId = "dprsId",
+            operatorId = "operatorId",
+            operatorName = "operatorName",
+            assumingOperatorName = None,
+            state = UploadFailed(
+              FileNameTooLong, Some("some-file-name-123456789-123456789-123457897-123456789-123456789-123456789-123456789-123456789-123456789")
+            ),
+            created = now,
+            updated = now
+          )
+
+          val uploadRequest = UploadRequest(
+            href = "href",
+            fields = Map.empty
+          )
+
+          when(mockSubmissionConnector.get(any())(using any())).thenReturn(Future.successful(Some(submission)))
+          when(mockUpscanService.initiate(any(), any(), any())(using any())).thenReturn(Future.successful(uploadRequest))
+
+          running(application) {
+            val request = FakeRequest(GET, routes.UploadFailedController.onPageLoad(operatorId, "id").url)
+            val result = route(application, request).value
+            val view = application.injector.instanceOf[UploadFailedView]
+
+            status(result) mustEqual OK
+            contentAsString(result) mustEqual view(uploadRequest, FileNameTooLong, "operatorName")(request, messages(application))
+              .toString
+          }
+
+          verify(mockSubmissionConnector).get(eqTo("id"))(using any())
+          verify(mockUpscanService).initiate(eqTo(operatorId), eqTo("dprsId"), eqTo("id"))(using any())
+        }
+
         "must return OK and the correct view for a GET when SchemaValidationError" in {
           val application = applicationBuilder(userAnswers = None).overrides(
             bind[SubmissionConnector].toInstance(mockSubmissionConnector),
@@ -796,6 +838,7 @@ class UploadFailedControllerSpec extends SpecBase with MockitoSugar with BeforeA
             verify(mockSubmissionConnector).get(eqTo("id"))(using any())
             verify(mockSubmissionConnector).uploadFailed("dprsId", "id", UploadFailureReason.EntityTooLarge)
           }
+
         }
 
         "when an unknown errorCode is given" - {
