@@ -796,6 +796,43 @@ class UploadFailedControllerSpec extends SpecBase with MockitoSugar with BeforeA
             verify(mockSubmissionConnector).get(eqTo("id"))(using any())
             verify(mockSubmissionConnector).uploadFailed("dprsId", "id", UploadFailureReason.EntityTooLarge)
           }
+
+          "must update the state of the submission and redirect to the uploading failed page with filename too large error" in {
+
+            val application = applicationBuilder(userAnswers = None)
+              .overrides(
+                bind[SubmissionConnector].toInstance(mockSubmissionConnector)
+              )
+              .build()
+
+            val state = Gen.oneOf(readyGen, uploadingGen, uploadFailedGen).sample.value
+            val submission = Submission(
+              _id = "id",
+              submissionType = SubmissionType.Xml,
+              dprsId = "dprsId",
+              operatorId = "operatorId",
+              operatorName = "operatorName",
+              assumingOperatorName = None,
+              state = state,
+              created = now,
+              updated = now
+            )
+
+            when(mockSubmissionConnector.get(any())(using any())).thenReturn(Future.successful(Some(submission)))
+            when(mockSubmissionConnector.uploadFailed(any(), any(), any())).thenReturn(Future.successful(Done))
+
+            running(application) {
+              val request = FakeRequest(routes.UploadFailedController.onRedirect(operatorId, "id", Some("FileNameTooLong")))
+              val result = route(application, request).value
+
+              status(result) mustEqual SEE_OTHER
+              redirectLocation(result).value mustEqual routes.UploadFailedController.onPageLoad(operatorId, "id").url
+            }
+
+            verify(mockSubmissionConnector).get(eqTo("id"))(using any())
+            verify(mockSubmissionConnector).uploadFailed("dprsId", "id", UploadFailureReason.FileNameTooLong)
+          }
+
         }
 
         "when an unknown errorCode is given" - {

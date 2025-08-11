@@ -105,7 +105,8 @@ class UploadFailedController @Inject()(override val messagesApi: MessagesApi,
   private val knownErrors: Map[String, UploadFailureReason] = Map(
     "EntityTooLarge" -> UploadFailureReason.EntityTooLarge,
     "EntityTooSmall" -> UploadFailureReason.EntityTooSmall,
-    "InvalidArgument" -> UploadFailureReason.InvalidArgument
+    "InvalidArgument" -> UploadFailureReason.InvalidArgument,
+    "FileNameTooLong" -> UploadFailureReason.FileNameTooLong
   )
 
   def onRedirect(operatorId: String, submissionId: String, errorCode: Option[String]): Action[AnyContent] = identify.async { implicit request =>
