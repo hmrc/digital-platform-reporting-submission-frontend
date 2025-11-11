@@ -96,11 +96,11 @@ class UpscanCallbackControllerSpec extends SpecBase with BeforeAndAfterEach {
           running(application) {
             val request = FakeRequest(routes.UpscanCallbackController.callback())
               .withBody(Json.toJson[UpscanCallbackRequest](requestBody))
-            val result = route(application, request).value
 
             when(mockUpscanJourneyRepository.getByUploadId(any())).thenReturn(Future.successful(Some(upscanJourney)))
             when(mockSubmissionConector.uploadSuccess(any(), any())).thenReturn(Future.successful(Done))
 
+            val result = route(application, request).value
             status(result) mustEqual OK
 
             verify(mockUpscanJourneyRepository).getByUploadId("uploadId")
@@ -138,11 +138,11 @@ class UpscanCallbackControllerSpec extends SpecBase with BeforeAndAfterEach {
           running(application) {
             val request = FakeRequest(routes.UpscanCallbackController.callback())
               .withBody(Json.toJson[UpscanCallbackRequest](requestBody))
-            val result = route(application, request).value
 
             when(mockUpscanJourneyRepository.getByUploadId(any())).thenReturn(Future.successful(Some(upscanJourney)))
             when(mockSubmissionConector.uploadFailed(any(), any(), any())).thenReturn(Future.successful(Done))
 
+            val result = route(application, request).value
             status(result) mustEqual OK
 
             verify(mockUpscanJourneyRepository).getByUploadId("uploadId")
@@ -178,10 +178,10 @@ class UpscanCallbackControllerSpec extends SpecBase with BeforeAndAfterEach {
         running(application) {
           val request = FakeRequest(routes.UpscanCallbackController.callback())
             .withBody(Json.toJson[UpscanCallbackRequest](requestBody))
-          val result = route(application, request).value
 
           when(mockUpscanJourneyRepository.getByUploadId(any())).thenReturn(Future.successful(None))
 
+          val result = route(application, request).value
           status(result) mustEqual OK
 
           verify(mockUpscanJourneyRepository).getByUploadId("uploadId")
