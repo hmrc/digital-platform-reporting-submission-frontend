@@ -46,3 +46,15 @@
     content: none !important;
   }
 }
+
+.govuk-notification-banner {
+  width:920px;
+  border: 5px solid #005EA5;
+  background-color:#005EA5
+}
+
+.govuk-notification-banner__content > * {
+  max-width:1000px
+}
+
+

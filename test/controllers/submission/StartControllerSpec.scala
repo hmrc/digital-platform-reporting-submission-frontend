@@ -42,6 +42,7 @@ import support.builders.UserAnswersBuilder.aUserAnswers
 import viewmodels.PlatformOperatorSummary
 import views.html.submission.StartPageView
 
+import java.time.{Clock, LocalDate, ZoneId}
 import scala.concurrent.Future
 
 class StartControllerSpec extends SpecBase with MockitoSugar with BeforeAndAfterEach {
@@ -52,6 +53,8 @@ class StartControllerSpec extends SpecBase with MockitoSugar with BeforeAndAfter
   private val mockConfirmedDetailsService = mock[ConfirmedDetailsService]
   private val platformOperatorSummary = PlatformOperatorSummary("operatorId", "operatorName", "primaryContactName", "test@test.com", hasReportingNotifications = true)
   private val baseAnswers = aUserAnswers.set(PlatformOperatorSummaryQuery, platformOperatorSummary).success.value
+  private val instant = LocalDate.of(2026, 1, 28).atStartOfDay(ZoneId.systemDefault()).toInstant
+  private val stubClock: Clock = Clock.fixed(instant, ZoneId.systemDefault)
 
   override def beforeEach(): Unit = {
     super.beforeEach()
@@ -80,6 +83,88 @@ class StartControllerSpec extends SpecBase with MockitoSugar with BeforeAndAfter
         }
       }
 
+      "must display the high demand banner when enabled" in {
+
+        val operator = PlatformOperator(
+          operatorId = operatorId,
+          operatorName = "operatorName",
+          tinDetails = Nil,
+          businessName = None,
+          tradingName = None,
+          primaryContactDetails = ContactDetails(None, "name", "email"),
+          secondaryContactDetails = None,
+          addressDetails = AddressDetails("line 1", None, None, None, None, Some("GB")),
+          notifications = Nil
+        )
+
+        when(mockPlatformOperatorConnector.viewPlatformOperator(any())(any())).thenReturn(Future.successful(operator))
+        when(mockSessionRepository.set(any())).thenReturn(Future.successful(true))
+
+        val application = applicationBuilder(userAnswers = None)
+          .configure(
+            "highDemandBanner.enabled" -> true,
+            "highDemandBanner.startDate" -> "2026-01-26",
+            "highDemandBanner.endDate" -> "2026-02-02"
+
+          )
+          .overrides(
+            bind[Clock].toInstance(stubClock),
+            bind[PlatformOperatorConnector].toInstance(mockPlatformOperatorConnector),
+            bind[SessionRepository].toInstance(mockSessionRepository)
+          )
+          .build()
+        running(application) {
+          val request = FakeRequest(routes.StartController.onPageLoad(operatorId))
+          val result = route(application, request).value
+          status(result) mustEqual OK
+
+          val html = contentAsString(result)
+          html must include("govuk-notification-banner")
+          html must include("Important")
+        }
+      }
+
+      "must not display the high demand banner when disabled" in {
+        val operator = PlatformOperator(
+          operatorId = operatorId,
+          operatorName = "operatorName",
+          tinDetails = Nil,
+          businessName = None,
+          tradingName = None,
+          primaryContactDetails = ContactDetails(None, "name", "email"),
+          secondaryContactDetails = None,
+          addressDetails = AddressDetails("line 1", None, None, None, None, Some("GB")),
+          notifications = Nil
+        )
+
+        when(mockPlatformOperatorConnector.viewPlatformOperator(any())(any())).thenReturn(Future.successful(operator))
+        when(mockSessionRepository.set(any())).thenReturn(Future.successful(true))
+
+        val application = applicationBuilder(userAnswers = None)
+          .configure(
+            "highDemandBanner.enabled" -> false,
+            "highDemandBanner.startDate" -> "2026-01-26",
+            "highDemandBanner.endDate" -> "2026-02-02"
+
+          )
+          .overrides(
+            bind[Clock].toInstance(stubClock),
+            bind[PlatformOperatorConnector].toInstance(mockPlatformOperatorConnector),
+            bind[SessionRepository].toInstance(mockSessionRepository)
+          )
+          .build()
+
+        running(application) {
+          val request = FakeRequest(routes.StartController.onPageLoad(operatorId))
+          val result = route(application, request).value
+
+          status(result) mustEqual OK
+          val html = contentAsString(result)
+          html must not include ("govuk-notification-banner")
+          html must not include("Important")
+        }
+      }
+
       "must save a platform operator summary and return OK and the correct view for a GET" in {
         val operator = PlatformOperator(
           operatorId = operatorId,
@@ -96,7 +181,10 @@ class StartControllerSpec extends SpecBase with MockitoSugar with BeforeAndAfter
         when(mockPlatformOperatorConnector.viewPlatformOperator(any())(any())).thenReturn(Future.successful(operator))
         when(mockSessionRepository.set(any())).thenReturn(Future.successful(true))
 
-        val application = applicationBuilder(userAnswers = None).overrides(
+        val application = applicationBuilder(userAnswers = None).configure(
+          "highDemandBanner.enabled" -> false
+          )
+          .overrides(
           bind[PlatformOperatorConnector].toInstance(mockPlatformOperatorConnector),
           bind[SessionRepository].toInstance(mockSessionRepository)
         ).build()
@@ -107,9 +195,9 @@ class StartControllerSpec extends SpecBase with MockitoSugar with BeforeAndAfter
           val view = application.injector.instanceOf[StartPageView]
           val answersCaptor: ArgumentCaptor[UserAnswers] = ArgumentCaptor.forClass(classOf[UserAnswers])
           val expectedSummary = PlatformOperatorSummary(operator.operatorId, operator.operatorName, "name", "email", hasReportingNotifications = false)
-
+          val showBannerEnabled = false
           status(result) mustEqual OK
-          contentAsString(result) mustEqual view(operatorId, operatorName)(request, messages(application)).toString
+          contentAsString(result) mustEqual view(operatorId, operatorName,showBannerEnabled)(request, messages(application)).toString
 
           verify(mockPlatformOperatorConnector, times(1)).viewPlatformOperator(eqTo(operator.operatorId))(any())
           verify(mockSessionRepository, times(1)).set(answersCaptor.capture())
@@ -118,6 +206,7 @@ class StartControllerSpec extends SpecBase with MockitoSugar with BeforeAndAfter
           answers.get(PlatformOperatorSummaryQuery).value mustEqual expectedSummary
         }
       }
+
 
       "must redirect to journey recovery page when platform operator cannot be found" in {
         when(mockPlatformOperatorConnector.viewPlatformOperator(any())(any())).thenReturn(Future.failed(PlatformOperatorNotFoundFailure))
