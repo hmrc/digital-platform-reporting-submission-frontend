@@ -67,6 +67,8 @@ startPage.p2.2 = for guidance.
 startPage.p3 = The maximum file size is 100MB.
 startPage.p4 = Doing a file submission takes around 10 minutes, but it may take longer for your file to process in the background once submitted. A large file may take up to 2 days to process.
 startPage.startSubmission = Start submission
+startPage.banner = We''re expecting a high demand as the submission deadline approaches. This may cause a delay in getting your submission confirmation.
+startPage.bannerTitle = Important
 
 upload.title = Upload an XML file
 upload.heading = Upload an XML file

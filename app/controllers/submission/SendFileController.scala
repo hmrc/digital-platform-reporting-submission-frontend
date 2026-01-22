@@ -16,6 +16,7 @@
 
 package controllers.submission
 
+import config.FrontendAppConfig
 import connectors.SubmissionConnector
 import controllers.actions.*
 import models.submission.Submission
@@ -43,7 +44,8 @@ class SendFileController @Inject()(
                                     checkSubmissionsAllowed: CheckSubmissionsAllowedAction,
                                     val controllerComponents: MessagesControllerComponents,
                                     view: SendFileView,
-                                    submissionConnector: SubmissionConnector
+                                    submissionConnector: SubmissionConnector,
+                                    configuration: FrontendAppConfig
                                   )(using ExecutionContext) extends FrontendBaseController with I18nSupport {
 
   def onPageLoad(operatorId: String, submissionId: String): Action[AnyContent] =
@@ -52,7 +54,7 @@ class SendFileController @Inject()(
         submissionConnector.get(submissionId).flatMap {
           _.map { submission =>
             handleSubmission(operatorId, submission) { case state: Validated =>
-              Future.successful(Ok(view(operatorId, submissionId, getSummaryList(submissionId, state.fileName, state.reportingPeriod, submission))))
+              Future.successful(Ok(view(operatorId, submissionId, getSummaryList(submissionId, state.fileName, state.reportingPeriod, submission),configuration.showHighDemandBanner)))
             }
           }.getOrElse {
             Future.successful(Redirect(controllers.routes.JourneyRecoveryController.onPageLoad()))

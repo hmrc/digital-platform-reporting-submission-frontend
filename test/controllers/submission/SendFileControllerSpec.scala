@@ -41,13 +41,15 @@ import uk.gov.hmrc.govukfrontend.views.viewmodels.summarylist.{ActionItem, Actio
 import uk.gov.hmrc.http.StringContextOps
 import views.html.submission.SendFileView
 
-import java.time.{Instant, Year}
+import java.time.{Clock, Instant, LocalDate, Year, ZoneId}
 import scala.concurrent.Future
 
 class SendFileControllerSpec extends SpecBase with MockitoSugar with BeforeAndAfterEach {
 
   private val mockSubmissionConnector: SubmissionConnector = mock[SubmissionConnector]
   private val mockSessionRepository = mock[SessionRepository]
+  private val instant = LocalDate.of(2026, 1, 28).atStartOfDay(ZoneId.systemDefault()).toInstant
+  private val stubClock: Clock = Clock.fixed(instant, ZoneId.systemDefault)
 
   private val now: Instant = Instant.now()
 
@@ -63,11 +65,103 @@ class SendFileControllerSpec extends SpecBase with MockitoSugar with BeforeAndAf
 
     "onPageLoad" - {
 
+      "must display the high demand banner when enabled" in {
+
+        val application = applicationBuilder(userAnswers = Some(emptyUserAnswers)).configure(
+            "highDemandBanner.enabled" -> true,
+            "highDemandBanner.startDate" -> "2026-01-26",
+            "highDemandBanner.endDate" -> "2026-02-02"
+          )
+          .overrides(
+            bind[Clock].toInstance(stubClock),
+            bind[SubmissionConnector].toInstance(mockSubmissionConnector)
+          )
+          .build()
+
+        val submission = Submission(
+          _id = "id",
+          submissionType = SubmissionType.Xml,
+          dprsId = "dprsId",
+          operatorId = "operatorId",
+          operatorName = "operatorName",
+          assumingOperatorName = None,
+          state = Validated(
+            downloadUrl = url"http://example.com/test.xml",
+            reportingPeriod = Year.of(2024),
+            fileName = "test.xml",
+            checksum = "checksum",
+            size = 1337L
+          ),
+          created = now,
+          updated = now
+        )
+
+        when(mockSubmissionConnector.get(any())(using any())).thenReturn(Future.successful(Some(submission)))
+
+        running(application) {
+          val request = FakeRequest(GET, routes.SendFileController.onPageLoad(operatorId, "id").url)
+          val result = route(application, request).value
+
+          status(result) mustEqual OK
+
+          val html = contentAsString(result)
+          html must include("govuk-notification-banner")
+          html must include("Important")
+        }
+      }
+
+      "must not display the high demand banner when disabled" in {
+
+        val application = applicationBuilder(userAnswers = Some(emptyUserAnswers)).configure(
+            "highDemandBanner.enabled" -> false,
+            "highDemandBanner.startDate" -> "2026-01-26",
+            "highDemandBanner.endDate" -> "2026-02-02"
+          )
+          .overrides(
+            bind[Clock].toInstance(stubClock),
+            bind[SubmissionConnector].toInstance(mockSubmissionConnector)
+          )
+          .build()
+
+        val submission = Submission(
+          _id = "id",
+          submissionType = SubmissionType.Xml,
+          dprsId = "dprsId",
+          operatorId = "operatorId",
+          operatorName = "operatorName",
+          assumingOperatorName = None,
+          state = Validated(
+            downloadUrl = url"http://example.com/test.xml",
+            reportingPeriod = Year.of(2024),
+            fileName = "test.xml",
+            checksum = "checksum",
+            size = 1337L
+          ),
+          created = now,
+          updated = now
+        )
+
+        when(mockSubmissionConnector.get(any())(using any())).thenReturn(Future.successful(Some(submission)))
+
+        running(application) {
+          val request = FakeRequest(GET, routes.SendFileController.onPageLoad(operatorId, "id").url)
+          val result = route(application, request).value
+
+          status(result) mustEqual OK
+
+          val html = contentAsString(result)
+          html must not include("govuk-notification-banner")
+          html must not include("Important")
+        }
+      }
+
       "when there is a submission in a validated state for the given id" - {
 
         "must return OK and the correct view for a GET" in {
 
-          val application = applicationBuilder(userAnswers = Some(emptyUserAnswers))
+          val application = applicationBuilder(userAnswers = Some(emptyUserAnswers)).configure(
+            "highDemandBanner.enabled" -> false
+          )
             .overrides(
               bind[SubmissionConnector].toInstance(mockSubmissionConnector)
             )
@@ -126,13 +220,15 @@ class SendFileControllerSpec extends SpecBase with MockitoSugar with BeforeAndAf
             val request = FakeRequest(GET, routes.SendFileController.onPageLoad(operatorId, "id").url)
             val result = route(application, request).value
             val view = application.injector.instanceOf[SendFileView]
+            val showBannerEnabled = false
 
             status(result) mustEqual OK
-            contentAsString(result) mustEqual view(operatorId, "id", expectedSummaryList)(request, messages(application)).toString
+            contentAsString(result) mustEqual view(operatorId, "id", expectedSummaryList,showBannerEnabled)(request, messages(application)).toString
           }
 
           verify(mockSubmissionConnector).get(eqTo("id"))(using any())
         }
+
       }
 
       "when there is no submission for the given id" - {

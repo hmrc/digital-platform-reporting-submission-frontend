@@ -20,9 +20,11 @@
         formHelper: FormWithCSRF
 )
 
-@(operatorId: String, operatorName: String)(implicit request: Request[_], messages: Messages)
+@(operatorId: String, operatorName: String, showBanner: Boolean)(implicit request: Request[_], messages: Messages)
 
 @layout(pageTitle = titleNoForm(messages("startPage.title"))) {
+
+  @HighDemandBanner(showBanner)
 
   <h1 class="govuk-heading-xl">@messages("startPage.heading", operatorName)</h1>
 

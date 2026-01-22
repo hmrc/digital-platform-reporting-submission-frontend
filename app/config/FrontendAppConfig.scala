@@ -20,8 +20,10 @@ import com.google.inject.{Inject, Singleton}
 import play.api.Configuration
 import play.api.i18n.Lang
 
+import java.time.{Clock, LocalDate}
+
 @Singleton
-class FrontendAppConfig @Inject()(configuration: Configuration) {
+class FrontendAppConfig @Inject()(configuration: Configuration, clock: Clock) {
 
   val host: String = configuration.get[String]("host")
   val appName: String = configuration.get[String]("appName")
@@ -65,4 +67,15 @@ class FrontendAppConfig @Inject()(configuration: Configuration) {
   val manageHomepageUrl: String = s"$manageFrontendUrl/manage-reporting"
 
   val emailServiceUrl: String = configuration.get[Service]("microservice.services.email").baseUrl
+
+  val enabled: Boolean = configuration.getOptional[Boolean]("highDemandBanner.enabled").getOrElse(false)
+  val startDate: Option[LocalDate] = configuration.getOptional[String]("highDemandBanner.startDate").map(LocalDate.parse)
+  val endDate: Option[LocalDate] = configuration.getOptional[String]("highDemandBanner.endDate").map(LocalDate.parse)
+
+  def showHighDemandBanner: Boolean = {
+    val today = LocalDate.now(clock)
+    enabled &&
+      startDate.exists(today.compareTo(_) >=0) &&
+      endDate.exists(today.compareTo(_) <=0)
+  }
 }

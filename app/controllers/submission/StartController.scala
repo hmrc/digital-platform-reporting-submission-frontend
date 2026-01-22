@@ -16,6 +16,7 @@
 
 package controllers.submission
 
+import config.FrontendAppConfig
 import connectors.PlatformOperatorConnector.PlatformOperatorNotFoundFailure
 import connectors.{PlatformOperatorConnector, SubmissionConnector}
 import controllers.AnswerExtractor
@@ -45,6 +46,7 @@ class StartController @Inject()(override val messagesApi: MessagesApi,
                                 sessionRepository: SessionRepository,
                                 confirmedDetailsService: ConfirmedDetailsService,
                                 getData: DataRetrievalActionProvider,
+                                configuration: FrontendAppConfig,
                                 requireData: DataRequiredAction)
                                (using ExecutionContext)
   extends FrontendBaseController with I18nSupport with AnswerExtractor {
@@ -56,7 +58,7 @@ class StartController @Inject()(override val messagesApi: MessagesApi,
         for {
           answers <- Future.fromTry(UserAnswers(request.userId, operatorId).set(PlatformOperatorSummaryQuery, summary))
           _ <- sessionRepository.set(answers)
-        } yield Ok(view(operatorId, operator.operatorName))
+        } yield Ok(view(operatorId, operator.operatorName, configuration.showHighDemandBanner))
       }.recover {
         case PlatformOperatorNotFoundFailure => Redirect(controllers.routes.JourneyRecoveryController.onPageLoad())
       }
