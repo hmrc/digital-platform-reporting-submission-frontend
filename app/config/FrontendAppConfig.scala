@@ -36,7 +36,7 @@ class FrontendAppConfig @Inject()(configuration: Configuration, clock: Clock) {
   val signOutUrl: String = configuration.get[String]("urls.signOut")
 
   private val exitSurveyBaseUrl: String = configuration.get[String]("feedback-frontend.host")
-  val exitSurveyUrl: String = s"$exitSurveyBaseUrl/feedback/digital-platform-reporting-submission-frontend"
+  val exitSurveyUrl: String = s"$exitSurveyBaseUrl/feedback/digital-platform-reporting-submission-frontend?useServiceNavigation"
 
   val languageTranslationEnabled: Boolean = configuration.get[Boolean]("features.welsh-translation")
   val dataEncryptionEnabled: Boolean = configuration.get[Boolean]("features.use-encryption")
