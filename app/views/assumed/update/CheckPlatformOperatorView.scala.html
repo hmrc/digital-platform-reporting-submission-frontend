@@ -28,7 +28,7 @@
 
 @(form: Form[?], platformOperatorList: SummaryList, primaryContactList: SummaryList, secondaryContactList: Option[SummaryList], operatorId: String, reportingPeriod: Year, businessName: String)(implicit request: Request[_], messages: Messages)
 
-@layout(pageTitle = titleNoForm(messages("checkPlatformOperator.title"))) {
+@layout(pageTitle = titleNoForm(messages("checkPlatformOperator.heading", businessName))) {
 
     @formHelper(action = routes.CheckPlatformOperatorController.onSubmit(operatorId, reportingPeriod), Symbol("autoComplete") -> "off") {
 

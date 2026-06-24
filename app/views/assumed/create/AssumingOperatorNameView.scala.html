@@ -28,7 +28,7 @@
 
 @(form: Form[_], mode: Mode, operator: PlatformOperatorSummary)(implicit request: Request[_], messages: Messages)
 
-@layout(pageTitle = title(form, messages("assumingOperatorName.title"))) {
+@layout(pageTitle = title(form, messages("assumingOperatorName.heading", operator.operatorName))) {
 
     @formHelper(action = routes.AssumingOperatorNameController.onSubmit(mode, operator.operatorId)) {
 

@@ -26,7 +26,7 @@
 
 @(form: Form[_], operatorId: String, reportingPeriod: Year, assumingOperatorName: String)(implicit request: Request[_], messages: Messages)
 
-@layout(pageTitle = title(form, messages("hasUkTaxIdentifier.title"))) {
+@layout(pageTitle = title(form, messages("hasUkTaxIdentifier.heading", assumingOperatorName))) {
 
     @formHelper(action = routes.HasUkTaxIdentifierController.onSubmit(operatorId, reportingPeriod), Symbol("autoComplete") -> "off") {
 

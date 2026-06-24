@@ -27,7 +27,7 @@
 
 @(form: Form[_], operatorId: String, reportingPeriod: Year, assumingOperatorName: String)(implicit request: Request[_], messages: Messages)
 
-@layout(pageTitle = title(form, messages("address.title"))) {
+@layout(pageTitle = title(form, messages("address.heading", assumingOperatorName))) {
 
     @formHelper(action = routes.AddressController.onSubmit(operatorId, reportingPeriod), Symbol("autoComplete") -> "off") {
 
