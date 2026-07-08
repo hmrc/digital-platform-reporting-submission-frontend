@@ -31,7 +31,7 @@
 
 @(form: Form[_], mode: Mode, operatorId: String, assumingOperatorName: String)(implicit request: Request[_], messages: Messages)
 
-@layout(pageTitle = title(form, messages("taxResidencyCountry.title"))) {
+@layout(pageTitle = title(form, messages("taxResidencyCountry.heading", assumingOperatorName))) {
 
     @formHelper(action = routes.TaxResidencyCountryController.onSubmit(mode, operatorId)) {
 

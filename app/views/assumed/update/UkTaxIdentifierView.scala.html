@@ -27,7 +27,7 @@
 
 @(form: Form[_], operatorId: String, reportingPeriod: Year, assumingOperatorName: String)(implicit request: Request[_], messages: Messages)
 
-@layout(pageTitle = title(form, messages("ukTaxIdentifier.title"))) {
+@layout(pageTitle = title(form, messages("ukTaxIdentifier.heading", assumingOperatorName))) {
 
     @formHelper(action = routes.UkTaxIdentifierController.onSubmit(operatorId, reportingPeriod)) {
 
