@@ -49,13 +49,13 @@
 }
 
 @layout(
-    pageTitle = viewModel.pageTitle,
+    pageTitle = titleNoForm(viewModel.pageTitle),
     fullWidth = true,
     additionalScripts = Some(scripts),
     additionalCss = Some(css)
 ) {
 
-    <h1 class="govuk-heading-xl">@messages("viewSubmissions.heading")</h1>
+    <h1 class="govuk-heading-xl">@viewModel.pageTitle</h1>
 
     @viewModel.maybeSummary.map { summary =>
 
