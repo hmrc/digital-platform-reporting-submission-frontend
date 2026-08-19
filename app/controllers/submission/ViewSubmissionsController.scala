@@ -22,6 +22,7 @@ import controllers.actions.IdentifierAction
 import controllers.routes as baseRoutes
 import forms.ViewSubmissionsFormProvider
 import models.submission.ViewSubmissionsRequest
+import play.api.Logging
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
@@ -41,7 +42,7 @@ class ViewSubmissionsController @Inject()(override val messagesApi: MessagesApi,
                                           formProvider: ViewSubmissionsFormProvider,
                                           clock: Clock,
                                           appConfig: FrontendAppConfig)
-                                         (using ExecutionContext) extends FrontendBaseController with I18nSupport {
+                                         (using ExecutionContext) extends FrontendBaseController with I18nSupport with Logging {
 
   def onPageLoad(): Action[AnyContent] = identify.async { implicit request =>
     formProvider().bindFromRequest().fold(
@@ -52,7 +53,7 @@ class ViewSubmissionsController @Inject()(override val messagesApi: MessagesApi,
           operators <- platformOperatorConnector.viewPlatformOperators
         } yield {
           val viewModel = ViewSubmissionsViewModel(submissions, operators.platformOperators, filter, Year.now(clock), appConfig.baseUrl)
-
+          logger.info("submission data : " + submissions)
           Ok(view(formProvider().fill(filter), viewModel))
         }
     )
