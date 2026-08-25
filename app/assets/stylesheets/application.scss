@@ -9,6 +9,8 @@
   max-width: 11.5em;
 }
 
+
+
 // Ensure the error styling is presented (powered by adding the govuk-input-error class in js)
 // This can't be done just by adding the class due to conflicting specificity
 .autocomplete__input.govuk-input--error {
@@ -28,6 +30,16 @@
   }
 }
 
+.autocomplete__option {
+    white-space: normal;
+    word-break: break-word;
+}
+
+.autocomplete__input {
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    overflow: hidden;
+}
 
 @media print {
   .govuk-link {
@@ -57,4 +69,95 @@
   max-width:1000px
 }
 
+.custom-select-trigger {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    height: auto;
+    text-align: left;
+    background-image: none;
+    cursor: pointer;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    overflow: hidden;
+}
 
+.custom-select-arrow {
+    flex-shrink: 0;
+}
+
+.custom-select-options {
+    /* Keeps the open menu in the page layout */
+    position: static;
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    border: 2px solid #0b0c0c;
+    background: white;
+    white-space: normal;
+    word-break: break-word;
+}
+
+.custom-select-options[hidden] {
+    display: none;
+}
+
+.custom-select-option {
+    display: block;
+    width: 100%;
+    padding: 8px;
+    border: 0;
+    font: inherit;
+    color: #0b0c0c;
+    background: white;
+    text-align: left;
+    cursor: pointer;
+
+}
+
+.custom-select-option:hover,
+.custom-select-option.is-selected {
+    background: #f3f2f1;
+}
+
+.custom-select-option:focus-visible {
+    outline: 3px solid #ffdd00;
+    outline-offset: -3px;
+    box-shadow: inset 0 -5px #0b0c0c;
+}
+
+.custom-select-option:disabled {
+    color: #505a5f;
+    cursor: default;
+}
+
+.custom-select-trigger,
+.custom-select-options {
+    width: 100%;
+}
+
+.custom-select-trigger {
+    display: block;
+    position: relative;
+    width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+
+    /* Reserve space for the arrow */
+    padding-right: 36px;
+
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    text-align: left;
+}
+
+.custom-select-arrow {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    pointer-events: none;
+}
