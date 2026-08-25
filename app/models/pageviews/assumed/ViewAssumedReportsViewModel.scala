@@ -49,14 +49,14 @@ object ViewAssumedReportsViewModel {
   private def platformOperatorSelectItems(operators: Seq[PlatformOperator])
                                          (implicit messages: Messages): Seq[SelectItem] = operators match {
     case Nil => Nil
-    case _ => SelectItem(value = Some("all"), text = messages("viewAssumedReports.platformOperator.allValues")) ::
+    case _ => SelectItem(value = None, text = "") ::
       operators.map(operator => SelectItem(value = Some(operator.operatorId), text = operator.operatorName)).toList
   }
 
 
   private def reportingPeriodSelectItems(currentYear: Year)
                                         (implicit messages: Messages): Seq[SelectItem] =
-    SelectItem(value = Some("0"), text = messages("viewAssumedReports.reportingPeriod.allValues")) ::
+    SelectItem(value = None, text = "") ::
       (firstLegislativeYear to currentYear.getValue)
         .map(year => SelectItem(value = Some(year.toString), text = year.toString)).toList
 }
