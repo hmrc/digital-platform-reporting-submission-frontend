@@ -89,7 +89,7 @@ object ViewSubmissionsViewModel {
 
   private def reportingPeriodSelectItems(currentYear: Year)
                                         (implicit messages: Messages): Seq[SelectItem] = {
-    SelectItem(value = None, text = "") ::
+    SelectItem(value = Some("0"), text = messages("viewSubmissions.reportingPeriod.allValues")) ::
       (firstLegislativeYear to currentYear.getValue).map { year =>
         SelectItemViewModel(
           value = year.toString,
@@ -101,7 +101,7 @@ object ViewSubmissionsViewModel {
   private def platformOperatorSelectItems(operators: Seq[PlatformOperator])
                                          (implicit messages: Messages): List[SelectItem] =
     if (operators.size > 1) {
-      SelectItem(value = None, text = "") ::
+      SelectItem(value = Some("all"), text = messages("viewSubmissions.platformOperator.allValues")) ::
         operators.map { operator =>
           SelectItemViewModel(
             value = operator.operatorId,
