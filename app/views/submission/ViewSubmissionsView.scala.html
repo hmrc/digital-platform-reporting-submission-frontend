@@ -97,8 +97,7 @@
                         items = viewModel.platformOperatorSelectItems,
                         label = LabelViewModel(messages("viewSubmissions.filter.operatorId")).withSize(LabelSize.Small)
                     )
-                    .withCssClass("govuk-input")
-                    .asAccessibleAutocomplete(Some(AccessibleAutocomplete(showAllValues = true)))
+                    .withCssClass("govuk-!-width-one-third")
                     .withAttribute("aria-controls", "operatorId_listbox")
                 )
             }
@@ -109,9 +108,7 @@
                     items = viewModel.reportingPeriodSelectItems,
                     label = LabelViewModel(messages("viewSubmissions.filter.reportingPeriod")).withSize(LabelSize.Small)
                 )
-                .withCssClass("govuk-input")
-                .withCssClass("narrow-autocomplete")
-                .asAccessibleAutocomplete(Some(AccessibleAutocomplete(showAllValues = true, defaultValue = None)))
+                .withCssClass("govuk-!-width-one-third")
                 .withAttribute("aria-controls", "reportingPeriod_listbox")
             )
 
