@@ -9,6 +9,17 @@
   max-width: 11.5em;
 }
 
+.autocomplete__option {
+    white-space: normal !important;
+    word-break: break-word !important;
+}
+
+.autocomplete__input {
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    overflow: hidden;
+}
+
 // Ensure the error styling is presented (powered by adding the govuk-input-error class in js)
 // This can't be done just by adding the class due to conflicting specificity
 .autocomplete__input.govuk-input--error {
