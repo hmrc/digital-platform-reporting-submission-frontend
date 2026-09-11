@@ -91,26 +91,27 @@
             )
 
             @if(viewModel.platformOperatorSelectItems.nonEmpty) {
+            <div class="custom-select govuk-!-width-one-third">
                 @govukSelect(
                     SelectViewModel(
                         field = form("operatorId"),
                         items = viewModel.platformOperatorSelectItems,
                         label = LabelViewModel(messages("viewSubmissions.filter.operatorId")).withSize(LabelSize.Small)
                     )
-                    .withCssClass("govuk-!-width-one-third")
                     .withAttribute("aria-controls", "operatorId_listbox")
                 )
+            </div>
             }
-
+            <div class="custom-select govuk-!-width-one-third">
             @govukSelect(
                 SelectViewModel(
                     field = form("reportingPeriod"),
                     items = viewModel.reportingPeriodSelectItems,
                     label = LabelViewModel(messages("viewSubmissions.filter.reportingPeriod")).withSize(LabelSize.Small)
                 )
-                .withCssClass("govuk-!-width-one-third")
                 .withAttribute("aria-controls", "reportingPeriod_listbox")
             )
+            </div>
 
             @govukButton(ButtonViewModel(messages("viewSubmissions.applyFilter")))
 

@@ -107,3 +107,230 @@ function upTo(el, tagName) {
     // return undefined
     return null;
 }
+
+// =====================================================
+// This JavaScript restructures the <select> and <option> elements into a custom <ul>/<li> dropdown to handle long option text more effectively.
+// =====================================================
+
+document.querySelectorAll(".custom-select select").forEach(function (select) {
+    const wrapper = select.parentElement;
+    const options = Array.from(select.options);
+    const selectedOption = options[select.selectedIndex];
+    const listId = select.getAttribute("aria-controls") ||
+        select.id + "-options";
+
+    // Keep the field value available for form submission.
+    const input = document.createElement("input");
+    input.type = "hidden";
+    input.name = select.name;
+    input.value = select.value;
+    input.disabled = select.disabled;
+
+    // Create the dropdown trigger.
+    const button = document.createElement("button");
+    button.type = "button";
+    button.id = select.id;
+    button.className = select.className + " custom-select-trigger";
+    button.disabled = select.disabled;
+    button.setAttribute("aria-expanded", "false");
+    button.setAttribute("aria-controls", listId);
+    button.setAttribute("aria-haspopup", "listbox");
+
+    ["aria-describedby", "aria-invalid"].forEach(function (attribute) {
+        if (select.hasAttribute(attribute)) {
+            button.setAttribute(attribute, select.getAttribute(attribute));
+        }
+    });
+
+    const value = document.createTextNode(
+        selectedOption ? selectedOption.text : ""
+    );
+
+    button.appendChild(value);
+    button.insertAdjacentHTML("beforeend", `
+        <svg class="custom-select-arrow"
+             width="14" height="10" viewBox="0 0 14 10"
+             aria-hidden="true" focusable="false">
+            <path d="M2 2 L7 7 L12 2"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"/>
+        </svg>
+    `);
+
+    const list = document.createElement("ul");
+    list.id = listId;
+    list.className = "custom-select-options";
+    list.setAttribute("role", "listbox");
+    list.hidden = true;
+
+    const label = select.labels && select.labels[0];
+
+    if (label) {
+        if (!label.id) {
+            label.id = select.id + "-label";
+        }
+
+        list.setAttribute("aria-labelledby", label.id);
+    } else if (select.hasAttribute("aria-label")) {
+        button.setAttribute("aria-label", select.getAttribute("aria-label"));
+        list.setAttribute("aria-label", select.getAttribute("aria-label"));
+    }
+
+    function enabledItems() {
+        return Array.from(
+            list.querySelectorAll('[role="option"][aria-disabled="false"]')
+        );
+    }
+
+    function setOpen(open, focusLast) {
+        list.hidden = !open;
+        button.setAttribute("aria-expanded", String(open));
+
+        if (open) {
+            const items = enabledItems();
+            const selected = items.find(function (item) {
+                return item.getAttribute("aria-selected") === "true";
+            });
+
+            const target = selected ||
+                (focusLast ? items[items.length - 1] : items[0]);
+
+            if (target) {
+                target.focus();
+            }
+        }
+    }
+
+    options.forEach(function (option) {
+        const disabled = option.disabled ||
+            (option.parentElement.tagName === "OPTGROUP" &&
+                option.parentElement.disabled);
+
+        const item = document.createElement("li");
+        item.textContent = option.text;
+        item.className = "autocomplete__option";
+        item.tabIndex = -1;
+        item.setAttribute("role", "option");
+        item.setAttribute("aria-selected", String(option.selected));
+        item.setAttribute("aria-disabled", String(disabled));
+        item.classList.toggle("is-selected", option.selected);
+
+        function selectOption() {
+            if (disabled || button.disabled) return;
+
+            input.value = option.value;
+            value.nodeValue = option.text;
+
+            list.querySelectorAll('[role="option"]').forEach(function (element) {
+                const selected = element === item;
+
+                element.classList.toggle("is-selected", selected);
+                element.setAttribute("aria-selected", String(selected));
+            });
+
+            setOpen(false);
+            button.focus();
+
+            input.dispatchEvent(new Event("change", { bubbles: true }));
+        }
+
+        item.addEventListener("click", selectOption);
+
+        item.addEventListener("keydown", function (event) {
+            if (event.key === "Enter" || event.key === " ") {
+                event.preventDefault();
+                selectOption();
+            }
+        });
+
+        list.appendChild(item);
+    });
+
+    button.addEventListener("click", function () {
+        setOpen(list.hidden);
+    });
+
+    button.addEventListener("keydown", function (event) {
+        if (event.key === "ArrowDown" || event.key === "ArrowUp") {
+            event.preventDefault();
+            setOpen(true, event.key === "ArrowUp");
+        }
+    });
+
+    let searchText = "";
+    let searchTimer;
+
+    list.addEventListener("keydown", function (event) {
+        const items = enabledItems();
+        if (!items.length) return;
+
+        let index = items.indexOf(document.activeElement);
+
+        switch (event.key) {
+            case "ArrowDown":
+                index = Math.min(index + 1, items.length - 1);
+                break;
+            case "ArrowUp":
+                index = Math.max(index - 1, 0);
+                break;
+            case "Home":
+                index = 0;
+                break;
+            case "End":
+                index = items.length - 1;
+                break;
+            default:
+                // Type letters to focus a matching option.
+                if (
+                    event.key.length === 1 &&
+                    event.key !== " " &&
+                    !event.ctrlKey &&
+                    !event.altKey &&
+                    !event.metaKey
+                ) {
+                    event.preventDefault();
+                    clearTimeout(searchTimer);
+                    searchText += event.key.toLowerCase();
+
+                    const match = items.find(function (item) {
+                        return item.textContent.trim().toLowerCase()
+                            .startsWith(searchText);
+                    });
+
+                    if (match) match.focus();
+
+                    searchTimer = setTimeout(function () {
+                        searchText = "";
+                    }, 500);
+                }
+                return;
+        }
+
+        event.preventDefault();
+        items[index].focus();
+    });
+
+    wrapper.addEventListener("keydown", function (event) {
+        if (event.key === "Escape" && !list.hidden) {
+            event.preventDefault();
+            setOpen(false);
+            button.focus();
+        }
+    });
+
+    wrapper.addEventListener("focusout", function (event) {
+        if (!wrapper.contains(event.relatedTarget)) {
+            setOpen(false);
+        }
+    });
+
+    document.addEventListener("click", function (event) {
+        if (!wrapper.contains(event.target)) {
+            setOpen(false);
+        }
+    });
+
+    // Remove the original select and options.
+    select.replaceWith(input, button, list);
+});
