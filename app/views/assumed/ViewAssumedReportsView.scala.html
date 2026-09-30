@@ -58,27 +58,27 @@
 
     <form method="GET" novalidate action="@ViewAssumedReportsController.onPageLoad().url">
         @if(viewModel.platformOperatorSelectItems.nonEmpty) {
+        <div class="custom-select govuk-!-width-one-third">
             @govukSelect(
                 SelectViewModel(
                     field = viewModel.form("operatorId"),
                     items = viewModel.platformOperatorSelectItems,
                     label = LabelViewModel(messages("viewAssumedReports.filter.operatorId")).withSize(LabelSize.Small)
                 )
-                .withCssClass("govuk-input")
-                .asAccessibleAutocomplete(Some(AccessibleAutocomplete(showAllValues = true)))
+                .withAttribute("aria-controls", "operatorId_listbox")
             )
+        </div>
         }
-
+        <div class="custom-select govuk-!-width-one-third">
         @govukSelect(
             SelectViewModel(
                 field = viewModel.form("reportingPeriod"),
                 items = viewModel.reportingPeriodSelectItems,
                 label = LabelViewModel(messages("viewAssumedReports.filter.reportingPeriod")).withSize(LabelSize.Small)
             )
-            .withCssClass("govuk-input")
-            .withCssClass("narrow-autocomplete")
-            .asAccessibleAutocomplete(Some(AccessibleAutocomplete(showAllValues = true, defaultValue = None)))
+            .withAttribute("aria-controls", "operatorId_listbox")
         )
+        </div>
 
         @govukButton(ButtonViewModel(messages("viewAssumedReports.applyFilter")))
 
