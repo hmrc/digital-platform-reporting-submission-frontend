@@ -52,6 +52,6 @@ object ViewUtils {
           SelectItemViewModel(
             value = country.code,
             text = country.name
-          ).withAttribute("aria-describedby", country.name)
+          )
       }
 }
