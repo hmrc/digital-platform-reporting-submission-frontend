@@ -46,7 +46,6 @@
                 field = form("value"),
                 items = SelectItem(value = None, text = "") +: operators.map { operator =>
                     SelectItemViewModel(value = operator.operatorId, text = operator.operatorName)
-                    .withAttribute("aria-describedby", operator.operatorName)
                 },
                 label = LabelViewModel(messages("assumed.selectPlatformOperator.heading")).asPageHeading()
             )
