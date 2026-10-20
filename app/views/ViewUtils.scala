@@ -20,7 +20,7 @@ import models.Country
 import play.api.data.Form
 import play.api.i18n.Messages
 import uk.gov.hmrc.govukfrontend.views.viewmodels.select.SelectItem
-import viewmodels.govuk.all.{FluentSelectItem, SelectItemViewModel}
+import viewmodels.govuk.all.SelectItemViewModel
 
 import java.time.format.DateTimeFormatter
 import java.time.{Instant, LocalDateTime, ZoneId}
