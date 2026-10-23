@@ -47,7 +47,7 @@
                 items = SelectItem(value = None, text = "") +: operators.map { operator =>
                     SelectItemViewModel(value = operator.operatorId, text = operator.operatorName)
                 },
-                label = LabelViewModel(messages("assumed.selectPlatformOperator.heading")).asPageHeading()
+                label = LabelViewModel(messages("assumed.selectPlatformOperator.heading")).asPageHeading().withAttribute("id", "operator-label")
             )
             .withCssClass("govuk-input")
             .asAccessibleAutocomplete(Some(AccessibleAutocomplete(showAllValues = true)))

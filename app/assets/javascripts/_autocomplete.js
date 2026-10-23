@@ -360,3 +360,18 @@ document.querySelectorAll(".custom-select select").forEach(function (select) {
     // Remove the original select and options.
     select.replaceWith(input, button, list);
 });
+
+// Fix autocomplete dropdown accessibility by updating `aria-labelledby` to reference the associated label
+document.querySelectorAll('ul.autocomplete__menu').forEach(menu => {
+    const container = menu.closest('.autocomplete__wrapper');
+    const input = container?.querySelector('input');
+    const label = input?.labels?.[0];
+
+    if (label) {
+        if (!label.id) {
+            label.id = `${input.id}-label`;
+        }
+
+        menu.setAttribute('aria-labelledby', label.id);
+    }
+});
