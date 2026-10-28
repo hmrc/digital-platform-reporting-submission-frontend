@@ -68,6 +68,31 @@ class SubmissionConfirmationController @Inject()(override val messagesApi: Messa
       }).flatten
   }
 
+  def onPageLoadBySubmissionId(submissionId: String): Action[AnyContent] = identify.async {
+    implicit request =>
+      submissionConnector.get(submissionId).flatMap {
+        case Some(submission) =>
+          val operatorId = submission.operatorId
+          for {
+            subscriptionInfo <- subscriptionConnector.getSubscription
+            poDetails        <- platformOperatorConnector.viewPlatformOperator(operatorId)
+            result           <- handleSubmission(operatorId, submission) {
+              case state: Approved =>
+                Future.successful(Ok(view(
+                  operatorId,
+                  submission.operatorName,
+                  submissionId,
+                  getSummaryList(state.fileName, submission, state, submission.updated, request.dprsId),
+                  subscriptionInfo.primaryContact.email,
+                  poDetails.primaryContactDetails.emailAddress
+                )))
+            }
+          } yield result
+
+        case None => Future.successful(NotFound)
+      }
+  }
+
   private def getSummaryList(fileName: String, submission: Submission, state: Approved, checksCompleted: Instant, dprsId: String)(using Messages): SummaryList =
     SummaryList(
       rows = Seq(

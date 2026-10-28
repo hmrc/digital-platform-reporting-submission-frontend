@@ -79,7 +79,7 @@ class FileErrorsControllerSpec extends SpecBase with MockitoSugar with BeforeAnd
           when(mockSubmissionConnector.get(any())(using any())).thenReturn(Future.successful(Some(submission)))
 
           running(application) {
-            val request = FakeRequest(routes.FileErrorsController.onPageLoad(operatorId, "id"))
+            val request = FakeRequest(routes.FileErrorsController.onPageLoadBySubmissionId("id"))
             val result = route(application, request).value
             val view = application.injector.instanceOf[FileErrorsView]
 

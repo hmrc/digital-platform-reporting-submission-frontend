@@ -38,9 +38,14 @@ class CheckFileController @Inject()(override val messagesApi: MessagesApi,
                                     submissionConnector: SubmissionConnector)
                                    (using ExecutionContext) extends FrontendBaseController with I18nSupport {
 
-  def onPageLoad(operatorId: String, submissionId: String): Action[AnyContent] = identify.async { implicit request =>
+  def onPageLoad(operatorId: String, submissionId: String): Action[AnyContent] = load(Some(operatorId), submissionId)
+
+  def onPageLoadBySubmissionId(submissionId: String): Action[AnyContent] = load(None, submissionId)
+
+  private def load(maybeOperatorId: Option[String], submissionId: String): Action[AnyContent] = identify.async { implicit request =>
     submissionConnector.get(submissionId).flatMap {
       _.map { submission =>
+        val operatorId = maybeOperatorId.getOrElse(submission.operatorId)
         handleSubmission(operatorId, submission) { case state: Submitted =>
           Future.successful(Ok(view(operatorId, submissionId, getSummaryList(state.fileName), submission.operatorName)))
         }
