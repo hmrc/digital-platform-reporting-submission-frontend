@@ -95,7 +95,7 @@ class CheckFileControllerSpec extends SpecBase with MockitoSugar with BeforeAndA
               )
             )
 
-            val request = FakeRequest(routes.CheckFileController.onPageLoad(operatorId, "id"))
+            val request = FakeRequest(routes.CheckFileController.onPageLoadBySubmissionId("id"))
             val result = route(application, request).value
             val view = application.injector.instanceOf[CheckFileView]
 
