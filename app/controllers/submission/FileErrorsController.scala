@@ -41,10 +41,15 @@ class FileErrorsController @Inject()(
                                       submissionConnector: SubmissionConnector
                                     )(using ExecutionContext) extends FrontendBaseController with I18nSupport {
 
-  def onPageLoad(operatorId: String, submissionId: String): Action[AnyContent] = identify.async {
+  def onPageLoad(operatorId: String, submissionId: String): Action[AnyContent] = load(Some(operatorId), submissionId)
+
+  def onPageLoadBySubmissionId(submissionId: String): Action[AnyContent] = load(None, submissionId)
+
+  private def load(maybeOperatorId: Option[String], submissionId: String): Action[AnyContent] = identify.async {
     implicit request =>
       submissionConnector.get(submissionId).flatMap {
         _.map { submission =>
+          val operatorId = maybeOperatorId.getOrElse(submission.operatorId)
           handleSubmission(operatorId, submission) {
             case state: Rejected => Future.successful(Ok(view(submission.operatorId, submission._id, state.fileName)))
             case state: Submitted => handleSubmittedState(operatorId, submission, state.fileName)

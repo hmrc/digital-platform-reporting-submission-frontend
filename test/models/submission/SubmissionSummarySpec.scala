@@ -16,6 +16,7 @@
 
 package models.submission
 
+import controllers.submission.routes
 import models.submission.SubmissionStatus._
 import org.scalatest.freespec.AnyFreeSpec
 import org.scalatest.matchers.must.Matchers
@@ -47,12 +48,12 @@ class SubmissionSummarySpec extends AnyFreeSpec with Matchers {
     "for rejected submissions" - {
 
       "must be present when local data exists and operatorId is populated" in {
-        baseSubmission.link mustBe defined
+        baseSubmission.link.map(_.href) mustEqual Some(routes.FileErrorsController.onPageLoad("operatorId", baseSubmission.submissionId).url)
       }
 
-      "must not be present when local data exists and operatorId is None" in {
+      "must be present when local data exists and operatorId is None" in {
         val submission = baseSubmission.copy(operatorId = None)
-        submission.link must not be defined
+        submission.link.map(_.href) mustEqual Some(routes.FileErrorsController.onPageLoadBySubmissionId(submission.submissionId).url)
       }
 
       "must not be present when local data does not exist" in {
@@ -66,13 +67,13 @@ class SubmissionSummarySpec extends AnyFreeSpec with Matchers {
       "must be present when local data exists and operatorId is populated" in {
 
         val submission = baseSubmission.copy(submissionStatus = Success)
-        submission.link mustBe defined
+        submission.link.map(_.href) mustEqual Some(routes.SubmissionConfirmationController.onPageLoad("operatorId", submission.submissionId).url)
       }
 
-      "must not be present when local data exists and operatorId is None" in {
+      "must be present when local data exists and operatorId is None" in {
 
         val submission = baseSubmission.copy(submissionStatus = Success, operatorId = None)
-        submission.link must not be defined
+        submission.link.map(_.href) mustEqual Some(routes.SubmissionConfirmationController.onPageLoadBySubmissionId(submission.submissionId).url)
       }
 
       "must not be present when local data does not exist" in {
@@ -87,13 +88,13 @@ class SubmissionSummarySpec extends AnyFreeSpec with Matchers {
       "must be present when local data exists and operatorId is populated" in {
 
         val submission = baseSubmission.copy(submissionStatus = Pending)
-        submission.link mustBe defined
+        submission.link.map(_.href) mustEqual Some(routes.CheckFileController.onPageLoad("operatorId", submission.submissionId).url)
       }
 
-      "must not be present when local data exists and operatorId is None" in {
+      "must be present when local data exists and operatorId is None" in {
 
         val submission = baseSubmission.copy(submissionStatus = Pending, operatorId = None)
-        submission.link must not be defined
+        submission.link.map(_.href) mustEqual Some(routes.CheckFileController.onPageLoadBySubmissionId(submission.submissionId).url)
       }
 
       "must not be present when local data does not exist" in {

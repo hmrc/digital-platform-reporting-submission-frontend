@@ -109,7 +109,7 @@ class SubmissionConfirmationControllerSpec extends SpecBase with MockitoSugar wi
           when(mockSubmissionConnector.get(any())(using any())).thenReturn(Future.successful(Some(submission)))
 
           running(application) {
-            val request = FakeRequest(routes.SubmissionConfirmationController.onPageLoad(operatorId, "id"))
+            val request = FakeRequest(routes.SubmissionConfirmationController.onPageLoadBySubmissionId("id"))
             val result = route(application, request).value
             val view = application.injector.instanceOf[SubmissionConfirmationView]
 

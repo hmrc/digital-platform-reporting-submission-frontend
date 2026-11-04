@@ -40,11 +40,26 @@ final case class SubmissionSummary(submissionId: String,
                                    localDataExists: Boolean) {
 
   def link(implicit messages: Messages): Option[Link] = if (localDataExists) {
-    submissionStatus match {
-      case Pending  => operatorId.map(id => Link(messages("viewSubmissions.refreshStatus"), routes.CheckFileController.onPageLoad(id, submissionId).url))
-      case Success  => operatorId.map(id => Link(messages("viewSubmissions.confirmation"), routes.SubmissionConfirmationController.onPageLoad(id, submissionId).url))
-      case Rejected => operatorId.map(id => Link(messages("viewSubmissions.checkErrors"), routes.FileErrorsController.onPageLoad(id, submissionId).url))
-    }
+    Some(submissionStatus match {
+      case Pending  => Link(
+        messages("viewSubmissions.refreshStatus"),
+        operatorId
+          .map(routes.CheckFileController.onPageLoad(_, submissionId).url)
+          .getOrElse(routes.CheckFileController.onPageLoadBySubmissionId(submissionId).url)
+      )
+      case Success  => Link(
+        messages("viewSubmissions.confirmation"),
+        operatorId
+          .map(routes.SubmissionConfirmationController.onPageLoad(_, submissionId).url)
+          .getOrElse(routes.SubmissionConfirmationController.onPageLoadBySubmissionId(submissionId).url)
+      )
+      case Rejected => Link(
+        messages("viewSubmissions.checkErrors"),
+        operatorId
+          .map(routes.FileErrorsController.onPageLoad(_, submissionId).url)
+          .getOrElse(routes.FileErrorsController.onPageLoadBySubmissionId(submissionId).url)
+      )
+    })
   } else {
     None
   }
