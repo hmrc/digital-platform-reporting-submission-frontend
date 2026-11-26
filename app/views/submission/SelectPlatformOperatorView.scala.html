@@ -48,7 +48,7 @@
                     SelectItemViewModel(value = operator.operatorId, text = operator.operatorName)
                     .withAttribute("aria-describedby", operator.operatorName)
                 },
-                label = LabelViewModel(messages("submission.selectPlatformOperator.heading")).asPageHeading()
+                label = LabelViewModel(messages("submission.selectPlatformOperator.heading")).withAttribute("id", "operator-label").withAttribute("aria-labelledby", "operator-label").withCssClass("govuk-label--l"),
             )
             .withCssClass("govuk-input")
             .asAccessibleAutocomplete(Some(AccessibleAutocomplete(showAllValues = true)))
